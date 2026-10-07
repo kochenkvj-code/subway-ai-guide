@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
+
 const STATION = {
   ko: "종로5가역",
   en: "Jongno 5-ga Station",
@@ -31,6 +33,10 @@ const TEXT = {
     error: "검색 기반 답변을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.",
     sources: "출처",
     source: "출처",
+    feedbackQuestion: "이 안내로 해결됐나요?",
+    solved: "해결됨",
+    notSolved: "해결 안 됨",
+    feedbackThanks: "피드백 감사합니다.",
   },
   en: {
     title: "AI Guide",
@@ -53,6 +59,10 @@ const TEXT = {
     error: "I couldn't load a search-grounded answer. Please try again.",
     sources: "Sources",
     source: "Source",
+    feedbackQuestion: "Did this solve it?",
+    solved: "Solved",
+    notSolved: "Not solved",
+    feedbackThanks: "Thanks for your feedback.",
   },
   ja: {
     title: "AI案内",
@@ -75,6 +85,10 @@ const TEXT = {
     error: "検索に基づく回答を読み込めませんでした。もう一度お試しください。",
     sources: "出典",
     source: "出典",
+    feedbackQuestion: "解決しましたか？",
+    solved: "解決した",
+    notSolved: "未解決",
+    feedbackThanks: "ご協力ありがとうございます。",
   },
   zh: {
     title: "AI 안내",
@@ -97,6 +111,10 @@ const TEXT = {
     error: "无法加载基于搜索的回答，请稍后重试。",
     sources: "来源",
     source: "来源",
+    feedbackQuestion: "问题解决了吗？",
+    solved: "已解决",
+    notSolved: "未解决",
+    feedbackThanks: "感谢您的反馈。",
   },
 };
 
@@ -293,6 +311,10 @@ export default function Home() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
+  const [feedbackByIndex, setFeedbackByIndex] = useState({});
+  const [gateEntry, setGateEntry] = useState(false);
+  const gateEntryRef = useRef(false);
+  const gateAutoOpenedRef = useRef(false);
   const chatRef = useRef(null);
   const [scrollIndicator, setScrollIndicator] = useState({
     visible: false,
@@ -331,6 +353,60 @@ export default function Home() {
   }
 
   useEffect(() => {
+    if (!GA_ID || typeof window === "undefined") return;
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag =
+      window.gtag ||
+      function gtag() {
+        window.dataLayer.push(arguments);
+      };
+
+    window.gtag("js", new Date());
+    window.gtag("config", GA_ID, {
+      anonymize_ip: true,
+    });
+
+    if (!document.querySelector(`script[data-sag-ga="${GA_ID}"]`)) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+      script.dataset.sagGa = GA_ID;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || gateAutoOpenedRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("from") !== "gate") return;
+
+    gateAutoOpenedRef.current = true;
+    gateEntryRef.current = true;
+    setGateEntry(true);
+    setMode(null);
+    setInput("");
+    setFeedbackByIndex({});
+
+    const gateMenu = GATE_MENU.ko;
+    setMessages([
+      {
+        role: "assistant",
+        text: gateMenu.prompt,
+        options: gateMenu.options,
+      },
+    ]);
+
+    if (GA_ID && typeof window.gtag === "function") {
+      window.gtag("event", "gate_qr_open", {
+        language: "ko",
+        entry_source: "gate_qr",
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     const el = chatRef.current;
     if (!el) return;
 
@@ -351,10 +427,24 @@ export default function Home() {
     setMode(null);
     setInput("");
     setLoading(false);
+    setFeedbackByIndex({});
+
+    if (gateEntryRef.current) {
+      const gateMenu = GATE_MENU[nextLang] || GATE_MENU.ko;
+      setMessages([
+        {
+          role: "assistant",
+          text: gateMenu.prompt,
+          options: gateMenu.options,
+        },
+      ]);
+      return;
+    }
+
     setMessages([{ role: "assistant", text: TEXT[nextLang].greeting }]);
   }
 
-  async function askGoogle(question, visibleUserText = question) {
+  async function askGoogle(question, visibleUserText = question, feedbackKey = "free_question") {
     setLoading(true);
 
     setMessages((prev) => [
@@ -390,6 +480,7 @@ export default function Home() {
           text: data.answer,
           sources: data.sources || [],
           searchSuggestion: data.searchSuggestion || null,
+          feedbackKey,
         };
 
         if (pendingIndex >= 0) {
@@ -432,8 +523,33 @@ export default function Home() {
     setMessages((prev) => [
       ...prev,
       { role: "user", text: option.label },
-      { role: "assistant", text: guide },
+      {
+        role: "assistant",
+        text: guide,
+        feedbackKey: `gate_${option.id}`,
+      },
     ]);
+  }
+
+  function handleFeedback(index, message, result) {
+    if (feedbackByIndex[index]) return;
+
+    setFeedbackByIndex((prev) => ({
+      ...prev,
+      [index]: result,
+    }));
+
+    if (GA_ID && typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag(
+        "event",
+        result === "solved" ? "feedback_solved" : "feedback_not_solved",
+        {
+          answer_type: message.feedbackKey || "unknown",
+          language: lang,
+          entry_source: gateEntry ? "gate_qr" : "general",
+        }
+      );
+    }
   }
 
   function quickAction(type, label) {
@@ -467,7 +583,7 @@ export default function Home() {
 
     setMode(null);
     const question = quickQuestion(type, lang);
-    askGoogle(question, label);
+    askGoogle(question, label, type);
   }
 
   async function submitMessage(event) {
@@ -490,11 +606,11 @@ export default function Home() {
       };
 
       setMode(null);
-      await askGoogle(routeQuestions[lang] || routeQuestions.ko, raw);
+      await askGoogle(routeQuestions[lang] || routeQuestions.ko, raw, "route");
       return;
     }
 
-    await askGoogle(raw);
+    await askGoogle(raw, raw, "free_question");
   }
 
   const actions = [
@@ -594,6 +710,32 @@ export default function Home() {
                     className="sag-search-suggestion"
                     dangerouslySetInnerHTML={{ __html: message.searchSuggestion }}
                   />
+                )}
+
+                {GA_ID && message.feedbackKey && !message.pending && !message.error && (
+                  <div className="sag-feedback">
+                    {feedbackByIndex[index] ? (
+                      <span className="sag-feedback-thanks">{t.feedbackThanks}</span>
+                    ) : (
+                      <>
+                        <span className="sag-feedback-question">{t.feedbackQuestion}</span>
+                        <div className="sag-feedback-buttons">
+                          <button
+                            type="button"
+                            onClick={() => handleFeedback(index, message, "solved")}
+                          >
+                            ✓ {t.solved}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleFeedback(index, message, "not_solved")}
+                          >
+                            ✕ {t.notSolved}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -927,6 +1069,47 @@ export default function Home() {
         .sag-search-suggestion {
           margin-top: 10px;
           overflow: hidden;
+        }
+
+        .sag-feedback {
+          margin-top: 9px;
+          padding-top: 8px;
+          border-top: 1px solid rgba(44, 57, 67, .10);
+        }
+
+        .sag-feedback-question {
+          display: block;
+          margin-bottom: 6px;
+          color: #66747e;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .sag-feedback-buttons {
+          display: flex;
+          gap: 6px;
+        }
+
+        .sag-feedback-buttons button {
+          border: 1px solid #cbd9df;
+          background: white;
+          color: #40505b;
+          border-radius: 8px;
+          padding: 5px 8px;
+          font-size: 11px;
+          font-weight: 750;
+          cursor: pointer;
+        }
+
+        .sag-feedback-buttons button:active {
+          transform: scale(.98);
+          background: #f3f7f8;
+        }
+
+        .sag-feedback-thanks {
+          color: #14785f;
+          font-size: 11px;
+          font-weight: 750;
         }
 
         .sag-input-wrap {
