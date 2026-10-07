@@ -12,7 +12,7 @@ const STATION = {
 const TEXT = {
   ko: {
     title: "AI 안내",
-    status: "Google 검색 연동",
+    status: "AI 안내 운영중",
     bannerTitle: "종로5가역 AI 안내",
     bannerBody: "역 관련 일반 문의는 Google 검색을 바탕으로 안내합니다. 길찾기는 별도 Google 검색으로 연결됩니다.",
     quick: "빠른 안내",
@@ -36,7 +36,7 @@ const TEXT = {
   },
   en: {
     title: "AI Guide",
-    status: "Google Search",
+    status: "AI Guide Online",
     bannerTitle: "Jongno 5-ga Station AI Guide",
     bannerBody: "General station questions use Google Search grounding. Route searches open separately in Google.",
     quick: "Quick guide",
@@ -60,7 +60,7 @@ const TEXT = {
   },
   ja: {
     title: "AI案内",
-    status: "Google検索連携",
+    status: "AI案内 稼働中",
     bannerTitle: "鍾路5街駅 AI案内",
     bannerBody: "駅に関する一般的な質問はGoogle検索をもとに案内します。経路検索はGoogle検索を別に開きます。",
     quick: "クイック案内",
@@ -84,7 +84,7 @@ const TEXT = {
   },
   zh: {
     title: "AI 안내",
-    status: "Google 搜索",
+    status: "AI 指南运行中",
     bannerTitle: "钟路5街站 AI 指南",
     bannerBody: "一般车站问题会参考 Google 搜索进行回答，路线查询会单独打开 Google 搜索。",
     quick: "快捷指南",
@@ -346,11 +346,6 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="sag-banner">
-          <strong>{t.bannerTitle}</strong>
-          <span>{t.bannerBody}</span>
-        </div>
-
         <div className="sag-section-title">{t.quick}</div>
 
         <div className="sag-actions">
@@ -510,25 +505,8 @@ export default function Home() {
           font-weight: 700;
         }
 
-        .sag-banner {
-          margin: 14px 16px 18px;
-          padding: 14px 15px;
-          background: #edf8f4;
-          border-radius: 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .sag-banner strong { font-size: 14px; }
-        .sag-banner span {
-          font-size: 12px;
-          color: #687781;
-          line-height: 1.45;
-        }
-
         .sag-section-title {
-          padding: 0 16px 10px;
+          padding: 18px 16px 10px;
           font-weight: 800;
           font-size: 14px;
         }
