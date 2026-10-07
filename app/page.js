@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STATION = {
   ko: "종로5가역",
@@ -177,8 +177,21 @@ export default function Home() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
+  const chatRef = useRef(null);
 
   const t = TEXT[lang];
+
+  useEffect(() => {
+    const el = chatRef.current;
+    if (!el) return;
+
+    requestAnimationFrame(() => {
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+  }, [messages, loading]);
 
   function changeLanguage(nextLang) {
     setLang(nextLang);
@@ -354,7 +367,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="sag-chat">
+        <div className="sag-chat" ref={chatRef}>
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""}`}>
@@ -428,7 +441,7 @@ export default function Home() {
         }
 
         .sag-header {
-          padding: 24px 24px 18px;
+          padding: 18px 20px 13px;
           border-bottom: 1px solid #e6edf2;
           display: flex;
           align-items: flex-start;
@@ -444,8 +457,8 @@ export default function Home() {
         }
 
         .sag-header h1 {
-          margin: 5px 0 0;
-          font-size: 27px;
+          margin: 3px 0 0;
+          font-size: 25px;
           letter-spacing: -1px;
         }
 
@@ -479,14 +492,14 @@ export default function Home() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 6px;
-          padding: 14px 16px 0;
+          padding: 9px 16px 0;
         }
 
         .sag-languages button {
           border: 1px solid #dfe8ed;
           background: white;
           border-radius: 10px;
-          padding: 8px 3px;
+          padding: 6px 3px;
           color: #53616c;
           cursor: pointer;
           font-size: 12px;
@@ -500,7 +513,7 @@ export default function Home() {
         }
 
         .sag-section-title {
-          padding: 18px 16px 10px;
+          padding: 10px 16px 7px;
           font-weight: 800;
           font-size: 14px;
         }
@@ -508,12 +521,12 @@ export default function Home() {
         .sag-actions {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
-          padding: 0 16px 18px;
+          gap: 7px;
+          padding: 0 16px 10px;
         }
 
         .sag-actions button {
-          min-height: 82px;
+          min-height: 64px;
           border: 1px solid #d9e4ea;
           border-radius: 14px;
           background: white;
@@ -523,9 +536,9 @@ export default function Home() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: 4px;
           font-weight: 700;
-          font-size: 13px;
+          font-size: 12px;
         }
 
         .sag-actions button:active {
@@ -533,23 +546,49 @@ export default function Home() {
           background: #f7fafb;
         }
 
-        .sag-action-icon { font-size: 22px; }
+        .sag-action-icon { font-size: 19px; }
 
         .sag-chat {
           flex: 1 1 auto;
           min-height: 0;
-          padding: 4px 16px 16px;
+          padding: 6px 12px 14px 16px;
           display: flex;
           flex-direction: column;
           gap: 9px;
           overflow-y: auto;
           overscroll-behavior: contain;
           -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(83, 101, 115, .45) transparent;
+          scrollbar-gutter: stable;
+        }
+
+        .sag-chat::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .sag-chat::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .sag-chat::-webkit-scrollbar-thumb {
+          background: rgba(83, 101, 115, .42);
+          border-radius: 999px;
+        }
+
+        .sag-chat::-webkit-scrollbar-thumb:hover {
+          background: rgba(83, 101, 115, .62);
         }
 
         .sag-row {
           display: flex;
           width: 100%;
+        }
+
+        .sag-chat::after {
+          content: "";
+          display: block;
+          flex: 0 0 2px;
         }
 
         .sag-row.user { justify-content: flex-end; }
@@ -678,30 +717,61 @@ export default function Home() {
           }
 
           .sag-header {
-            padding-top: calc(14px + env(safe-area-inset-top));
-            padding-bottom: 14px;
+            padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
           }
 
-          .sag-header h1 { font-size: 24px; }
+          .sag-kicker {
+            font-size: 10px;
+            letter-spacing: 1.4px;
+          }
+
+          .sag-header h1 {
+            font-size: 22px;
+            margin-top: 2px;
+          }
+
+          .sag-status {
+            font-size: 11px;
+            padding-top: 2px;
+          }
 
           .sag-languages {
-            padding-top: 10px;
+            padding: 7px 12px 0;
+            gap: 5px;
+          }
+
+          .sag-languages button {
+            padding: 5px 2px;
+            font-size: 11px;
           }
 
           .sag-section-title {
-            padding-top: 12px;
+            padding: 8px 12px 6px;
+            font-size: 13px;
           }
 
           .sag-actions {
-            padding-bottom: 12px;
+            padding: 0 12px 8px;
+            gap: 6px;
           }
 
           .sag-actions button {
-            min-height: 70px;
+            min-height: 58px;
+            border-radius: 12px;
+            font-size: 11.5px;
+          }
+
+          .sag-action-icon {
+            font-size: 18px;
+          }
+
+          .sag-chat {
+            padding-top: 5px;
+            padding-bottom: 10px;
           }
 
           .sag-input-wrap {
-            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
           }
         }
       `}</style>
