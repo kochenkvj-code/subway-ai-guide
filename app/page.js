@@ -109,9 +109,11 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "화면에 표시된 오류 코드 또는 현재 상황을 선택해주세요.",
+    prompt: "**올바른 게이트(초록색 화살표)에 카드를 태그한 뒤, 화면에 표시되는 오류 메시지 또는 코드를 확인해 주세요.**\n\n확인을 위해 카드를 다시 태그해도 **추가요금은 발생하지 않습니다.**\n\n아래에서 표시된 오류 코드나 현재 상황을 선택해 주세요.",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
+      { id: "e03", label: "E-03 하차 처리 누락" },
+      { id: "e04", label: "E-04 승차 처리 누락" },
       { id: "e05", label: "E-05 이용시간 초과" },
       { id: "e06", label: "E-06 카드 사용 불가" },
       { id: "e14", label: "E-14 잔액 부족" },
@@ -121,9 +123,11 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "Select the error code shown on the gate, or choose your situation.",
+    prompt: "**Tap your card on a gate showing a green arrow, then check the error message or code on the display.**\n\nTapping again to check the message **will not cause an additional fare charge.**\n\nSelect the displayed error code or your current situation below.",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
+      { id: "e03", label: "E-03 Exit not recorded" },
+      { id: "e04", label: "E-04 Entry not recorded" },
       { id: "e05", label: "E-05 Time exceeded" },
       { id: "e06", label: "E-06 Card unavailable" },
       { id: "e14", label: "E-14 Low balance" },
@@ -133,9 +137,11 @@ const GATE_MENU = {
     ],
   },
   ja: {
-    prompt: "改札に表示されたエラーコード、または現在の状況を選択してください。",
+    prompt: "**緑色の矢印が表示されている改札にカードをタッチし、画面に表示されるエラーメッセージまたはコードを確認してください。**\n\n確認のためにもう一度タッチしても、**追加料金は発生しません。**\n\n表示されたエラーコード、または現在の状況を下から選択してください。",
     options: [
       { id: "e01", label: "E-01 カード重複" },
+      { id: "e03", label: "E-03 出場処理なし" },
+      { id: "e04", label: "E-04 入場処理なし" },
       { id: "e05", label: "E-05 利用時間超過" },
       { id: "e06", label: "E-06 カード利用不可" },
       { id: "e14", label: "E-14 残高不足" },
@@ -145,9 +151,11 @@ const GATE_MENU = {
     ],
   },
   zh: {
-    prompt: "请选择闸机上显示的错误代码，或选择您当前的情况。",
+    prompt: "**请在显示绿色箭头的闸机上刷卡，然后确认屏幕上显示的错误信息或代码。**\n\n为了确认信息而再次刷卡，**不会产生额外费用。**\n\n请在下方选择显示的错误代码或您当前的情况。",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
+      { id: "e03", label: "E-03 未记录出站" },
+      { id: "e04", label: "E-04 未记录进站" },
       { id: "e05", label: "E-05 超过乘车时间" },
       { id: "e06", label: "E-06 卡片无法使用" },
       { id: "e14", label: "E-14 余额不足" },
@@ -164,6 +172,18 @@ const GATE_GUIDES = {
     en: "Two or more transit cards may have been detected at the same time.\n\n**Take out only the card you want to use and tap it again.**",
     ja: "財布やスマートフォンケース内の交通カードが2枚以上同時に読み取られた可能性があります。\n\n**使用するカード1枚だけを取り出して、もう一度タッチしてください。**",
     zh: "可能同时识别到了钱包或手机壳中的两张以上交通卡。\n\n**请只取出要使用的一张卡，再次刷卡。**",
+  },
+  e03: {
+    ko: "**집표(하차) 처리가 되지 않은 카드입니다.**\n\n하차할 때 카드가 정상적으로 태그되지 않았거나 하차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**스피드(휠체어)게이트를 통과한 뒤 역무실로 방문하여 카드를 확인하고 정산해 주세요.**",
+    en: "**This card does not have a recorded exit.**\n\nThis may appear if the card was not tapped correctly when exiting or the exit record was not saved.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office to have the card checked and the fare adjusted.**",
+    ja: "**出場（降車）処理が記録されていないカードです。**\n\n降車時にカードが正常にタッチされなかった、または出場記録が残っていない場合に表示されることがあります。\n\n**スピードゲート（車いす用ゲート）を通過した後、駅務室でカードの確認と精算をしてください。**",
+    zh: "**此卡没有出站（下车）记录。**\n\n下车时未正确刷卡，或出站记录未保存时可能会显示此错误。\n\n**请先通过无障碍宽闸机（轮椅闸机），然后前往站务室检查交通卡并办理结算。**",
+  },
+  e04: {
+    ko: "**개표(승차) 처리가 되지 않은 카드입니다.**\n\n승차할 때 카드가 정상적으로 태그되지 않았거나 승차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**스피드(휠체어)게이트를 통과한 뒤 역무실로 방문하여 카드를 확인하고 정산해 주세요.**",
+    en: "**This card does not have a recorded entry.**\n\nThis may appear if the card was not tapped correctly when entering or the entry record was not saved.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office to have the card checked and the fare adjusted.**",
+    ja: "**入場（乗車）処理が記録されていないカードです。**\n\n乗車時にカードが正常にタッチされなかった、または入場記録が残っていない場合に表示されることがあります。\n\n**スピードゲート（車いす用ゲート）を通過した後、駅務室でカードの確認と精算をしてください。**",
+    zh: "**此卡没有进站（乘车）记录。**\n\n乘车时未正确刷卡，或进站记录未保存时可能会显示此错误。\n\n**请先通过无障碍宽闸机（轮椅闸机），然后前往站务室检查交通卡并办理结算。**",
   },
   e05: {
     ko: "지하철 이용 가능 시간이 초과되어 **정산이 필요한 상태**입니다.\n\n**스피드게이트(휠체어 게이트)를 통과한 뒤 역무실로 방문하여 정산해 주세요.**",
