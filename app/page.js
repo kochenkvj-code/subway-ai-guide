@@ -156,6 +156,19 @@ function quickQuestion(type, lang) {
   return q[type]?.[lang] || "";
 }
 
+
+function renderBoldMarkdown(text) {
+  if (!text) return null;
+
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
+
 export default function Home() {
   const [lang, setLang] = useState("ko");
   const [mode, setMode] = useState(null);
@@ -345,7 +358,7 @@ export default function Home() {
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""}`}>
-                <div className="sag-answer">{message.text}</div>
+                <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
 
                 {message.url && (
                   <>
@@ -394,7 +407,7 @@ export default function Home() {
         button:disabled, input:disabled { opacity: .62; cursor: default; }
 
         .sag-page {
-          min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
           justify-content: center;
           padding: 24px 12px;
@@ -404,7 +417,8 @@ export default function Home() {
         .sag-phone {
           width: 100%;
           max-width: 520px;
-          min-height: calc(100vh - 48px);
+          height: calc(100dvh - 48px);
+          min-height: 0;
           background: white;
           border-radius: 28px;
           box-shadow: 0 14px 45px rgba(28, 55, 78, .12);
@@ -522,13 +536,15 @@ export default function Home() {
         .sag-action-icon { font-size: 22px; }
 
         .sag-chat {
-          flex: 1;
+          flex: 1 1 auto;
+          min-height: 0;
           padding: 4px 16px 16px;
           display: flex;
           flex-direction: column;
           gap: 9px;
           overflow-y: auto;
-          min-height: 260px;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
         }
 
         .sag-row {
@@ -568,6 +584,11 @@ export default function Home() {
           white-space: pre-wrap;
         }
 
+        .sag-answer strong {
+          font-weight: 800;
+          color: inherit;
+        }
+
         .sag-google-button {
           margin-top: 10px;
           display: inline-flex;
@@ -596,13 +617,15 @@ export default function Home() {
         }
 
         .sag-input-wrap {
-          position: sticky;
-          bottom: 0;
+          flex: 0 0 auto;
+          position: relative;
+          z-index: 5;
           background: white;
           border-top: 1px solid #e5edf1;
-          padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+          padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
           display: flex;
           gap: 8px;
+          box-shadow: 0 -6px 18px rgba(20, 40, 55, .04);
         }
 
         .sag-input-wrap input {
@@ -633,18 +656,53 @@ export default function Home() {
         }
 
         @media (max-width: 560px) {
-          .sag-page { padding: 0; }
+          html, body {
+            height: 100%;
+            overflow: hidden;
+          }
+
+          .sag-page {
+            height: 100dvh;
+            min-height: 100dvh;
+            padding: 0;
+            overflow: hidden;
+          }
+
           .sag-phone {
             max-width: none;
-            min-height: 100vh;
+            width: 100%;
+            height: 100dvh;
+            min-height: 0;
             border-radius: 0;
             box-shadow: none;
           }
+
           .sag-header {
-            padding-top: calc(18px + env(safe-area-inset-top));
+            padding-top: calc(14px + env(safe-area-inset-top));
+            padding-bottom: 14px;
           }
+
           .sag-header h1 { font-size: 24px; }
-          .sag-actions button { min-height: 76px; }
+
+          .sag-languages {
+            padding-top: 10px;
+          }
+
+          .sag-section-title {
+            padding-top: 12px;
+          }
+
+          .sag-actions {
+            padding-bottom: 12px;
+          }
+
+          .sag-actions button {
+            min-height: 70px;
+          }
+
+          .sag-input-wrap {
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+          }
         }
       `}</style>
     </main>
