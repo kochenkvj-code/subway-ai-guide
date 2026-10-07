@@ -123,45 +123,45 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "**Tap your card on a gate showing a green arrow, then check the error message or code on the display.**\n\nTapping again to check the message **will not cause an additional fare charge.**\n\nSelect the displayed error code or your current situation below.",
+    prompt: "**Tap at a green-arrow gate and select the error code below.**\nRetapping **does not charge extra.**",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
-      { id: "e03", label: "E-03 Exit not recorded" },
-      { id: "e04", label: "E-04 Entry not recorded" },
-      { id: "e05", label: "E-05 Time exceeded" },
+      { id: "e03", label: "E-03 No exit record" },
+      { id: "e04", label: "E-04 No entry record" },
+      { id: "e05", label: "E-05 Time limit" },
       { id: "e06", label: "E-06 Card unavailable" },
       { id: "e14", label: "E-14 Low balance" },
-      { id: "e33", label: "E-33 Same-station re-entry" },
-      { id: "e44", label: "E-44 Same-station re-exit" },
-      { id: "opposite", label: "↔ I need the opposite platform", wide: true },
+      { id: "e33", label: "E-33 Already entered" },
+      { id: "e44", label: "E-44 Already exited" },
+      { id: "opposite", label: "↔ Opposite platform", wide: true },
     ],
   },
   ja: {
-    prompt: "**緑色の矢印が表示されている改札にカードをタッチし、画面に表示されるエラーメッセージまたはコードを確認してください。**\n\n確認のためにもう一度タッチしても、**追加料金は発生しません。**\n\n表示されたエラーコード、または現在の状況を下から選択してください。",
+    prompt: "**緑の矢印の改札にタッチし、表示されたコードを選んでください。**\n再タッチしても**追加料金はかかりません。**",
     options: [
       { id: "e01", label: "E-01 カード重複" },
-      { id: "e03", label: "E-03 出場処理なし" },
-      { id: "e04", label: "E-04 入場処理なし" },
-      { id: "e05", label: "E-05 利用時間超過" },
+      { id: "e03", label: "E-03 出場記録なし" },
+      { id: "e04", label: "E-04 入場記録なし" },
+      { id: "e05", label: "E-05 時間超過" },
       { id: "e06", label: "E-06 カード利用不可" },
       { id: "e14", label: "E-14 残高不足" },
-      { id: "e33", label: "E-33 同駅で再入場" },
-      { id: "e44", label: "E-44 同駅で再出場" },
-      { id: "opposite", label: "↔ 反対側のホームへ行きたい", wide: true },
+      { id: "e33", label: "E-33 入場済み" },
+      { id: "e44", label: "E-44 出場済み" },
+      { id: "opposite", label: "↔ 反対側ホーム", wide: true },
     ],
   },
   zh: {
-    prompt: "**请在显示绿色箭头的闸机上刷卡，然后确认屏幕上显示的错误信息或代码。**\n\n为了确认信息而再次刷卡，**不会产生额外费用。**\n\n请在下方选择显示的错误代码或您当前的情况。",
+    prompt: "**请在绿色箭头闸机刷卡，并选择显示的错误代码。**\n再次刷卡**不会额外扣费。**",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
-      { id: "e03", label: "E-03 未记录出站" },
-      { id: "e04", label: "E-04 未记录进站" },
-      { id: "e05", label: "E-05 超过乘车时间" },
+      { id: "e03", label: "E-03 无出站记录" },
+      { id: "e04", label: "E-04 无进站记录" },
+      { id: "e05", label: "E-05 超时" },
       { id: "e06", label: "E-06 卡片无法使用" },
       { id: "e14", label: "E-14 余额不足" },
-      { id: "e33", label: "E-33 同站再次进站" },
-      { id: "e44", label: "E-44 同站再次出站" },
-      { id: "opposite", label: "↔ 前往对面站台", wide: true },
+      { id: "e33", label: "E-33 已进站" },
+      { id: "e44", label: "E-44 已出站" },
+      { id: "opposite", label: "↔ 对面站台", wide: true },
     ],
   },
 };
@@ -866,10 +866,10 @@ export default function Home() {
         }
 
         .sag-bubble.has-options {
-          width: 96%;
-          max-width: 96%;
-          padding: 9px 10px;
-          line-height: 1.4;
+          width: 97%;
+          max-width: 97%;
+          padding: 7px 8px;
+          line-height: 1.3;
         }
 
         .sag-gate-options {
@@ -1044,9 +1044,9 @@ export default function Home() {
           }
 
           .sag-gate-options button {
-            min-height: 36px;
-            padding: 4px 4px;
-            font-size: 10.5px;
+            min-height: 34px;
+            padding: 3px 3px;
+            font-size: 10px;
           }
 
           .sag-chat {
