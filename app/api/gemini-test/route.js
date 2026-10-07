@@ -48,10 +48,9 @@ export async function GET() {
         `${serviceAccount}:generateAccessToken`,
 
       subject_token_supplier: {
-        getSubjectToken: () =>
-          getVercelOidcToken({
-            audience: "https://vercel.com/t5-b",
-          }),
+        getSubjectToken: async () => {
+          return await getVercelOidcToken();
+        },
       },
     });
 
