@@ -178,8 +178,41 @@ export default function Home() {
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
   const chatRef = useRef(null);
+  const [scrollIndicator, setScrollIndicator] = useState({
+    visible: false,
+    height: 100,
+    top: 0,
+  });
 
   const t = TEXT[lang];
+
+  function updateScrollIndicator() {
+    const el = chatRef.current;
+    if (!el) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const scrollable = scrollHeight > clientHeight + 2;
+
+    if (!scrollable) {
+      setScrollIndicator({
+        visible: false,
+        height: 100,
+        top: 0,
+      });
+      return;
+    }
+
+    const height = Math.max(18, (clientHeight / scrollHeight) * 100);
+    const maxScroll = scrollHeight - clientHeight;
+    const maxTop = 100 - height;
+    const top = maxScroll > 0 ? (scrollTop / maxScroll) * maxTop : 0;
+
+    setScrollIndicator({
+      visible: true,
+      height,
+      top,
+    });
+  }
 
   useEffect(() => {
     const el = chatRef.current;
@@ -189,6 +222,10 @@ export default function Home() {
       el.scrollTo({
         top: el.scrollHeight,
         behavior: "smooth",
+      });
+
+      requestAnimationFrame(() => {
+        updateScrollIndicator();
       });
     });
   }, [messages, loading]);
@@ -367,7 +404,12 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="sag-chat" ref={chatRef}>
+        <div className="sag-chat-shell">
+          <div
+            className="sag-chat"
+            ref={chatRef}
+            onScroll={updateScrollIndicator}
+          >
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""}`}>
@@ -396,6 +438,20 @@ export default function Home() {
               </div>
             </div>
           ))}
+          </div>
+
+          <div
+            className={`sag-scroll-track ${scrollIndicator.visible ? "visible" : ""}`}
+            aria-hidden="true"
+          >
+            <div
+              className="sag-scroll-thumb"
+              style={{
+                height: `${scrollIndicator.height}%`,
+                top: `${scrollIndicator.top}%`,
+              }}
+            />
+          </div>
         </div>
 
         <form className="sag-input-wrap" onSubmit={submitMessage}>
@@ -548,36 +604,57 @@ export default function Home() {
 
         .sag-action-icon { font-size: 19px; }
 
-        .sag-chat {
+        .sag-chat-shell {
+          position: relative;
           flex: 1 1 auto;
           min-height: 0;
-          padding: 6px 12px 14px 16px;
+          overflow: hidden;
+        }
+
+        .sag-chat {
+          height: 100%;
+          min-height: 0;
+          padding: 6px 18px 14px 16px;
           display: flex;
           flex-direction: column;
           gap: 9px;
           overflow-y: auto;
           overscroll-behavior: contain;
           -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: rgba(83, 101, 115, .45) transparent;
-          scrollbar-gutter: stable;
+          scrollbar-width: none;
         }
 
         .sag-chat::-webkit-scrollbar {
-          width: 4px;
+          width: 0;
+          height: 0;
         }
 
-        .sag-chat::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .sag-chat::-webkit-scrollbar-thumb {
-          background: rgba(83, 101, 115, .42);
+        .sag-scroll-track {
+          position: absolute;
+          top: 7px;
+          right: 5px;
+          bottom: 10px;
+          width: 5px;
           border-radius: 999px;
+          background: rgba(62, 82, 96, .10);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity .18s ease;
         }
 
-        .sag-chat::-webkit-scrollbar-thumb:hover {
-          background: rgba(83, 101, 115, .62);
+        .sag-scroll-track.visible {
+          opacity: 1;
+        }
+
+        .sag-scroll-thumb {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          min-height: 24px;
+          border-radius: 999px;
+          background: rgba(31, 72, 66, .68);
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, .55);
+          transition: top .08s linear, height .12s ease;
         }
 
         .sag-row {
