@@ -78,7 +78,8 @@ export async function GET() {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         contents: [
@@ -108,7 +109,9 @@ export async function GET() {
       }),
     });
 
-    const data = await googleResponse.json();
+    const buffer = await googleResponse.arrayBuffer();
+    const responseText = new TextDecoder("utf-8").decode(buffer);
+    const data = JSON.parse(responseText);
 
     if (!googleResponse.ok) {
       return Response.json(
@@ -132,14 +135,22 @@ export async function GET() {
 
     const grounding = candidate?.groundingMetadata;
 
-    return Response.json({
-      ok: true,
-      answer,
-      googleSearchQueries:
-        grounding?.webSearchQueries || [],
-      sources:
-        grounding?.groundingChunks || [],
-    });
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        answer,
+        googleSearchQueries:
+          grounding?.webSearchQueries || [],
+        sources:
+          grounding?.groundingChunks || [],
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      }
+    );
   } catch (error) {
     return Response.json(
       {
