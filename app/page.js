@@ -29,7 +29,7 @@ const TEXT = {
     exit: "출구 안내",
     elevator: "엘리베이터",
     staff: "역무원 문의",
-    loading: "Google 검색을 확인하고 있어요…",
+    loading: "AI가 답변을 생성하고 있습니다…",
     error: "검색 기반 답변을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.",
     sources: "출처",
     source: "출처",
@@ -53,7 +53,7 @@ const TEXT = {
     exit: "Exit guide",
     elevator: "Elevator",
     staff: "Ask staff",
-    loading: "Checking Google Search…",
+    loading: "AI is generating an answer…",
     error: "I couldn't load a search-grounded answer. Please try again.",
     sources: "Sources",
     source: "Source",
@@ -77,7 +77,7 @@ const TEXT = {
     exit: "出口案内",
     elevator: "エレベーター",
     staff: "駅員に相談",
-    loading: "Google検索を確認しています…",
+    loading: "AIが回答を生成しています…",
     error: "検索に基づく回答を読み込めませんでした。もう一度お試しください。",
     sources: "出典",
     source: "出典",
@@ -101,7 +101,7 @@ const TEXT = {
     exit: "出口指南",
     elevator: "电梯",
     staff: "咨询站务员",
-    loading: "正在查询 Google 搜索…",
+    loading: "AI 正在生成回答…",
     error: "无法加载基于搜索的回答，请稍后重试。",
     sources: "来源",
     source: "来源",
@@ -386,23 +386,6 @@ export default function Home() {
                   </>
                 )}
 
-                {message.sources?.length > 0 && (
-                  <div className="sag-sources">
-                    <div className="sag-source-title">{t.sources}</div>
-                    {message.sources.slice(0, 4).map((source, sourceIndex) => (
-                      <a
-                        key={`${source.url}-${sourceIndex}`}
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="sag-source-link"
-                      >
-                        {sourceIndex + 1}. {source.title || source.domain || t.source}
-                      </a>
-                    ))}
-                  </div>
-                )}
-
                 {message.searchSuggestion && (
                   <div
                     className="sag-search-suggestion"
@@ -647,30 +630,6 @@ export default function Home() {
           font-size: 11px;
           color: #7b8992;
           word-break: keep-all;
-        }
-
-        .sag-sources {
-          margin-top: 12px;
-          padding-top: 10px;
-          border-top: 1px solid #dce5e9;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .sag-source-title {
-          font-size: 11px;
-          font-weight: 800;
-          color: #667680;
-        }
-
-        .sag-source-link {
-          display: block;
-          font-size: 11px;
-          line-height: 1.35;
-          color: #176e58;
-          text-decoration: underline;
-          text-underline-offset: 2px;
         }
 
         .sag-search-suggestion {
