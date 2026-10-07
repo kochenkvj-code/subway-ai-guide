@@ -109,7 +109,7 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "**올바른 게이트(초록색 화살표)에 카드를 태그해 오류 코드를 확인한 뒤, 아래에서 선택해 주세요.**\n\n다시 태그해도 **추가요금은 발생하지 않습니다.**",
+    prompt: "**올바른 게이트(초록색 화살표)에 카드를 태그해 오류 코드를 확인한 뒤, 아래에서 선택해 주세요.**\n다시 태그해도 **추가요금은 발생하지 않습니다.**",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
       { id: "e03", label: "E-03 하차 처리 누락" },
@@ -866,27 +866,29 @@ export default function Home() {
         }
 
         .sag-bubble.has-options {
-          width: 94%;
-          max-width: 94%;
+          width: 96%;
+          max-width: 96%;
+          padding: 9px 10px;
+          line-height: 1.4;
         }
 
         .sag-gate-options {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 7px;
-          margin-top: 11px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 5px;
+          margin-top: 7px;
         }
 
         .sag-gate-options button {
           border: 1px solid #bdd8cf;
           background: white;
           color: #166b56;
-          border-radius: 10px;
-          min-height: 42px;
-          padding: 8px 9px;
-          font-size: 12px;
+          border-radius: 9px;
+          min-height: 38px;
+          padding: 5px 5px;
+          font-size: 11px;
           font-weight: 750;
-          line-height: 1.3;
+          line-height: 1.2;
           cursor: pointer;
           text-align: center;
         }
@@ -1038,13 +1040,13 @@ export default function Home() {
           }
 
           .sag-gate-options {
-            gap: 6px;
+            gap: 4px;
           }
 
           .sag-gate-options button {
-            min-height: 40px;
-            padding: 7px 6px;
-            font-size: 11px;
+            min-height: 36px;
+            padding: 4px 4px;
+            font-size: 10.5px;
           }
 
           .sag-chat {
