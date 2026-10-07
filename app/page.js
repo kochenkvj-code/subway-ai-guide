@@ -107,6 +107,102 @@ const LANGUAGE_BUTTONS = [
   ["zh", "中文"],
 ];
 
+const GATE_MENU = {
+  ko: {
+    prompt: "화면에 표시된 오류 코드 또는 현재 상황을 선택해주세요.",
+    options: [
+      { id: "e01", label: "E-01 카드 중복" },
+      { id: "e05", label: "E-05 이용시간 초과" },
+      { id: "e06", label: "E-06 카드 사용 불가" },
+      { id: "e14", label: "E-14 잔액 부족" },
+      { id: "e33", label: "E-33 당역 재승차" },
+      { id: "e44", label: "E-44 당역 재하차" },
+      { id: "opposite", label: "↔ 반대편 승강장으로 이동", wide: true },
+    ],
+  },
+  en: {
+    prompt: "Select the error code shown on the gate, or choose your situation.",
+    options: [
+      { id: "e01", label: "E-01 Multiple cards" },
+      { id: "e05", label: "E-05 Time exceeded" },
+      { id: "e06", label: "E-06 Card unavailable" },
+      { id: "e14", label: "E-14 Low balance" },
+      { id: "e33", label: "E-33 Same-station re-entry" },
+      { id: "e44", label: "E-44 Same-station re-exit" },
+      { id: "opposite", label: "↔ I need the opposite platform", wide: true },
+    ],
+  },
+  ja: {
+    prompt: "改札に表示されたエラーコード、または現在の状況を選択してください。",
+    options: [
+      { id: "e01", label: "E-01 カード重複" },
+      { id: "e05", label: "E-05 利用時間超過" },
+      { id: "e06", label: "E-06 カード利用不可" },
+      { id: "e14", label: "E-14 残高不足" },
+      { id: "e33", label: "E-33 同駅で再入場" },
+      { id: "e44", label: "E-44 同駅で再出場" },
+      { id: "opposite", label: "↔ 反対側のホームへ行きたい", wide: true },
+    ],
+  },
+  zh: {
+    prompt: "请选择闸机上显示的错误代码，或选择您当前的情况。",
+    options: [
+      { id: "e01", label: "E-01 多卡识别" },
+      { id: "e05", label: "E-05 超过乘车时间" },
+      { id: "e06", label: "E-06 卡片无法使用" },
+      { id: "e14", label: "E-14 余额不足" },
+      { id: "e33", label: "E-33 同站再次进站" },
+      { id: "e44", label: "E-44 同站再次出站" },
+      { id: "opposite", label: "↔ 前往对面站台", wide: true },
+    ],
+  },
+};
+
+const GATE_GUIDES = {
+  e01: {
+    ko: "지갑이나 휴대폰 케이스 안의 교통카드가 2장 이상 동시에 인식된 경우입니다.\n\n**사용할 카드 1장만 꺼내서 다시 태그해 주세요.**",
+    en: "Two or more transit cards may have been detected at the same time.\n\n**Take out only the card you want to use and tap it again.**",
+    ja: "財布やスマートフォンケース内の交通カードが2枚以上同時に読み取られた可能性があります。\n\n**使用するカード1枚だけを取り出して、もう一度タッチしてください。**",
+    zh: "可能同时识别到了钱包或手机壳中的两张以上交通卡。\n\n**请只取出要使用的一张卡，再次刷卡。**",
+  },
+  e05: {
+    ko: "지하철 이용 가능 시간이 초과되어 **정산이 필요한 상태**입니다.\n\n**스피드게이트(휠체어 게이트)를 통과한 뒤 역무실로 방문하여 정산해 주세요.**",
+    en: "The allowed subway travel time has been exceeded, so **fare adjustment is required**.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office for fare adjustment.**",
+    ja: "地下鉄の利用可能時間を超えているため、**精算が必要な状態**です。\n\n**スピードゲート（車いす用ゲート）を通過し、駅務室で精算してください。**",
+    zh: "已超过地铁允许的乘车时间，**需要进行补票/结算**。\n\n**请通过无障碍宽闸机（轮椅闸机），然后前往站务室办理结算。**",
+  },
+  e06: {
+    ko: "현재 카드가 정상적으로 사용할 수 없는 상태입니다.\n\n**다른 교통카드를 사용할 수 있다면 이용해 주세요. 계속 오류가 발생하면 역무실을 방문해 주세요.**",
+    en: "The card is currently not available for normal use.\n\n**Use another transit card if possible. If the error continues, visit the station office.**",
+    ja: "現在、このカードは正常に利用できない状態です。\n\n**別の交通カードがあれば使用してください。エラーが続く場合は駅務室へお越しください。**",
+    zh: "当前这张卡无法正常使用。\n\n**如有其他交通卡，请改用其他卡。若仍持续出现错误，请前往站务室。**",
+  },
+  e14: {
+    ko: "교통카드의 **잔액이 부족**합니다.\n\n**카드를 충전한 뒤 다시 태그해 주세요.**",
+    en: "Your transit card has **insufficient balance**.\n\n**Add value to the card and tap it again.**",
+    ja: "交通カードの**残高が不足**しています。\n\n**カードをチャージしてから、もう一度タッチしてください。**",
+    zh: "交通卡**余额不足**。\n\n**请充值后再次刷卡。**",
+  },
+  e33: {
+    ko: "**이미 개표(승차) 처리된 카드입니다.**\n\n같은 역에서 이미 승차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 스피드게이트(휠체어 게이트)를 통해 통과해 주세요.**",
+    en: "**This card has already been processed for entry.**\n\nThis message appears when a card that has already been processed for entry at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the speed gate (wheelchair gate).**",
+    ja: "**すでに入場（乗車）処理済みのカードです。**\n\n同じ駅で入場処理済みのカードを再度タッチすると表示されます。\n\n**追加の精算や処理は不要です。ビープ音が鳴っても、スピードゲート（車いす用ゲート）を通ってください。**",
+    zh: "**此卡已经完成进站（乘车）处理。**\n\n在同一车站再次刷已经完成进站处理的卡时会显示此提示。\n\n**无需另外结算或处理。即使发出提示音，也请通过无障碍宽闸机（轮椅闸机）。**",
+  },
+  e44: {
+    ko: "**이미 집표(하차) 처리된 카드입니다.**\n\n같은 역에서 이미 하차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 스피드게이트(휠체어 게이트)를 통해 통과해 주세요.**",
+    en: "**This card has already been processed for exit.**\n\nThis message appears when a card that has already been processed for exit at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the speed gate (wheelchair gate).**",
+    ja: "**すでに出場（降車）処理済みのカードです。**\n\n同じ駅で出場処理済みのカードを再度タッチすると表示されます。\n\n**追加の精算や処理は不要です。ビープ音が鳴っても、スピードゲート（車いす用ゲート）を通ってください。**",
+    zh: "**此卡已经完成出站（下车）处理。**\n\n在同一车站再次刷已经完成出站处理的卡时会显示此提示。\n\n**无需另外结算或处理。即使发出提示音，也请通过无障碍宽闸机（轮椅闸机）。**",
+  },
+  opposite: {
+    ko: "방향을 잘못 탔거나 목적지역을 지나쳐 **반대편 승강장으로 이동하려는 경우**입니다.\n\n**스피드게이트(휠체어 게이트)를 통해 반대편 승강장으로 이동해 주세요.**",
+    en: "Use this option if you took the wrong direction or passed your destination and need to reach the **opposite platform**.\n\n**Use the speed gate (wheelchair gate) to move to the opposite platform.**",
+    ja: "乗る方向を間違えた、または目的駅を通り過ぎて**反対側のホームへ移動したい場合**です。\n\n**スピードゲート（車いす用ゲート）を通って反対側のホームへ移動してください。**",
+    zh: "如果您坐错方向，或坐过了目的站，需要前往**对面站台**，请选择此项。\n\n**请通过无障碍宽闸机（轮椅闸机）前往对面站台。**",
+  },
+};
+
 function normalizeDestination(value, lang) {
   const trimmed = value.trim();
   if (!trimmed) return trimmed;
@@ -308,8 +404,36 @@ export default function Home() {
     }
   }
 
+  function handleGateOption(option) {
+    if (loading) return;
+
+    const guide = GATE_GUIDES[option.id]?.[lang] || GATE_GUIDES[option.id]?.ko;
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text: option.label },
+      { role: "assistant", text: guide },
+    ]);
+  }
+
   function quickAction(type, label) {
     if (loading) return;
+
+    if (type === "ticket") {
+      setMode(null);
+      const gateMenu = GATE_MENU[lang] || GATE_MENU.ko;
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: label },
+        {
+          role: "assistant",
+          text: gateMenu.prompt,
+          options: gateMenu.options,
+        },
+      ]);
+      return;
+    }
 
     if (type === "route") {
       setMode("route");
@@ -412,8 +536,24 @@ export default function Home() {
           >
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${message.options ? "has-options" : ""}`}>
                 <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
+
+                {message.options?.length > 0 && (
+                  <div className="sag-gate-options">
+                    {message.options.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={option.wide ? "wide" : ""}
+                        onClick={() => handleGateOption(option)}
+                        disabled={loading}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {message.url && (
                   <>
@@ -705,6 +845,41 @@ export default function Home() {
           color: inherit;
         }
 
+        .sag-bubble.has-options {
+          width: 94%;
+          max-width: 94%;
+        }
+
+        .sag-gate-options {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 7px;
+          margin-top: 11px;
+        }
+
+        .sag-gate-options button {
+          border: 1px solid #bdd8cf;
+          background: white;
+          color: #166b56;
+          border-radius: 10px;
+          min-height: 42px;
+          padding: 8px 9px;
+          font-size: 12px;
+          font-weight: 750;
+          line-height: 1.3;
+          cursor: pointer;
+          text-align: center;
+        }
+
+        .sag-gate-options button:active {
+          transform: scale(.98);
+          background: #edf8f4;
+        }
+
+        .sag-gate-options button.wide {
+          grid-column: 1 / -1;
+        }
+
         .sag-google-button {
           margin-top: 10px;
           display: inline-flex;
@@ -840,6 +1015,16 @@ export default function Home() {
 
           .sag-action-icon {
             font-size: 18px;
+          }
+
+          .sag-gate-options {
+            gap: 6px;
+          }
+
+          .sag-gate-options button {
+            min-height: 40px;
+            padding: 7px 6px;
+            font-size: 11px;
           }
 
           .sag-chat {
