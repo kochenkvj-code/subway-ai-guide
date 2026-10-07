@@ -21,8 +21,6 @@ const TEXT = {
     send: "전송",
     greeting: "안녕하세요. 종로5가역 AI 안내입니다. 무엇을 도와드릴까요?",
     routePrompt: "목적지를 입력해주세요. 예: 명동, 서울역, 강남",
-    routeFound: (dest) => `${dest}까지 지하철 경로를 Google에서 확인할 수 있어요.`,
-    routeButton: "Google에서 지하철 경로 보기",
     route: "길찾기",
     restroom: "화장실",
     ticket: "승차권·카드",
@@ -45,8 +43,6 @@ const TEXT = {
     send: "Send",
     greeting: "Hello. This is the Jongno 5-ga Station AI Guide. How can I help?",
     routePrompt: "Enter your destination. Example: Myeong-dong, Seoul Station, Gangnam",
-    routeFound: (dest) => `You can check the subway route to ${dest} on Google.`,
-    routeButton: "View subway route on Google",
     route: "Route",
     restroom: "Restroom",
     ticket: "Ticket · Card",
@@ -69,8 +65,6 @@ const TEXT = {
     send: "送信",
     greeting: "こんにちは。鍾路5街駅AI案内です。何をお手伝いしましょうか？",
     routePrompt: "目的地を入力してください。例：明洞、ソウル駅、江南",
-    routeFound: (dest) => `${dest}までの地下鉄経路をGoogleで確認できます。`,
-    routeButton: "Googleで地下鉄経路を見る",
     route: "経路検索",
     restroom: "トイレ",
     ticket: "乗車券・カード",
@@ -93,8 +87,6 @@ const TEXT = {
     send: "发送",
     greeting: "您好，这里是钟路5街站 AI 指南。请问需要什么帮助？",
     routePrompt: "请输入目的地。例如：明洞、首尔站、江南",
-    routeFound: (dest) => `可以在 Google 上查看前往${dest}的地铁路线。`,
-    routeButton: "在 Google 查看地铁路线",
     route: "路线",
     restroom: "洗手间",
     ticket: "车票·交通卡",
@@ -126,12 +118,6 @@ function normalizeDestination(value, lang) {
   return trimmed;
 }
 
-function buildGoogleQuery(origin, destination, lang) {
-  if (lang === "en") return `How to get from ${origin} to ${destination} by subway`;
-  if (lang === "ja") return `${origin}から${destination}まで地下鉄で行く方法`;
-  if (lang === "zh") return `从${origin}到${destination}怎么坐地铁`;
-  return `${origin}에서 ${destination}까지 지하철로 가는법`;
-}
 
 function quickQuestion(type, lang) {
   const q = {
@@ -288,22 +274,16 @@ export default function Home() {
 
     if (mode === "route") {
       const destination = normalizeDestination(raw, lang);
-      const query = buildGoogleQuery(STATION[lang], destination, lang);
-      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&hl=${lang}`;
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: raw },
-        {
-          role: "assistant",
-          text: t.routeFound(destination),
-          url,
-          linkLabel: t.routeButton,
-          query,
-        },
-      ]);
+      const routeQuestions = {
+        ko: `${STATION.ko}에서 ${destination}까지 지하철만 이용하는 경로를 알려주세요. 가능한 한 간단하고 빠른 경로를 우선하고, 탑승 호선, 환승역, 환승 후 호선과 방향, 예상 소요시간을 간단히 알려주세요. 버스는 제외해주세요.`,
+        en: `How do I get from ${STATION.en} to ${destination} using subway only? Prefer a simple and fast route, and briefly include the line to board, transfer station, next line and direction, and estimated travel time. Do not include buses.`,
+        ja: `${STATION.ja}から${destination}まで地下鉄だけで行く経路を案内してください。できるだけ簡単で速い経路を優先し、乗車路線、乗換駅、乗換後の路線と方面、所要時間の目安を簡潔に示してください。バスは除外してください。`,
+        zh: `请告诉我从${STATION.zh}到${destination}只乘地铁的路线。优先选择简单且较快的路线，并简要说明乘坐线路、换乘站、换乘后的线路和方向以及预计所需时间。不要包含公交车。`,
+      };
 
       setMode(null);
+      await askGoogle(routeQuestions[lang] || routeQuestions.ko, raw);
       return;
     }
 
