@@ -26,6 +26,10 @@ const TEXT = {
     route: "길찾기",
     restroom: "화장실",
     ticket: "게이트 오류",
+    fares: "승차권·교통카드",
+    facilities: "시설안내",
+    exchange: "환전소 안내",
+    office: "역무실 위치",
     exit: "출구 안내",
     elevator: "엘리베이터",
     staff: "역무원 문의",
@@ -52,6 +56,10 @@ const TEXT = {
     route: "Route",
     restroom: "Restroom",
     ticket: "Gate / Card Error",
+    fares: "Tickets · Cards",
+    facilities: "Facilities",
+    exchange: "Currency Exchange",
+    office: "Station Office",
     exit: "Exit guide",
     elevator: "Elevator",
     staff: "Ask staff",
@@ -78,6 +86,10 @@ const TEXT = {
     route: "経路検索",
     restroom: "トイレ",
     ticket: "カードエラー",
+    fares: "乗車券・交通カード",
+    facilities: "駅の設備",
+    exchange: "両替所",
+    office: "駅務室の場所",
     exit: "出口案内",
     elevator: "エレベーター",
     staff: "駅員に相談",
@@ -91,7 +103,7 @@ const TEXT = {
     feedbackThanks: "ご協力ありがとうございます。",
   },
   zh: {
-    title: "AI 안내",
+    title: "AI 指南",
     status: "AI 指南运行中",
     bannerTitle: "钟路5街站 AI 指南",
     bannerBody: "一般车站问题会参考 Google 搜索进行回答，路线查询会单独打开 Google 搜索。",
@@ -104,6 +116,10 @@ const TEXT = {
     route: "路线",
     restroom: "洗手间",
     ticket: "闸机/交通卡错误",
+    fares: "车票·交通卡",
+    facilities: "车站设施",
+    exchange: "货币兑换",
+    office: "站务室位置",
     exit: "出口指南",
     elevator: "电梯",
     staff: "咨询站务员",
@@ -240,6 +256,139 @@ const GATE_GUIDES = {
     zh: "如果您坐错方向，或坐过了目的站，需要前往**对面站台**，请选择此项。\n\n**请通过无障碍宽闸机（轮椅闸机）前往对面站台。**",
   },
 };
+
+// 메인 메뉴의 하위 선택지는 AI 호출 없이 동작합니다.
+// 실제 역사 내 시설 및 발매기 위치가 확인되면 아래 안내 문구만 갱신하세요.
+const SUBMENU_TEXT = {
+  ko: {
+    labels: {
+      buy: "구매·발급", topup: "충전", single: "1회용 승차권",
+      tmoney: "티머니", climateShort: "기후동행카드 단기권",
+      climatePass: "기후동행패스", cash: "현금",
+      domestic: "국내 발급 카드", foreign: "해외 발급 카드",
+      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함",
+      facilityBack: "시설안내 다시 선택", buyBack: "다른 승차권 보기",
+      fareBack: "구매·충전 선택", topupBack: "다른 교통카드 선택",
+    },
+    prompts: {
+      facility: "**어떤 시설을 찾으시나요?**\n아래에서 선택해 주세요.",
+      fare: "**무엇을 도와드릴까요?**\n구매·발급 또는 충전을 선택해 주세요.",
+      buy: "**어떤 승차권·교통카드를 찾으시나요?**",
+      topup: "**어떤 교통카드를 충전하시나요?**\n카드 종류에 따라 가능한 결제수단이 다를 수 있습니다.",
+      payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
+    },
+    facilityPending: (name) => `**${name} 위치 안내**\n\n현재 정확한 시설 위치를 확인 중입니다. 확인된 안내를 등록하기 전까지는 역무실에 문의해 주세요.`,
+    exchange: "**환전소 안내**\n\n종로5가역 **8번 출구 방향**으로 이동해 주세요. 환전소 운영 여부와 영업시간은 변동될 수 있으니 현장에서 확인해 주세요.",
+    buyGuides: {
+      single: "**1회용 승차권**\n\n지하철을 한 번 이용할 때 사용하는 승차권입니다. 구매 가능한 발매기 위치와 결제방법은 역사 확인 후 추가될 예정입니다.",
+      tmoney: "**티머니 교통카드**\n\n충전해서 사용하는 교통카드입니다. 구매 가능한 장소와 지원 결제수단은 역사 확인 후 안내할 예정입니다.",
+      climateShort: "**기후동행카드 단기권**\n\n단기 방문객을 위한 기간형 이용권입니다. 이용 기간·적용 노선·구매/충전 위치는 최신 운영 기준 확인 후 안내할 예정입니다.",
+      climatePass: "**기후동행패스**\n\n사용 실적에 따른 환급 혜택을 확인해야 하는 상품입니다. 구매·등록 절차와 환급 자격은 별도 확인이 필요합니다. 단기 방문객에게 환급을 보장하지 않습니다.",
+    },
+    topupGuide: (card, method) => `**충전 안내: ${card} / ${method}**\n\n선택하신 카드와 결제수단을 지원하는 발매기·충전기 및 위치를 확인 중입니다. **해당 조합으로 충전할 수 있다고 아직 확정된 것은 아닙니다.** 현장 직원에게 문의해 주세요.`,
+  },
+  en: {
+    labels: {
+      buy: "Buy / Issue", topup: "Top up", single: "Single-journey ticket",
+      tmoney: "T-money", climateShort: "Climate Card short-term pass",
+      climatePass: "Climate Pass", cash: "Cash", domestic: "Korean-issued card",
+      foreign: "Overseas-issued card", restroom: "Restroom", elevator: "Elevator",
+      lockers: "Lockers", facilityBack: "Other facilities", buyBack: "Other tickets",
+      fareBack: "Buy / top-up menu", topupBack: "Other card",
+    },
+    prompts: {
+      facility: "**Which facility do you need?**",
+      fare: "**What would you like to do?**\nSelect buy or top up.",
+      buy: "**Which ticket or transit card do you need?**",
+      topup: "**Which card would you like to top up?**\nAvailable payment methods depend on the card.",
+      payment: "**How would you like to pay for the top-up?**",
+    },
+    facilityPending: (name) => `**${name} location**\n\nWe are verifying the exact location. Please ask at the station office until the information is confirmed.`,
+    exchange: "**Currency exchange**\n\nHead toward **Exit 8** at Jongno 5-ga Station. Business status and hours may change; please check on site.",
+    buyGuides: {
+      single: "**Single-journey ticket**\n\nA ticket for one subway journey. Machine location and accepted payment methods will be added after station verification.",
+      tmoney: "**T-money**\n\nA rechargeable transit card. Sales locations and accepted payment methods will be added after verification.",
+      climateShort: "**Climate Card short-term pass**\n\nA time-limited transit pass. Duration, coverage, and purchase/top-up locations need verification against current rules.",
+      climatePass: "**Climate Pass**\n\nThis product may offer fare refunds based on eligible usage. Registration and refund eligibility require verification. Refunds are not guaranteed for short-term visitors.",
+    },
+    topupGuide: (card, method) => `**Top-up: ${card} / ${method}**\n\nWe are checking which machines accept this card and payment method. **This combination has not yet been confirmed as supported.** Please ask station staff.`,
+  },
+  ja: {
+    labels: {
+      buy: "購入・発行", topup: "チャージ", single: "1回用乗車券",
+      tmoney: "T-money", climateShort: "気候同行カード短期券",
+      climatePass: "気候同行パス", cash: "現金", domestic: "韓国発行カード",
+      foreign: "海外発行カード", restroom: "トイレ", elevator: "エレベーター",
+      lockers: "コインロッカー", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
+      fareBack: "購入・チャージ", topupBack: "ほかのカード",
+    },
+    prompts: {
+      facility: "**お探しの設備を選んでください。**",
+      fare: "**ご希望の手続きを選んでください。**\n購入・発行／チャージ",
+      buy: "**乗車券・交通カードを選んでください。**",
+      topup: "**チャージするカードを選んでください。**\n利用できる決済方法はカードによって異なります。",
+      payment: "**チャージの支払い方法を選んでください。**",
+    },
+    facilityPending: (name) => `**${name}の場所**\n\n正確な位置を確認中です。案内が登録されるまでは駅務室でお尋ねください。`,
+    exchange: "**両替所のご案内**\n\n鍾路5街駅の**8番出口方面**へお進みください。営業状況・営業時間は現地でご確認ください。",
+    buyGuides: {
+      single: "**1回用乗車券**\n\n地下鉄を1回利用するための乗車券です。券売機の場所と支払い方法は確認後に追加します。",
+      tmoney: "**T-money**\n\nチャージ式交通カードです。購入場所と支払い方法は確認後に案内します。",
+      climateShort: "**気候同行カード短期券**\n\n短期滞在者向けの期間制乗車券です。利用期間・対象区間・購入場所は最新情報を確認して案内します。",
+      climatePass: "**気候同行パス**\n\n利用実績に応じた還付制度について、登録方法と対象資格を確認する必要があります。短期旅行者への還付を保証するものではありません。",
+    },
+    topupGuide: (card, method) => `**チャージ：${card}／${method}**\n\nこの組み合わせに対応する機器と設置場所を確認中です。**利用可能と確定したわけではありません。** 駅係員にお問い合わせください。`,
+  },
+  zh: {
+    labels: {
+      buy: "购买·办理", topup: "充值", single: "单程票",
+      tmoney: "T-money", climateShort: "气候同行卡短期票",
+      climatePass: "气候同行通行证", cash: "现金", domestic: "韩国发行银行卡",
+      foreign: "境外发行银行卡", restroom: "洗手间", elevator: "电梯",
+      lockers: "寄存柜", facilityBack: "其他设施", buyBack: "其他车票",
+      fareBack: "购买·充值", topupBack: "其他交通卡",
+    },
+    prompts: {
+      facility: "**请选择要查找的设施。**",
+      fare: "**您需要哪种服务？**\n请选择购买或充值。",
+      buy: "**请选择车票或交通卡。**",
+      topup: "**您要充值哪种交通卡？**\n可用支付方式因卡种而异。",
+      payment: "**请选择充值支付方式。**",
+    },
+    facilityPending: (name) => `**${name}位置**\n\n正在核实准确位置。确认前请向站务室咨询。`,
+    exchange: "**货币兑换指引**\n\n请前往钟路5街站**8号出口方向**。营业状态和时间可能变动，请到现场确认。",
+    buyGuides: {
+      single: "**单程票**\n\n适用于一次地铁行程。自动售票机位置及支持的支付方式将在核实后补充。",
+      tmoney: "**T-money**\n\n可充值的交通卡。购买地点及支付方式将在核实后提供。",
+      climateShort: "**气候同行卡短期票**\n\n限期使用的交通票。有效期、适用线路、购买与充值地点仍需按最新规定核实。",
+      climatePass: "**气候同行通行证**\n\n可能按符合条件的乘车记录享有返还优惠。注册及返还资格需进一步核实，不保证短期游客可享受返还。",
+    },
+    topupGuide: (card, method) => `**充值：${card} / ${method}**\n\n正在核实支持该卡种及支付方式的设备和位置。**目前尚未确认该组合可以充值。** 请咨询站务人员。`,
+  },
+};
+
+const FACILITY_TYPES = ["restroom", "elevator", "lockers"];
+const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
+const TOPUP_TYPES = ["tmoney", "climateShort", "climatePass"];
+const PAYMENT_TYPES = ["cash", "domestic", "foreign"];
+
+function makeSubmenu(lang, menuName, cardType = null) {
+  const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
+  const option = (id, label, wide = false) => ({ id, label, wide });
+  let options = [];
+  if (menuName === "facility") {
+    options = FACILITY_TYPES.map((id) => option(`facility_${id}`, ui.labels[id]));
+  } else if (menuName === "fare") {
+    options = [option("fare_buy", ui.labels.buy), option("fare_topup", ui.labels.topup)];
+  } else if (menuName === "buy") {
+    options = [...FARE_TYPES.map((id) => option(`buy_${id}`, ui.labels[id])), option("menu_fare", ui.labels.fareBack, true)];
+  } else if (menuName === "topup") {
+    options = [...TOPUP_TYPES.map((id) => option(`recharge_${id}`, ui.labels[id])), option("menu_fare", ui.labels.fareBack, true)];
+  } else if (menuName === "payment") {
+    options = [...PAYMENT_TYPES.map((id) => option(`pay_${cardType}_${id}`, ui.labels[id])), option("fare_topup", ui.labels.topupBack, true)];
+  }
+  return { role: "assistant", text: ui.prompts[menuName], options, optionsKind: "submenu", menuPhase: "selection" };
+}
 
 function normalizeDestination(value, lang) {
   const trimmed = value.trim();
@@ -552,10 +701,89 @@ export default function Home() {
     }
   }
 
+  function showMenu(menuName, selectedText = null, cardType = null) {
+    setMode(null);
+    const menu = makeSubmenu(lang, menuName, cardType);
+    setMessages((prev) => {
+      const next = [...prev];
+      // 중간 선택 단계는 같은 말풍선에서 교체해 채팅 기록이 길어지지 않게 합니다.
+      if (next[next.length - 1]?.menuPhase === "selection") next.pop();
+      else if (selectedText) next.push({ role: "user", text: selectedText });
+      next.push(menu);
+      return next;
+    });
+  }
+
+  function handleSubmenuOption(option) {
+    if (loading) return;
+    const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
+    const id = option.id;
+    if (id === "menu_fare" || id === "menu_facility" || id === "fare_buy" || id === "fare_topup") {
+      const menuName = id === "menu_fare" ? "fare" : id === "menu_facility" ? "facility" : id === "fare_buy" ? "buy" : "topup";
+      showMenu(menuName, option.label);
+      return;
+    }
+    if (id.startsWith("facility_")) {
+      const facilityType = id.slice("facility_".length);
+      setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
+        {
+          role: "assistant", text: ui.facilityPending(ui.labels[facilityType]),
+          feedbackKey: `facility_${facilityType}`,
+          options: [{ id: "menu_facility", label: ui.labels.facilityBack, wide: true }],
+          optionsKind: "submenu",
+        },
+      ]);
+      return;
+    }
+    if (id.startsWith("buy_")) {
+      const product = id.slice("buy_".length);
+      setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
+        {
+          role: "assistant", text: ui.buyGuides[product],
+          options: [{ id: "fare_buy", label: ui.labels.buyBack }, { id: "menu_fare", label: ui.labels.fareBack }],
+          optionsKind: "submenu", feedbackKey: `buy_${product}`,
+        },
+      ]);
+      return;
+    }
+    if (id.startsWith("recharge_")) {
+      const cardType = id.slice("recharge_".length);
+      showMenu("payment", option.label, cardType);
+      return;
+    }
+    if (id.startsWith("pay_")) {
+      const remaining = id.slice("pay_".length);
+      const paymentType = PAYMENT_TYPES.find((type) => remaining.endsWith(`_${type}`));
+      const cardType = paymentType ? remaining.slice(0, -(paymentType.length + 1)) : null;
+      if (!cardType || !paymentType || !ui.labels[cardType]) return;
+      setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
+        {
+          role: "assistant", text: ui.topupGuide(ui.labels[cardType], ui.labels[paymentType]),
+          options: [
+            { id: `recharge_${cardType}`, label: ui.labels.topup },
+            { id: "menu_fare", label: ui.labels.fareBack },
+          ], optionsKind: "submenu", feedbackKey: `topup_${cardType}_${paymentType}`,
+        },
+      ]);
+    }
+  }
+
   function quickAction(type, label) {
     if (loading) return;
 
-    if (type === "ticket") {
+    if (type === "facility" || type === "fares") {
+      showMenu(type === "facility" ? "facility" : "fare", label);
+      return;
+    }
+
+    if (type === "exchange") {
+      const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
+      setMode(null);
+      setMessages((prev) => [...prev, { role: "user", text: label }, { role: "assistant", text: ui.exchange, feedbackKey: "exchange" }]);
+      return;
+    }
+
+    if (type === "gate") {
       setMode(null);
       const gateMenu = GATE_MENU[lang] || GATE_MENU.ko;
 
@@ -614,12 +842,12 @@ export default function Home() {
   }
 
   const actions = [
-    ["restroom", "🚻", t.restroom],
     ["route", "🚇", t.route],
-    ["ticket", "🎫", t.ticket],
-    ["exit", "🚪", t.exit],
-    ["elevator", "♿", t.elevator],
-    ["staff", "👨‍✈️", t.staff],
+    ["gate", "🚪", t.ticket],
+    ["fares", "🎫", t.fares],
+    ["facility", "♿", t.facilities],
+    ["exchange", "💱", t.exchange],
+    ["staff", "📍", t.office],
   ];
 
   return (
@@ -676,13 +904,13 @@ export default function Home() {
                 <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
 
                 {message.options?.length > 0 && (
-                  <div className="sag-gate-options">
+                  <div className={message.optionsKind === "submenu" ? "sag-submenu-options" : "sag-gate-options"}>
                     {message.options.map((option) => (
                       <button
                         key={option.id}
                         type="button"
                         className={option.wide ? "wide" : ""}
-                        onClick={() => handleGateOption(option)}
+                        onClick={() => message.optionsKind === "submenu" ? handleSubmenuOption(option) : handleGateOption(option)}
                         disabled={loading}
                       >
                         {option.label}
@@ -878,13 +1106,13 @@ export default function Home() {
 
         .sag-actions {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 7px;
           padding: 0 16px 10px;
         }
 
         .sag-actions button {
-          min-height: 64px;
+          min-height: 55px;
           border: 1px solid #d9e4ea;
           border-radius: 14px;
           background: white;
@@ -1034,6 +1262,27 @@ export default function Home() {
           cursor: pointer;
           text-align: center;
         }
+
+        .sag-submenu-options {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 7px;
+          margin-top: 9px;
+        }
+        .sag-submenu-options button {
+          min-height: 40px;
+          border: 1px solid #b7d1e0;
+          background: white;
+          color: #17618a;
+          border-radius: 10px;
+          padding: 7px 6px;
+          font-size: 12px;
+          font-weight: 750;
+          cursor: pointer;
+          line-height: 1.35;
+        }
+        .sag-submenu-options button.wide { grid-column: 1 / -1; }
+        .sag-submenu-options button:active { background: #ecf6fc; }
 
         .sag-gate-options button:active {
           transform: scale(.98);
