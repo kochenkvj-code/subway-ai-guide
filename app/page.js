@@ -268,11 +268,11 @@ const SUBMENU_TEXT = {
       domestic: "국내 발급 카드", foreign: "해외 발급 카드",
       restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함",
       facilityBack: "시설안내 다시 선택", buyBack: "다른 승차권 보기",
-      fareBack: "구매·충전 선택", topupBack: "다른 교통카드 선택",
+      fareBack: "다른 승차권·카드 선택", topupBack: "다른 교통카드 선택",
     },
     prompts: {
       facility: "**어떤 시설을 찾으시나요?**\n아래에서 선택해 주세요.",
-      fare: "**무엇을 도와드릴까요?**\n구매·발급 또는 충전을 선택해 주세요.",
+      fare: "**안내받을 승차권·교통카드를 선택해 주세요.**\n상품명을 누르면 구매 장소·구매 결제수단과 충전 방법·충전 결제수단을 확인할 수 있습니다.",
       buy: "**어떤 승차권·교통카드를 찾으시나요?**",
       topup: "**어떤 교통카드를 충전하시나요?**\n카드 종류에 따라 가능한 결제수단이 다를 수 있습니다.",
       payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
@@ -286,10 +286,10 @@ const SUBMENU_TEXT = {
       climatePass: "선불 충전형 / 사용 실적에 따른 교통비 환급",
     },
     buyGuides: {
-      single: "**1회용 승차권**\n\n지하철을 한 번 이용할 때 사용하는 승차권입니다. 발매기에서 목적지를 선택해 운임과 보증금 500원을 결제합니다. 이용 후 보증금 환급기에서 보증금을 돌려받을 수 있습니다.\n\n종로5가역 발매기 위치와 지원 결제수단은 확인 후 안내할 예정입니다.",
-      tmoney: "**티머니 교통카드**\n\n금액을 충전해 버스와 지하철에서 사용하는 충전식 교통카드입니다. 잔액이 부족하면 추가 충전해 계속 이용할 수 있습니다.\n\n종로5가역 내 판매·충전 가능 장소와 결제수단은 확인 후 안내할 예정입니다.",
-      climateShort: "**기후동행카드 단기권**\n\n**1·2·3·5·7일권** 중 선택할 수 있으며, 유효기간 동안 **서울의 지정된 대중교통 구간에서 무제한 이용**할 수 있습니다. 일부 노선과 구간은 제외됩니다.\n\n구매·충전 장소와 상세 적용 노선은 최신 기준 확인 후 안내할 예정입니다.",
-      climatePass: "**모두의카드(기후동행패스)**\n\n기존 기후동행카드 30일권을 대체하는 **교통비 환급 제도**입니다. 지하철역에서는 **선불형 카드를 구매해 금액을 충전한 뒤 이용**할 수 있습니다.\n\n매월 대중교통 **이용 실적과 자격 조건에 따라 교통비를 환급**받을 수 있습니다. 환급 혜택을 받으려면 해당 카드 및 K-패스 관련 등록·자격 확인이 필요하며, **카드 구매나 충전만으로 환급이 자동 보장되지는 않습니다.**\n\n**후불형 신용·체크카드**도 있으나 역에서 구매하는 방식이 아니며 해당 카드사를 통해 별도 발급받습니다. 단기 방문객에게 환급을 보장하지 않습니다.",
+      single: "**1회용 승차권**\n\n지하철을 한 번 이용할 때 사용하는 승차권입니다. 발매기에서 목적지를 선택해 운임과 보증금 500원을 결제합니다. 이용 후 보증금 환급기에서 보증금을 돌려받을 수 있습니다.\n\n아래 기기별 안내에서 이용 가능한 결제수단을 확인해 주세요.",
+      tmoney: "**티머니 교통카드**\n\n금액을 충전해 버스와 지하철에서 사용하는 충전식 교통카드입니다. 잔액이 부족하면 추가 충전해 계속 이용할 수 있습니다.\n\n구매와 충전은 이용 가능한 기기 및 결제수단이 다릅니다.",
+      climateShort: "**기후동행카드 단기권**\n\n**1·2·3·5·7일권** 중 선택할 수 있으며, 유효기간 동안 **서울의 지정된 대중교통 구간에서 무제한 이용**할 수 있습니다. 일부 노선과 구간은 제외됩니다.\n\n상세 적용 노선과 제외 구간은 방문 전에 확인해 주세요.",
+      climatePass: "**모두의카드(기후동행패스)**\n\n기존 기후동행카드 30일권을 대체하는 **교통비 환급 제도**입니다. **선불형은 금액을 충전해 이용**합니다. 실제 구매·충전 가능 기기는 아래 안내를 확인해 주세요.\n\n매월 대중교통 **이용 실적과 자격 조건에 따라 교통비를 환급**받을 수 있습니다. 환급 혜택을 받으려면 해당 카드 및 K-패스 관련 등록·자격 확인이 필요하며, **카드 구매나 충전만으로 환급이 자동 보장되지는 않습니다.**\n\n**후불형 신용·체크카드**도 있으나 역에서 구매하는 방식이 아니며 해당 카드사를 통해 별도 발급받습니다. 단기 방문객에게 환급을 보장하지 않습니다.",
     },
     topupGuide: (card, method) => `**충전 안내: ${card} / ${method}**\n\n선택하신 카드와 결제수단을 지원하는 발매기·충전기 및 위치를 확인 중입니다. **해당 조합으로 충전할 수 있다고 아직 확정된 것은 아닙니다.** 현장 직원에게 문의해 주세요.`,
   },
@@ -300,11 +300,11 @@ const SUBMENU_TEXT = {
       climatePass: "Modu Card (Climate Pass)", cash: "Cash", domestic: "Korean-issued card",
       foreign: "Overseas-issued card", restroom: "Restroom", elevator: "Elevator",
       lockers: "Lockers", facilityBack: "Other facilities", buyBack: "Other tickets",
-      fareBack: "Buy / top-up menu", topupBack: "Other card",
+      fareBack: "Choose another ticket / card", topupBack: "Other card",
     },
     prompts: {
       facility: "**Which facility do you need?**",
-      fare: "**What would you like to do?**\nSelect buy or top up.",
+      fare: "**Select a ticket or transit card.**\nTap a product for where to buy, how to top up, and accepted payment methods.",
       buy: "**Which ticket or transit card do you need?**",
       topup: "**Which card would you like to top up?**\nAvailable payment methods depend on the card.",
       payment: "**How would you like to pay for the top-up?**",
@@ -318,10 +318,10 @@ const SUBMENU_TEXT = {
       climatePass: "Prepaid top-up · Fare refunds based on eligible use",
     },
     buyGuides: {
-      single: "**Single-journey ticket**\n\nFor one subway journey. Select your destination at a ticket machine and pay the fare plus a refundable KRW 500 deposit. After your trip, use a deposit-refund machine to claim it back.\n\nThe exact ticket machine location and accepted payment methods at this station are still being verified.",
-      tmoney: "**T-money**\n\nA reloadable transit card for buses and subways. Add credit and continue using the card as needed.\n\nSales/top-up locations and accepted payment methods at this station are still being verified.",
-      climateShort: "**Climate Card short-term pass**\n\nChoose a **1-, 2-, 3-, 5-, or 7-day pass** for unlimited rides on **eligible public transit routes in Seoul** during its validity. Some routes and sections are excluded.\n\nPurchase/top-up locations and current coverage rules still need to be checked.",
-      climatePass: "**Modu Card (Climate Pass)**\n\nA public transport **fare-refund program** replacing the former 30-day Climate Card product. At subway stations, the **prepaid version** can be purchased and topped up with credit before use.\n\nRefunds depend on monthly travel usage, registration and eligibility. **Buying or loading the card alone does not guarantee a refund.**\n\nA separate **postpaid credit/debit-card version** is available through participating card issuers, not for direct purchase at the station. Short-term visitors are not guaranteed refund eligibility.",
+      single: "**Single-journey ticket**\n\nFor one subway journey. Select your destination at a ticket machine and pay the fare plus a refundable KRW 500 deposit. After your trip, use a deposit-refund machine to claim it back.\n\nSee the machine-specific payment information below.",
+      tmoney: "**T-money**\n\nA reloadable transit card for buses and subways. Add credit and continue using the card as needed.\n\nPurchase and top-up support different payment methods; see below.",
+      climateShort: "**Climate Card short-term pass**\n\nChoose a **1-, 2-, 3-, 5-, or 7-day pass** for unlimited rides on **eligible public transit routes in Seoul** during its validity. Some routes and sections are excluded.\n\nCheck the latest eligible routes and exclusions before travel.",
+      climatePass: "**Modu Card (Climate Pass)**\n\nA public transport **fare-refund program** replacing the former 30-day Climate Card product. The **prepaid version** is loaded with credit before use; see below for machine-specific availability.\n\nRefunds depend on monthly travel usage, registration and eligibility. **Buying or loading the card alone does not guarantee a refund.**\n\nA separate **postpaid credit/debit-card version** is available through participating card issuers, not for direct purchase at the station. Short-term visitors are not guaranteed refund eligibility.",
     },
     topupGuide: (card, method) => `**Top-up: ${card} / ${method}**\n\nWe are checking which machines accept this card and payment method. **This combination has not yet been confirmed as supported.** Please ask station staff.`,
   },
@@ -332,11 +332,11 @@ const SUBMENU_TEXT = {
       climatePass: "モドゥカード(気候同行パス)", cash: "現金", domestic: "韓国発行カード",
       foreign: "海外発行カード", restroom: "トイレ", elevator: "エレベーター",
       lockers: "コインロッカー", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
-      fareBack: "購入・チャージ", topupBack: "ほかのカード",
+      fareBack: "ほかの乗車券・カード", topupBack: "ほかのカード",
     },
     prompts: {
       facility: "**お探しの設備を選んでください。**",
-      fare: "**ご希望の手続きを選んでください。**\n購入・発行／チャージ",
+      fare: "**乗車券・交通カードを選択してください。**\n商品名を押すと購入場所・決済方法とチャージ方法・決済方法をご案内します。",
       buy: "**乗車券・交通カードを選んでください。**",
       topup: "**チャージするカードを選んでください。**\n利用できる決済方法はカードによって異なります。",
       payment: "**チャージの支払い方法を選んでください。**",
@@ -350,10 +350,10 @@ const SUBMENU_TEXT = {
       climatePass: "前払いチャージ式／利用実績に応じて交通費還付",
     },
     buyGuides: {
-      single: "**1回用乗車券**\n\n地下鉄を1回利用するための乗車券です。券売機で目的地を選び、運賃と保証金500ウォンを支払います。利用後、保証金払戻機で保証金を受け取れます。\n\n当駅の券売機の場所と利用できる決済方法は確認中です。",
-      tmoney: "**T-money**\n\n地下鉄やバスで使えるチャージ式の交通カードです。残高が少なくなったら追加チャージして利用できます。\n\n当駅での購入・チャージ場所と決済方法は確認中です。",
-      climateShort: "**気候同行カード短期券**\n\n**1・2・3・5・7日券**から選べ、有効期間中は**ソウル市内の対象公共交通機関が乗り放題**です。一部の路線・区間は対象外です。\n\n購入・チャージ場所と最新の対象区間は確認中です。",
-      climatePass: "**モドゥカード（気候同行パス）**\n\n従来の気候同行カード30日券に代わる**交通費還付制度**です。駅では**前払い式カードを購入し、金額をチャージして利用**できます。\n\n月ごとの利用実績と資格に応じて還付されます。カードの登録・資格確認が必要で、**購入・チャージだけでは還付は保証されません。**\n\n**後払い式のクレジット・デビットカード**もありますが、駅では購入できず、カード会社から別途発行します。短期旅行者には還付を保証できません。",
+      single: "**1回用乗車券**\n\n地下鉄を1回利用するための乗車券です。券売機で目的地を選び、運賃と保証金500ウォンを支払います。利用後、保証金払戻機で保証金を受け取れます。\n\n機器ごとの決済方法は下記をご確認ください。",
+      tmoney: "**T-money**\n\n地下鉄やバスで使えるチャージ式の交通カードです。残高が少なくなったら追加チャージして利用できます。\n\n購入とチャージでは対応する決済方法が異なります。",
+      climateShort: "**気候同行カード短期券**\n\n**1・2・3・5・7日券**から選べ、有効期間中は**ソウル市内の対象公共交通機関が乗り放題**です。一部の路線・区間は対象外です。\n\n最新の対象路線・区間をご確認ください。",
+      climatePass: "**モドゥカード（気候同行パス）**\n\n従来の気候同行カード30日券に代わる**交通費還付制度**です。**前払い式は金額をチャージして利用**します。購入・チャージ可能な機器は下記をご確認ください。\n\n月ごとの利用実績と資格に応じて還付されます。カードの登録・資格確認が必要で、**購入・チャージだけでは還付は保証されません。**\n\n**後払い式のクレジット・デビットカード**もありますが、駅では購入できず、カード会社から別途発行します。短期旅行者には還付を保証できません。",
     },
     topupGuide: (card, method) => `**チャージ：${card}／${method}**\n\nこの組み合わせに対応する機器と設置場所を確認中です。**利用可能と確定したわけではありません。** 駅係員にお問い合わせください。`,
   },
@@ -364,11 +364,11 @@ const SUBMENU_TEXT = {
       climatePass: "Modu卡（气候同行通行证）", cash: "现金", domestic: "韩国发行银行卡",
       foreign: "境外发行银行卡", restroom: "洗手间", elevator: "电梯",
       lockers: "寄存柜", facilityBack: "其他设施", buyBack: "其他车票",
-      fareBack: "购买·充值", topupBack: "其他交通卡",
+      fareBack: "选择其他车票/交通卡", topupBack: "其他交通卡",
     },
     prompts: {
       facility: "**请选择要查找的设施。**",
-      fare: "**您需要哪种服务？**\n请选择购买或充值。",
+      fare: "**请选择车票或交通卡。**\n点击名称查看购卡地点、购卡支付方式及充值方法和支付方式。",
       buy: "**请选择车票或交通卡。**",
       topup: "**您要充值哪种交通卡？**\n可用支付方式因卡种而异。",
       payment: "**请选择充值支付方式。**",
@@ -382,14 +382,56 @@ const SUBMENU_TEXT = {
       climatePass: "预付充值型／按符合条件的乘车记录返还车费",
     },
     buyGuides: {
-      single: "**单程票**\n\n适用于一次地铁行程。在自动售票机选择目的地，支付车费及500韩元押金。乘车结束后可在押金退还机办理退款。\n\n本站售票机的准确位置与支持的支付方式仍在核实中。",
-      tmoney: "**T-money**\n\n可充值的公交、地铁交通卡。余额不足时可继续充值使用。\n\n本站购买和充值地点以及支持的支付方式仍在核实中。",
-      climateShort: "**气候同行卡短期票**\n\n可选择**1、2、3、5或7日票**，有效期内可不限次数乘坐**首尔指定范围内的公共交通**。部分线路和区间不适用。\n\n购买、充值地点及最新适用范围仍需核实。",
-      climatePass: "**Modu卡（气候同行通行证）**\n\n这是一项取代原气候同行卡30日票的**交通费返还制度**。可在地铁站购买**预付卡，充值一定金额后使用**。\n\n返还金额取决于每月乘车记录和资格条件。需完成办卡登记及资格确认，**仅购买或充值并不保证返还交通费。**\n\n也有通过发卡机构单独办理的**后付费信用卡、借记卡版本**，不能在车站直接购买。不保证短期游客符合返还条件。",
+      single: "**单程票**\n\n适用于一次地铁行程。在自动售票机选择目的地，支付车费及500韩元押金。乘车结束后可在押金退还机办理退款。\n\n请参考下方不同设备的支付方式。",
+      tmoney: "**T-money**\n\n可充值的公交、地铁交通卡。余额不足时可继续充值使用。\n\n购买和充值支持的支付方式不同，详见下方。",
+      climateShort: "**气候同行卡短期票**\n\n可选择**1、2、3、5或7日票**，有效期内可不限次数乘坐**首尔指定范围内的公共交通**。部分线路和区间不适用。\n\n请事先确认最新适用线路及不适用区间。",
+      climatePass: "**Modu卡（气候同行通行证）**\n\n这是一项取代原气候同行卡30日票的**交通费返还制度**。**预付卡需要充值金额后使用**。具体可购买和充值的设备请参考下方。\n\n返还金额取决于每月乘车记录和资格条件。需完成办卡登记及资格确认，**仅购买或充值并不保证返还交通费。**\n\n也有通过发卡机构单独办理的**后付费信用卡、借记卡版本**，不能在车站直接购买。不保证短期游客符合返还条件。",
     },
     topupGuide: (card, method) => `**充值：${card} / ${method}**\n\n正在核实支持该卡种及支付方式的设备和位置。**目前尚未确认该组合可以充值。** 请咨询站务人员。`,
   },
 };
+
+
+// 결제 안내는 실제 기기와 업무를 동시에 확인해야 합니다.
+// 키오스크가 해외카드를 받더라도, 티머니 충전은 현금 전용 등 상품별 제한이 있습니다.
+// 출처: 역사 제공 '키오스크 결제수단별 서비스 구현 현황' 및 현장 설명 (2026-10).
+const DEVICE_PAYMENT_NOTES = {
+  ko: {
+    location: "**기기 위치**\n구형 발매기와 신형 키오스크는 역사 내 별도로 설치되어 있습니다. 종로5가역의 정확한 설치 위치(출구 방향)는 확인 후 안내할 예정입니다.",
+    single: "**① 구매·발매 장소**\n구형 발매기 또는 신형 키오스크\n**구매 결제수단**\n• 구형 발매기: **현금 · 국내 발급 카드**\n• 신형 키오스크: **현금 · 국내/해외 발급 카드 · 지원되는 간편결제**\n\n**② 충전 안내**\n1회용 승차권은 충전식 카드가 아닙니다. 이용 후 **보증금 환급기**에서 보증금 500원을 돌려받을 수 있습니다.",
+    tmoney: "**① 카드 구매 장소**\n**신형 키오스크에서만 구매 가능** (구형 발매기에서는 카드 판매 불가)\n**구매 결제수단**\n**현금 · 국내 발급 카드 · 지원되는 간편결제**\n※ 해외 발급 카드로 티머니 카드 구매 불가\n\n**② 카드 충전 장소·방법**\n신형 키오스크에서 **티머니 충전**을 선택하고, 화면 안내에 따라 카드 인식 및 충전 금액을 선택하세요.\n**충전 결제수단**\n**현금만 가능** (국내/해외 카드·간편결제 불가)\n※ 구형 발매기의 티머니 충전 지원 여부는 추가 확인 필요",
+    climateShort: "**① 실물 기후동행카드 구매 장소**\n**신형 키오스크에서만 구매 가능** (구형 발매기에서는 카드 판매 불가)\n**카드 구매 결제수단**\n**현금 · 국내/해외 발급 카드 · 지원되는 간편결제**\n\n**② 단기권 충전 장소·방법**\n신형 키오스크에서 **기후동행카드 단기권 충전**을 선택하고, **1·2·3·5·7일권** 중 이용권을 고른 후 화면 안내에 따라 결제하세요.\n**단기권 충전 결제수단**\n**현금 · 국내/해외 발급 카드 · 지원되는 간편결제**\n※ 해외 발급 카드 충전은 **단기권에 한정**. 구형 발매기의 단기권 충전 지원 여부는 확인 필요",
+    climatePass: "**① 선불형 카드 구매 장소**\n구형 발매기는 **실물 교통카드를 판매하지 않습니다.** 모두의카드 선불형의 **신형 키오스크 판매 지원 여부는 확인 중**입니다.\n**구매 결제수단**\n키오스크의 모두의카드 선불형 지원 및 결제수단 **확인 필요**\n\n**② 선불형 충전 장소·방법**\n선불형은 금액을 충전해 사용합니다. 다만 모두의카드 선불형의 **키오스크 충전 지원 여부·절차·결제수단은 확인 중**입니다.\n**충전 결제수단**\n**확인 필요** — 다른 기후동행카드 상품의 결제수단을 그대로 적용하지 않습니다.\n\n※ 후불형은 카드사에서 별도로 발급받습니다. 환급은 카드 등록·자격 및 이용 실적에 따라 달라집니다.",
+  },
+  en: {
+    location: "**Machine locations**\nOlder ticket machines and new kiosks are installed in the station. Exact exit-area locations at Jongno 5-ga Station will be added after verification.",
+    single: "**① Where to buy**\nOlder ticket machine or new kiosk\n**Payment for purchase**\n• Older machine: **Cash · Korean-issued card**\n• New kiosk: **Cash · Korean/overseas-issued card · supported mobile payment**\n\n**② Top-up**\nSingle-journey tickets cannot be reloaded. After travel, reclaim the refundable **KRW 500 deposit** at a deposit-refund machine.",
+    tmoney: "**① Where to buy the card**\n**New kiosk only** (older machines do not sell transit cards)\n**Payment for purchase**\n**Cash · Korean-issued card · supported mobile payment**\n※ Overseas-issued cards cannot be used to buy T-money at this kiosk.\n\n**② Where and how to top up**\nAt the new kiosk, choose **T-money top-up** and follow the on-screen instructions to present the card and choose an amount.\n**Payment for top-up**\n**Cash only** (no Korean/overseas cards or mobile payment).\n※ Older machine top-up support is not yet verified.",
+    climateShort: "**① Where to buy a physical Climate Card**\n**New kiosk only** (older machines do not sell cards)\n**Payment for card purchase**\n**Cash · Korean/overseas-issued card · supported mobile payment**\n\n**② Where and how to load a short-term pass**\nAt the new kiosk, choose the **Climate Card short-term pass**, select **1/2/3/5/7 days**, and follow the on-screen payment steps.\n**Payment for short-term pass loading**\n**Cash · Korean/overseas-issued card · supported mobile payment**\n※ Overseas-issued card payments for loading are **limited to short-term passes**. Older-machine support is unverified.",
+    climatePass: "**① Where to buy the prepaid card**\nOlder machines **do not sell physical transit cards**. Availability of prepaid Modu Card purchases at the **new kiosk is still being verified**.\n**Payment for purchase**\n**Not yet confirmed** for the prepaid Modu Card\n\n**② Where and how to top up**\nThe prepaid version is loaded with money before use. **Whether the kiosk supports loading, its steps and accepted payment methods are not yet confirmed**.\n**Payment for top-up**\n**Not yet confirmed** — do not apply other Climate Card rules to this product.\n\n※ Postpaid cards are issued separately by card companies. Fare refunds require registration, eligibility and qualifying travel.",
+  },
+  ja: {
+    location: "**機器の設置場所**\n駅構内には従来型券売機と新型キオスクがあります。鍾路5街駅での詳しい出口方面・設置場所は確認後にご案内します。",
+    single: "**① 発売場所**\n従来型券売機または新型キオスク\n**購入時の決済方法**\n• 従来型券売機：**現金・韓国発行カード**\n• 新型キオスク：**現金・韓国/海外発行カード・対応するモバイル決済**\n\n**② チャージ**\n1回用乗車券はチャージできません。利用後は保証金払戻機で**500ウォンの保証金**を返金できます。",
+    tmoney: "**① カードの購入場所**\n**新型キオスクのみ**（従来型券売機ではカードを販売しません）\n**購入時の決済方法**\n**現金・韓国発行カード・対応するモバイル決済**\n※ 海外発行カードでのT-money購入不可\n\n**② チャージ場所・方法**\n新型キオスクで**T-moneyチャージ**を選び、画面の案内に従ってカードを読み取り、金額を選択してください。\n**チャージ時の決済方法**\n**現金のみ**（韓国/海外発行カード・モバイル決済不可）\n※ 従来型券売機のチャージ対応は確認中です。",
+    climateShort: "**① 気候同行カード本体の購入場所**\n**新型キオスクのみ**（従来型券売機でのカード販売なし）\n**カード購入時の決済方法**\n**現金・韓国/海外発行カード・対応するモバイル決済**\n\n**② 短期券のチャージ場所・方法**\n新型キオスクで**気候同行カード短期券**を選び、**1・2・3・5・7日券**のいずれかを選択して画面に従ってお支払いください。\n**短期券チャージ時の決済方法**\n**現金・韓国/海外発行カード・対応するモバイル決済**\n※ 海外発行カードでのチャージは**短期券のみ**。従来型券売機での対応は確認中です。",
+    climatePass: "**① 前払い式カードの購入場所**\n従来型券売機では実物交通カードを販売していません。前払い式モドゥカードを**新型キオスクで購入できるかは確認中**です。\n**購入時の決済方法**\n**確認中**（前払い式モドゥカード）\n\n**② チャージ場所・方法**\n前払い式は金額をチャージして利用します。ただし、**キオスクでの対応・操作方法・決済方法は確認中**です。\n**チャージ時の決済方法**\n**確認中** — 別の気候同行カード商品のルールを流用しません。\n\n※ 後払い式はカード会社から別途発行します。還付には登録・資格・利用実績が必要です。",
+  },
+  zh: {
+    location: "**设备位置**\n车站内设有旧式售票机和新型自助终端。钟路5街站各设备对应的具体出口方向仍在核实中。",
+    single: "**① 购买地点**\n旧式售票机或新型自助终端\n**购票支付方式**\n• 旧式售票机：**现金、韩国发行的银行卡**\n• 新型自助终端：**现金、韩国/境外发行的银行卡、支持的移动支付**\n\n**② 充值说明**\n单程票不可充值。乘车后可在押金退还机领取**500韩元押金**。",
+    tmoney: "**① 购卡地点**\n**仅限新型自助终端**（旧式售票机不出售实体卡）\n**购卡支付方式**\n**现金、韩国发行的银行卡、支持的移动支付**\n※ 不支持使用境外银行卡购买T-money。\n\n**② 充值地点及方法**\n在新型自助终端选择**T-money充值**，根据屏幕提示感应交通卡并选择充值金额。\n**充值支付方式**\n**仅支持现金**（不支持韩国/境外银行卡及移动支付）\n※ 旧式售票机是否支持充值仍待核实。",
+    climateShort: "**① 气候同行实体卡购买地点**\n**仅限新型自助终端**（旧式售票机不售卡）\n**购卡支付方式**\n**现金、韩国/境外发行的银行卡、支持的移动支付**\n\n**② 短期票充值地点及方法**\n在新型自助终端选择**气候同行卡短期票**，选择**1、2、3、5或7日票**，并按屏幕提示完成付款。\n**短期票充值支付方式**\n**现金、韩国/境外发行的银行卡、支持的移动支付**\n※ 境外银行卡仅支持**短期票充值**。旧式售票机的支持情况仍待核实。",
+    climatePass: "**① 预付卡购买地点**\n旧式售票机**不销售实体交通卡**。新型自助终端能否购买**预付式Modu卡尚待核实**。\n**购卡支付方式**\n**待确认**（预付式Modu卡）\n\n**② 充值地点及方法**\n预付卡需先充值金额再使用，但**新型自助终端是否支持充值、操作方式和支付方式均待核实**。\n**充值支付方式**\n**待确认**，不直接套用其他气候同行卡的支付规则。\n\n※ 后付费卡由发卡机构另行发行。车费返还须符合注册、资格和乘车记录要求。",
+  },
+};
+
+function productGuideWithDevicePayments(lang, product) {
+  const locale = SUBMENU_TEXT[lang] ? lang : "ko";
+  const ui = SUBMENU_TEXT[locale];
+  const note = DEVICE_PAYMENT_NOTES[locale];
+  return `${ui.buyGuides[product]}\n\n${note[product]}\n\n${note.location}`;
+}
 
 const FACILITY_TYPES = ["restroom", "elevator", "lockers"];
 const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
@@ -424,16 +466,11 @@ function makeSubmenu(lang, menuName, cardType = null) {
   let options = [];
   if (menuName === "facility") {
     options = FACILITY_TYPES.map((id) => option(`facility_${id}`, ui.labels[id]));
-  } else if (menuName === "fare") {
-    options = [option("fare_buy", ui.labels.buy), option("fare_topup", ui.labels.topup)];
-  } else if (menuName === "buy") {
-    options = [...FARE_TYPES.map((id) => option(`buy_${id}`, ui.labels[id], false, ui.buyDescriptions[id])), option("menu_fare", ui.labels.fareBack, true)];
-  } else if (menuName === "topup") {
-    options = [...TOPUP_TYPES.map((id) => option(`recharge_${id}`, ui.labels[id])), option("menu_fare", ui.labels.fareBack, true)];
-  } else if (menuName === "payment") {
-    options = [...PAYMENT_TYPES.map((id) => option(`pay_${cardType}_${id}`, ui.labels[id])), option("fare_topup", ui.labels.topupBack, true)];
+  } else if (menuName === "fare" || menuName === "buy") {
+    options = FARE_TYPES.map((id) => option(`buy_${id}`, ui.labels[id], false, ui.buyDescriptions[id]));
   }
-  return { role: "assistant", text: ui.prompts[menuName], options, optionsKind: menuName === "buy" ? "purchaseTable" : "submenu", menuPhase: "selection" };
+  const normalizedMenu = menuName === "buy" ? "fare" : menuName;
+  return { role: "assistant", text: ui.prompts[normalizedMenu], options, optionsKind: normalizedMenu === "fare" ? "purchaseTable" : "submenu", menuPhase: "selection" };
 }
 
 function normalizeDestination(value, lang) {
@@ -764,8 +801,8 @@ export default function Home() {
     if (loading) return;
     const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
     const id = option.id;
-    if (id === "menu_fare" || id === "menu_facility" || id === "fare_buy" || id === "fare_topup") {
-      const menuName = id === "menu_fare" ? "fare" : id === "menu_facility" ? "facility" : id === "fare_buy" ? "buy" : "topup";
+    if (id === "menu_fare" || id === "menu_facility" || id === "fare_buy") {
+      const menuName = id === "menu_facility" ? "facility" : "fare";
       showMenu(menuName, option.label);
       return;
     }
@@ -782,33 +819,14 @@ export default function Home() {
       const product = id.slice("buy_".length);
       setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
         {
-          role: "assistant", text: ui.buyGuides[product],
-          options: [{ id: "fare_buy", label: ui.labels.buyBack }, { id: "menu_fare", label: ui.labels.fareBack }],
+          role: "assistant", text: productGuideWithDevicePayments(lang, product),
+          options: [{ id: "menu_fare", label: ui.labels.fareBack }],
           optionsKind: "submenu", feedbackKey: `buy_${product}`,
         },
       ]);
       return;
     }
-    if (id.startsWith("recharge_")) {
-      const cardType = id.slice("recharge_".length);
-      showMenu("payment", option.label, cardType);
-      return;
-    }
-    if (id.startsWith("pay_")) {
-      const remaining = id.slice("pay_".length);
-      const paymentType = PAYMENT_TYPES.find((type) => remaining.endsWith(`_${type}`));
-      const cardType = paymentType ? remaining.slice(0, -(paymentType.length + 1)) : null;
-      if (!cardType || !paymentType || !ui.labels[cardType]) return;
-      setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
-        {
-          role: "assistant", text: ui.topupGuide(ui.labels[cardType], ui.labels[paymentType]),
-          options: [
-            { id: `recharge_${cardType}`, label: ui.labels.topup },
-            { id: "menu_fare", label: ui.labels.fareBack },
-          ], optionsKind: "submenu", feedbackKey: `topup_${cardType}_${paymentType}`,
-        },
-      ]);
-    }
+
   }
 
   function quickAction(type, label) {
