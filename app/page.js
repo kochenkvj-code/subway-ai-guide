@@ -257,6 +257,91 @@ const GATE_GUIDES = {
   },
 };
 
+// v5.5 — 정적 게이트 안내: 메뉴 → 해결 단계 → 필요하면 기존 상세 지침.
+// 기존 코드별 처리 지침(GATE_GUIDES)은 변경하지 않고 하위 설명에 그대로 유지합니다.
+const GATE_UI = {
+  ko: {
+    title: "게이트 오류 안내",
+    subtitle: "화면에 표시된 오류 코드를 선택해 주세요.",
+    choose: "오류 코드를 선택하세요",
+    unknown: "오류 코드를 모르겠어요",
+    stepTitle: "해결 방법",
+    details: "오류 원인과 자세한 안내 보기",
+    another: "다른 오류 선택",
+    office: "역무실 위치",
+    help: "긴급하거나 통과가 어렵다면 게이트 HELP 버튼으로 역무원에게 문의해 주세요.",
+    steps: {
+      e01: ["지갑·휴대폰 케이스에서 사용할 카드 **한 장만 꺼내세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
+      e03: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
+      e04: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
+      e05: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 요금을 정산**해 주세요."],
+      e06: ["사용할 수 있는 **다른 교통카드**가 있다면 이용해 보세요.", "문제가 계속되면 **역무실**에 문의하세요."],
+      e14: ["충전 가능한 발매기 또는 키오스크에서 **잔액을 충전하세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
+      e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
+      e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
+      opposite: ["반대편 승강장으로 이동해야 하는 상황인지 확인하세요.", "**스피드게이트(휠체어 게이트)**를 통해 반대편 승강장으로 이동하세요."],
+      unknown: ["**초록색 화살표 게이트**에 카드를 태그하고 표시된 오류를 다시 확인하세요.", "코드를 찾기 어렵거나 통과가 되지 않으면 **HELP 버튼으로 역무원**을 호출하세요."],
+    },
+  },
+  en: {
+    title: "Gate Error Guide", subtitle: "Select the error code shown on the gate.",
+    choose: "Choose an error code", unknown: "I don't know the error code",
+    stepTitle: "How to resolve", details: "View cause & full explanation",
+    another: "Choose another error", office: "Station office",
+    help: "If urgent or you cannot pass, press the gate HELP button to contact station staff.",
+    steps: {
+      e01: ["Take **one transit card** out of your wallet or phone case.", "Tap it again at a gate showing a **green arrow**."],
+      e03: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
+      e04: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
+      e05: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for fare adjustment**."],
+      e06: ["Try **another transit card**, if available.", "If it still fails, contact the **station office**."],
+      e14: ["**Top up** your card at a compatible machine or kiosk.", "Tap again at a gate showing a **green arrow**."],
+      e33: ["The card has **already been tapped in**; no extra fare adjustment is needed.", "Use the **accessible (wide) gate** to proceed."],
+      e44: ["The card has **already been tapped out**; no extra fare adjustment is needed.", "Use the **accessible (wide) gate** to proceed."],
+      opposite: ["Confirm you need to reach the **opposite platform**.", "Use the **accessible (wide) gate** to move across."],
+      unknown: ["Tap at a gate showing a **green arrow** and check the displayed message.", "If you cannot identify the code or pass through, press **HELP** to contact staff."],
+    },
+  },
+  ja: {
+    title: "改札エラー案内", subtitle: "改札機に表示されたエラーコードを選んでください。",
+    choose: "エラーコードを選択", unknown: "コードが分かりません",
+    stepTitle: "対処方法", details: "原因・詳しい説明を見る",
+    another: "別のエラーを選ぶ", office: "駅務室の場所",
+    help: "緊急時や通れない場合は、改札のHELPボタンで駅員に連絡してください。",
+    steps: {
+      e01: ["財布・スマホケースから**使用するカード1枚**を取り出してください。", "**緑の矢印**が表示された改札にもう一度タッチしてください。"],
+      e03: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室でカード確認と精算**を受けてください。"],
+      e04: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室でカード確認と精算**を受けてください。"],
+      e05: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室で精算**してください。"],
+      e06: ["別の**交通カード**があればお試しください。", "解決しない場合は**駅務室**へお越しください。"],
+      e14: ["対応する券売機・キオスクで**チャージ**してください。", "**緑の矢印**が表示された改札にもう一度タッチしてください。"],
+      e33: ["**すでに入場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
+      e44: ["**すでに出場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
+      opposite: ["**反対側のホーム**への移動が必要か確認してください。", "**車いす用ゲート**を通って反対側へ移動してください。"],
+      unknown: ["**緑の矢印**がある改札にタッチし、表示を確認してください。", "コードが分からない、または通れない場合は**HELPボタン**で駅員を呼んでください。"],
+    },
+  },
+  zh: {
+    title: "闸机错误指南", subtitle: "请选择闸机屏幕上显示的错误代码。",
+    choose: "选择错误代码", unknown: "我不知道错误代码",
+    stepTitle: "解决方法", details: "查看原因与详细说明",
+    another: "选择其他错误", office: "站务室位置",
+    help: "如遇紧急情况或无法通行，请按闸机上的HELP按钮联系站务员。",
+    steps: {
+      e01: ["请从钱包或手机壳中取出**一张要使用的交通卡**。", "在有**绿色箭头**的闸机上重新刷卡。"],
+      e03: ["请前往**无障碍宽闸机**。", "通过后前往**站务室检查卡片并补缴/结算车费**。"],
+      e04: ["请前往**无障碍宽闸机**。", "通过后前往**站务室检查卡片并补缴/结算车费**。"],
+      e05: ["请前往**无障碍宽闸机**。", "通过后前往**站务室办理车费结算**。"],
+      e06: ["如有其他**交通卡**，请尝试使用。", "如仍无法使用，请前往**站务室**。"],
+      e14: ["请在支持的售票机或自助终端为交通卡**充值**。", "然后在有**绿色箭头**的闸机上重新刷卡。"],
+      e33: ["此卡**已完成进站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
+      e44: ["此卡**已完成出站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
+      opposite: ["请确认需要前往**对面站台**。", "请使用**无障碍宽闸机**前往对面站台。"],
+      unknown: ["请在有**绿色箭头**的闸机上刷卡并查看错误信息。", "如无法识别代码或无法通行，请按**HELP按钮**联系站务员。"],
+    },
+  },
+};
+
 // 구매/충전 하위 선택은 고정 안내로 동작합니다. 시설안내는 Gemini 검색 기반 응답을 사용합니다.
 // 실제 역사 내 발매기 위치와 결제수단 확인 후 안내 문구를 갱신하세요.
 const SUBMENU_TEXT = {
@@ -725,6 +810,7 @@ export default function Home() {
   const [feedbackByIndex, setFeedbackByIndex] = useState({});
   const [expandedFareDetails, setExpandedFareDetails] = useState({});
   const fareGuideSerial = useRef(0);
+  const gateGuideSerial = useRef(0);
   const [gateEntry, setGateEntry] = useState(false);
   const gateEntryRef = useRef(false);
   const gateAutoOpenedRef = useRef(false);
@@ -802,14 +888,7 @@ export default function Home() {
     setInput("");
     setFeedbackByIndex({});
 
-    const gateMenu = GATE_MENU.ko;
-    setMessages([
-      {
-        role: "assistant",
-        text: gateMenu.prompt,
-        options: gateMenu.options,
-      },
-    ]);
+    setMessages([{ role: "assistant", text: "", gateMenu: true }]);
 
     if (GA_ID && typeof window.gtag === "function") {
       window.gtag("event", "gate_qr_open", {
@@ -844,14 +923,7 @@ export default function Home() {
     setExpandedFareDetails({});
 
     if (gateEntryRef.current) {
-      const gateMenu = GATE_MENU[nextLang] || GATE_MENU.ko;
-      setMessages([
-        {
-          role: "assistant",
-          text: gateMenu.prompt,
-          options: gateMenu.options,
-        },
-      ]);
+      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
       return;
     }
 
@@ -929,20 +1001,33 @@ export default function Home() {
     }
   }
 
+  function openGateMenu({ replaceCurrent = false } = {}) {
+    setMode(null);
+    setFeedbackByIndex({});
+    setMessages((prev) => {
+      const next = [...prev];
+      if (replaceCurrent && (next[next.length - 1]?.gateResult || next[next.length - 1]?.gateMenu)) {
+        next.pop();
+      }
+      next.push({ role: "assistant", text: "", gateMenu: true });
+      return next;
+    });
+  }
+
   function handleGateOption(option) {
     if (loading) return;
-
-    const guide = GATE_GUIDES[option.id]?.[lang] || GATE_GUIDES[option.id]?.ko;
-
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: option.label },
-      {
-        role: "assistant",
-        text: guide,
+    setFeedbackByIndex({});
+    const gateMessageId = ++gateGuideSerial.current;
+    setMessages((prev) => {
+      const next = [...prev];
+      // Replace the active selection card instead of stacking more messages.
+      if (next[next.length - 1]?.gateMenu || next[next.length - 1]?.gateResult) next.pop();
+      next.push({
+        role: "assistant", text: "", gateResult: option.id, gateMessageId,
         feedbackKey: `gate_${option.id}`,
-      },
-    ]);
+      });
+      return next;
+    });
   }
 
   function handleFeedback(index, message, result) {
@@ -1047,16 +1132,10 @@ export default function Home() {
 
     if (type === "gate") {
       setMode(null);
-      const gateMenu = GATE_MENU[lang] || GATE_MENU.ko;
-
       setMessages((prev) => [
         ...prev,
         { role: "user", text: label },
-        {
-          role: "assistant",
-          text: gateMenu.prompt,
-          options: gateMenu.options,
-        },
+        { role: "assistant", text: "", gateMenu: true },
       ]);
       return;
     }
@@ -1162,8 +1241,83 @@ export default function Home() {
           >
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${message.options ? "has-options" : ""}`}>
-                <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""}`}>
+                {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
+
+                {message.gateMenu && (() => {
+                  const ui = GATE_UI[lang] || GATE_UI.ko;
+                  const menu = GATE_MENU[lang] || GATE_MENU.ko;
+                  return (
+                    <div className="sag-gate-card">
+                      <div className="sag-gate-card-heading">
+                        <span className="sag-gate-card-icon" aria-hidden="true">🚪</span>
+                        <div><h2>{ui.title}</h2><p>{ui.subtitle}</p></div>
+                      </div>
+                      <div className="sag-gate-notice">{renderBoldMarkdown(menu.prompt)}</div>
+                      <div className="sag-gate-section-label">{ui.choose}</div>
+                      <div className="sag-gate-code-grid" role="group" aria-label={ui.choose}>
+                        {menu.options.filter((option) => !option.wide).map((option) => (
+                          <button key={option.id} type="button" onClick={() => handleGateOption(option)} disabled={loading}
+                            aria-label={option.label}>
+                            <strong>{option.label.match(/^E-\d+/)?.[0] || ""}</strong>
+                            <span>{option.label.replace(/^E-\d+\s*/, "")}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <button type="button" className="sag-gate-platform" disabled={loading}
+                        onClick={() => handleGateOption(menu.options.find((o) => o.id === "opposite"))}>
+                        <span aria-hidden="true">↔</span>{menu.options.find((o) => o.id === "opposite")?.label.replace(/^↔\s*/, "")}
+                        <span aria-hidden="true">›</span>
+                      </button>
+                      <button type="button" className="sag-gate-unknown" disabled={loading}
+                        onClick={() => handleGateOption({ id: "unknown", label: ui.unknown })}>
+                        <span aria-hidden="true">?</span>{ui.unknown}<span aria-hidden="true">›</span>
+                      </button>
+                      <p className="sag-gate-help">{ui.help}</p>
+                    </div>
+                  );
+                })()}
+
+                {message.gateResult && (() => {
+                  const ui = GATE_UI[lang] || GATE_UI.ko;
+                  const options = (GATE_MENU[lang] || GATE_MENU.ko).options;
+                  const selected = options.find((o) => o.id === message.gateResult);
+                  const code = selected && !selected.wide ? selected.label.match(/^E-\d+/)?.[0] : "";
+                  const name = selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
+                  const steps = ui.steps[message.gateResult] || ui.steps.unknown;
+                  const fullGuide = GATE_GUIDES[message.gateResult]?.[lang] || GATE_GUIDES[message.gateResult]?.ko;
+                  return (
+                    <div className="sag-gate-card sag-gate-resolution">
+                      <div className="sag-gate-result-heading">
+                        {code && <span className="sag-gate-result-code">{code}</span>}
+                        <h2>{name}</h2>
+                      </div>
+                      <h3 className="sag-gate-step-title">{ui.stepTitle}</h3>
+                      <ol className="sag-gate-steps">
+                        {steps.map((step, i) => (
+                          <li key={i}><span className="sag-gate-step-no">{i + 1}</span>
+                            <span>{renderBoldMarkdown(step)}</span>
+                          </li>
+                        ))}
+                      </ol>
+                      {fullGuide && (
+                        <details className="sag-gate-details">
+                          <summary>{ui.details}<span aria-hidden="true">⌄</span></summary>
+                          <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
+                        </details>
+                      )}
+                      <div className="sag-gate-help">{ui.help}</div>
+                      <div className="sag-gate-result-actions">
+                        <button type="button" onClick={() => openGateMenu({ replaceCurrent: true })} disabled={loading}>
+                          ← {ui.another}
+                        </button>
+                        <button type="button" onClick={() => quickAction("staff", t.office)} disabled={loading}>
+                          📍 {ui.office}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {message.fareProduct && (() => {
                   const locale = FARE_SUMMARIES[lang] ? lang : "ko";
@@ -1578,6 +1732,64 @@ export default function Home() {
           max-width: 97%;
           padding: 7px 8px;
           line-height: 1.3;
+        }
+
+        /* v5.5: 8개 코드 + 반대편 승강장 + 코드 미확인, 3열 모바일 선택 */
+        .sag-gate-card { color: #183149; line-height: 1.45; }
+        .sag-gate-card-heading { display: flex; align-items: center; gap: 10px; margin: 1px 2px 9px; }
+        .sag-gate-card-icon { display: flex; width: 36px; height: 36px; flex: 0 0 36px;
+          align-items: center; justify-content: center; border-radius: 10px; background: #e9f3fc; font-size: 19px; }
+        .sag-gate-card-heading h2 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
+        .sag-gate-card-heading p { margin: 0; font-size: 11px; color: #566d81; }
+        .sag-gate-notice { white-space: pre-wrap; background: #eef6fd; border-left: 3px solid #2382c7;
+          border-radius: 9px; padding: 10px; font-size: 11.5px; color: #243e55; line-height: 1.58; }
+        .sag-gate-section-label { font-size: 12px; font-weight: 800; margin: 12px 0 8px; color: #244b6e; }
+        .sag-gate-code-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+        .sag-gate-code-grid button { display: flex; min-width: 0; flex-direction: column; align-items: center;
+          justify-content: center; gap: 4px; min-height: 66px; padding: 6px 3px;
+          border: 1px solid #c8dce9; border-radius: 11px; background: #fff;
+          color: #20384d; cursor: pointer; line-height: 1.2; }
+        .sag-gate-code-grid strong { color: #1265a4; font-size: 16px; font-weight: 850; }
+        .sag-gate-code-grid button span { font-size: 10.2px; font-weight: 650; overflow-wrap: anywhere;
+          word-break: keep-all; text-align: center; }
+        .sag-gate-code-grid button:hover { border-color: #4d97cb; background: #f4faff; }
+        .sag-gate-code-grid button:active, .sag-gate-platform:active, .sag-gate-unknown:active { background: #e7f3fc; }
+        .sag-gate-platform, .sag-gate-unknown { display: flex; align-items: center; justify-content: center;
+          gap: 8px; width: 100%; padding: 9px; border-radius: 10px; font-size: 12px;
+          font-weight: 750; cursor: pointer; margin-top: 7px; }
+        .sag-gate-platform { border: 1px solid #b8d4e8; background: #eef6fc; color: #185886; }
+        .sag-gate-unknown { border: 1px solid #d5dfe7; background: #fafcff; color: #506477; }
+        .sag-gate-platform span:first-child, .sag-gate-unknown span:first-child { font-size: 18px; }
+        .sag-gate-platform span:last-child, .sag-gate-unknown span:last-child { margin-left: auto; font-size: 19px; }
+        .sag-gate-help { margin: 10px 1px 0; padding: 9px 10px; background: #f4f6f8;
+          border-radius: 9px; font-size: 11px; line-height: 1.5; color: #5b6974; }
+        .sag-gate-result-heading { display: flex; align-items: center; gap: 9px; padding: 3px 2px 10px;
+          border-bottom: 1px solid #e4ebf0; }
+        .sag-gate-result-heading h2 { font-size: 16px; font-weight: 800; margin: 0; }
+        .sag-gate-result-code { color: #1265a4; background: #e8f4fd; border-radius: 8px;
+          padding: 6px 8px; font-size: 15px; font-weight: 850; flex-shrink: 0; }
+        .sag-gate-step-title { font-size: 13px; margin: 12px 0 8px; }
+        .sag-gate-steps { padding: 0; margin: 0; list-style: none; display: grid; gap: 7px; }
+        .sag-gate-steps li { display: flex; align-items: flex-start; gap: 10px; background: #f3f8fc;
+          border: 1px solid #e5eef5; padding: 10px; border-radius: 11px; font-size: 12.2px; line-height: 1.55; }
+        .sag-gate-step-no { display: flex; flex: 0 0 24px; height: 24px; align-items: center;
+          justify-content: center; border-radius: 50%; background: #1e79bb; color: white; font-weight: 800; }
+        .sag-gate-steps strong { font-weight: 850; }
+        .sag-gate-details { margin-top: 10px; background: #fff; border: 1px solid #d7e4ee; border-radius: 10px; }
+        .sag-gate-details summary { list-style: none; display: flex; align-items: center; justify-content: space-between;
+          gap: 6px; cursor: pointer; padding: 10px; color: #1d6290; font-size: 12px; font-weight: 750; }
+        .sag-gate-details summary::-webkit-details-marker { display: none; }
+        .sag-gate-details[open] summary span { transform: rotate(180deg); }
+        .sag-gate-full-text { white-space: pre-wrap; padding: 9px 10px 12px;
+          border-top: 1px solid #e4edf3; font-size: 12px; line-height: 1.65; }
+        .sag-gate-result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
+        .sag-gate-result-actions button { padding: 10px 5px; border: 1px solid #bfd8e9; color: #165c88;
+          font-size: 11px; font-weight: 800; background: #fff; border-radius: 9px; cursor: pointer; }
+        .sag-gate-result-actions button:active { background: #e8f4fc; }
+        .sag-gate-card button:focus-visible, .sag-gate-card summary:focus-visible { outline: 2px solid #1472b7; outline-offset: 2px; }
+        @media (max-width: 350px) {
+          .sag-gate-code-grid { gap: 4px; }
+          .sag-gate-code-grid button span { font-size: 9.5px; }
         }
 
         .sag-gate-options {
