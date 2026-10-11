@@ -266,7 +266,7 @@ const SUBMENU_TEXT = {
       tmoney: "티머니", climateShort: "기후동행카드 단기권",
       climatePass: "모두의카드(기후동행패스)", cash: "현금",
       domestic: "국내 발급 카드", foreign: "해외 발급 카드",
-      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함",
+      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함", nursing: "수유실",
       facilityBack: "시설안내 다시 선택", buyBack: "다른 승차권 보기",
       fareBack: "다른 승차권·카드 선택", topupBack: "다른 교통카드 선택",
     },
@@ -278,7 +278,8 @@ const SUBMENU_TEXT = {
       payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
     },
     facilityPending: (name) => `**${name} 위치 안내**\n\n현재 정확한 시설 위치를 확인 중입니다. 확인된 안내를 등록하기 전까지는 역무실에 문의해 주세요.`,
-    exchange: "**환전소 안내**\n\n종로5가역 **8번 출구 방향**으로 이동해 주세요. 환전소 운영 여부와 영업시간은 변동될 수 있으니 현장에서 확인해 주세요.",
+    exchange: "**💱 종로5가역 주변 환전소**\n\n**① 머니박스 광장시장점**\n• **위치:** 종로5가역 8번 출구에서 도보 약 1분 (종로 210, 하이뷰더광장 107호)\n• **영업시간:** 매일 09:30~20:30\n• **전화:** 02-2269-8898\n\n**② ABC Money Exchange 광장시장지점**\n• **위치:** 종로 198-2, 대동빌딩 1층 (광장시장 인근)\n• **영업시간:** 매일 09:00~19:00\n• **전화:** 010-5628-2100\n\n※ 매장 영업시간·운영 여부는 변경될 수 있으니 방문 전 확인해 주세요.",
+    nursingGuide: "**🍼 수유실 위치 안내**\n\n**위치:** 종로5가 지하도상가(종오지하쇼핑센터) **지하 1층**, **지하도상가 11번 출구 인근**\n\n여자화장실 옆에 있는 수유실을 찾아주세요.\n\n※ 안내된 **11번 출구는 지하도상가 출구 기준**입니다. 위치가 헷갈리면 가까운 안내소나 역무실에 문의해 주세요.",
     buyDescriptions: {
       single: "지하철 1회 이용",
       tmoney: "충전식 버스·지하철 교통카드",
@@ -299,7 +300,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "Climate Card short-term pass",
       climatePass: "Modu Card (Climate Pass)", cash: "Cash", domestic: "Korean-issued card",
       foreign: "Overseas-issued card", restroom: "Restroom", elevator: "Elevator",
-      lockers: "Lockers", facilityBack: "Other facilities", buyBack: "Other tickets",
+      lockers: "Lockers", nursing: "Nursing room", facilityBack: "Other facilities", buyBack: "Other tickets",
       fareBack: "Choose another ticket / card", topupBack: "Other card",
     },
     prompts: {
@@ -310,7 +311,8 @@ const SUBMENU_TEXT = {
       payment: "**How would you like to pay for the top-up?**",
     },
     facilityPending: (name) => `**${name} location**\n\nWe are verifying the exact location. Please ask at the station office until the information is confirmed.`,
-    exchange: "**Currency exchange**\n\nHead toward **Exit 8** at Jongno 5-ga Station. Business status and hours may change; please check on site.",
+    exchange: "**💱 Currency exchange near Jongno 5-ga Station**\n\n**① Moneybox – Gwangjang Market**\n• **Location:** About 1 minute on foot from Exit 8 (107, Hi-View the Gwangjang, 210 Jong-ro)\n• **Hours:** Daily 09:30–20:30\n• **Phone:** 02-2269-8898\n\n**② ABC Money Exchange – Gwangjang Market**\n• **Location:** 1F, Daedong Building, 198-2 Jong-ro, near Gwangjang Market\n• **Hours:** Daily 09:00–19:00\n• **Phone:** 010-5628-2100\n\n※ Hours and availability may change. Please confirm before visiting.",
+    nursingGuide: "**🍼 Nursing room**\n\n**Location:** B1 of the Jongno 5-ga Underground Shopping Center (Jong-o Underground Shopping Center), **near underground shopping arcade Exit 11**.\n\nLook for the nursing room next to the women's restroom.\n\n※ Exit 11 refers to the **underground shopping arcade's exit numbering**, not the subway station's exit numbers. If you need help, ask station staff.",
     buyDescriptions: {
       single: "One subway journey",
       tmoney: "Reloadable subway and bus card",
@@ -331,7 +333,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "気候同行カード短期券",
       climatePass: "モドゥカード(気候同行パス)", cash: "現金", domestic: "韓国発行カード",
       foreign: "海外発行カード", restroom: "トイレ", elevator: "エレベーター",
-      lockers: "コインロッカー", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
+      lockers: "コインロッカー", nursing: "授乳室", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
       fareBack: "ほかの乗車券・カード", topupBack: "ほかのカード",
     },
     prompts: {
@@ -342,7 +344,8 @@ const SUBMENU_TEXT = {
       payment: "**チャージの支払い方法を選んでください。**",
     },
     facilityPending: (name) => `**${name}の場所**\n\n正確な位置を確認中です。案内が登録されるまでは駅務室でお尋ねください。`,
-    exchange: "**両替所のご案内**\n\n鍾路5街駅の**8番出口方面**へお進みください。営業状況・営業時間は現地でご確認ください。",
+    exchange: "**💱 鍾路5街駅周辺の両替所**\n\n**① マネーボックス 広蔵市場店**\n• **場所:** 鍾路5街駅8番出口から徒歩約1分（鍾路210、ハイビュー・ザ・広蔵107号）\n• **営業時間:** 毎日09:30～20:30\n• **電話:** 02-2269-8898\n\n**② ABC Money Exchange 広蔵市場店**\n• **場所:** 鍾路198-2 大東ビル1階（広蔵市場付近）\n• **営業時間:** 毎日09:00～19:00\n• **電話:** 010-5628-2100\n\n※ 営業時間・営業状況は変更される場合があります。訪問前にご確認ください。",
+    nursingGuide: "**🍼 授乳室のご案内**\n\n**場所:** 鍾路5街地下商店街（鍾五地下ショッピングセンター）の**地下1階**、**地下商店街11番出口付近**\n\n女性用トイレの隣にある授乳室をお探しください。\n\n※ **11番出口は地下商店街の出口番号**です。地下鉄駅の出口番号ではありません。不明な場合は駅務室でお尋ねください。",
     buyDescriptions: {
       single: "地下鉄を1回利用",
       tmoney: "チャージ式の地下鉄・バス用交通カード",
@@ -363,7 +366,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "气候同行卡短期票",
       climatePass: "Modu卡（气候同行通行证）", cash: "现金", domestic: "韩国发行银行卡",
       foreign: "境外发行银行卡", restroom: "洗手间", elevator: "电梯",
-      lockers: "寄存柜", facilityBack: "其他设施", buyBack: "其他车票",
+      lockers: "寄存柜", nursing: "母婴室", facilityBack: "其他设施", buyBack: "其他车票",
       fareBack: "选择其他车票/交通卡", topupBack: "其他交通卡",
     },
     prompts: {
@@ -374,7 +377,8 @@ const SUBMENU_TEXT = {
       payment: "**请选择充值支付方式。**",
     },
     facilityPending: (name) => `**${name}位置**\n\n正在核实准确位置。确认前请向站务室咨询。`,
-    exchange: "**货币兑换指引**\n\n请前往钟路5街站**8号出口方向**。营业状态和时间可能变动，请到现场确认。",
+    exchange: "**💱 钟路5街站附近的货币兑换处**\n\n**① Moneybox 广藏市场店**\n• **位置:** 从钟路5街站8号出口步行约1分钟（钟路210号，Hi-View the Gwangjang 107室）\n• **营业时间:** 每天09:30–20:30\n• **电话:** 02-2269-8898\n\n**② ABC Money Exchange 广藏市场店**\n• **位置:** 钟路198-2号，大东大厦1层（广藏市场附近）\n• **营业时间:** 每天09:00–19:00\n• **电话:** 010-5628-2100\n\n※ 营业时间和营业状态可能变化，请出发前再次确认。",
+    nursingGuide: "**🍼 母婴室位置**\n\n**位置:** 钟路5街地下商街（钟五地下购物中心）**地下一层**，**地下商街11号出口附近**。\n\n母婴室位于女洗手间旁。\n\n※ 这里的**11号出口是地下商街的出口编号**，不是地铁站出口编号。如找不到，请向站务室咨询。",
     buyDescriptions: {
       single: "乘坐地铁一次",
       tmoney: "可充值的地铁·公交交通卡",
@@ -571,7 +575,7 @@ function productGuideWithDevicePayments(lang, product) {
   return `${ui.buyGuides[product]}\n\n${note[product]}\n\n${note.location}`;
 }
 
-const FACILITY_TYPES = ["restroom", "elevator", "lockers"];
+const FACILITY_TYPES = ["restroom", "elevator", "lockers", "nursing"];
 const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
 
 const FACILITY_QUESTIONS = {
@@ -986,6 +990,15 @@ export default function Home() {
     }
     if (id.startsWith("facility_")) {
       const facilityType = id.slice("facility_".length);
+      if (facilityType === "nursing") {
+        // 수유실은 제보된 지하상가 위치를 고정 문구로 안내하며 Gemini를 호출하지 않습니다.
+        setMessages((prev) => [
+          ...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
+          { role: "user", text: ui.labels.nursing },
+          { role: "assistant", text: ui.nursingGuide, feedbackKey: "facility_nursing" },
+        ]);
+        return;
+      }
       const question = FACILITY_QUESTIONS[facilityType]?.[lang];
       if (!question) return;
       // 위치·설치 여부는 검색 기반 Gemini 답변으로 안내하되, 불확실하면 추측하지 않도록 요청합니다.
