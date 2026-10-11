@@ -427,6 +427,143 @@ const DEVICE_PAYMENT_NOTES = {
   }
 };
 
+// 승객에게 항상 보이는 간단 안내와, 자세히 보기의 번역 문구를 분리합니다.
+// 기기별 세부 지원 결제수단은 DEVICE_PAYMENT_NOTES에서만 관리합니다.
+const FARE_SUMMARIES = {
+  ko: {
+    detail: "결제수단·이용방법 자세히 보기", hide: "상세 안내 접기",
+    purchase: "구매", topup: "충전", important: "알아두세요",
+    single: {
+      intro: "지하철 1회 이용 · 보증금 500원",
+      purchasePlace: "구형 발매기 · 신형 키오스크",
+      purchasePay: "구형: 현금·국내 카드 / 신형: 현금·국내·해외 카드·간편결제",
+      important: "하차 후 별도 환급기에서 보증금 500원 환급",
+    },
+    tmoney: {
+      intro: "충전해서 버스·지하철에서 사용하는 선불 교통카드",
+      purchasePlace: "신형 키오스크",
+      purchasePay: "현금·국내 카드·간편결제 (해외 카드 불가)",
+      topupPlace: "구형 발매기 · 신형 키오스크",
+      topupPay: "현금만 가능",
+    },
+    climateShort: {
+      intro: "1·2·3·5·7일권 · 서울 지정 대중교통 무제한",
+      purchasePlace: "신형 키오스크 (실물카드)",
+      purchasePay: "현금·국내·해외 카드·간편결제",
+      topupPlace: "구형 발매기 · 신형 키오스크",
+      topupPay: "구형: 현금·국내 카드 / 신형: 해외 카드·간편결제도 가능",
+      important: "충전 당일부터 사용 시작 · 일부 노선 제외",
+    },
+    climatePass: {
+      intro: "선불 충전형 · 등록 및 자격 충족 시 교통비 환급",
+      purchasePlace: "신형 키오스크",
+      purchasePay: "현금·국내·해외 카드·간편결제",
+      topupPlace: "구형 발매기 · 신형 키오스크",
+      topupPay: "현금만 가능",
+      important: "환급에는 카드 등록·자격 확인 필요",
+    },
+  },
+  en: {
+    detail: "Payment details & how to use", hide: "Hide details",
+    purchase: "Buy", topup: "Top up", important: "Note",
+    single: {
+      intro: "One subway ride · KRW 500 refundable deposit",
+      purchasePlace: "Older ticket machine · New kiosk",
+      purchasePay: "Older: cash/Korean card · New: cash/Korean or overseas card/QR pay",
+      important: "Collect KRW 500 at a separate deposit-refund machine after your trip",
+    },
+    tmoney: {
+      intro: "Reloadable prepaid card for subway and buses",
+      purchasePlace: "New kiosk",
+      purchasePay: "Cash, Korean-issued card, QR pay (no overseas card)",
+      topupPlace: "Older ticket machine · New kiosk",
+      topupPay: "Cash only",
+    },
+    climateShort: {
+      intro: "1/2/3/5/7 days · Unlimited rides on eligible Seoul transit",
+      purchasePlace: "New kiosk (physical card)",
+      purchasePay: "Cash, Korean or overseas card, QR pay",
+      topupPlace: "Older ticket machine · New kiosk",
+      topupPay: "Older: cash/Korean card · New: overseas card and QR pay also accepted",
+      important: "Starts on top-up day · Some routes excluded",
+    },
+    climatePass: {
+      intro: "Prepaid · Fare refunds subject to registration and eligibility",
+      purchasePlace: "New kiosk",
+      purchasePay: "Cash, Korean or overseas card, QR pay",
+      topupPlace: "Older ticket machine · New kiosk",
+      topupPay: "Cash only",
+      important: "Card registration and eligibility checks required for refunds",
+    },
+  },
+  ja: {
+    detail: "決済方法・利用方法の詳細", hide: "詳細を閉じる",
+    purchase: "購入", topup: "チャージ", important: "ご注意",
+    single: {
+      intro: "地下鉄1回利用・保証金500ウォン",
+      purchasePlace: "従来型券売機・新型キオスク",
+      purchasePay: "従来型：現金・韓国発行カード／新型：現金・韓国/海外発行カード・QR決済",
+      important: "利用後、別の保証金払戻機で500ウォンを受け取れます",
+    },
+    tmoney: {
+      intro: "地下鉄・バスで使えるチャージ式交通カード",
+      purchasePlace: "新型キオスク",
+      purchasePay: "現金・韓国発行カード・QR決済（海外カード不可）",
+      topupPlace: "従来型券売機・新型キオスク",
+      topupPay: "現金のみ",
+    },
+    climateShort: {
+      intro: "1・2・3・5・7日券・ソウルの対象交通機関が乗り放題",
+      purchasePlace: "新型キオスク（カード本体）",
+      purchasePay: "現金・韓国/海外発行カード・QR決済",
+      topupPlace: "従来型券売機・新型キオスク",
+      topupPay: "従来型：現金・韓国発行カード／新型：海外カード・QR決済も可",
+      important: "チャージ当日から有効・一部路線は対象外",
+    },
+    climatePass: {
+      intro: "前払いチャージ式・登録と資格に応じて交通費還付",
+      purchasePlace: "新型キオスク",
+      purchasePay: "現金・韓国/海外発行カード・QR決済",
+      topupPlace: "従来型券売機・新型キオスク",
+      topupPay: "現金のみ",
+      important: "還付にはカード登録・資格確認が必要",
+    },
+  },
+  zh: {
+    detail: "查看付款方式与使用详情", hide: "收起详细说明",
+    purchase: "购买", topup: "充值", important: "注意",
+    single: {
+      intro: "乘坐地铁一次・押金500韩元",
+      purchasePlace: "旧式售票机・新型自助终端",
+      purchasePay: "旧式：现金/韩国银行卡；新型：现金/韩国及境外银行卡/扫码支付",
+      important: "乘车结束后在独立的押金退还机退还500韩元",
+    },
+    tmoney: {
+      intro: "地铁及公交可用的充值式预付交通卡",
+      purchasePlace: "新型自助终端",
+      purchasePay: "现金、韩国银行卡、扫码支付（不支持境外银行卡）",
+      topupPlace: "旧式售票机・新型自助终端",
+      topupPay: "仅限现金",
+    },
+    climateShort: {
+      intro: "1/2/3/5/7日票・首尔指定公共交通不限次数乘坐",
+      purchasePlace: "新型自助终端（实体卡）",
+      purchasePay: "现金、韩国/境外银行卡、扫码支付",
+      topupPlace: "旧式售票机・新型自助终端",
+      topupPay: "旧式：现金/韩国银行卡；新型：另支持境外卡及扫码支付",
+      important: "充值当日生效・部分线路不适用",
+    },
+    climatePass: {
+      intro: "预付充值卡・登记且符合条件后按乘车记录返还车费",
+      purchasePlace: "新型自助终端",
+      purchasePay: "现金、韩国/境外银行卡、扫码支付",
+      topupPlace: "旧式售票机・新型自助终端",
+      topupPay: "仅限现金",
+      important: "返还车费需要登记交通卡并符合资格条件",
+    },
+  },
+};
+
 function productGuideWithDevicePayments(lang, product) {
   const locale = SUBMENU_TEXT[lang] ? lang : "ko";
   const ui = SUBMENU_TEXT[locale];
@@ -545,6 +682,8 @@ export default function Home() {
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
   const [feedbackByIndex, setFeedbackByIndex] = useState({});
+  const [expandedFareDetails, setExpandedFareDetails] = useState({});
+  const fareGuideSerial = useRef(0);
   const [gateEntry, setGateEntry] = useState(false);
   const gateEntryRef = useRef(false);
   const gateAutoOpenedRef = useRef(false);
@@ -661,6 +800,7 @@ export default function Home() {
     setInput("");
     setLoading(false);
     setFeedbackByIndex({});
+    setExpandedFareDetails({});
 
     if (gateEntryRef.current) {
       const gateMenu = GATE_MENU[nextLang] || GATE_MENU.ko;
@@ -818,9 +958,12 @@ export default function Home() {
     }
     if (id.startsWith("buy_")) {
       const product = id.slice("buy_".length);
+      const fareMessageId = ++fareGuideSerial.current;
       setMessages((prev) => [...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
         {
-          role: "assistant", text: productGuideWithDevicePayments(lang, product),
+          role: "assistant", text: `**${ui.labels[product]}**`,
+          fareProduct: product,
+          fareMessageId,
           options: [{ id: "menu_fare", label: ui.labels.fareBack }],
           optionsKind: "submenu", feedbackKey: `buy_${product}`,
         },
@@ -828,6 +971,13 @@ export default function Home() {
       return;
     }
 
+  }
+
+  function toggleFareDetails(fareMessageId) {
+    setExpandedFareDetails((prev) => ({
+      ...prev,
+      [fareMessageId]: !prev[fareMessageId],
+    }));
   }
 
   function quickAction(type, label) {
@@ -964,6 +1114,49 @@ export default function Home() {
             <div key={index} className={`sag-row ${message.role}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${message.options ? "has-options" : ""}`}>
                 <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
+
+                {message.fareProduct && (() => {
+                  const locale = FARE_SUMMARIES[lang] ? lang : "ko";
+                  const fareUi = FARE_SUMMARIES[locale];
+                  const info = fareUi[message.fareProduct];
+                  const expanded = Boolean(expandedFareDetails[message.fareMessageId]);
+                  return (
+                    <div className="sag-fare-compact">
+                      <p className="sag-fare-intro">{info.intro}</p>
+                      <div className="sag-fare-info-grid">
+                        <section className="sag-fare-info-section">
+                          <h3>🛍 {fareUi.purchase}</h3>
+                          <p className="sag-fare-place">{info.purchasePlace}</p>
+                          <p className="sag-fare-pay">{info.purchasePay}</p>
+                        </section>
+                        {info.topupPlace && (
+                          <section className="sag-fare-info-section">
+                            <h3>💳 {fareUi.topup}</h3>
+                            <p className="sag-fare-place">{info.topupPlace}</p>
+                            <p className="sag-fare-pay"><strong>{info.topupPay}</strong></p>
+                          </section>
+                        )}
+                      </div>
+                      {info.important && <p className="sag-fare-important">ℹ {info.important}</p>}
+                      <button
+                        className="sag-fare-expand"
+                        type="button"
+                        aria-expanded={expanded}
+                        aria-controls={`sag-fare-details-${message.fareMessageId}`}
+                        onClick={() => toggleFareDetails(message.fareMessageId)}
+                      >
+                        <span>{expanded ? fareUi.hide : fareUi.detail}</span>
+                        <span aria-hidden="true">{expanded ? "⌃" : "⌄"}</span>
+                      </button>
+                      {expanded && (
+                        <div className="sag-fare-full-detail" id={`sag-fare-details-${message.fareMessageId}`}>
+                          <div className="sag-answer">{renderBoldMarkdown(DEVICE_PAYMENT_NOTES[locale][message.fareProduct])}</div>
+                          <div className="sag-fare-location sag-answer">{renderBoldMarkdown(DEVICE_PAYMENT_NOTES[locale].location)}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {message.options?.length > 0 && (
                   message.optionsKind === "purchaseTable" ? (
@@ -1411,6 +1604,85 @@ export default function Home() {
           font-size: 11.5px;
           font-weight: 750;
           cursor: pointer;
+        }
+
+        /* v5.2: 필요한 정보만 즉시 표시하고, 긴 결제 설명은 펼치기 */
+        .sag-fare-compact { margin-top: 9px; }
+        .sag-fare-intro {
+          margin: 0 0 9px;
+          color: #32485a;
+          font-size: 12.5px;
+          line-height: 1.5;
+          word-break: keep-all;
+        }
+        .sag-fare-info-grid {
+          display: grid;
+          gap: 7px;
+        }
+        .sag-fare-info-section {
+          padding: 9px 10px;
+          background: #fff;
+          border: 1px solid #dce6ee;
+          border-radius: 10px;
+          min-width: 0;
+        }
+        .sag-fare-info-section h3 {
+          font-size: 12.5px;
+          font-weight: 800;
+          margin: 0 0 4px;
+          color: #174d73;
+        }
+        .sag-fare-info-section p {
+          margin: 0;
+          font-size: 12px;
+          line-height: 1.5;
+          overflow-wrap: anywhere;
+          word-break: keep-all;
+        }
+        .sag-fare-place { font-weight: 750; color: #263947; }
+        .sag-fare-pay { color: #3a586a; margin-top: 3px !important; }
+        .sag-fare-important {
+          margin: 8px 1px;
+          color: #4d5c6b;
+          font-size: 11.5px;
+          line-height: 1.45;
+          word-break: keep-all;
+        }
+        .sag-fare-expand {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          min-height: 40px;
+          padding: 9px 12px;
+          border-radius: 10px;
+          border: 1px solid #b9d6e9;
+          color: #12618f;
+          background: #eaf5fc;
+          font-size: 12px;
+          font-weight: 800;
+          text-align: left;
+          cursor: pointer;
+        }
+        .sag-fare-expand span:last-child { font-size: 19px; line-height: 1; }
+        .sag-fare-expand:focus-visible,
+        .sag-purchase-select:focus-visible { outline: 2px solid #12618f; outline-offset: 2px; }
+        .sag-fare-full-detail {
+          padding: 10px;
+          margin-top: 7px;
+          border: 1px solid #dce8f0;
+          border-radius: 10px;
+          background: #fff;
+          font-size: 12px;
+          line-height: 1.48;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          word-break: keep-all;
+        }
+        .sag-fare-location {
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #e0e7ed;
         }
 
         .sag-submenu-options {
