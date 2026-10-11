@@ -272,7 +272,7 @@ const SUBMENU_TEXT = {
     },
     prompts: {
       facility: "**어떤 시설을 찾으시나요?**\n아래에서 선택해 주세요.",
-      fare: "**안내받을 승차권·교통카드를 선택해 주세요.**\n상품명을 누르면 구매 장소·구매 결제수단과 충전 방법·충전 결제수단을 확인할 수 있습니다.",
+      fare: "**어떤 승차권·교통카드가 필요하세요?**\n아래에서 선택하면 구매·충전 안내를 확인할 수 있습니다.",
       buy: "**어떤 승차권·교통카드를 찾으시나요?**",
       topup: "**어떤 교통카드를 충전하시나요?**\n카드 종류에 따라 가능한 결제수단이 다를 수 있습니다.",
       payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
@@ -304,7 +304,7 @@ const SUBMENU_TEXT = {
     },
     prompts: {
       facility: "**Which facility do you need?**",
-      fare: "**Select a ticket or transit card.**\nTap a product for where to buy, how to top up, and accepted payment methods.",
+      fare: "**Which ticket or transit card do you need?**\nSelect an option to see purchase and top-up details.",
       buy: "**Which ticket or transit card do you need?**",
       topup: "**Which card would you like to top up?**\nAvailable payment methods depend on the card.",
       payment: "**How would you like to pay for the top-up?**",
@@ -336,7 +336,7 @@ const SUBMENU_TEXT = {
     },
     prompts: {
       facility: "**お探しの設備を選んでください。**",
-      fare: "**乗車券・交通カードを選択してください。**\n商品名を押すと購入場所・決済方法とチャージ方法・決済方法をご案内します。",
+      fare: "**ご希望の乗車券・交通カードを選んでください。**\n選択すると購入・チャージ方法をご案内します。",
       buy: "**乗車券・交通カードを選んでください。**",
       topup: "**チャージするカードを選んでください。**\n利用できる決済方法はカードによって異なります。",
       payment: "**チャージの支払い方法を選んでください。**",
@@ -368,7 +368,7 @@ const SUBMENU_TEXT = {
     },
     prompts: {
       facility: "**请选择要查找的设施。**",
-      fare: "**请选择车票或交通卡。**\n点击名称查看购卡地点、购卡支付方式及充值方法和支付方式。",
+      fare: "**您需要哪种车票或交通卡？**\n请选择一项，查看购买及充值说明。",
       buy: "**请选择车票或交通卡。**",
       topup: "**您要充值哪种交通卡？**\n可用支付方式因卡种而异。",
       payment: "**请选择充值支付方式。**",
@@ -609,6 +609,43 @@ function makeSubmenu(lang, menuName, cardType = null) {
   }
   const normalizedMenu = menuName === "buy" ? "fare" : menuName;
   return { role: "assistant", text: ui.prompts[normalizedMenu], options, optionsKind: normalizedMenu === "fare" ? "purchaseTable" : "submenu", menuPhase: "selection" };
+}
+
+// v5.3: 상품 선택 메뉴 전용 아이콘 (외부 패키지 없이 사용)
+function FareProductIcon({ product }) {
+  const paths = {
+    single: (
+      <>
+        <path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4V7Z" />
+        <path d="M12 7v10" strokeDasharray="2 2" />
+      </>
+    ),
+    tmoney: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2.5" />
+        <path d="M3 10h18M7 15h4" />
+      </>
+    ),
+    climateShort: (
+      <>
+        <rect x="4" y="5" width="16" height="16" rx="2" />
+        <path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6" />
+      </>
+    ),
+    climatePass: (
+      <>
+        <rect x="3" y="6" width="18" height="15" rx="2.5" />
+        <path d="M3 9V5a2 2 0 0 1 2-2h13" />
+        <path d="M15 12h7v5h-7a2.5 2.5 0 0 1 0-5Z" />
+        <path d="M16.5 14.5h.01" strokeLinecap="round" strokeWidth="2.7" />
+      </>
+    ),
+  };
+  return (
+    <svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {paths[product] || paths.single}
+    </svg>
+  );
 }
 
 function normalizeDestination(value, lang) {
@@ -1161,22 +1198,25 @@ export default function Home() {
                 {message.options?.length > 0 && (
                   message.optionsKind === "purchaseTable" ? (
                     <div className="sag-purchase-wrap">
-                      <div className="sag-purchase-grid" role="table" aria-label={t.fares}>
+                      <div className="sag-purchase-list" role="group" aria-label={t.fares}>
                         {message.options.filter((option) => option.description).map((option) => (
-                          <div className="sag-purchase-row" role="row" key={option.id}>
-                            <button
-                              type="button"
-                              role="cell"
-                              className="sag-purchase-select"
-                              onClick={() => handleSubmenuOption(option)}
-                              disabled={loading}
-                              aria-label={option.label}
-                            >
-                              <span>{option.label}</span>
-                              <span className="sag-purchase-chevron" aria-hidden="true">›</span>
-                            </button>
-                            <div className="sag-purchase-description" role="cell">{option.description}</div>
-                          </div>
+                          <button
+                            key={option.id}
+                            type="button"
+                            className="sag-purchase-card"
+                            onClick={() => handleSubmenuOption(option)}
+                            disabled={loading}
+                            aria-label={`${option.label} — ${option.description}`}
+                          >
+                            <span className="sag-purchase-icon">
+                              <FareProductIcon product={option.id.slice(4)} />
+                            </span>
+                            <span className="sag-purchase-copy">
+                              <span className="sag-purchase-title">{option.label}</span>
+                              <span className="sag-purchase-description">{option.description}</span>
+                            </span>
+                            <span className="sag-purchase-chevron" aria-hidden="true">›</span>
+                          </button>
                         ))}
                       </div>
                       <div className="sag-purchase-back">
@@ -1549,52 +1589,57 @@ export default function Home() {
         }
 
 
-        /* 구매·발급: 4행 × 2열, 왼쪽은 선택 버튼/오른쪽은 요약 설명 */
-        .sag-purchase-wrap { margin-top: 9px; }
-        .sag-purchase-grid {
-          overflow: hidden;
-          border: 1px solid #c9dbe8;
-          border-radius: 10px;
-          background: #fff;
-        }
-        .sag-purchase-row {
-          display: grid;
-          grid-template-columns: minmax(0, 44%) minmax(0, 56%);
-          min-height: 55px;
-        }
-        .sag-purchase-row + .sag-purchase-row { border-top: 1px solid #dfe8ef; }
-        .sag-purchase-select {
+        /* v5.3: 승차권·교통카드 목록을 전체 클릭 가능한 세로형 카드로 표시 */
+        .sag-purchase-wrap { margin-top: 10px; }
+        .sag-purchase-list { display: grid; gap: 8px; }
+        .sag-purchase-card {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          gap: 3px;
+          gap: 10px;
           width: 100%;
-          border: 0;
-          border-right: 1px solid #dfe8ef;
-          background: #edf5fc;
-          color: #124b79;
-          cursor: pointer;
-          font-size: 11.5px;
-          font-weight: 800;
+          min-height: 66px;
+          padding: 10px;
+          border: 1px solid #dce5eb;
+          border-radius: 13px;
+          background: #fff;
+          color: #223440;
+          box-shadow: 0 2px 5px rgba(24, 61, 83, 0.035);
           text-align: left;
-          padding: 9px 6px 9px 8px;
-          line-height: 1.35;
-          overflow-wrap: anywhere;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
         }
-        .sag-purchase-select:active { background: #d8eafa; }
-        .sag-purchase-chevron { font-size: 19px; color: #3177ad; flex: 0 0 auto; }
-        .sag-purchase-description {
+        .sag-purchase-card:hover { border-color: #abcadd; background: #f8fbfe; }
+        .sag-purchase-card:active { transform: scale(.99); background: #edf6fd; }
+        .sag-purchase-card:focus-visible { outline: 2px solid #17618a; outline-offset: 2px; }
+        .sag-purchase-icon {
+          flex: 0 0 43px;
+          height: 43px;
           display: flex;
           align-items: center;
-          padding: 8px;
-          background: #fff;
-          color: #314350;
-          line-height: 1.4;
-          font-size: 11.5px;
+          justify-content: center;
+          border-radius: 11px;
+          background: #eaf3f9;
+          color: #236c9d;
+        }
+        .sag-purchase-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .sag-purchase-title {
+          color: #263440;
+          font-size: 12.7px;
+          font-weight: 800;
+          line-height: 1.35;
           overflow-wrap: anywhere;
           word-break: keep-all;
         }
-        .sag-purchase-back { margin-top: 8px; display: flex; justify-content: flex-start; }
+        .sag-purchase-description {
+          color: #687786;
+          font-size: 11.5px;
+          font-weight: 500;
+          line-height: 1.4;
+          overflow-wrap: anywhere;
+          word-break: keep-all;
+        }
+        .sag-purchase-chevron { flex: 0 0 auto; font-size: 21px; color: #8ba1b0; line-height: 1; }
+        .sag-purchase-back { margin-top: 9px; display: flex; justify-content: flex-start; }
         .sag-purchase-back button {
           border: 1px solid #b7d1e0;
           background: #fff;
@@ -1666,7 +1711,7 @@ export default function Home() {
         }
         .sag-fare-expand span:last-child { font-size: 19px; line-height: 1; }
         .sag-fare-expand:focus-visible,
-        .sag-purchase-select:focus-visible { outline: 2px solid #12618f; outline-offset: 2px; }
+        .sag-purchase-card:focus-visible { outline: 2px solid #12618f; outline-offset: 2px; }
         .sag-fare-full-detail {
           padding: 10px;
           margin-top: 7px;
