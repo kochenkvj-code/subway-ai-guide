@@ -143,7 +143,7 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "**초록색 화살표 게이트에 태그하고 오류 코드를 선택하세요.**\n다시 태그해도 **추가요금은 없습니다.**",
+    prompt: "올바른 게이트(초록색 화살표)에 태그한 뒤, 오류 코드를 확인해 아래에서 선택해 주세요.\n다시 태그해도 **추가요금은 발생하지 않습니다.**",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
       { id: "e03", label: "E-03 하차 처리 누락" },
@@ -157,7 +157,7 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "**Tap at a green-arrow gate and choose the error code.**\nRetapping to check the code **adds no extra fare.**",
+    prompt: "Tap your card at the correct gate (green arrow), check the error code, and select it below.\nTapping again to check the code **will not incur an extra fare.**",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
       { id: "e03", label: "E-03 No exit record" },
@@ -171,7 +171,7 @@ const GATE_MENU = {
     ],
   },
   ja: {
-    prompt: "**緑の矢印の改札にタッチし、エラーコードを選んでください。**\nコード確認の再タッチで**追加料金はかかりません。**",
+    prompt: "正しい改札（緑の矢印）にタッチし、エラーコードを確認して下から選択してください。\n確認のために再度タッチしても**追加料金はかかりません。**",
     options: [
       { id: "e01", label: "E-01 カード重複" },
       { id: "e03", label: "E-03 出場記録なし" },
@@ -185,7 +185,7 @@ const GATE_MENU = {
     ],
   },
   zh: {
-    prompt: "**请在有绿色箭头的闸机刷卡，并选择错误代码。**\n为确认代码再次刷卡**不会额外扣费。**",
+    prompt: "请在正确的闸机（绿色箭头）刷卡，确认错误代码后在下方选择。\n为确认代码再次刷卡**不会产生额外费用。**",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
       { id: "e03", label: "E-03 无出站记录" },
@@ -262,7 +262,7 @@ const GATE_GUIDES = {
 const GATE_UI = {
   ko: {
     title: "게이트 오류 안내",
-    subtitle: "화면에 표시된 오류 코드를 선택해 주세요.",
+    subtitle: "",
     home: "전체 메뉴", platformShort: "반대편 승강장",
     choose: "오류 코드를 선택하세요",
     unknown: "오류 코드를 모르겠어요",
@@ -270,7 +270,7 @@ const GATE_UI = {
     details: "오류 원인과 자세한 안내 보기",
     another: "다른 오류 선택",
     office: "역무실 위치",
-    help: "통과가 어렵거나 긴급하면 **HELP 버튼**으로 역무원을 호출하세요.",
+    help: "문제가 해결되지 않으면 **HELP 버튼**을 눌러 역무실에 문의해 주세요.",
     steps: {
       e01: ["지갑·휴대폰 케이스에서 사용할 카드 **한 장만 꺼내세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
       e03: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
@@ -281,7 +281,7 @@ const GATE_UI = {
       e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
       e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
       opposite: ["반대편 승강장으로 이동해야 하는 상황인지 확인하세요.", "**스피드게이트(휠체어 게이트)**를 통해 반대편 승강장으로 이동하세요."],
-      unknown: ["**초록색 화살표 게이트**에 카드를 태그하고 표시된 오류를 다시 확인하세요.", "코드를 찾기 어렵거나 통과가 되지 않으면 **HELP 버튼으로 역무원**을 호출하세요."],
+      unknown: ["**초록색 화살표 게이트**에 카드를 태그하고 표시된 오류를 다시 확인하세요.", "코드를 찾기 어렵거나 통과되지 않으면 **HELP 버튼**을 눌러 역무실에 문의해 주세요."],
     },
   },
   en: {
@@ -289,7 +289,7 @@ const GATE_UI = {
     choose: "Choose an error code", unknown: "I don't know the error code",
     stepTitle: "How to resolve", details: "View cause & full explanation",
     another: "Choose another error", office: "Station office",
-    help: "Urgent or unable to pass? Press **HELP** to call staff.",
+    help: "If the problem is not resolved, press **HELP** to contact the station office.",
     steps: {
       e01: ["Take **one transit card** out of your wallet or phone case.", "Tap it again at a gate showing a **green arrow**."],
       e03: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
@@ -308,7 +308,7 @@ const GATE_UI = {
     choose: "エラーコードを選択", unknown: "コードが分かりません",
     stepTitle: "対処方法", details: "原因・詳しい説明を見る",
     another: "別のエラーを選ぶ", office: "駅務室の場所",
-    help: "緊急時や通れない場合は**HELPボタン**で駅員を呼んでください。",
+    help: "問題が解決しない場合は、**HELPボタン**を押して駅務室にお問い合わせください。",
     steps: {
       e01: ["財布・スマホケースから**使用するカード1枚**を取り出してください。", "**緑の矢印**が表示された改札にもう一度タッチしてください。"],
       e03: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室でカード確認と精算**を受けてください。"],
@@ -319,7 +319,7 @@ const GATE_UI = {
       e33: ["**すでに入場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
       e44: ["**すでに出場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
       opposite: ["**反対側のホーム**への移動が必要か確認してください。", "**車いす用ゲート**を通って反対側へ移動してください。"],
-      unknown: ["**緑の矢印**がある改札にタッチし、表示を確認してください。", "コードが分からない、または通れない場合は**HELPボタン**で駅員を呼んでください。"],
+      unknown: ["**緑の矢印**がある改札にタッチし、表示を確認してください。", "コードが分からない、または通れない場合は**HELPボタン**を押して駅務室にお問い合わせください。"],
     },
   },
   zh: {
@@ -327,7 +327,7 @@ const GATE_UI = {
     choose: "选择错误代码", unknown: "我不知道错误代码",
     stepTitle: "解决方法", details: "查看原因与详细说明",
     another: "选择其他错误", office: "站务室位置",
-    help: "紧急情况或无法通行时，请按**HELP按钮**联系站务员。",
+    help: "如果问题仍未解决，请按**HELP按钮**联系站务室。",
     steps: {
       e01: ["请从钱包或手机壳中取出**一张要使用的交通卡**。", "在有**绿色箭头**的闸机上重新刷卡。"],
       e03: ["请前往**无障碍宽闸机**。", "通过后前往**站务室检查卡片并补缴/结算车费**。"],
@@ -1288,10 +1288,9 @@ export default function Home() {
                       <div className="sag-gate-utility-row">
                         <button type="button" className="sag-gate-unknown" disabled={loading}
                           onClick={() => handleGateOption({ id: "unknown", label: ui.unknown })}>
-                          <span aria-hidden="true">?</span>{ui.unknown}
-                        </button>
-                        <button type="button" className="sag-gate-back" disabled={loading} onClick={leaveGateScreen}>
-                          ← {ui.home}
+                          <span aria-hidden="true">?</span>
+                          <span>{ui.unknown}</span>
+                          <span aria-hidden="true">›</span>
                         </button>
                       </div>
                       <p className="sag-gate-help">{renderBoldMarkdown(ui.help)}</p>
@@ -1811,13 +1810,12 @@ export default function Home() {
           gap: 5px; width: 100%; min-height: 35px; padding: 6px 4px; border-radius: 9px; font-size: 11px;
           font-weight: 750; cursor: pointer; }
         .sag-gate-platform { border: 1px solid #b8d4e8; background: #eef6fc; color: #185886; }
-        .sag-gate-utility-row { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 6px; margin-top: 7px; }
+        .sag-gate-utility-row { display: flex; margin-top: 7px; }
         .sag-gate-unknown { border: 1px solid #d5dfe7; background: #fafcff; color: #506477; }
-        .sag-gate-back { border: 1px solid #d5dfe7; background: #fff; color: #486075;
-          border-radius: 9px; font-size: 11px; font-weight: 750; cursor: pointer; padding: 6px 4px; }
-        .sag-gate-back:active { background: #edf4fa; }
         .sag-gate-platform span:first-child, .sag-gate-unknown span:first-child { font-size: 18px; }
-        .sag-gate-platform span:last-child, .sag-gate-unknown span:last-child { margin-left: auto; font-size: 19px; }
+        .sag-gate-platform span:last-child { margin-left: auto; font-size: 19px; }
+        .sag-gate-unknown span:last-child { font-size: 19px; line-height: 1; }
+        .sag-gate-unknown { min-height: 41px; }
         .sag-gate-help { margin: 6px 1px 0; padding: 5px 8px; background: #f4f6f8;
           border-radius: 8px; font-size: 10.5px; line-height: 1.35; color: #5b6974; }
         .sag-gate-result-heading { display: flex; align-items: center; gap: 9px; padding: 3px 2px 10px;
