@@ -143,7 +143,7 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "**올바른 게이트(초록색 화살표)에 카드를 태그해 오류 코드를 확인한 뒤, 아래에서 선택해 주세요.**\n다시 태그해도 **추가요금은 발생하지 않습니다.**",
+    prompt: "**초록색 화살표 게이트에 태그하고 오류 코드를 선택하세요.**\n다시 태그해도 **추가요금은 없습니다.**",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
       { id: "e03", label: "E-03 하차 처리 누락" },
@@ -157,7 +157,7 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "**Tap at a green-arrow gate and select the error code below.**\nRetapping **does not charge extra.**",
+    prompt: "**Tap at a green-arrow gate and choose the error code.**\nRetapping to check the code **adds no extra fare.**",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
       { id: "e03", label: "E-03 No exit record" },
@@ -171,7 +171,7 @@ const GATE_MENU = {
     ],
   },
   ja: {
-    prompt: "**緑の矢印の改札にタッチし、表示されたコードを選んでください。**\n再タッチしても**追加料金はかかりません。**",
+    prompt: "**緑の矢印の改札にタッチし、エラーコードを選んでください。**\nコード確認の再タッチで**追加料金はかかりません。**",
     options: [
       { id: "e01", label: "E-01 カード重複" },
       { id: "e03", label: "E-03 出場記録なし" },
@@ -185,7 +185,7 @@ const GATE_MENU = {
     ],
   },
   zh: {
-    prompt: "**请在绿色箭头闸机刷卡，并选择显示的错误代码。**\n再次刷卡**不会额外扣费。**",
+    prompt: "**请在有绿色箭头的闸机刷卡，并选择错误代码。**\n为确认代码再次刷卡**不会额外扣费。**",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
       { id: "e03", label: "E-03 无出站记录" },
@@ -270,7 +270,7 @@ const GATE_UI = {
     details: "오류 원인과 자세한 안내 보기",
     another: "다른 오류 선택",
     office: "역무실 위치",
-    help: "긴급하거나 통과가 어렵다면 게이트 HELP 버튼으로 역무원에게 문의해 주세요.",
+    help: "통과가 어렵거나 긴급하면 **HELP 버튼**으로 역무원을 호출하세요.",
     steps: {
       e01: ["지갑·휴대폰 케이스에서 사용할 카드 **한 장만 꺼내세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
       e03: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
@@ -289,7 +289,7 @@ const GATE_UI = {
     choose: "Choose an error code", unknown: "I don't know the error code",
     stepTitle: "How to resolve", details: "View cause & full explanation",
     another: "Choose another error", office: "Station office",
-    help: "If urgent or you cannot pass, press the gate HELP button to contact station staff.",
+    help: "Urgent or unable to pass? Press **HELP** to call staff.",
     steps: {
       e01: ["Take **one transit card** out of your wallet or phone case.", "Tap it again at a gate showing a **green arrow**."],
       e03: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
@@ -308,7 +308,7 @@ const GATE_UI = {
     choose: "エラーコードを選択", unknown: "コードが分かりません",
     stepTitle: "対処方法", details: "原因・詳しい説明を見る",
     another: "別のエラーを選ぶ", office: "駅務室の場所",
-    help: "緊急時や通れない場合は、改札のHELPボタンで駅員に連絡してください。",
+    help: "緊急時や通れない場合は**HELPボタン**で駅員を呼んでください。",
     steps: {
       e01: ["財布・スマホケースから**使用するカード1枚**を取り出してください。", "**緑の矢印**が表示された改札にもう一度タッチしてください。"],
       e03: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室でカード確認と精算**を受けてください。"],
@@ -327,7 +327,7 @@ const GATE_UI = {
     choose: "选择错误代码", unknown: "我不知道错误代码",
     stepTitle: "解决方法", details: "查看原因与详细说明",
     another: "选择其他错误", office: "站务室位置",
-    help: "如遇紧急情况或无法通行，请按闸机上的HELP按钮联系站务员。",
+    help: "紧急情况或无法通行时，请按**HELP按钮**联系站务员。",
     steps: {
       e01: ["请从钱包或手机壳中取出**一张要使用的交通卡**。", "在有**绿色箭头**的闸机上重新刷卡。"],
       e03: ["请前往**无障碍宽闸机**。", "通过后前往**站务室检查卡片并补缴/结算车费**。"],
@@ -1136,6 +1136,7 @@ export default function Home() {
 
   function quickAction(type, label) {
     if (loading) return;
+    if (gateScreenActive && type !== "gate") leaveGateScreen();
 
     if (type === "facility" || type === "fares") {
       showMenu(type === "facility" ? "facility" : "fare", label);
@@ -1151,7 +1152,7 @@ export default function Home() {
 
     if (type === "gate") {
       setMode(null);
-      gateReturnMessagesRef.current = messages;
+      if (!gateScreenActive) gateReturnMessagesRef.current = messages;
       setMessages([{ role: "assistant", text: "", gateMenu: true }]);
       return;
     }
@@ -1179,6 +1180,7 @@ export default function Home() {
     if (!raw) return;
 
     setInput("");
+    if (gateScreenActive) leaveGateScreen();
 
     if (mode === "route") {
       const destination = normalizeDestination(raw, lang);
@@ -1234,30 +1236,19 @@ export default function Home() {
           ))}
         </div>
 
-        {gateScreenActive ? (
-          <div className="sag-gate-topbar">
-            <span>🚪 {(GATE_UI[lang] || GATE_UI.ko).title}</span>
-            <button type="button" disabled={loading} onClick={leaveGateScreen}>
-              ← {(GATE_UI[lang] || GATE_UI.ko).home}
+        <div className="sag-section-title">{t.quick}</div>
+        <div className="sag-actions">
+          {actions.map(([type, icon, label]) => (
+            <button
+              key={type}
+              onClick={() => quickAction(type, label)}
+              disabled={loading}
+            >
+              <span className="sag-action-icon">{icon}</span>
+              <span>{label}</span>
             </button>
-          </div>
-        ) : (
-          <>
-            <div className="sag-section-title">{t.quick}</div>
-            <div className="sag-actions">
-              {actions.map(([type, icon, label]) => (
-                <button
-                  key={type}
-                  onClick={() => quickAction(type, label)}
-                  disabled={loading}
-                >
-                  <span className="sag-action-icon">{icon}</span>
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+          ))}
+        </div>
 
         <div className={`sag-chat-shell ${gateScreenActive ? "sag-chat-shell-gate" : ""}`}>
 
@@ -1281,7 +1272,6 @@ export default function Home() {
                         <div><h2>{ui.title}</h2><p>{ui.subtitle}</p></div>
                       </div>
                       <div className="sag-gate-notice">{renderBoldMarkdown(menu.prompt)}</div>
-                      <div className="sag-gate-section-label">{ui.choose}</div>
                       <div className="sag-gate-code-grid" role="group" aria-label={ui.choose}>
                         {menu.options.map((option) => (
                           <button key={option.id} type="button" onClick={() => handleGateOption(option)} disabled={loading}
@@ -1292,11 +1282,16 @@ export default function Home() {
                           </button>
                         ))}
                       </div>
-                      <button type="button" className="sag-gate-unknown" disabled={loading}
-                        onClick={() => handleGateOption({ id: "unknown", label: ui.unknown })}>
-                        <span aria-hidden="true">?</span>{ui.unknown}<span aria-hidden="true">›</span>
-                      </button>
-                      <p className="sag-gate-help">{ui.help}</p>
+                      <div className="sag-gate-utility-row">
+                        <button type="button" className="sag-gate-unknown" disabled={loading}
+                          onClick={() => handleGateOption({ id: "unknown", label: ui.unknown })}>
+                          <span aria-hidden="true">?</span>{ui.unknown}
+                        </button>
+                        <button type="button" className="sag-gate-back" disabled={loading} onClick={leaveGateScreen}>
+                          ← {ui.home}
+                        </button>
+                      </div>
+                      <p className="sag-gate-help">{renderBoldMarkdown(ui.help)}</p>
                     </div>
                   );
                 })()}
@@ -1329,7 +1324,7 @@ export default function Home() {
                           <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
                         </details>
                       )}
-                      <div className="sag-gate-help">{ui.help}</div>
+                      <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => openGateMenu({ replaceCurrent: true })} disabled={loading}>
                           ← {ui.another}
@@ -1499,20 +1494,18 @@ export default function Home() {
           </div>
         </div>
 
-        {!gateScreenActive && (
-          <form className="sag-input-wrap" onSubmit={submitMessage}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={mode === "route" ? t.routePlaceholder : t.placeholder}
-              aria-label="message"
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "…" : t.send}
-            </button>
-          </form>
-        )}
+        <form className="sag-input-wrap" onSubmit={submitMessage}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={mode === "route" ? t.routePlaceholder : t.placeholder}
+            aria-label="message"
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? "…" : t.send}
+          </button>
+        </form>
       </section>
 
       <style>{`
@@ -1734,6 +1727,7 @@ export default function Home() {
         .sag-row {
           display: flex;
           width: 100%;
+          flex: 0 0 auto;
         }
 
         .sag-chat::after {
@@ -1793,12 +1787,12 @@ export default function Home() {
           align-items: center; justify-content: center; border-radius: 10px; background: #e9f3fc; font-size: 19px; }
         .sag-gate-card-heading h2 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
         .sag-gate-card-heading p { margin: 0; font-size: 11px; color: #566d81; }
-        .sag-gate-notice { white-space: pre-wrap; background: #eef6fd; border-left: 3px solid #2382c7;
-          border-radius: 9px; padding: 8px; font-size: 11.5px; color: #243e55; line-height: 1.48; }
+        .sag-gate-notice { white-space: pre-line; background: #eef6fd; border-left: 3px solid #2382c7;
+          border-radius: 8px; padding: 6px 8px; font-size: 11px; color: #243e55; line-height: 1.38; }
         .sag-gate-section-label { font-size: 12px; font-weight: 800; margin: 9px 0 7px; color: #244b6e; }
         .sag-gate-code-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
         .sag-gate-code-grid button { display: flex; min-width: 0; flex-direction: column; align-items: center;
-          justify-content: center; gap: 4px; min-height: 60px; padding: 5px 3px;
+          justify-content: center; gap: 3px; min-height: 53px; padding: 4px 3px;
           border: 1px solid #c8dce9; border-radius: 11px; background: #fff;
           color: #20384d; cursor: pointer; line-height: 1.2; }
         .sag-gate-code-grid strong { color: #1265a4; font-size: 16px; font-weight: 850; }
@@ -1810,14 +1804,18 @@ export default function Home() {
         .sag-gate-code-grid button.sag-gate-opposite-cell span { color: #1c628e; font-weight: 800; }
         .sag-gate-code-grid button:active, .sag-gate-platform:active, .sag-gate-unknown:active { background: #e7f3fc; }
         .sag-gate-platform, .sag-gate-unknown { display: flex; align-items: center; justify-content: center;
-          gap: 8px; width: 100%; padding: 9px; border-radius: 10px; font-size: 12px;
-          font-weight: 750; cursor: pointer; margin-top: 7px; }
+          gap: 5px; width: 100%; min-height: 35px; padding: 6px 4px; border-radius: 9px; font-size: 11px;
+          font-weight: 750; cursor: pointer; }
         .sag-gate-platform { border: 1px solid #b8d4e8; background: #eef6fc; color: #185886; }
+        .sag-gate-utility-row { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 6px; margin-top: 7px; }
         .sag-gate-unknown { border: 1px solid #d5dfe7; background: #fafcff; color: #506477; }
+        .sag-gate-back { border: 1px solid #d5dfe7; background: #fff; color: #486075;
+          border-radius: 9px; font-size: 11px; font-weight: 750; cursor: pointer; padding: 6px 4px; }
+        .sag-gate-back:active { background: #edf4fa; }
         .sag-gate-platform span:first-child, .sag-gate-unknown span:first-child { font-size: 18px; }
         .sag-gate-platform span:last-child, .sag-gate-unknown span:last-child { margin-left: auto; font-size: 19px; }
-        .sag-gate-help { margin: 8px 1px 0; padding: 7px 9px; background: #f4f6f8;
-          border-radius: 9px; font-size: 11px; line-height: 1.5; color: #5b6974; }
+        .sag-gate-help { margin: 6px 1px 0; padding: 5px 8px; background: #f4f6f8;
+          border-radius: 8px; font-size: 10.5px; line-height: 1.35; color: #5b6974; }
         .sag-gate-result-heading { display: flex; align-items: center; gap: 9px; padding: 3px 2px 10px;
           border-bottom: 1px solid #e4ebf0; }
         .sag-gate-result-heading h2 { font-size: 16px; font-weight: 800; margin: 0; }
@@ -2232,9 +2230,10 @@ export default function Home() {
             padding-top: 5px;
             padding-bottom: 10px;
           }
-          .sag-chat-shell-gate .sag-chat { padding: 3px 10px 10px; }
+          .sag-chat-shell-gate .sag-chat { padding: 3px 10px 8px; }
+          .sag-chat-shell-gate .sag-bubble.has-options { padding: 5px 6px; width: 100%; max-width: 100%; }
           .sag-gate-topbar { margin: 7px 12px 5px; }
-          .sag-gate-code-grid button { min-height: 57px; }
+          .sag-gate-code-grid button { min-height: 52px; }
           .sag-gate-code-grid strong { font-size: 15px; }
 
           .sag-input-wrap {
