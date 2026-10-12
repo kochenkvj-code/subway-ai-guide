@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -826,6 +826,14 @@ export default function Home() {
   const t = TEXT[lang];
   const lastMessage = messages[messages.length - 1];
   const gateScreenActive = Boolean(lastMessage?.gateMenu || lastMessage?.gateResult);
+  // Treat normal chat, the gate picker and each gate resolution as distinct
+  // scroll views.  Re-mounting the scroll container prevents iOS Safari from
+  // restoring a stale offset after content of very different heights is swapped.
+  const chatViewKey = lastMessage?.gateMenu
+    ? "gate-picker"
+    : lastMessage?.gateResult
+      ? `gate-resolution-${lastMessage.gateMessageId ?? lastMessage.gateResult}`
+      : "normal-chat";
 
   function updateScrollIndicator() {
     const el = chatRef.current;
@@ -902,27 +910,21 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = chatRef.current;
     if (!el) return;
 
-    // Gate panels replace each other and may have very different heights.
-    // Never retain the previous scroll position or smoothly scroll past the heading.
+    // A gate picker or resolution starts at its heading, before the browser
+    // paints.  Combined with chatViewKey this avoids stale Safari scroll
+    // offsets AND pending smooth-scroll animations from the previous chat.
+    // For regular conversation continue auto-scrolling to the newest answer.
     if (gateScreenActive) {
       el.scrollTop = 0;
-      const frame = requestAnimationFrame(() => {
-        el.scrollTop = 0;
-        updateScrollIndicator();
-      });
-      return () => cancelAnimationFrame(frame);
+    } else {
+      el.scrollTop = el.scrollHeight;
     }
-
-    const frame = requestAnimationFrame(() => {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-      requestAnimationFrame(updateScrollIndicator);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [messages, loading, gateScreenActive]);
+    updateScrollIndicator();
+  }, [messages, loading, chatViewKey, gateScreenActive]);
 
   function changeLanguage(nextLang) {
     setLang(nextLang);
@@ -1253,6 +1255,7 @@ export default function Home() {
         <div className={`sag-chat-shell ${gateScreenActive ? "sag-chat-shell-gate" : ""}`}>
 
           <div
+            key={chatViewKey}
             className="sag-chat"
             ref={chatRef}
             onScroll={updateScrollIndicator}
@@ -1688,6 +1691,7 @@ export default function Home() {
           overflow-y: auto;
           overscroll-behavior: contain;
           -webkit-overflow-scrolling: touch;
+          overflow-anchor: none;
           scrollbar-width: none;
         }
 
