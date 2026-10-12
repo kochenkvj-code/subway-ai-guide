@@ -263,6 +263,7 @@ const GATE_UI = {
   ko: {
     title: "게이트 오류 안내",
     subtitle: "화면에 표시된 오류 코드를 선택해 주세요.",
+    home: "전체 메뉴", platformShort: "반대편 승강장",
     choose: "오류 코드를 선택하세요",
     unknown: "오류 코드를 모르겠어요",
     stepTitle: "해결 방법",
@@ -284,7 +285,7 @@ const GATE_UI = {
     },
   },
   en: {
-    title: "Gate Error Guide", subtitle: "Select the error code shown on the gate.",
+    title: "Gate Error Guide", subtitle: "Select the error code shown on the gate.", home: "Main menu", platformShort: "Opposite platform",
     choose: "Choose an error code", unknown: "I don't know the error code",
     stepTitle: "How to resolve", details: "View cause & full explanation",
     another: "Choose another error", office: "Station office",
@@ -303,7 +304,7 @@ const GATE_UI = {
     },
   },
   ja: {
-    title: "改札エラー案内", subtitle: "改札機に表示されたエラーコードを選んでください。",
+    title: "改札エラー案内", subtitle: "改札機に表示されたエラーコードを選んでください。", home: "メインメニュー", platformShort: "反対側ホーム",
     choose: "エラーコードを選択", unknown: "コードが分かりません",
     stepTitle: "対処方法", details: "原因・詳しい説明を見る",
     another: "別のエラーを選ぶ", office: "駅務室の場所",
@@ -322,7 +323,7 @@ const GATE_UI = {
     },
   },
   zh: {
-    title: "闸机错误指南", subtitle: "请选择闸机屏幕上显示的错误代码。",
+    title: "闸机错误指南", subtitle: "请选择闸机屏幕上显示的错误代码。", home: "主菜单", platformShort: "对面站台",
     choose: "选择错误代码", unknown: "我不知道错误代码",
     stepTitle: "解决方法", details: "查看原因与详细说明",
     another: "选择其他错误", office: "站务室位置",
@@ -814,6 +815,7 @@ export default function Home() {
   const [gateEntry, setGateEntry] = useState(false);
   const gateEntryRef = useRef(false);
   const gateAutoOpenedRef = useRef(false);
+  const gateReturnMessagesRef = useRef(null);
   const chatRef = useRef(null);
   const [scrollIndicator, setScrollIndicator] = useState({
     visible: false,
@@ -822,6 +824,8 @@ export default function Home() {
   });
 
   const t = TEXT[lang];
+  const lastMessage = messages[messages.length - 1];
+  const gateScreenActive = Boolean(lastMessage?.gateMenu || lastMessage?.gateResult);
 
   function updateScrollIndicator() {
     const el = chatRef.current;
@@ -902,17 +906,23 @@ export default function Home() {
     const el = chatRef.current;
     if (!el) return;
 
-    requestAnimationFrame(() => {
-      el.scrollTo({
-        top: el.scrollHeight,
-        behavior: "smooth",
-      });
-
-      requestAnimationFrame(() => {
+    // Gate panels replace each other and may have very different heights.
+    // Never retain the previous scroll position or smoothly scroll past the heading.
+    if (gateScreenActive) {
+      el.scrollTop = 0;
+      const frame = requestAnimationFrame(() => {
+        el.scrollTop = 0;
         updateScrollIndicator();
       });
+      return () => cancelAnimationFrame(frame);
+    }
+
+    const frame = requestAnimationFrame(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      requestAnimationFrame(updateScrollIndicator);
     });
-  }, [messages, loading]);
+    return () => cancelAnimationFrame(frame);
+  }, [messages, loading, gateScreenActive]);
 
   function changeLanguage(nextLang) {
     setLang(nextLang);
@@ -999,6 +1009,15 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function leaveGateScreen() {
+    gateEntryRef.current = false;
+    setGateEntry(false);
+    setMode(null);
+    setInput("");
+    setMessages(gateReturnMessagesRef.current || [{ role: "assistant", text: TEXT[lang].greeting }]);
+    gateReturnMessagesRef.current = null;
   }
 
   function openGateMenu({ replaceCurrent = false } = {}) {
@@ -1132,11 +1151,8 @@ export default function Home() {
 
     if (type === "gate") {
       setMode(null);
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", text: label },
-        { role: "assistant", text: "", gateMenu: true },
-      ]);
+      gateReturnMessagesRef.current = messages;
+      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
       return;
     }
 
@@ -1218,22 +1234,33 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="sag-section-title">{t.quick}</div>
-
-        <div className="sag-actions">
-          {actions.map(([type, icon, label]) => (
-            <button
-              key={type}
-              onClick={() => quickAction(type, label)}
-              disabled={loading}
-            >
-              <span className="sag-action-icon">{icon}</span>
-              <span>{label}</span>
+        {gateScreenActive ? (
+          <div className="sag-gate-topbar">
+            <span>🚪 {(GATE_UI[lang] || GATE_UI.ko).title}</span>
+            <button type="button" disabled={loading} onClick={leaveGateScreen}>
+              ← {(GATE_UI[lang] || GATE_UI.ko).home}
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <>
+            <div className="sag-section-title">{t.quick}</div>
+            <div className="sag-actions">
+              {actions.map(([type, icon, label]) => (
+                <button
+                  key={type}
+                  onClick={() => quickAction(type, label)}
+                  disabled={loading}
+                >
+                  <span className="sag-action-icon">{icon}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
-        <div className="sag-chat-shell">
+        <div className={`sag-chat-shell ${gateScreenActive ? "sag-chat-shell-gate" : ""}`}>
+
           <div
             className="sag-chat"
             ref={chatRef}
@@ -1256,19 +1283,15 @@ export default function Home() {
                       <div className="sag-gate-notice">{renderBoldMarkdown(menu.prompt)}</div>
                       <div className="sag-gate-section-label">{ui.choose}</div>
                       <div className="sag-gate-code-grid" role="group" aria-label={ui.choose}>
-                        {menu.options.filter((option) => !option.wide).map((option) => (
+                        {menu.options.map((option) => (
                           <button key={option.id} type="button" onClick={() => handleGateOption(option)} disabled={loading}
+                            className={option.id === "opposite" ? "sag-gate-opposite-cell" : ""}
                             aria-label={option.label}>
-                            <strong>{option.label.match(/^E-\d+/)?.[0] || ""}</strong>
-                            <span>{option.label.replace(/^E-\d+\s*/, "")}</span>
+                            <strong>{option.id === "opposite" ? "↔" : option.label.match(/^E-\d+/)?.[0] || ""}</strong>
+                            <span>{option.id === "opposite" ? ui.platformShort : option.label.replace(/^E-\d+\s*/, "")}</span>
                           </button>
                         ))}
                       </div>
-                      <button type="button" className="sag-gate-platform" disabled={loading}
-                        onClick={() => handleGateOption(menu.options.find((o) => o.id === "opposite"))}>
-                        <span aria-hidden="true">↔</span>{menu.options.find((o) => o.id === "opposite")?.label.replace(/^↔\s*/, "")}
-                        <span aria-hidden="true">›</span>
-                      </button>
                       <button type="button" className="sag-gate-unknown" disabled={loading}
                         onClick={() => handleGateOption({ id: "unknown", label: ui.unknown })}>
                         <span aria-hidden="true">?</span>{ui.unknown}<span aria-hidden="true">›</span>
@@ -1476,18 +1499,20 @@ export default function Home() {
           </div>
         </div>
 
-        <form className="sag-input-wrap" onSubmit={submitMessage}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={mode === "route" ? t.routePlaceholder : t.placeholder}
-            aria-label="message"
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? "…" : t.send}
-          </button>
-        </form>
+        {!gateScreenActive && (
+          <form className="sag-input-wrap" onSubmit={submitMessage}>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={mode === "route" ? t.routePlaceholder : t.placeholder}
+              aria-label="message"
+              disabled={loading}
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? "…" : t.send}
+            </button>
+          </form>
+        )}
       </section>
 
       <style>{`
@@ -1626,6 +1651,33 @@ export default function Home() {
 
         .sag-action-icon { font-size: 19px; }
 
+        .sag-gate-topbar {
+          flex: 0 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin: 9px 16px 5px;
+          padding: 7px 10px;
+          background: #eff7fd;
+          border-radius: 10px;
+          color: #195d90;
+          font-size: 13px;
+          font-weight: 800;
+        }
+        .sag-gate-topbar button {
+          flex: 0 0 auto;
+          border: 1px solid #b9d5e9;
+          background: white;
+          border-radius: 8px;
+          padding: 6px 9px;
+          color: #205b84;
+          font-size: 11px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .sag-chat-shell-gate .sag-chat { padding-top: 3px; }
+
         .sag-chat-shell {
           position: relative;
           flex: 1 1 auto;
@@ -1736,23 +1788,26 @@ export default function Home() {
 
         /* v5.5: 8개 코드 + 반대편 승강장 + 코드 미확인, 3열 모바일 선택 */
         .sag-gate-card { color: #183149; line-height: 1.45; }
-        .sag-gate-card-heading { display: flex; align-items: center; gap: 10px; margin: 1px 2px 9px; }
+        .sag-gate-card-heading { display: none; }
         .sag-gate-card-icon { display: flex; width: 36px; height: 36px; flex: 0 0 36px;
           align-items: center; justify-content: center; border-radius: 10px; background: #e9f3fc; font-size: 19px; }
         .sag-gate-card-heading h2 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
         .sag-gate-card-heading p { margin: 0; font-size: 11px; color: #566d81; }
         .sag-gate-notice { white-space: pre-wrap; background: #eef6fd; border-left: 3px solid #2382c7;
-          border-radius: 9px; padding: 10px; font-size: 11.5px; color: #243e55; line-height: 1.58; }
-        .sag-gate-section-label { font-size: 12px; font-weight: 800; margin: 12px 0 8px; color: #244b6e; }
+          border-radius: 9px; padding: 8px; font-size: 11.5px; color: #243e55; line-height: 1.48; }
+        .sag-gate-section-label { font-size: 12px; font-weight: 800; margin: 9px 0 7px; color: #244b6e; }
         .sag-gate-code-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
         .sag-gate-code-grid button { display: flex; min-width: 0; flex-direction: column; align-items: center;
-          justify-content: center; gap: 4px; min-height: 66px; padding: 6px 3px;
+          justify-content: center; gap: 4px; min-height: 60px; padding: 5px 3px;
           border: 1px solid #c8dce9; border-radius: 11px; background: #fff;
           color: #20384d; cursor: pointer; line-height: 1.2; }
         .sag-gate-code-grid strong { color: #1265a4; font-size: 16px; font-weight: 850; }
         .sag-gate-code-grid button span { font-size: 10.2px; font-weight: 650; overflow-wrap: anywhere;
           word-break: keep-all; text-align: center; }
         .sag-gate-code-grid button:hover { border-color: #4d97cb; background: #f4faff; }
+        .sag-gate-code-grid button.sag-gate-opposite-cell { background: #edf6fd; border-color: #a7cee9; }
+        .sag-gate-code-grid button.sag-gate-opposite-cell strong { font-size: 23px; }
+        .sag-gate-code-grid button.sag-gate-opposite-cell span { color: #1c628e; font-weight: 800; }
         .sag-gate-code-grid button:active, .sag-gate-platform:active, .sag-gate-unknown:active { background: #e7f3fc; }
         .sag-gate-platform, .sag-gate-unknown { display: flex; align-items: center; justify-content: center;
           gap: 8px; width: 100%; padding: 9px; border-radius: 10px; font-size: 12px;
@@ -1761,7 +1816,7 @@ export default function Home() {
         .sag-gate-unknown { border: 1px solid #d5dfe7; background: #fafcff; color: #506477; }
         .sag-gate-platform span:first-child, .sag-gate-unknown span:first-child { font-size: 18px; }
         .sag-gate-platform span:last-child, .sag-gate-unknown span:last-child { margin-left: auto; font-size: 19px; }
-        .sag-gate-help { margin: 10px 1px 0; padding: 9px 10px; background: #f4f6f8;
+        .sag-gate-help { margin: 8px 1px 0; padding: 7px 9px; background: #f4f6f8;
           border-radius: 9px; font-size: 11px; line-height: 1.5; color: #5b6974; }
         .sag-gate-result-heading { display: flex; align-items: center; gap: 9px; padding: 3px 2px 10px;
           border-bottom: 1px solid #e4ebf0; }
@@ -2177,6 +2232,10 @@ export default function Home() {
             padding-top: 5px;
             padding-bottom: 10px;
           }
+          .sag-chat-shell-gate .sag-chat { padding: 3px 10px 10px; }
+          .sag-gate-topbar { margin: 7px 12px 5px; }
+          .sag-gate-code-grid button { min-height: 57px; }
+          .sag-gate-code-grid strong { font-size: 15px; }
 
           .sag-input-wrap {
             padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
