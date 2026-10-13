@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 const VARIANTS = [
-  { id: "baseline", name: "① 기존 방식", subtitle: "3.5 Flash-Lite · 기존 지시문" },
-  { id: "improvedLite", name: "② 검색 개선", subtitle: "3.5 Flash-Lite · 새 지시문" },
-  { id: "improvedFlash", name: "③ 모델+검색 개선", subtitle: "3.5 Flash · 새 지시문" },
+  { id: "improvedFlash", name: "A · Flash LOW", subtitle: "기존 ③ 설정 · 개선 검색 지시문" },
+  { id: "flashMinimal", name: "B · Flash MINIMAL", subtitle: "같은 지시문 · 추론 수준만 변경" },
+  { id: "flashConcise", name: "C · MINIMAL + 간결", subtitle: "간결한 답변 지시문 · 검색 유지" },
 ];
 const EXAMPLES = [
   "종로5가역 근처에 환전소가 어디 있어?",
@@ -38,11 +38,21 @@ function Result({ item, state }) {
       ) : result ? (
         <>
           <p style={{ color: "#344156", fontSize: 12, marginTop: 16 }}>
-            {lab?.durationMs != null ? `${(lab.durationMs / 1000).toFixed(1)}초` : ""}
+            {lab?.durationMs != null ? `모델 ${ (lab.durationMs / 1000).toFixed(1) }초` : ""}
+            {lab?.totalDurationMs != null ? ` · 서버 전체 ${(lab.totalDurationMs / 1000).toFixed(1)}초` : ""}
             {` · 검색어 ${result.googleSearchQueries?.length || 0}개`}
             {` · 출처 ${result.sources?.length || 0}개`}
             {` · 근거 연결 ${lab?.supportCount || 0}개`}
           </p>
+          {lab?.tokenCost ? (
+            <div style={{ background: "#f1f8f5", border: "1px solid #cfebde", borderRadius: 9, padding: "9px 11px", fontSize: 12, lineHeight: 1.7, marginTop: 8 }}>
+              <strong>모델 토큰 추정 비용: ${lab.tokenCost.estimatedModelUsd.toFixed(5)}</strong>
+              <div style={{ color: "#4b635a" }}>
+                입력 {lab.tokenCost.inputTokens.toLocaleString()} · 답변 {lab.tokenCost.outputTokens.toLocaleString()} · 추론 {lab.tokenCost.thinkingTokens.toLocaleString()} 토큰
+              </div>
+              <div style={{ color: "#64748b", fontSize: 11 }}>글로벌 표준 요금 기준 · 검색 Grounding 비용/할인/세금 제외</div>
+            </div>
+          ) : null}
           <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.7, marginTop: 12 }}>
             {result.answer}
           </div>
@@ -114,9 +124,9 @@ export default function SearchLab() {
     <main style={{ minHeight: "100vh", padding: "24px 14px 70px", background: "#edf3f7", color: "#172b3f", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ maxWidth: 1240, margin: "auto" }}>
         <a href="/" style={{ color: "#14785f", fontSize: 13, fontWeight: 700 }}>← 기존 챗봇으로 돌아가기</a>
-        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>자유 질문 검색 품질 비교 실험</h1>
+        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>Flash 속도·검색 품질 비교 v6.2</h1>
         <p style={{ color: "#64748b", fontSize: 14, marginBottom: 20 }}>
-          같은 질문을 기존 모델, 프롬프트 개선, 상위 모델에 각각 입력해 비교해. 실제 검색어와 출처가 함께 나와.
+          같은 Gemini Flash 모델에서 LOW / MINIMAL / MINIMAL + 간결 답변을 비교해. 실제 검색어, 토큰 사용량과 모델 비용 추정치도 보여줘.
         </p>
         <form onSubmit={compare} style={{ ...panel, display: "grid", gap: 14, marginBottom: 18 }}>
           <label style={{ fontSize: 13, fontWeight: 700 }}>
@@ -146,11 +156,11 @@ export default function SearchLab() {
           </div>
           <button type="submit" disabled={busy || !question.trim() || !key.trim()}
             style={{ ...button, opacity: busy ? 0.65 : 1 }}>
-            {busy ? "3가지 모델을 순서대로 테스트하는 중…" : "같은 질문으로 3가지 비교 시작"}
+            {busy ? "Flash 세 설정을 순서대로 테스트하는 중…" : "Flash 설정 3가지 비교 시작"}
           </button>
           <p style={{ fontSize: 12, margin: 0, color: "#7c8592" }}>
-            테스트 1회에 유료 Gemini 호출이 최대 3번 발생해. 이 화면은 별도 URL에서만 열리고, 기존 챗봇 답변 방식은 변경되지 않아.
-            비밀번호는 브라우저 화면에만 임시로 보관되며 저장되지 않아.
+            테스트 한 번에 Flash 호출이 최대 3회 발생해. 모델 비용은 글로벌 일반 요금·사용량 기반 추정치이며 검색 Grounding 요금은 포함되지 않아.
+            실제 청구금액은 Vertex AI 결제 내역에서 확인해. 기존 메인 챗봇은 변경되지 않고, 비밀번호는 브라우저 화면에만 임시 보관돼.
           </p>
         </form>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 12, alignItems: "start" }}>
