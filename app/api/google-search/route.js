@@ -141,6 +141,47 @@ Answer ONLY in ${LANGUAGE[lang]}, with 2-4 short passenger-friendly sentences, n
 `;
 }
 
+// Main-chat route questions need a transit-specific prompt, not a nearby-amenities prompt.
+// The existing app/page.js sends a recognizable subway-only request when Route is selected.
+// Lab tests are deliberately untouched so prior A/B/C comparisons remain reproducible.
+function isTransitRouteQuestion(question) {
+  const q = question.trim();
+  if (/지하철만 이용하는 경로|지하철.*(?:경로|길찾기|환승|어떻게|가는 법|가는법)|(?:환승|노선).*(?:경로|방법)|(?:어떻게|가는법|가는 법).*(?:역|지하철)|(?:에서|부터).*(?:역까지|지하철).*?(?:경로|방법|길)|(?:지하철|전철).*?타고.*?(?:가는|가기)/i.test(q)) return true;
+  if (/subway only|metro only|by subway|subway route|metro route|how (?:do i|to) get.*(?:station|subway)/i.test(q)) return true;
+  if (/地下鉄だけ|地下鉄.*(?:経路|乗換|行き方)|電車.*行き方|地铁.*(?:路线|换乘|怎么走)|只乘地铁/i.test(q)) return true;
+  // Very short destination-only messages are interpreted as a station route request.
+  if (/^[가-힣\d ]{2,14}역$/.test(q) && q !== '종로5가역') return true;
+  return false;
+}
+
+function stationRoutePrompt(question, lang) {
+  return `
+You are the subway-route assistant for Jongno 5-ga Station (종로5가역, Line 1, Seoul).
+The traveler requested: "${question}"
+
+Use Google Search grounding to verify SUBWAY-ONLY routing. Provide exactly ONE practical route that is simple and has few transfers. Do not list alternative routes, unrelated services, taxis or buses unless the passenger explicitly requests them.
+- Verify line numbers, station transfer eligibility, and correct directions. Never invent a line at a station or an interchange. If a transfer cannot be verified, say so rather than fabricate instructions.
+- Put boarding line, transfer station(s), transfer line(s), and final arrival in the correct travel order.
+- State a journey time only when search evidence supports it; otherwise omit the time entirely, and never finish with an incomplete time or number.
+- Prefer 2 to 4 SHORT plain-text steps (no huge prose paragraph), with an optional one-line time estimate only if verified.
+- Do not use LaTeX, dollars, backslashes, Markdown asterisks, Markdown tables, or headings. For direction changes, use the ordinary Unicode arrow →.
+- If recent live timetables or route accuracy cannot be confirmed, advise checking a transit route planner without pretending the route is verified.
+Answer ONLY in ${LANGUAGE[lang]}. Keep it usable for a person looking at a phone while standing at the station.
+`;
+}
+
+// Normalize common markup emitted despite the prompt.  This only applies to
+// route text; existing gate/fare copy and other Gemini answers are unchanged.
+function cleanRouteAnswer(answer) {
+  return answer
+    .replace(/\$\s*\\(?:longrightarrow|rightarrow|to)\s*\$/gi, "→")
+    .replace(/\\(?:longrightarrow|rightarrow|to)\b/gi, "→")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/^\s*#{1,4}\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 // Standard global on-demand model-only pricing, USD / 1,000,000 tokens.
 // Google Search grounding is a separate charge (5k grounded queries/month free across Gemini 3 models,
 // then $14 per 1000 queries), and is intentionally NOT included in this estimate.
@@ -217,7 +258,9 @@ export async function POST(request) {
     const model = config.model;
     const url = `https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}` +
       `/locations/global/publishers/google/models/${model}:generateContent`;
-    const prompt = config.prompt === "specificConcise" ? specificConcisePrompt(question, lang)
+    const routeQuestion = !labMode && isTransitRouteQuestion(question);
+    const prompt = routeQuestion ? stationRoutePrompt(question, lang)
+      : config.prompt === "specificConcise" ? specificConcisePrompt(question, lang)
       : config.prompt === "specific" ? specificLocationPrompt(question, lang)
       : config.prompt === "concise" ? conciseLocalPrompt(question, lang)
       : config.prompt === "local" ? improvedPrompt(question, lang)
@@ -239,7 +282,7 @@ export async function POST(request) {
           tools: [{ googleSearch: {} }],
           generationConfig: config.thinking
             ? { maxOutputTokens: config.maxOutputTokens, thinkingConfig: { thinkingLevel: config.thinking } }
-            : { maxOutputTokens: 350 },
+            : { maxOutputTokens: labMode ? 350 : (routeQuestion ? 1000 : 500) },
         }),
         signal: controller.signal,
         cache: "no-store",
@@ -262,8 +305,18 @@ export async function POST(request) {
     }
 
     const candidate = data.candidates?.[0];
-    const answer = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("").trim() ||
+    const rawAnswer = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("").trim() ||
       "답변을 생성하지 못했습니다.";
+    const finishReason = candidate?.finishReason || "";
+    // Never silently show cut-off public transit instructions.
+    const answer = routeQuestion && finishReason === "MAX_TOKENS"
+      ? {
+        ko: "길찾기 안내가 완전히 생성되지 않았습니다. 아래 Google 검색 결과에서 실제 환승 경로를 확인해 주세요.",
+        en: "The subway directions were incomplete. Please check the Google search results below for a verified transit route.",
+        ja: "経路案内を最後まで生成できませんでした。下のGoogle検索結果で乗換経路をご確認ください。",
+        zh: "地铁路线信息未能完整生成。请通过下方的Google搜索结果确认换乘路线。",
+      }[lang]
+      : routeQuestion ? cleanRouteAnswer(rawAnswer) : rawAnswer;
     const grounding = candidate?.groundingMetadata || {};
     const sources = (grounding.groundingChunks || [])
       .filter((chunk) => chunk.web?.uri)
@@ -289,7 +342,7 @@ export async function POST(request) {
           sourceCount: sources.length,
           supportCount: (grounding.groundingSupports || []).length,
           usage: data.usageMetadata || null,
-          finishReason: candidate?.finishReason || null,
+          finishReason: finishReason || null,
         },
       } : {}),
     });
