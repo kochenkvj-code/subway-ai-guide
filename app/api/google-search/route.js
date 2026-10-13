@@ -12,11 +12,15 @@ const LANGUAGE = {
   ko: "한국어", en: "English", ja: "日本語", zh: "简体中文",
 };
 
-// Only these three server-defined configurations are available in the lab.
-// Ordinary /api/google-search requests keep their original v3 behavior.
+// Search Lab v6.3 tests Flash-Lite prompts at the SAME model and token cap.
+// Existing lab mode names remain available for older pages; regular visitors
+// (no labMode) still use the original v3 baseline behavior.
 const LAB_VARIANTS = {
   baseline: { label: "기존 Lite + 기존 지시문", model: "gemini-3.5-flash-lite", prompt: "legacy" },
-  improvedLite: { label: "Lite + 위치검색 개선 지시문", model: "gemini-3.5-flash-lite", prompt: "local" },
+  improvedLite: { label: "A · Lite + v6.1 검색 개선", model: "gemini-3.5-flash-lite", prompt: "local" },
+  liteSpecific: { label: "B · Lite + 위치 정보 구체화", model: "gemini-3.5-flash-lite", prompt: "specific" },
+  liteSpecificConcise: { label: "C · Lite + 위치 구체화·간결", model: "gemini-3.5-flash-lite", prompt: "specificConcise" },
+  // Compatibility with the previously deployed v6.2 comparison page.
   improvedFlash: { label: "Flash LOW · 기존 개선 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
   flashMinimal: { label: "Flash MINIMAL · 같은 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "MINIMAL", maxOutputTokens: 1600 },
   flashConcise: { label: "Flash MINIMAL · 간결한 위치 안내", model: "gemini-3.5-flash", prompt: "concise", thinking: "MINIMAL", maxOutputTokens: 1200 },
@@ -80,6 +84,44 @@ SEARCH / REASONING REQUIREMENTS:
 6. If reliable evidence is missing, say "I could not verify the location from the available results" in the requested language, NOT "there is no such facility". Never turn lack of evidence into evidence of nonexistence.
 7. Cite sources through grounding as available and keep the answer passenger-friendly, about 3–6 short sentences or a few very short bullets. Do not describe your internal process. Answer ONLY in ${LANGUAGE[lang]}.
 8. For questions unrelated to local amenities, remain helpful about the station and public transportation, verifying current operating rules via search when necessary.
+`;
+}
+
+// B: Flash-Lite with higher emphasis on useful, source-grounded location details.
+// Deliberately DOES NOT provide hard-coded answers for nursing rooms, exchange
+// offices, lockers or other facilities: they must be found in current search.
+function specificLocationPrompt(question, lang) {
+  return `
+You are a reliable real-world location assistant for passengers at 종로5가역 (Jongno 5-ga Station, Seoul Subway Line 1, Seoul, Korea).
+
+Passenger's actual question: "${question}"
+
+Use Google Search grounding for current factual location information. Search Korean keywords relevant to the passenger's need and this station; try synonyms or nearby area names when useful (종로5가역, 종로5가, 광장시장, 종로5가 지하도상가, 종오지하쇼핑센터). These are search hints, NOT proof of facilities.
+
+CRITICAL ACCURACY RULES:
+- Keep THREE locations distinct: 1) inside the subway station building/concourse, 2) inside a connected underground mall, 3) outside the station in neighboring streets/buildings. Never treat nearby shopping mall amenities as station-owned amenities.
+- A station office that may HELP a traveler find a nursing room is NOT itself a nursing room. Do not infer a facility exists in the station from advice to ask staff for assistance.
+- If the user asks about a service near the station, do not restrict discovery to inside the station. Conversely, never imply a facility exists inside the station when only a nearby one was found.
+- Give the VERIFIED place name and its precise useful location context (connected building/underground level or nearby exit and walking direction) only when supported by search results. Avoid made-up exit numbers, building floors, addresses, hours and walking distances.
+- Prefer primary official/operator sites for station facilities, and reputable place/business information for private stores. A lack of search evidence means "not verified," not "doesn't exist."
+- If no relevant place can be verified, clearly state that fact without claiming the service is absent. If evidence conflicts, briefly state uncertainty and recommend verifying onsite.
+- Answer the actual question (also subway route questions). Do not list unrelated businesses or over-explain your research.
+
+Answer only in ${LANGUAGE[lang]}. Normally give the closest 1–2 verified options with location context, using 2–5 passenger-friendly sentences or short bullets. No markdown bold, boilerplate or invented facts.
+`;
+}
+
+// C: preserve B's source/location rules but limit excess commentary.
+function specificConcisePrompt(question, lang) {
+  return `
+You assist travelers at 종로5가역 (Jongno 5-ga Station, Line 1, Seoul).
+Question: "${question}"
+
+Use Google Search grounding to verify relevant places/routes, searching useful Korean station, underground arcade (종오지하쇼핑센터/종로5가 지하도상가) and nearby area (광장시장) terms as relevant. These are only potential search terms, not known facilities.
+Never confuse (1) INSIDE 종로5가역, (2) a CONNECTED underground shopping arcade, and (3) NEARBY street-level facilities. Do not say a nursing room or any other facility operates inside the station just because station staff can give assistance, or because one exists in a connected mall.
+Provide the most relevant 1–2 VERIFIED facility names and actionable location, including nearest exit/level ONLY when supported by found sources. If not verified, say you couldn't confirm, rather than "there is none". Do not invent exits, distances, hours, fares, or services. Be equally careful with route information.
+
+Answer in ${LANGUAGE[lang]}, preferably 2–3 short sentences (up to 4 when needed). Start with the answer and its LOCATION. Omit unrelated options, filler, markdown headings, generic warnings and search-process descriptions.
 `;
 }
 
@@ -175,9 +217,11 @@ export async function POST(request) {
     const model = config.model;
     const url = `https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}` +
       `/locations/global/publishers/google/models/${model}:generateContent`;
-    const prompt = config.prompt === "concise" ? conciseLocalPrompt(question, lang)
+    const prompt = config.prompt === "specificConcise" ? specificConcisePrompt(question, lang)
+      : config.prompt === "specific" ? specificLocationPrompt(question, lang)
+      : config.prompt === "concise" ? conciseLocalPrompt(question, lang)
       : config.prompt === "local" ? improvedPrompt(question, lang)
-        : legacyPrompt(question, lang);
+      : legacyPrompt(question, lang);
     const start = Date.now();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 45000);
