@@ -3,15 +3,16 @@
 import { useState } from "react";
 
 const VARIANTS = [
-  { id: "improvedFlash", name: "A · Flash LOW", subtitle: "기존 ③ 설정 · 개선 검색 지시문" },
-  { id: "flashMinimal", name: "B · Flash MINIMAL", subtitle: "같은 지시문 · 추론 수준만 변경" },
-  { id: "flashConcise", name: "C · MINIMAL + 간결", subtitle: "간결한 답변 지시문 · 검색 유지" },
+  { id: "improvedLite", name: "A · Lite 검색 개선", subtitle: "v6.1 기존 지시문 · 비교 기준" },
+  { id: "liteSpecific", name: "B · Lite 위치 구체화", subtitle: "장소명·출구·역 안팎 구분 강화" },
+  { id: "liteSpecificConcise", name: "C · Lite 구체화 + 간결", subtitle: "B의 정확성 규칙 유지 · 2~3문장" },
 ];
 const EXAMPLES = [
   "종로5가역 근처에 환전소가 어디 있어?",
   "종로5가역 수유실은 어디에 있어?",
   "종로5가역 근처에 약국 있어?",
   "종로5가역에서 가장 가까운 짐 보관 장소 알려줘",
+  "종로5가역 내부에 수유실이 있어?",
 ];
 
 const inputStyle = {
@@ -56,6 +57,9 @@ function Result({ item, state }) {
           <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.7, marginTop: 12 }}>
             {result.answer}
           </div>
+          {lab?.finishReason && lab.finishReason !== "STOP" ? (
+            <p style={{ fontSize: 12, color: "#b45309", marginTop: 8 }}>응답 종료 상태: {lab.finishReason} (답변이 잘렸을 수 있음)</p>
+          ) : null}
           <details style={{ marginTop: 16 }} open>
             <summary style={{ cursor: "pointer", fontWeight: 700 }}>실제 구글 검색어</summary>
             {(result.googleSearchQueries || []).length ? (
@@ -124,9 +128,9 @@ export default function SearchLab() {
     <main style={{ minHeight: "100vh", padding: "24px 14px 70px", background: "#edf3f7", color: "#172b3f", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ maxWidth: 1240, margin: "auto" }}>
         <a href="/" style={{ color: "#14785f", fontSize: 13, fontWeight: 700 }}>← 기존 챗봇으로 돌아가기</a>
-        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>Flash 속도·검색 품질 비교 v6.2</h1>
+        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>Flash-Lite 검색 품질 비교 v6.3</h1>
         <p style={{ color: "#64748b", fontSize: 14, marginBottom: 20 }}>
-          같은 Gemini Flash 모델에서 LOW / MINIMAL / MINIMAL + 간결 답변을 비교해. 실제 검색어, 토큰 사용량과 모델 비용 추정치도 보여줘.
+          같은 Flash-Lite 모델에서 기존 검색 지시문 / 위치 정보 구체화 / 구체화+간결 답변을 비교해. 모델과 출력 토큰 상한은 동일하게 유지하며 검색어, 근거와 예상 모델 비용을 보여줘.
         </p>
         <form onSubmit={compare} style={{ ...panel, display: "grid", gap: 14, marginBottom: 18 }}>
           <label style={{ fontSize: 13, fontWeight: 700 }}>
@@ -156,10 +160,10 @@ export default function SearchLab() {
           </div>
           <button type="submit" disabled={busy || !question.trim() || !key.trim()}
             style={{ ...button, opacity: busy ? 0.65 : 1 }}>
-            {busy ? "Flash 세 설정을 순서대로 테스트하는 중…" : "Flash 설정 3가지 비교 시작"}
+            {busy ? "Flash-Lite 세 설정을 순서대로 테스트하는 중…" : "Flash-Lite 3가지 비교 시작"}
           </button>
           <p style={{ fontSize: 12, margin: 0, color: "#7c8592" }}>
-            테스트 한 번에 Flash 호출이 최대 3회 발생해. 모델 비용은 글로벌 일반 요금·사용량 기반 추정치이며 검색 Grounding 요금은 포함되지 않아.
+            테스트 한 번에 Flash-Lite 호출이 최대 3회 발생해. 모델 비용은 글로벌 일반 요금·사용량 기반 추정치이며 검색 Grounding 요금은 포함되지 않아.
             실제 청구금액은 Vertex AI 결제 내역에서 확인해. 기존 메인 챗봇은 변경되지 않고, 비밀번호는 브라우저 화면에만 임시 보관돼.
           </p>
         </form>
@@ -167,7 +171,7 @@ export default function SearchLab() {
           {VARIANTS.map((item) => <Result key={item.id} item={item} state={results[item.id]} />)}
         </div>
         <p style={{ color: "#64748b", fontSize: 12, marginTop: 22 }}>
-          판단 팁: 검색어가 없거나 출처가 없는 답은 추측 가능성이 높아. 검색 근거가 있어도 현장 안내로 쓰려면 출처와 시설 위치를 확인해야 해.
+          판단 팁: 정확성을 우선해 비교해. 특히 '역무실에서 도움 가능'과 '역 내부에 수유실 있음'은 전혀 다르다는 점을 확인해. 근거가 없는 위치·출구·영업시간은 실제 안내에 사용하지 마.
         </p>
       </div>
     </main>
