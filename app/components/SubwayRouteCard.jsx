@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 
 // Reuses the already tested /api/subway-route endpoint.
 // No Gemini call, prompt classification, or AI translation happens here.
@@ -13,9 +14,8 @@ const COPY = {
     change: "다른 역 검색", all: "경유 역 전체 보기", ride: "이동", board: "행 열차", transferAt: "환승",
     depart: "출발", arrive: "도착", stops: "정거장", mins: "분", secs: "초", hours: "시간", won: "원",
     suffix: "회", searchFailed: "조회 실패", empty: "도착역을 입력해주세요.",
-    unsupported: "이 역명은 현재 자동변환 대상이 아닙니다. 한국어 공식 역명을 입력하거나 아래 빠른 선택을 이용해주세요.",
+    unsupported: "역명을 찾지 못했거나 같은 표기의 역이 여러 개입니다. 한국어 공식 역명으로 입력하거나 아래 빠른 선택을 이용해주세요.",
     disclosure: "경로 정보는 공식 API 기준이며 실제 운행과 다를 수 있습니다. 환승 구간 및 추가 운임은 현장 안내를 확인해주세요.",
-    koreanNames: "중간역·행선지명은 현재 공식 API의 한국어 표기로 표시됩니다.",
   },
   en: {
     heading: "Subway route", from: "From", to: "To", toHint: "Destination (e.g. Gangnam)",
@@ -25,21 +25,19 @@ const COPY = {
     change: "Search again", all: "Show all stations", ride: "Ride", board: "-bound train", transferAt: "Transfer",
     depart: "Departure", arrive: "Arrival", stops: "stops", mins: "min", secs: "sec", hours: "hr", won: "KRW",
     suffix: "", searchFailed: "Unable to find route", empty: "Please enter a destination.",
-    unsupported: "This station name is not in the quick-name list. Please use its Korean station name or a popular destination below.",
+    unsupported: "Station name not found or ambiguous. Try the official Korean name or a popular destination below.",
     disclosure: "Route data comes from the official API and may differ from actual operations. Check local signs for transfers and surcharges.",
-    koreanNames: "Intermediate station and train destination names are displayed in Korean as provided by the official API.",
   },
   ja: {
-    heading: "地下鉄経路検索", from: "出発駅", to: "到着駅", toHint: "到着駅（例：江南）",
+    heading: "地下鉄経路検索", from: "出発駅", to: "到着駅", toHint: "到着駅（例：カンナム）",
     shortcuts: "よく使う駅", criterion: "検索条件", duration: "最短時間", distance: "最短距離", transfer: "最少乗換",
     search: "経路を検索", searching: "公式経路を検索中…", result: "公式経路検索結果", time: "所要時間",
     transfers: "乗換", fare: "交通カード運賃", length: "移動距離", itinerary: "おすすめ経路",
     change: "別の駅を検索", all: "全駅を見る", ride: "乗車", board: "方面", transferAt: "乗換",
     depart: "出発", arrive: "到着", stops: "駅", mins: "分", secs: "秒", hours: "時間", won: "ウォン",
     suffix: "回", searchFailed: "検索できませんでした", empty: "到着駅を入力してください。",
-    unsupported: "この駅名の自動変換は未対応です。韓国語の正式駅名または下の候補を使用してください。",
+    unsupported: "駅名が見つからないか、複数の駅に一致します。韓国語の正式駅名または下の候補を使用してください。",
     disclosure: "公式APIに基づく経路です。実際の運行・乗換・追加運賃については現地案内をご確認ください。",
-    koreanNames: "途中駅・行先は現在、公式APIの韓国語表記で表示されます。",
   },
   zh: {
     heading: "地铁路线查询", from: "出发站", to: "目的地", toHint: "输入目的地（例如：江南）",
@@ -49,32 +47,15 @@ const COPY = {
     change: "重新查询", all: "显示所有途经站", ride: "乘车", board: "方向", transferAt: "换乘",
     depart: "出发", arrive: "到达", stops: "站", mins: "分钟", secs: "秒", hours: "小时", won: "韩元",
     suffix: "次", searchFailed: "查询失败", empty: "请输入目的地。",
-    unsupported: "暂不支持自动识别这个站名。请使用韩文正式站名或选择下方常用车站。",
+    unsupported: "未找到车站或有多个同名候选。请使用韩文正式站名或选择下方常用车站。",
     disclosure: "路线信息来自官方API，可能与实际运行情况不同。请以现场换乘指示及附加票价为准。",
-    koreanNames: "途经站及列车终点站目前显示官方API提供的韩文名称。",
   },
 };
 
-const ORIGIN_LABEL = { ko: "종로5가", en: "Jongno 5-ga", ja: "鍾路5街", zh: "钟路5街" };
-
-const DESTINATIONS = [
-  { ko: "강남", en: "Gangnam", ja: "江南", zh: "江南" },
-  { ko: "안암", en: "Anam", ja: "安岩", zh: "安岩" },
-  { ko: "수원", en: "Suwon", ja: "水原", zh: "水原" },
-  { ko: "잠실", en: "Jamsil", ja: "蚕室", zh: "蚕室" },
-];
+const DESTINATIONS = ["강남", "안암", "수원", "잠실"];
 
 function stationQuery(value) {
-  const raw = String(value || "").normalize("NFC").trim();
-  const reduced = raw.replace(/(?:station|駅|站)$/i, "").replace(/[.\s\-·]/g, "").toLocaleLowerCase();
-  for (const station of DESTINATIONS) {
-    if (Object.values(station).some((label) => label.replace(/[.\s\-·]/g, "").toLocaleLowerCase() === reduced)) {
-      return station.ko;
-    }
-  }
-  // The API accepts Korean station names, not arbitrary translated names.
-  if (/^[가-힣0-9·()\-\s]+$/.test(raw)) return raw.endsWith("역") ? raw.slice(0, -1) : raw;
-  return null;
+  return destinationForApi(value);
 }
 
 function elapsed(seconds, t) {
@@ -94,8 +75,8 @@ function lineColor(name) {
   return map[name] || "#445267";
 }
 
-function Line({ name }) {
-  return <span className="srg-line" style={{ background: lineColor(name) }}>{name}</span>;
+function Line({ name, lang }) {
+  return <span className="srg-line" style={{ background: lineColor(name) }}>{lineName(name, lang)}</span>;
 }
 
 export default function SubwayRouteCard({ lang = "ko" }) {
@@ -140,10 +121,10 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       <header className="srg-heading"><span className="srg-train">🚇</span><strong>{t.heading}</strong></header>
       <form onSubmit={search}>
         <div className="srg-fields">
-          <label className="srg-field"><span>{t.from}</span><input value={ORIGIN_LABEL[lang] || ORIGIN_LABEL.ko} readOnly /></label>
+          <label className="srg-field"><span>{t.from}</span><input value={stationName("종로5가", lang)} readOnly /></label>
           <label className="srg-field"><span>{t.to}</span><input value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
         </div>
-        <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((p) => <button type="button" key={p.ko} onClick={() => { setDestination(p[lang] || p.ko); setError(""); }} className="srg-preset">{p[lang] || p.ko}</button>)}</div>
+        <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((ko) => <button type="button" key={ko} onClick={() => { setDestination(stationName(ko, lang)); setError(""); }} className="srg-preset">{stationName(ko, lang)}</button>)}</div>
         <div className="srg-mode-label">{t.criterion}</div>
         <div className="srg-modes">{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy} className="srg-submit">{busy ? t.searching : t.search}</button>
@@ -152,7 +133,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       {route && <div className="srg-result" aria-live="polite">
         <div className="srg-separator" />
         <div className="srg-result-label">{t.result}</div>
-        <h3>{route.origin} <span>→</span> {route.destination}</h3>
+        <h3>{stationName(route.origin, lang)} <span>→</span> {stationName(route.destination, lang)}</h3>
         <div className="srg-metrics">
           <div><span>{t.time}</span><strong>{elapsed(route.totalSeconds, t)}</strong></div>
           <div><span>{t.transfers}</span><strong>{route.transferCount}{t.suffix}</strong></div>
@@ -164,13 +145,13 @@ export default function SubwayRouteCard({ lang = "ko" }) {
           {(route.itinerary || []).map((step, index) => <div className="srg-stop" key={index}>
             <div className="srg-point">{step.type === "transfer" ? "↔" : "●"}</div>
             <div className="srg-stop-body">
-              {step.type === "transfer" ? <><strong>{step.station} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} /> → <Line name={step.toLine} /></div></>
-                : <><strong>{step.from} → {step.to}</strong><div className="srg-line-row"><Line name={step.line} />{step.direction && <span>{step.direction} {t.board}</span>}</div></>}
+              {step.type === "transfer" ? <><strong>{stationName(step.station, lang)} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} lang={lang} /> → <Line name={step.toLine} lang={lang} /></div></>
+                : <><strong>{stationName(step.from, lang)} → {stationName(step.to, lang)}</strong><div className="srg-line-row"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div></>}
             </div>
           </div>)}
         </div>
-        {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.join(" → ")}</p></details>}
-        <p className="srg-disclaimer">{lang !== "ko" ? `${t.koreanNames} ` : ""}{t.disclosure}</p>
+        {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => stationName(name, lang)).join(" → ")}</p></details>}
+        <p className="srg-disclaimer">{t.disclosure}</p>
         <button type="button" className="srg-again" onClick={() => { setRoute(null); setError(""); }}>{t.change}</button>
       </div>}
       <style>{`
