@@ -12,9 +12,9 @@ const LANGUAGE = {
   ko: "한국어", en: "English", ja: "日本語", zh: "简体中文",
 };
 
-// Search Lab v6.3 tests Flash-Lite prompts at the SAME model and token cap.
-// Existing lab mode names remain available for older pages; regular visitors
-// (no labMode) still use the original v3 baseline behavior.
+// Search Lab keeps its Flash-Lite A/B/C comparisons and older variant names.
+// v6.4 production visitors (no labMode) use A: improvedLite / local search prompt.
+// This does not modify the existing static fare-card and gate guidance.
 const LAB_VARIANTS = {
   baseline: { label: "기존 Lite + 기존 지시문", model: "gemini-3.5-flash-lite", prompt: "legacy" },
   improvedLite: { label: "A · Lite + v6.1 검색 개선", model: "gemini-3.5-flash-lite", prompt: "local" },
@@ -211,7 +211,7 @@ export async function POST(request) {
       return json({ ok: false, error: "테스트 인증에 실패했습니다. Vercel의 SEARCH_LAB_KEY 설정과 입력값을 확인해 주세요." }, 403);
     }
 
-    const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.baseline;
+    const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.improvedLite;
     const requestStart = Date.now();
     const accessToken = await getGoogleAccessToken();
     const model = config.model;
