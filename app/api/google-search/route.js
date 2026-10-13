@@ -1,7 +1,6 @@
 import { getVercelOidcToken } from "@vercel/oidc";
 import { ExternalAccountClient } from "google-auth-library";
 import { timingSafeEqual } from "node:crypto";
-import { isOfficialSubwayQuestion, officialSubwayResponse } from "./subway-integration.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -337,18 +336,8 @@ export async function POST(request) {
       return json({ ok: false, error: "테스트 인증에 실패했습니다. Vercel의 SEARCH_LAB_KEY 설정과 입력값을 확인해 주세요." }, 403);
     }
 
-    // v6.7: Route chat questions use the Seoul Metro official shortest-path API.
-    // Search Lab keeps its original A/B/C experiments; Gemini is unchanged for
-    // facility, gate, fare-card and other general questions.
-    if (!labMode && isOfficialSubwayQuestion(question)) {
-      return json(await officialSubwayResponse(question, lang, async (foreignQuestion) => {
-        const accessToken = await getGoogleAccessToken();
-        return resolveForeignStationNames(foreignQuestion, accessToken);
-      }, async (labels, targetLanguage) => {
-        const accessToken = await getGoogleAccessToken();
-        return translateOfficialRouteLabels(labels, targetLanguage, accessToken);
-      }));
-    }
+    // Route lookup is handled by SubwayRouteCard → /api/subway-route.
+    // This endpoint is now for Gemini + Google Search general questions only.
 
     const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.improvedLite;
     const requestStart = Date.now();
@@ -356,9 +345,7 @@ export async function POST(request) {
     const model = config.model;
     const url = `https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}` +
       `/locations/global/publishers/google/models/${model}:generateContent`;
-    const routeQuestion = !labMode && isTransitRouteQuestion(question);
-    const prompt = routeQuestion ? stationRoutePrompt(question, lang)
-      : config.prompt === "specificConcise" ? specificConcisePrompt(question, lang)
+    const prompt = config.prompt === "specificConcise" ? specificConcisePrompt(question, lang)
       : config.prompt === "specific" ? specificLocationPrompt(question, lang)
       : config.prompt === "concise" ? conciseLocalPrompt(question, lang)
       : config.prompt === "local" ? improvedPrompt(question, lang)
@@ -380,7 +367,7 @@ export async function POST(request) {
           tools: [{ googleSearch: {} }],
           generationConfig: config.thinking
             ? { maxOutputTokens: config.maxOutputTokens, thinkingConfig: { thinkingLevel: config.thinking } }
-            : { maxOutputTokens: labMode ? 350 : (routeQuestion ? 1000 : 500) },
+            : { maxOutputTokens: labMode ? 350 : 500 },
         }),
         signal: controller.signal,
         cache: "no-store",
@@ -406,15 +393,7 @@ export async function POST(request) {
     const rawAnswer = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("").trim() ||
       "답변을 생성하지 못했습니다.";
     const finishReason = candidate?.finishReason || "";
-    // Never silently show cut-off public transit instructions.
-    const answer = routeQuestion && finishReason === "MAX_TOKENS"
-      ? {
-        ko: "길찾기 안내가 완전히 생성되지 않았습니다. 아래 Google 검색 결과에서 실제 환승 경로를 확인해 주세요.",
-        en: "The subway directions were incomplete. Please check the Google search results below for a verified transit route.",
-        ja: "経路案内を最後まで生成できませんでした。下のGoogle検索結果で乗換経路をご確認ください。",
-        zh: "地铁路线信息未能完整生成。请通过下方的Google搜索结果确认换乘路线。",
-      }[lang]
-      : routeQuestion ? cleanRouteAnswer(rawAnswer) : rawAnswer;
+    const answer = rawAnswer;
     const grounding = candidate?.groundingMetadata || {};
     const sources = (grounding.groundingChunks || [])
       .filter((chunk) => chunk.web?.uri)
