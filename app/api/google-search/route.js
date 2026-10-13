@@ -1,6 +1,7 @@
 import { getVercelOidcToken } from "@vercel/oidc";
 import { ExternalAccountClient } from "google-auth-library";
 import { timingSafeEqual } from "node:crypto";
+import { isOfficialSubwayQuestion, officialSubwayResponse } from "./subway-integration.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -250,6 +251,13 @@ export async function POST(request) {
     }
     if (labMode && !allowTest(request)) {
       return json({ ok: false, error: "테스트 인증에 실패했습니다. Vercel의 SEARCH_LAB_KEY 설정과 입력값을 확인해 주세요." }, 403);
+    }
+
+    // v6.7: Route chat questions use the Seoul Metro official shortest-path API.
+    // Search Lab keeps its original A/B/C experiments; Gemini is unchanged for
+    // facility, gate, fare-card and other general questions.
+    if (!labMode && isOfficialSubwayQuestion(question)) {
+      return json(await officialSubwayResponse(question, lang));
     }
 
     const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.improvedLite;
