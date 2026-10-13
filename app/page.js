@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import SubwayRouteCard from "./components/SubwayRouteCard";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -16,7 +17,7 @@ const TEXT = {
     title: "AI 안내",
     status: "AI 안내 운영중",
     bannerTitle: "종로5가역 AI 안내",
-    bannerBody: "역 관련 일반 문의는 Google 검색을 바탕으로 안내합니다. 길찾기는 별도 Google 검색으로 연결됩니다.",
+    bannerBody: "일반 문의는 AI가 검색 결과를 바탕으로 안내합니다. 길찾기는 위 메뉴에서 조회할 수 있습니다.",
     quick: "빠른 안내",
     placeholder: "궁금한 것을 입력하세요",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
@@ -46,7 +47,7 @@ const TEXT = {
     title: "AI Guide",
     status: "AI Guide Online",
     bannerTitle: "Jongno 5-ga Station AI Guide",
-    bannerBody: "General station questions use Google Search grounding. Route searches open separately in Google.",
+    bannerBody: "AI answers general questions using web search. Tap Route to look up subway directions here.",
     quick: "Quick guide",
     placeholder: "Type your question",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
@@ -76,7 +77,7 @@ const TEXT = {
     title: "AI案内",
     status: "AI案内 稼働中",
     bannerTitle: "鍾路5街駅 AI案内",
-    bannerBody: "駅に関する一般的な質問はGoogle検索をもとに案内します。経路検索はGoogle検索を別に開きます。",
+    bannerBody: "一般的な質問はAIが検索結果をもとに案内します。経路検索は上のメニューからご利用ください。",
     quick: "クイック案内",
     placeholder: "質問を入力してください",
     routePlaceholder: "目的地を入力（例：明洞）",
@@ -106,7 +107,7 @@ const TEXT = {
     title: "AI 指南",
     status: "AI 指南运行中",
     bannerTitle: "钟路5街站 AI 指南",
-    bannerBody: "一般车站问题会参考 Google 搜索进行回答，路线查询会单独打开 Google 搜索。",
+    bannerBody: "普通问题由AI结合搜索结果回答。地铁路线可通过上方的路线菜单查询。",
     quick: "快捷指南",
     placeholder: "请输入问题",
     routePlaceholder: "请输入目的地（例如：明洞）",
@@ -920,6 +921,14 @@ export default function Home() {
     // For regular conversation continue auto-scrolling to the newest answer.
     if (gateScreenActive) {
       el.scrollTop = 0;
+    } else if (lastMessage?.routeCard) {
+      // Open the form at its heading, rather than scrolling to the bottom
+      // of the long route card (particularly important on small iPhones).
+      const target = el.querySelector(".sag-row.route-row");
+      if (target) {
+        const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        el.scrollTop = Math.max(0, el.scrollTop + top - 6);
+      }
     } else {
       el.scrollTop = el.scrollHeight;
     }
@@ -1160,11 +1169,13 @@ export default function Home() {
     }
 
     if (type === "route") {
-      setMode("route");
+      // Route lookup is a self-contained form. No language-model requests here.
+      setMode(null);
+      setInput("");
       setMessages((prev) => [
-        ...prev,
+        ...prev.filter((message) => !message.routeCard),
         { role: "user", text: label },
-        { role: "assistant", text: t.routePrompt },
+        { role: "assistant", text: "", routeCard: true },
       ]);
       return;
     }
@@ -1183,21 +1194,6 @@ export default function Home() {
 
     setInput("");
     if (gateScreenActive) leaveGateScreen();
-
-    if (mode === "route") {
-      const destination = normalizeDestination(raw, lang);
-
-      const routeQuestions = {
-        ko: `${STATION.ko}에서 ${destination}까지 지하철만 이용하는 경로를 알려주세요. 가능한 한 간단하고 빠른 경로를 우선하고, 탑승 호선, 환승역, 환승 후 호선과 방향, 예상 소요시간을 간단히 알려주세요. 버스는 제외해주세요.`,
-        en: `How do I get from ${STATION.en} to ${destination} using subway only? Prefer a simple and fast route, and briefly include the line to board, transfer station, next line and direction, and estimated travel time. Do not include buses.`,
-        ja: `${STATION.ja}から${destination}まで地下鉄だけで行く経路を案内してください。できるだけ簡単で速い経路を優先し、乗車路線、乗換駅、乗換後の路線と方面、所要時間の目安を簡潔に示してください。バスは除外してください。`,
-        zh: `请告诉我从${STATION.zh}到${destination}只乘地铁的路线。优先选择简单且较快的路线，并简要说明乘坐线路、换乘站、换乘后的线路和方向以及预计所需时间。不要包含公交车。`,
-      };
-
-      setMode(null);
-      await askGoogle(routeQuestions[lang] || routeQuestions.ko, raw, "route");
-      return;
-    }
 
     await askGoogle(raw, raw, "free_question");
   }
@@ -1261,8 +1257,9 @@ export default function Home() {
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
-            <div key={index} className={`sag-row ${message.role}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""}`}>
+            <div key={index} className={`sag-row ${message.role} ${message.routeCard ? "route-row" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${message.routeCard ? "route-card-bubble" : ""}`}>
+                {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
@@ -1500,7 +1497,7 @@ export default function Home() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={mode === "route" ? t.routePlaceholder : t.placeholder}
+            placeholder={t.placeholder}
             aria-label="message"
             disabled={loading}
           />
@@ -1741,6 +1738,16 @@ export default function Home() {
 
         .sag-row.user { justify-content: flex-end; }
         .sag-row.assistant { justify-content: flex-start; }
+        /* The route form needs the full available width of the chat panel. */
+        .sag-row.route-row { justify-content: stretch; }
+        .sag-bubble.route-card-bubble {
+          width: 100%;
+          max-width: 100%;
+          padding: 0;
+          background: transparent;
+          border-radius: 0;
+          overflow: visible;
+        }
 
         .sag-bubble {
           max-width: 86%;
@@ -1755,6 +1762,14 @@ export default function Home() {
           background: #f0f4f6;
           color: #2c3943;
           border-bottom-left-radius: 5px;
+        }
+
+        .sag-bubble.assistant.route-card-bubble {
+          background: transparent;
+          padding: 0;
+          width: 100%;
+          max-width: 100%;
+          border-radius: 0;
         }
 
         .sag-bubble.user {
