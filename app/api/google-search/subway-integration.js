@@ -1,4 +1,4 @@
-// v6.8: Multilingual intent, deterministic station-name aliases and optional
+// v6.9: Multilingual intent, complete route-result localization and optional
 // narrow Gemini station-name normalization (never AI-generated itineraries).
 // Seoul Metro shortest-path API remains the sole source of routing facts.
 import { GET as getOfficialSubwayRoute } from "../subway-route/route.js";
@@ -182,18 +182,119 @@ const STRINGS = {
   },
 };
 
-function suffixName(name, lang) {
+// Display labels are NOT used for route lookup; only Korean names go to the API.
+// Prefer established station/line translations to avoid unnecessarily invoking AI.
+const DISPLAY_OVERRIDES = {
+  "종로5가": { en: "Jongno 5-ga", ja: "鍾路5街", zh: "钟路5街" },
+  "강남": { en: "Gangnam", ja: "江南", zh: "江南" },
+  "안암": { en: "Anam", ja: "安岩", zh: "安岩" },
+  "신창": { en: "Sinchang", ja: "新昌", zh: "新昌" },
+  "오금": { en: "Ogeum", ja: "梧琴", zh: "梧琴" },
+  "광교": { en: "Gwanggyo", ja: "光教", zh: "光教" },
+  "신사": { en: "Sinsa", ja: "新沙", zh: "新沙" },
+  "양재": { en: "Yangjae", ja: "良才", zh: "良才" },
+  "남부터미널": { en: "Nambu Bus Terminal", ja: "南部ターミナル", zh: "南部客运站" },
+  "고속터미널": { en: "Express Bus Terminal", ja: "高速ターミナル", zh: "高速巴士客运站" },
+  "교대": { en: "Seoul Nat'l Univ. of Education", ja: "教大", zh: "教大" },
+  "종로3가": { en: "Jongno 3-ga", ja: "鍾路3街", zh: "钟路3街" },
+  "동묘앞": { en: "Dongmyo", ja: "東廟前", zh: "东庙前" },
+  "종각": { en: "Jonggak", ja: "鐘閣", zh: "钟阁" },
+  "서울": { en: "Seoul", ja: "ソウル", zh: "首尔" },
+  "청량리": { en: "Cheongnyangni", ja: "清凉里", zh: "清凉里" },
+  "봉화산": { en: "Bonghwasan", ja: "烽火山", zh: "烽火山" },
+  "인천": { en: "Incheon", ja: "仁川", zh: "仁川" },
+  "연천": { en: "Yeoncheon", ja: "漣川", zh: "涟川" },
+  "잠실": { en: "Jamsil", ja: "蚕室", zh: "蚕室" },
+  "시청": { en: "City Hall", ja: "市庁", zh: "市厅" },
+  "역삼": { en: "Yeoksam", ja: "駅三", zh: "驿三" },
+  "선릉": { en: "Seolleung", ja: "宣陵", zh: "宣陵" },
+};
+
+const LINE_LABELS = {
+  "신분당선": { en: "Shinbundang Line", ja: "新盆唐線", zh: "新盆唐线" },
+  "분당선": { en: "Bundang Line", ja: "盆唐線", zh: "盆唐线" },
+  "수인분당선": { en: "Suin–Bundang Line", ja: "水仁・盆唐線", zh: "水仁盆唐线" },
+  "경의중앙선": { en: "Gyeongui–Jungang Line", ja: "京義・中央線", zh: "京义中央线" },
+  "경의·중앙선": { en: "Gyeongui–Jungang Line", ja: "京義・中央線", zh: "京义中央线" },
+  "경춘선": { en: "Gyeongchun Line", ja: "京春線", zh: "京春线" },
+  "경강선": { en: "Gyeonggang Line", ja: "京江線", zh: "京江线" },
+  "서해선": { en: "Seohae Line", ja: "西海線", zh: "西海线" },
+  "신림선": { en: "Sillim Line", ja: "新林線", zh: "新林线" },
+  "우이신설선": { en: "Ui–Sinseol Line", ja: "牛耳新設線", zh: "牛耳新设线" },
+  "공항철도": { en: "AREX Airport Railroad", ja: "空港鉄道", zh: "机场铁路" },
+  "인천1호선": { en: "Incheon Line 1", ja: "仁川1号線", zh: "仁川1号线" },
+  "인천2호선": { en: "Incheon Line 2", ja: "仁川2号線", zh: "仁川2号线" },
+  "김포골드라인": { en: "Gimpo Goldline", ja: "金浦ゴールドライン", zh: "金浦金线" },
+  "용인경전철": { en: "Yongin EverLine", ja: "龍仁軽電鉄", zh: "龙仁轻轨" },
+  "의정부경전철": { en: "Uijeongbu LRT", ja: "議政府軽電鉄", zh: "议政府轻轨" },
+  "GTX-A": { en: "GTX-A", ja: "GTX-A", zh: "GTX-A" },
+};
+
+// If the dynamic translator is unavailable, romanize rather than showing raw
+// Hangul inside Japanese/Chinese/English directions. This is NOT an assertion
+// that the romanization is the station's official international name.
+const INITIAL = ["g","kk","n","d","tt","r","m","b","pp","s","ss","","j","jj","ch","k","t","p","h"];
+const MEDIAL = ["a","ae","ya","yae","eo","e","yeo","ye","o","wa","wae","oe","yo","u","wo","we","wi","yu","eu","ui","i"];
+const FINAL = ["","k","k","ks","n","nj","nh","t","l","lk","lm","lb","ls","lt","lp","lh","m","p","ps","t","t","ng","t","t","k","t","p","t"];
+function romanizeKorean(str) {
+  const transliterated = [...String(str || "")].map((c) => {
+    const offset = c.charCodeAt(0) - 0xAC00;
+    if (offset < 0 || offset >= 11172) return c;
+    const a = Math.floor(offset / 588), b = Math.floor((offset % 588) / 28), d = offset % 28;
+    return INITIAL[a] + MEDIAL[b] + FINAL[d];
+  }).join("");
+  return transliterated.replace(/\p{Script=Hangul}/gu, "").replace(/(^|[\s-])[a-z]/g, (m) => m.toUpperCase());
+}
+function safeLocalizedLabel(value) {
+  return typeof value === "string" && value.length <= 100 && value.trim() &&
+    !/[가-힣\r\n\u0000-\u001f]/.test(value) ? value.trim() : null;
+}
+function knownStationLabel(ko, lang) {
+  return safeLocalizedLabel(DISPLAY_OVERRIDES[ko]?.[lang]) ||
+    safeLocalizedLabel(preferredNames.get(ko)?.[lang]);
+}
+function suffixName(name, lang, labels = {}) {
   const ko = canonicalName(name);
-  const display = preferredNames.get(ko)?.[lang];
-  if (lang === "en") return display ? `${display}${/\b(?:station|terminal\s*\d+)$/i.test(display) ? "" : " Station"}` : `${ko}역`;
-  if (lang === "ja") return display ? `${display}${display.endsWith("駅") ? "" : "駅"}` : `${ko}역`;
-  if (lang === "zh") return display ? `${display}${display.endsWith("站") ? "" : "站"}` : `${ko}역`;
+  if (lang === "ko") return `${ko}역`;
+  const display = knownStationLabel(ko, lang) || safeLocalizedLabel(labels[ko]) || romanizeKorean(ko);
+  if (lang === "en") return /\b(?:station|terminal\s*\d+)$/i.test(display) ? display : `${display} Station`;
+  if (lang === "ja") return display.endsWith("駅") ? display : `${display}駅`;
+  if (lang === "zh") return display.endsWith("站") ? display : `${display}站`;
   return `${ko}역`;
 }
-function lineLabel(name, lang) {
-  const match = String(name || "").match(/^(\d+)호선$/);
-  if (!match) return String(name || "");
-  return lang === "en" ? `Line ${match[1]}` : lang === "ja" ? `${match[1]}号線` : lang === "zh" ? `${match[1]}号线` : name;
+function knownLineLabel(name, lang) {
+  const raw = String(name || "").trim();
+  const match = raw.match(/^(\d+)호선$/);
+  if (match) return lang === "en" ? `Line ${match[1]}` : lang === "ja" ? `${match[1]}号線` : lang === "zh" ? `${match[1]}号线` : raw;
+  return safeLocalizedLabel(LINE_LABELS[raw]?.[lang]);
+}
+function lineLabel(name, lang, labels = {}) {
+  const raw = String(name || "").trim();
+  if (lang === "ko") return raw;
+  const translated = knownLineLabel(raw, lang) || safeLocalizedLabel(labels[raw]);
+  if (translated) return translated;
+  const latin = romanizeKorean(raw.replace(/선$/, "")).trim();
+  return lang === "en" ? `${latin} Line` : lang === "ja" ? `${latin}線` : `${latin}线`;
+}
+function untranslatedRouteLabels(route, lang) {
+  if (lang === "ko") return [];
+  const missing = new Set();
+  const station = (value) => {
+    if (value && !knownStationLabel(canonicalName(value), lang)) missing.add(canonicalName(value));
+  };
+  const line = (value) => {
+    const name = String(value || "").trim();
+    if (name && !knownLineLabel(name, lang)) missing.add(name);
+  };
+  station(route.origin); station(route.destination);
+  for (const step of route.itinerary || []) {
+    if (step.type === "transfer") {
+      station(step.station); line(step.fromLine); line(step.toLine);
+    } else if (step.type === "ride") {
+      station(step.from); station(step.to); station(step.direction); line(step.line);
+    }
+  }
+  return [...missing].slice(0, 50);
 }
 function tripTime(seconds, lang) {
   const s = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -203,31 +304,31 @@ function tripTime(seconds, lang) {
   if (lang === "zh") return `${h ? `${h}小时` : ""}${m}分${r ? `${r}秒` : ""}`;
   return `${h ? `${h}시간 ` : ""}${m}분${r ? ` ${r}초` : ""}`;
 }
-function stepText(step, lang) {
+function stepText(step, lang, labels = {}) {
   if (step.type === "transfer") {
-    const station = suffixName(step.station, lang);
-    const lines = `${lineLabel(step.fromLine, lang)} → ${lineLabel(step.toLine, lang)}`;
+    const station = suffixName(step.station, lang, labels);
+    const lines = `${lineLabel(step.fromLine, lang, labels)} → ${lineLabel(step.toLine, lang, labels)}`;
     return lang === "en" ? `Transfer at ${station}: ${lines}` : lang === "ja" ? `${station}で乗換：${lines}` : lang === "zh" ? `在${station}换乘：${lines}` : `${station}에서 환승: ${lines}`;
   }
-  const segment = `${suffixName(step.from, lang)} → ${suffixName(step.to, lang)}`;
-  const line = lineLabel(step.line, lang), dir = step.direction ? suffixName(step.direction, lang) : "";
+  const segment = `${suffixName(step.from, lang, labels)} → ${suffixName(step.to, lang, labels)}`;
+  const line = lineLabel(step.line, lang, labels), dir = step.direction ? suffixName(step.direction, lang, labels) : "";
   if (lang === "en") return `${segment}: Take ${line}${dir ? ` toward ${dir}` : ""} (${step.segments} stops)`;
   if (lang === "ja") return `${segment}：${line}${dir ? `（${dir}方面）` : ""}に乗車（${step.segments}駅）`;
   if (lang === "zh") return `${segment}：乘坐${line}${dir ? `（开往${dir}方向）` : ""}（${step.segments}站）`;
   return `${segment}: ${line}${dir ? ` ${dir} 방면` : ""} 탑승 (${step.segments}구간)`;
 }
-function formatAnswer(route, lang) {
+function formatAnswer(route, lang, labels = {}) {
   const t = STRINGS[lang];
   const rides = (route.itinerary || []).filter((s) => s.type === "ride");
   const first = rides[0], last = rides.at(-1);
   const unit = lang === "en" ? "KRW" : lang === "ja" ? "ウォン" : lang === "zh" ? "韩元" : "원";
   return [
     t.title,
-    `${suffixName(route.origin, lang)} → ${suffixName(route.destination, lang)}`,
+    `${suffixName(route.origin, lang, labels)} → ${suffixName(route.destination, lang, labels)}`,
     `${t.duration}: ${tripTime(route.totalSeconds, lang)} · ${t.transfers}: ${route.transferCount}` +
       (route.fareWon ? ` · ${t.fare}: ${Number(route.fareWon).toLocaleString("ko-KR")}${lang === "ko" ? "원" : ` ${unit}`}` : "") +
       (route.totalMeters ? ` · ${t.distance}: ${(route.totalMeters / 1000).toFixed(1)} km` : ""),
-    "", ...(route.itinerary || []).map((step, i) => `${i + 1}. ${stepText(step, lang)}`), "",
+    "", ...(route.itinerary || []).map((step, i) => `${i + 1}. ${stepText(step, lang, labels)}`), "",
     ...(first?.departureTime ? [`${t.first}: ${first.departureTime}`] : []),
     ...(last?.arrivalTime ? [`${t.last}: ${last.arrivalTime}`] : []),
     `${t.searched}: ${route.searchedAt} (KST)`, t.note,
@@ -286,7 +387,7 @@ function localizedResponse(lang, key) {
 
 // Resolve only STATION NAMES, not directions/times. Return null on uncertainty.
 // The caller injects a resolver that uses the existing Google OIDC credentials.
-export async function officialSubwayResponse(question, lang = "ko", resolveUnknown) {
+export async function officialSubwayResponse(question, lang = "ko", resolveUnknown, translateLabels) {
   const language = STRINGS[lang] ? lang : "ko";
   let parsed = parseRouteRequest(question);
   if (parsed.viaRequested) return localizedResponse(language, "via");
@@ -313,10 +414,19 @@ export async function officialSubwayResponse(question, lang = "ko", resolveUnkno
       const officialRequest = new Request(`https://internal.local/api/subway-route?${args.toString()}`);
       const result = await getOfficialSubwayRoute(officialRequest);
       const data = await result.json();
-      if (result.ok && data?.ok && data.route) return {
-        ok: true, answer: formatAnswer(data.route, language), sources: [], googleSearchQueries: [], groundingSupports: [],
-        searchSuggestion: null, routeSource: "official-seoul-metro", route: data.route,
-      };
+      if (result.ok && data?.ok && data.route) {
+        let localizedLabels = {};
+        const missing = untranslatedRouteLabels(data.route, language);
+        if (missing.length && translateLabels) {
+          try { localizedLabels = (await translateLabels(missing, language)) || {}; }
+          catch { /* The official routing result must still be delivered. */ }
+        }
+        return {
+          ok: true, answer: formatAnswer(data.route, language, localizedLabels), sources: [],
+          googleSearchQueries: [], groundingSupports: [], searchSuggestion: null,
+          routeSource: "official-seoul-metro", route: data.route,
+        };
+      }
       if (data?.code !== "METRO_10" && data?.code !== "PARSE_ROUTE") break;
     } catch { break; }
   }
