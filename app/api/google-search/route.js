@@ -17,7 +17,9 @@ const LANGUAGE = {
 const LAB_VARIANTS = {
   baseline: { label: "기존 Lite + 기존 지시문", model: "gemini-3.5-flash-lite", prompt: "legacy" },
   improvedLite: { label: "Lite + 위치검색 개선 지시문", model: "gemini-3.5-flash-lite", prompt: "local" },
-  improvedFlash: { label: "Flash + 위치검색 개선 지시문", model: "gemini-3.5-flash", prompt: "local" },
+  improvedFlash: { label: "Flash LOW · 기존 개선 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
+  flashMinimal: { label: "Flash MINIMAL · 같은 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "MINIMAL", maxOutputTokens: 1600 },
+  flashConcise: { label: "Flash MINIMAL · 간결한 위치 안내", model: "gemini-3.5-flash", prompt: "concise", thinking: "MINIMAL", maxOutputTokens: 1200 },
 };
 
 function json(payload, status = 200) {
@@ -81,6 +83,46 @@ SEARCH / REASONING REQUIREMENTS:
 `;
 }
 
+// Variant C: keep the same grounding and correctness rules but cut unnecessary prose.
+// Do not suppress searches or assume nearby places do not exist.
+function conciseLocalPrompt(question, lang) {
+  return `
+You are a Seoul subway passenger's concise local search guide near 종로5가역 (Jongno 5-ga Station, Line 1).
+Passenger question: "${question}"
+
+Use Google Search grounding to verify place names and directions before giving factual answers.
+"Near the station" includes inside the station, connected underground shopping areas (종오지하쇼핑센터/종로5가 지하도상가), and nearby streets/광장시장. Do not treat "not inside station" as "none nearby".
+Search relevant Korean terms and local synonyms. Don't prefer public agency sites for commercial shops; prefer reliable business/place sources and official sources for transportation rules.
+Give the most useful 1-2 verified options with location or station exit only when supported by sources. If results lack proof, say you could not confirm, never claim nonexistence. Don't invent exact directions, hours, or facilities. If options have different types of location (station / connected arcade / outside), distinguish them.
+
+Answer ONLY in ${LANGUAGE[lang]}, with 2-4 short passenger-friendly sentences, no headings, generic disclaimers, internal process, or markdown emphasis. Prioritize place name and actionable location.
+`;
+}
+
+// Standard global on-demand model-only pricing, USD / 1,000,000 tokens.
+// Google Search grounding is a separate charge (5k grounded queries/month free across Gemini 3 models,
+// then $14 per 1000 queries), and is intentionally NOT included in this estimate.
+const MODEL_PRICE_USD_PER_M = {
+  "gemini-3.5-flash-lite": { input: 0.30, output: 2.50 },
+  "gemini-3.5-flash": { input: 1.50, output: 9.00 },
+};
+function estimateTokenCost(model, usage) {
+  const price = MODEL_PRICE_USD_PER_M[model];
+  if (!price || typeof usage?.promptTokenCount !== "number" || typeof usage?.candidatesTokenCount !== "number") return null;
+  const promptTokens = usage.promptTokenCount;
+  const responseTokens = usage.candidatesTokenCount;
+  const thinkingTokens = typeof usage.thoughtsTokenCount === "number" ? usage.thoughtsTokenCount : 0;
+  return {
+    inputTokens: promptTokens,
+    outputTokens: responseTokens,
+    thinkingTokens,
+    // Price may differ if caching, discounts, new model routing, or regional prices apply.
+    estimatedModelUsd: Number(((promptTokens * price.input + (responseTokens + thinkingTokens) * price.output) / 1_000_000).toFixed(8)),
+    priceInputUsdPerM: price.input,
+    priceOutputUsdPerM: price.output,
+  };
+}
+
 async function getGoogleAccessToken() {
   const projectNumber = process.env.GCP_PROJECT_NUMBER;
   const serviceAccount = process.env.GCP_SERVICE_ACCOUNT_EMAIL;
@@ -128,11 +170,14 @@ export async function POST(request) {
     }
 
     const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.baseline;
+    const requestStart = Date.now();
     const accessToken = await getGoogleAccessToken();
     const model = config.model;
     const url = `https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}` +
       `/locations/global/publishers/google/models/${model}:generateContent`;
-    const prompt = config.prompt === "local" ? improvedPrompt(question, lang) : legacyPrompt(question, lang);
+    const prompt = config.prompt === "concise" ? conciseLocalPrompt(question, lang)
+      : config.prompt === "local" ? improvedPrompt(question, lang)
+        : legacyPrompt(question, lang);
     const start = Date.now();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 45000);
@@ -148,8 +193,8 @@ export async function POST(request) {
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           tools: [{ googleSearch: {} }],
-          generationConfig: config.prompt === "local"
-            ? { maxOutputTokens: 1600, temperature: 1.0, thinkingConfig: { thinkingLevel: "LOW" } }
+          generationConfig: config.thinking
+            ? { maxOutputTokens: config.maxOutputTokens, thinkingConfig: { thinkingLevel: config.thinking } }
             : { maxOutputTokens: 350 },
         }),
         signal: controller.signal,
@@ -192,6 +237,10 @@ export async function POST(request) {
       ...(labMode ? {
         lab: {
           mode: labMode, label: config.label, model, durationMs,
+          totalDurationMs: Date.now() - requestStart,
+          thinkingLevel: config.thinking || "default",
+          tokenCost: estimateTokenCost(model, data.usageMetadata),
+          // Search fees and any taxes/credits are excluded. Search query count is diagnostic, not a bill.
           searched: (grounding.webSearchQueries || []).length > 0,
           sourceCount: sources.length,
           supportCount: (grounding.groundingSupports || []).length,
