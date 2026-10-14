@@ -372,13 +372,13 @@ const EXCHANGE_CARD = {
 const EXCHANGE_MAP_QUERIES = ["머니박스 광장시장점 서울 종로 210", "ABC Money Exchange 광장시장지점 종로 198-2"];
 function ExchangeCard({lang}) {
   const ui = EXCHANGE_CARD[lang] || EXCHANGE_CARD.ko;
-  return <div style={{display:"flex",flexDirection:"column",gap:9,width:"100%"}}>
-    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,border:"1px solid #dce5e5",borderRadius:12,padding:"12px 13px",display:"flex",flexDirection:"column",gap:7,overflowWrap:"anywhere"}}>
-      <strong style={{fontSize:14,lineHeight:1.4}}>{shop.name}</strong>
-      <div style={{display:"flex",alignItems:"flex-start",gap:7,fontSize:12,lineHeight:1.5}}><span aria-hidden="true">📍</span><div><b>{ui.location}</b> · {shop.location}</div></div>
-      <div style={{display:"flex",alignItems:"flex-start",gap:7,fontSize:12,lineHeight:1.5}}><span aria-hidden="true">🕒</span><div><b>{ui.hours}</b> · {shop.hours}</div></div>
-      {shop.phone && <div style={{display:"flex",alignItems:"flex-start",gap:7,fontSize:12,lineHeight:1.5}}><span aria-hidden="true">☎️</span><div><b>{ui.phone}</b> · {shop.phone}</div></div>}
-      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",marginTop:3,padding:"9px 6px",borderRadius:8,background:"#e9f4f0",color:"#08755b",fontSize:12,fontWeight:700,textAlign:"center",textDecoration:"none"}}>🗺️ {ui.map} ↗</a>
+  return <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,width:"100%"}}>
+    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,border:"1px solid #dce5e5",borderRadius:12,padding:10,display:"flex",flexDirection:"column",gap:7,overflowWrap:"anywhere"}}>
+      <strong style={{fontSize:13,lineHeight:1.35}}>{shop.name}</strong>
+      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.location}</b><div>{shop.location}</div></div>
+      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.hours}</b><div>{shop.hours}</div></div>
+      {shop.phone && <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.phone}</b><div>{shop.phone}</div></div>}
+      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",marginTop:"auto",padding:"8px 3px",borderRadius:8,background:"#e9f4f0",color:"#08755b",fontSize:12,fontWeight:700,textAlign:"center",textDecoration:"none"}}>📍 {ui.map} ↗</a>
     </div>)}
   </div>;
 }
