@@ -1313,7 +1313,7 @@ export default function Home() {
           >
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard) ? "route-row" : ""}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard) ? "route-card-bubble" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard) ? "route-card-bubble" : ""} ${message.role === "assistant" && !message.gateMenu && !message.gateResult ? "full-width-assistant" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
@@ -1843,6 +1843,7 @@ export default function Home() {
           border-radius: 0;
         }
 
+        .sag-bubble.assistant.full-width-assistant { width: 100%; max-width: 100%; box-sizing: border-box; }
         .sag-bubble.user {
           background: #14785f;
           color: white;
