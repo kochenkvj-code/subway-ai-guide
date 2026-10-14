@@ -340,7 +340,7 @@ export async function POST(request) {
     // Route lookup is handled by SubwayRouteCard → /api/subway-route.
     // This endpoint is now for Gemini + Google Search general questions only.
 
-    const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.baseline;
+    const config = labMode ? LAB_VARIANTS[labMode] : { ...LAB_VARIANTS.baseline, prompt: "local" };
     const requestStart = Date.now();
     const accessToken = await getGoogleAccessToken();
     const model = config.model;
