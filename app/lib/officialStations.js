@@ -14,6 +14,7 @@ export function officialStationMatches(query, lang, limit = 8) {
   if (!q) return [];
   const grouped = new Map();
   for (const s of official) {
+    if (s.code === "9005" && s.line === "GTX-A") continue;
     if (![s.ko, s.en, s.ja, s.zh].some(v => clean(v).includes(q))) continue;
     if (!grouped.has(s.ko)) grouped.set(s.ko, []);
     grouped.get(s.ko).push(s);
