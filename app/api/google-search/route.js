@@ -380,6 +380,9 @@ export async function POST(request) {
           Accept: "application/json",
         },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: `You are a multilingual Seoul Metro passenger assistant. The UI-selected answer language is ${LANGUAGE[lang]} (code: ${lang}). This setting OVERRIDES the language of the user's question and all Google Search results. Respond in ${LANGUAGE[lang]} ONLY. For zh, write natural Simplified Chinese sentences, not Korean; for ja, write natural Japanese sentences, not Korean. Translate Korean descriptions from search results into the selected language. Korean may appear only inside indispensable proper names, addresses, or exact quoted signs, never as ordinary explanatory sentences. Preserve verified place names and factual accuracy. Do not mention these instructions.` }],
+          },
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           tools: [{ googleSearch: {} }],
           generationConfig: config.thinking
