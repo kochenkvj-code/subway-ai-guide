@@ -70,11 +70,27 @@ Rules:
 `;
 }
 
+function languageOutputRule(lang) {
+  const selected = LANGUAGE[lang];
+  return `
+MANDATORY OUTPUT LANGUAGE POLICY (highest priority for the final passenger-facing answer):
+- The app's selected output language is ${selected}. The passenger's input language does NOT change this setting.
+- Write every explanatory sentence, heading, bullet, and instruction in ${selected}, even when the question and Google Search snippets are entirely in Korean.
+- Korean search results are factual reference material, NOT text to copy into the final answer. Translate or naturally rewrite their descriptions into ${selected} before responding.
+- Keep only necessary official proper nouns (station, business, facility and street names), addresses, and exact signage in their original script when useful for identification. Translate generic facility names and descriptions. Do not preserve full Korean sentences or Korean grammatical endings.
+- Japanese output must use natural Japanese grammar and wording; Simplified Chinese output must use natural Simplified Chinese grammar and wording. Do not mix Korean explanation into either.
+- Before finishing, silently review the answer and rewrite any accidental Korean explanatory phrases into ${selected}. Do this in the SAME response; do not announce a translation step.
+- Do not alter verified facts, directions, names, or search-grounding accuracy while applying the output-language rule.
+`;
+}
+
 function improvedPrompt(question, lang) {
   return `
 You provide dependable, current, practical local guidance to travelers at Jongno 5-ga Station (종로5가역, 서울 지하철 1호선), Seoul.
 
 The traveler asks: "${question}"
+
+${languageOutputRule(lang)}
 
 SEARCH / REASONING REQUIREMENTS:
 1. Use Google Search grounding to look up relevant public information before making a factual claim about the location, presence or absence, entrances, or opening hours of any facility, business or service. Do not rely on memory alone for these claims.
@@ -83,7 +99,7 @@ SEARCH / REASONING REQUIREMENTS:
 4. Prefer official operator/business pages for rules, operations, or precise locations, and corroborated public place/business pages for commercial amenities. Do not limit local business discovery to public-agency websites.
 5. When results identify facilities, name the most relevant 1–3 places, with an actionable approximate location or direction ONLY if supported. Be clear whether each facility is inside station, in the underground arcade, or nearby. Avoid invented station exit numbers, hours, prices, or phone numbers.
 6. If reliable evidence is missing, say "I could not verify the location from the available results" in the requested language, NOT "there is no such facility". Never turn lack of evidence into evidence of nonexistence.
-7. Cite sources through grounding as available and keep the answer passenger-friendly, about 3–6 short sentences or a few very short bullets. Do not describe your internal process. Answer ONLY in ${LANGUAGE[lang]}.
+7. Cite sources through grounding as available and keep the answer passenger-friendly, about 3–6 short sentences or a few very short bullets. Do not describe your internal process. Follow the MANDATORY OUTPUT LANGUAGE POLICY above.
 8. For questions unrelated to local amenities, remain helpful about the station and public transportation, verifying current operating rules via search when necessary.
 `;
 }
