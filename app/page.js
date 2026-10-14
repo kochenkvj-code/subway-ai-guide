@@ -355,6 +355,34 @@ const GATE_UI = {
 
 // 구매/충전 하위 선택은 고정 안내로 동작합니다. 시설안내는 Gemini 검색 기반 응답을 사용합니다.
 // 실제 역사 내 발매기 위치와 결제수단 확인 후 안내 문구를 갱신하세요.
+const EXCHANGE_CARD = {
+  ko: { location:"위치", hours:"영업시간", phone:"전화", map:"구글 지도", shops:[
+    {name:"머니박스 광장시장점",location:"8번 출구 도보 약 1분 · 종로 210, 하이뷰더광장 107호",hours:"매일 09:30~20:30",phone:"02-2269-8898"},
+    {name:"ABC Money Exchange 광장시장지점",location:"종로 198-2, 대동빌딩 1층",hours:"매일 09:00~19:00",phone:"010-5628-2100"}]},
+  en: {location:"Location",hours:"Hours",phone:"Phone",map:"Google Maps",shops:[
+    {name:"Moneybox – Gwangjang Market",location:"1 min from Exit 8 · 107, Hi-View the Gwangjang, 210 Jong-ro",hours:"Daily 09:30–20:30",phone:"02-2269-8898"},
+    {name:"ABC Money Exchange – Gwangjang Market",location:"1F, Daedong Building, 198-2 Jong-ro",hours:"Daily 09:00–19:00",phone:"010-5628-2100"}]},
+  ja: {location:"場所",hours:"営業時間",phone:"電話",map:"Googleマップ",shops:[
+    {name:"マネーボックス 広蔵市場店",location:"8番出口から徒歩約1分 · 鍾路210、107号",hours:"毎日09:30～20:30",phone:"02-2269-8898"},
+    {name:"ABC Money Exchange 広蔵市場店",location:"鍾路198-2 大東ビル1階",hours:"毎日09:00～19:00",phone:"010-5628-2100"}]},
+  zh: {location:"位置",hours:"营业时间",phone:"电话",map:"谷歌地图",shops:[
+    {name:"Moneybox 广藏市场店",location:"8号出口步行约1分钟 · 钟路210号107室",hours:"每天09:30–20:30",phone:"02-2269-8898"},
+    {name:"ABC Money Exchange 广藏市场店",location:"钟路198-2号，大东大厦1层",hours:"每天09:00–19:00",phone:"010-5628-2100"}]},
+};
+const EXCHANGE_MAP_QUERIES = ["머니박스 광장시장점 서울 종로 210", "ABC Money Exchange 광장시장지점 종로 198-2"];
+function ExchangeCard({lang}) {
+  const ui = EXCHANGE_CARD[lang] || EXCHANGE_CARD.ko;
+  return <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,width:"100%"}}>
+    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,border:"1px solid #dce5e5",borderRadius:12,padding:10,display:"flex",flexDirection:"column",gap:7,overflowWrap:"anywhere"}}>
+      <strong style={{fontSize:13,lineHeight:1.35}}>{shop.name}</strong>
+      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.location}</b><div>{shop.location}</div></div>
+      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.hours}</b><div>{shop.hours}</div></div>
+      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.phone}</b><div>{shop.phone}</div></div>
+      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",marginTop:"auto",padding:"8px 3px",borderRadius:8,background:"#e9f4f0",color:"#08755b",fontSize:12,fontWeight:700,textAlign:"center",textDecoration:"none"}}>📍 {ui.map} ↗</a>
+    </div>)}
+  </div>;
+}
+
 const SUBMENU_TEXT = {
   ko: {
     labels: {
@@ -1186,7 +1214,7 @@ export default function Home() {
     if (type === "exchange") {
       const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
       setMode(null);
-      setMessages((prev) => [...prev, { role: "assistant", text: ui.exchange, feedbackKey: "exchange" }]);
+      setMessages((prev) => [...prev, { role: "assistant", text: "", exchangeCard: true }]);
       return;
     }
 
@@ -1288,6 +1316,7 @@ export default function Home() {
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard) ? "route-card-bubble" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
+                {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
