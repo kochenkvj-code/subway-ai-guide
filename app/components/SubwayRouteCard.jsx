@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
+import { officialStationMatches, officialStationName } from "../lib/officialStations";
 
 // Reuses the already tested /api/subway-route endpoint.
 // No Gemini call, prompt classification, or AI translation happens here.
@@ -52,7 +53,6 @@ const COPY = {
   },
 };
 
-const DESTINATIONS = ["강남", "안암", "수원", "잠실"];
 
 function stationQuery(value) {
   return destinationForApi(value);
@@ -82,6 +82,10 @@ function Line({ name, lang }) {
 export default function SubwayRouteCard({ lang = "ko" }) {
   const t = COPY[lang] || COPY.ko;
   const [destination, setDestination] = useState("");
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestions = showSuggestions && destination.trim() ? officialStationMatches(destination, lang) : [];
+  const display = (name) => officialStationName(name, lang, stationName);
   const [mode, setMode] = useState("duration");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -95,14 +99,17 @@ export default function SubwayRouteCard({ lang = "ko" }) {
 
   async function search(event) {
     event.preventDefault();
-    const to = stationQuery(destination);
+    const to = selectedStation?.ko || stationQuery(destination);
+    const code = selectedStation?.code || "";
     if (!destination.trim()) { setError(t.empty); return; }
-    if (!to) { setError(t.unsupported); return; }
+    if (!code && !to) { setError(t.unsupported); return; }
+    setShowSuggestions(false);
     setBusy(true);
     setError("");
     setRoute(null);
     try {
       const params = new URLSearchParams({ to, mode });
+      if (code) params.set("toCode", code);
       const response = await fetch(`/api/subway-route?${params}`, { cache: "no-store" });
       const data = await response.json();
       if (!response.ok || !data?.ok || !data.route) {
@@ -122,9 +129,9 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       <form onSubmit={search}>
         <div className="srg-fields">
           <label className="srg-field"><input aria-label={t.from} value={stationName("종로5가", lang)} readOnly /></label>
-          <label className="srg-field"><input aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
+          <div className="srg-field srg-destination"><input aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" />{suggestions.length > 0 && <div className="srg-suggestions" role="listbox">{suggestions.map((s) => <button type="button" role="option" aria-selected="false" key={s.code} className="srg-suggestion" onClick={() => { setSelectedStation(s); setDestination(s[lang] || s.ko); setShowSuggestions(false); setError(""); }}><strong>{s[lang] || s.ko}</strong><span>{s.ko} · {s.line.replace(/^0([1-9])호선$/, "$1호선")} · {s.code}</span></button>)}</div>}</div>
         </div>
-        <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((ko) => <button type="button" key={ko} onClick={() => { setDestination(stationName(ko, lang)); setError(""); }} className="srg-preset">{stationName(ko, lang)}</button>)}</div>
+        
         <div className="srg-modes">{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy} className="srg-submit">{busy ? t.searching : t.search}</button>
       </form>
@@ -132,7 +139,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       {route && <div className="srg-result" aria-live="polite">
         <div className="srg-separator" />
         <div className="srg-result-label">{t.result}</div>
-        <h3>{stationName(route.origin, lang)} <span>→</span> {stationName(route.destination, lang)}</h3>
+        <h3>{display(route.origin)} <span>→</span> {display(route.destination)}</h3>
         <div className="srg-metrics">
           <div><span>{t.time}</span><strong>{elapsed(route.totalSeconds, t)}</strong></div>
           <div><span>{t.transfers}</span><strong>{route.transferCount}{t.suffix}</strong></div>
@@ -144,12 +151,12 @@ export default function SubwayRouteCard({ lang = "ko" }) {
           {(route.itinerary || []).map((step, index) => <div className="srg-stop" key={index}>
             <div className="srg-point">{step.type === "transfer" ? "↔" : "●"}</div>
             <div className="srg-stop-body">
-              {step.type === "transfer" ? <><strong>{stationName(step.station, lang)} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} lang={lang} /> → <Line name={step.toLine} lang={lang} /></div></>
-                : <><strong>{stationName(step.from, lang)} → {stationName(step.to, lang)}</strong><div className="srg-line-row"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div></>}
+              {step.type === "transfer" ? <><strong>{display(step.station)} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} lang={lang} /> → <Line name={step.toLine} lang={lang} /></div></>
+                : <><strong>{display(step.from)} → {display(step.to)}</strong><div className="srg-line-row"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div></>}
             </div>
           </div>)}
         </div>
-        {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => stationName(name, lang)).join(" → ")}</p></details>}
+        {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => display(name)).join(" → ")}</p></details>}
         <p className="srg-disclaimer">{t.disclosure}</p>
         <button type="button" className="srg-again" onClick={() => { setRoute(null); setError(""); }}>{t.change}</button>
       </div>}
@@ -161,6 +168,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         .srg-field{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:750;color:#526772}
         .srg-field input{min-width:0;width:100%;border:1px solid #c9d8dd;border-radius:10px;padding:9px 9px;font-size:16px;outline:none;background:#fff;color:#18313b}
         .srg-field input:read-only{background:#f2f7f8;color:#5b7079}
+        .srg-destination{position:relative}.srg-suggestions{position:absolute;z-index:20;top:100%;left:0;right:0;max-height:235px;overflow:auto;background:#fff;border:1px solid #b6d4cf;border-radius:10px;box-shadow:0 9px 20px #0002}.srg-suggestion{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:9px;border:0;border-bottom:1px solid #edf1f1;background:#fff;color:#172b33;text-align:left;cursor:pointer}.srg-suggestion:hover,.srg-suggestion:focus{background:#e7f6f0}.srg-suggestion strong{font-size:13px}.srg-suggestion span{font-size:11px;color:#647982;margin-top:3px}
         .srg-field input:focus{border-color:#00856e;box-shadow:0 0 0 3px #dcefe9}
         .srg-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:9px 0 10px}.srg-presets>span{font-size:11px;color:#778a91}
         .srg-preset{border:1px solid #d7e5e4;border-radius:20px;background:#f8fbfa;color:#3e5960;padding:5px 9px;font-size:12px;cursor:pointer}
