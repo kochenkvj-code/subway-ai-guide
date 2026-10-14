@@ -952,7 +952,8 @@ export default function Home() {
     } else if (lastMessage?.routeCard) {
       // Open the form at its heading, rather than scrolling to the bottom
       // of the long route card (particularly important on small iPhones).
-      const target = el.querySelector(".sag-row.route-row");
+      const targets = el.querySelectorAll(".sag-row.route-row");
+      const target = targets[targets.length - 1];
       if (target) {
         const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
         el.scrollTop = Math.max(0, el.scrollTop + top - 6);
