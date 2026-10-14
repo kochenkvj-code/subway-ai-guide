@@ -1590,15 +1590,16 @@ export default function Home() {
         .sag-languages {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 6px;
-          padding: 9px 16px 0;
+          gap: 4px;
+          padding: 4px 16px 0;
         }
 
         .sag-languages button {
           border: 1px solid #dfe8ed;
           background: white;
-          border-radius: 10px;
-          padding: 6px 3px;
+          border-radius: 8px;
+          height: 32px;
+          padding: 3px 2px;
           color: #53616c;
           cursor: pointer;
           font-size: 12px;
@@ -2221,12 +2222,13 @@ export default function Home() {
           }
 
           .sag-languages {
-            padding: 7px 12px 0;
-            gap: 5px;
+            padding: 3px 12px 0;
+            gap: 4px;
           }
 
           .sag-languages button {
-            padding: 5px 2px;
+            height: 30px;
+            padding: 2px 1px;
             font-size: 11px;
           }
 
