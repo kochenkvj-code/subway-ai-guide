@@ -127,7 +127,6 @@ export default function SubwayRouteCard({ lang = "ko" }) {
     <section className="srg-card" aria-label={t.heading}>
       <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin">{t.originTag}</span></header>
       <form onSubmit={search}>
-        <label className="srg-question" htmlFor="srg-destination-input">{t.question}</label>
         <div className="srg-search-wrap">
           <span className="srg-search-icon" aria-hidden="true">⌕</span>
           <input id="srg-destination-input" aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" aria-controls="srg-suggestions" />
@@ -165,7 +164,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       <style>{`
         .srg-card{box-sizing:border-box;width:100%;padding:16px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
         .srg-card *{box-sizing:border-box}
-        .srg-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:19px}
+        .srg-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
         .srg-title{display:flex;align-items:center;gap:8px;font-size:17px}.srg-train{font-size:19px}
         .srg-origin{flex-shrink:0;max-width:53%;border-radius:100px;padding:5px 9px;background:#203c36;color:#a7e4d3;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .srg-question{display:block;font-size:17px;font-weight:750;margin-bottom:11px}
