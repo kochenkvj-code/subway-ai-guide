@@ -2149,7 +2149,8 @@ export default function Home() {
           font-size: 9px;
           line-height: 1.4;
           text-align: center;
-          white-space: nowrap;
+          white-space: normal;
+          overflow-wrap: anywhere;
         }
 
         .sag-input-wrap input {
