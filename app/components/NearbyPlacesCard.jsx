@@ -7,24 +7,28 @@ const PLACES = [
   {
     id: "gwangjang", names: {ko:"광장시장",en:"Gwangjang Market",ja:"広蔵市場",zh:"广藏市场"},
     descriptions: {ko:"전통시장 · 길거리 음식",en:"Traditional market · street food",ja:"伝統市場・屋台グルメ",zh:"传统市场 · 街头美食"},
+    details:{"ko":"K-푸드의 성지로 꼽히는 대한민국 최초의 상설 전통시장입니다. 빈대떡, 마약김밥, 육회, 수수부꾸미 등 다양한 길거리 음식과 먹거리 장터가 유명합니다.","en":"One of Korea's earliest permanent traditional markets and a favorite for Korean street food. Try bindaetteok (mung bean pancakes), mayak gimbap, yukhoe (beef tartare), and sweet millet pancakes.","ja":"韓国初期の常設伝統市場の一つで、Kフードの名所です。緑豆チヂミ、麻薬キンパ、ユッケ、ススプクミなど多彩な屋台料理を楽しめます。","zh":"韩国最早的常设传统市场之一，也是韩式美食热门地。绿豆煎饼、迷你紫菜包饭、生拌牛肉和小米煎饼等街头美食十分有名。"},
     exit:"7·8", image:"Gwangjang Market, Seoul 02.jpg", credit:"Bgag · CC0 1.0",
     map:"Gwangjang Market Seoul",
   },
   {
     id: "stream", names:{ko:"청계천",en:"Cheonggyecheon",ja:"清渓川",zh:"清溪川"},
     descriptions:{ko:"도심 속 하천 산책로",en:"Urban stream and walking path",ja:"都心の川沿い散歩道",zh:"城市溪流步道"},
+    details:{"ko":"도심 속 하천으로, 낮에는 시원한 물줄기를 보며 산책하기 좋고 밤에는 야경과 조명을 즐길 수 있는 대표 명소입니다.","en":"An urban stream ideal for a daytime walk beside flowing water, with scenic lights and night views after dark.","ja":"都心を流れる川で、昼は水辺の散歩、夜はライトアップや夜景を楽しめる人気スポットです。","zh":"流经市中心的溪流，白天适合沿水散步，夜晚可欣赏灯光和城市夜景。"},
     exit:"5·6", image:"Cheonggyecheon, Seoul - Cheonggyecheon2321.jpg", credit:"lumoplank · CC0 1.0",
     map:"Cheonggyecheon near Jongno 5-ga Seoul",
   },
   {
     id:"bangsan", names:{ko:"방산시장",en:"Bangsan Market",ja:"芳山市場",zh:"芳山市场"},
     descriptions:{ko:"베이킹 재료 · 포장용품",en:"Baking and packaging supplies",ja:"製菓材料・包装用品",zh:"烘焙材料 · 包装用品"},
+    details:{"ko":"베이킹 재료, 포장용기, 인테리어 벽지, 판촉물 등을 도소매로 구매할 수 있는 전문 시장입니다.","en":"A specialty wholesale and retail market for baking ingredients, packaging materials, wallpaper, and promotional goods.","ja":"製菓材料、包装容器、インテリア用壁紙、販促品などを卸売・小売で購入できる専門市場です。","zh":"可批发和零售购买烘焙材料、包装容器、室内装饰墙纸及促销用品的专业市场。"},
     exit:"7·8", image:"방산시장 1.jpg", credit:"Kyimang · CC BY-SA 3.0",
     map:"Bangsan Market Seoul",
   },
   {
     id:"pharmacy", names:{ko:"종로5가 약국거리",en:"Pharmacy Street",ja:"鍾路5街 薬局街",zh:"钟路5街 药店街"},
     descriptions:{ko:"약국 · 의료기기 상가",en:"Pharmacies · medical supplies",ja:"薬局・医療用品",zh:"药店 · 医疗用品"},
+    details:{"ko":"보령약국 등 유명 대형 약국들과 의료기기·한방 상가가 밀집해 있어 영양제나 상비약 등을 구매하기 좋은 거리입니다.","en":"A street lined with large pharmacies, including Boryung Pharmacy, as well as medical-supply and traditional-medicine shops. Visitors can shop for supplements and everyday medicines.","ja":"保寧薬局などの大型薬局や医療機器・韓方関連の店舗が集まる通りです。サプリメントや常備薬などを購入できます。","zh":"保宁药局等大型药店，以及医疗器械和韩药商铺集中于此，适合购买营养补充剂和常备药。"},
     exit:"2·3", image:"The Ceyx pharmacy sign - 22 July 2025.jpg", credit:"Aethonatic · CC0 1.0 (약국 상징 이미지)", illustrative:true, map:"Jongno 5-ga pharmacy street Seoul",
   },
 ];
@@ -71,7 +75,7 @@ export default function NearbyPlacesCard({lang="ko"}) {
       <button type="button" className="np-back" onClick={()=>setSelected(null)}>← {t.back}</button>
       {place.image && <img className="np-hero" src={thumb(place.image)} alt={place.names[lang] || place.names.ko}/>}
       <h3>{place.names[lang] || place.names.ko}</h3>
-      <p>{place.descriptions[lang] || place.descriptions.ko}</p>
+      <p>{place.details?.[lang] || place.details?.ko || place.descriptions[lang] || place.descriptions.ko}</p>
       {place.illustrative && <p className="np-illustrative">{lang==="ko"?"※ 약국을 나타내는 참고사진으로, 종로5가에서 촬영한 사진은 아닙니다.":lang==="ja"?"※ 薬局の参考写真です。鍾路5街で撮影されたものではありません。":lang==="zh"?"※ 药店示意照片，并非拍摄于钟路5街。":"※ Illustrative pharmacy photo, not taken in Jongno 5-ga."}</p>}
       <div className="np-exit"><span>{t.exit}</span><strong>{place.exit ? exitLabel(place.exit,lang,t) : t.pending}</strong></div>
       <a className="np-map" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place.map)} target="_blank" rel="noopener noreferrer">🗺 {t.map} ↗</a>
