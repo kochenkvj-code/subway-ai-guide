@@ -155,21 +155,21 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         <button type="button" className="srg-again" onClick={() => { setRoute(null); setError(""); }}>{t.change}</button>
       </div>}
       <style>{`
-        .srg-card{box-sizing:border-box;width:100%;padding:16px;border:1px solid #d8e5e8;border-radius:16px;background:#fff;color:#172b33;box-shadow:0 6px 20px rgba(13,60,65,.04);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
+        .srg-card{box-sizing:border-box;width:100%;padding:12px 13px;border:1px solid #d8e5e8;border-radius:16px;background:#fff;color:#172b33;box-shadow:0 6px 20px rgba(13,60,65,.04);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
         .srg-card *{box-sizing:border-box}
-        .srg-heading{display:flex;align-items:center;gap:8px;margin:0 0 16px;font-size:16px;color:#14372e}
+        .srg-heading{display:flex;align-items:center;gap:7px;margin:0 0 10px;font-size:16px;color:#14372e}
         .srg-train{font-size:21px}.srg-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .srg-field{min-width:0;display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:750;color:#526772}
-        .srg-field input{min-width:0;width:100%;border:1px solid #c9d8dd;border-radius:10px;padding:11px 10px;font-size:16px;outline:none;background:#fff;color:#18313b}
+        .srg-field{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:750;color:#526772}
+        .srg-field input{min-width:0;width:100%;border:1px solid #c9d8dd;border-radius:10px;padding:9px 9px;font-size:16px;outline:none;background:#fff;color:#18313b}
         .srg-field input:read-only{background:#f2f7f8;color:#5b7079}
         .srg-field input:focus{border-color:#00856e;box-shadow:0 0 0 3px #dcefe9}
-        .srg-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 16px}.srg-presets>span{font-size:11px;color:#778a91}
-        .srg-preset{border:1px solid #d7e5e4;border-radius:20px;background:#f8fbfa;color:#3e5960;padding:6px 10px;font-size:12px;cursor:pointer}
-        .srg-mode-label{font-size:12px;font-weight:700;margin-bottom:8px;color:#4e626a}
-        .srg-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:14px}
-        .srg-mode{display:flex;align-items:center;justify-content:center;border:1px solid #d8e4e5;border-radius:10px;padding:10px 3px;color:#566e75;font-size:12px;font-weight:700;text-align:center;cursor:pointer}
+        .srg-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:9px 0 10px}.srg-presets>span{font-size:11px;color:#778a91}
+        .srg-preset{border:1px solid #d7e5e4;border-radius:20px;background:#f8fbfa;color:#3e5960;padding:5px 9px;font-size:12px;cursor:pointer}
+        .srg-mode-label{font-size:12px;font-weight:700;margin-bottom:6px;color:#4e626a}
+        .srg-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:9px}
+        .srg-mode{display:flex;align-items:center;justify-content:center;border:1px solid #d8e4e5;border-radius:10px;padding:8px 3px;color:#566e75;font-size:12px;font-weight:700;text-align:center;cursor:pointer}
         .srg-mode.active{color:#00755f;border-color:#20a084;background:#e7f6f0}.srg-mode input{position:absolute;opacity:0;width:1px;height:1px}
-        .srg-submit{width:100%;background:#007f68;color:#fff;border:0;border-radius:11px;padding:13px;font-size:14px;font-weight:800;cursor:pointer}
+        .srg-submit{width:100%;background:#007f68;color:#fff;border:0;border-radius:11px;padding:11px;font-size:14px;font-weight:800;cursor:pointer}
         .srg-submit:disabled{opacity:.65;cursor:wait}.srg-error{margin-top:12px;padding:12px;background:#fff4f2;border:1px solid #facfc8;border-radius:10px;color:#a0392e;font-size:12px}.srg-error p{margin:5px 0 0}
         .srg-separator{height:1px;background:#e4edef;margin:20px 0}.srg-result-label{font-weight:800;color:#07816b;font-size:12px}.srg-result h3{margin:8px 0 15px;font-size:19px;letter-spacing:-.03em}.srg-result h3>span{color:#07816b}
         .srg-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.srg-metrics>div{background:#f2f7f8;border-radius:10px;padding:12px 10px;min-width:0}
@@ -180,7 +180,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         .srg-stop-body{min-width:0;padding-top:2px;flex:1}.srg-stop-body>strong{font-size:13px}.srg-line-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;color:#526771;font-size:12px}
         .srg-line{display:inline-block;padding:4px 7px;border-radius:5px;color:#fff;font-weight:700;font-size:11px}.srg-details{border-top:1px solid #e6eeee;padding:12px 0;margin-top:4px}.srg-details summary{cursor:pointer;font-size:12px;font-weight:700}.srg-details p{font-size:12px;line-height:1.8;color:#5e717b}
         .srg-disclaimer{font-size:11px;line-height:1.6;color:#788d93}.srg-again{width:100%;border:1px solid #bddbcf;background:#f0f9f6;color:#05755e;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
-        @media(max-width:420px){.srg-card{padding:13px}.srg-fields{grid-template-columns:1fr}.srg-metrics strong{font-size:14px}}
+        @media(max-width:420px){.srg-card{padding:11px}.srg-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.srg-field input{padding:9px 7px}.srg-metrics strong{font-size:14px}}
       `}</style>
     </section>
   );
