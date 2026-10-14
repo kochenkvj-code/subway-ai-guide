@@ -33,7 +33,7 @@ const TEXT = {
     facilities: "시설안내",
     exchange: "환전소 안내",
     office: "역무실 위치",
-    nearby: "주변 명소",
+    nearby: "출구·관광지",
     exit: "출구 안내",
     elevator: "엘리베이터",
     staff: "역무원 문의",
@@ -65,7 +65,7 @@ const TEXT = {
     facilities: "Facilities",
     exchange: "Currency Exchange",
     office: "Station Office",
-    nearby: "Nearby Places",
+    nearby: "Exits & Places",
     exit: "Exit guide",
     elevator: "Elevator",
     staff: "Ask staff",
@@ -97,7 +97,7 @@ const TEXT = {
     facilities: "駅の設備",
     exchange: "両替所",
     office: "駅務室の場所",
-    nearby: "周辺スポット",
+    nearby: "出口・観光地",
     exit: "出口案内",
     elevator: "エレベーター",
     staff: "駅員に相談",
@@ -129,7 +129,7 @@ const TEXT = {
     facilities: "车站设施",
     exchange: "货币兑换",
     office: "站务室位置",
-    nearby: "周边景点",
+    nearby: "出口·景点",
     exit: "出口指南",
     elevator: "电梯",
     staff: "咨询站务员",
@@ -1283,8 +1283,8 @@ export default function Home() {
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
-            <div key={index} className={`sag-row ${message.role} ${message.routeCard ? "route-row" : ""}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${message.routeCard ? "route-card-bubble" : ""}`}>
+            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard) ? "route-row" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard) ? "route-card-bubble" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
