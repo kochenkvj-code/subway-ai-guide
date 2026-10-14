@@ -9,7 +9,7 @@ export default function SubwayRouteTestPage() {
       const response=await fetch("/api/subway-route-test?case="+id,{cache:"no-store"});
       const result=await response.json();
       setResults(old=>({...old,[id]:result}));
-    } catch(e) {setResults(old=>({...old,[id]:{ok:false,error:"테스트 요청에 실패했습니다."}]}));}
+    } catch(e) {setResults(old=>({...old,[id]:{ok:false,error:"테스트 요청에 실패했습니다."}}));}
     finally {setLoading("");}
   }
   const tests=[["gangnam","종로5가 → 강남 (2호선)"],["forest","종로5가 → 서울숲"]];
