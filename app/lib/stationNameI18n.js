@@ -153,3 +153,21 @@ export function directionName(value, lang = "ko") {
 }
 
 export const stationDirectoryCount = Object.keys(STATIONS).length;
+
+export function searchStations(query, lang = "ko", limit = 8) {
+  const q = key(query);
+  const results = [];
+  for (const [ko, item] of Object.entries(STATIONS)) {
+    const names = [ko, item.ko, item.en, item.ja, item.zh, ...(item.aliases_ko || [])];
+    const matched = !q || names.some((name) => key(name).includes(q));
+    if (!matched) continue;
+    results.push({
+      ko,
+      label: stationName(ko, lang),
+      lines: Array.isArray(item.lines) ? item.lines : [],
+      rank: q && names.some((name) => key(name) === q) ? 0 : 1,
+    });
+  }
+  results.sort((a, b) => a.rank - b.rank || a.ko.localeCompare(b.ko, "ko"));
+  return results.slice(0, Math.max(1, Math.min(limit, 20)));
+}
