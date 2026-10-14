@@ -20,7 +20,7 @@ const TEXT = {
     bannerBody: "일반 문의는 AI가 검색 결과를 바탕으로 안내합니다. 길찾기는 위 메뉴에서 조회할 수 있습니다.",
     quick: "빠른 안내",
     placeholder: "궁금한 것을 입력하세요",
-    privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI서비스로 전송됩니다.",
+    privacyNotice: "개인정보를 입력하지 마세요. 질문은 AI 답변 생성을 위해 외부 AI서비스로 전송됩니다.",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
     send: "전송",
     greeting: "안녕하세요. 종로5가역 AI 안내입니다. 무엇을 도와드릴까요?",
