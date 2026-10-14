@@ -708,15 +708,15 @@ function makeSubmenu(lang, menuName, cardType = null) {
 
 // v5.3: 상품 선택 메뉴 전용 아이콘 (외부 패키지 없이 사용)
 function QuickActionIcon({ type }) {
-  const paths = {
-    route: <><rect x="5" y="3" width="14" height="15" rx="3" /><path d="M5 10h14M8 18l-2 3M16 18l2 3M8 14h.01M16 14h.01" /></>,
-    gate: <><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M7 7h4v4H7zM14 7h3M14 10h3M7 15h3M7 18h3M14 14l3 3m0-3v3h-3" /></>,
-    fares: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></>,
-    facility: <><circle cx="12" cy="4" r="2" /><path d="M12 7v6m-5-3 5-2 5 2M9 13l-2 8m5-8 4 8M5 21h14" /></>,
-    exchange: <><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4" /></>,
-    staff: <><circle cx="10" cy="8" r="3" /><path d="M4 20v-2a6 6 0 0 1 12 0v2M17 8h4M17 12h4M18 16h3" /></>,
+  const art = {
+    route: <><rect x="5" y="3" width="14" height="17" rx="4" fill="currentColor" opacity=".9"/><rect x="7.5" y="6" width="9" height="6" rx="1" fill="#fff"/><circle cx="9" cy="16" r="1" fill="#fff"/><circle cx="15" cy="16" r="1" fill="#fff"/><path d="M8 20l-2 2m10-2 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>,
+    gate: <><rect x="2" y="6" width="11" height="13" rx="2" fill="currentColor" opacity=".9"/><rect x="4.5" y="8.5" width="6" height="3" rx=".6" fill="#fff"/><path d="M6 15h3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><rect x="13" y="3" width="9" height="13" rx="2" fill="currentColor" opacity=".55"/><path d="M15 7h5M15 10h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><path d="M14 19h7m-3-3 3 3-3 3" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round"/></>,
+    fares: <><path d="M3 7h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4V7Z" fill="currentColor" opacity=".9"/><path d="M12 8v10" stroke="#fff" strokeWidth="1.5" strokeDasharray="2 2"/><path d="M6 11h3M6 15h3" stroke="#fff" strokeWidth="1.4" strokeLinecap="round"/></>,
+    facility: <><circle cx="12" cy="4" r="2.5" fill="currentColor"/><path d="M7 9h10l-3 5 2 7h-3l-2-6-2 6H6l3-9-2-3Z" fill="currentColor" opacity=".9"/><path d="M4 9h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>,
+    exchange: <><rect x="2" y="5" width="12" height="10" rx="2" fill="currentColor" opacity=".85"/><path d="M5 10h6m-3-3v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><rect x="10" y="11" width="12" height="10" rx="2" fill="currentColor" opacity=".55"/><path d="M13 16h6m-3-3v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><path d="m15 5 4 0-2-2m2 2-2 2" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round"/></>,
+    staff: <><circle cx="12" cy="7" r="4" fill="currentColor" opacity=".9"/><path d="M4 21v-2a8 8 0 0 1 16 0v2H4Z" fill="currentColor" opacity=".9"/><path d="M9 17l3 3 3-3" stroke="#fff" strokeWidth="1.4" fill="none"/><rect x="9" y="2" width="6" height="2" rx="1" fill="#fff"/></>,
   };
-  return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
+  return <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none">{art[type]}</svg>;
 }
 
 function FareProductIcon({ product }) {
@@ -1249,7 +1249,7 @@ export default function Home() {
               onClick={() => quickAction(type, label)}
               disabled={loading}
             >
-              <span className="sag-action-icon"><QuickActionIcon type={type} /></span>
+              <span className={`sag-action-icon sag-action-icon-${type}`}><QuickActionIcon type={type} /></span>
               <span>{label}</span>
             </button>
           ))}
@@ -1656,7 +1656,12 @@ export default function Home() {
           background: #f7fafb;
         }
 
-        .sag-action-icon { display: flex; align-items: center; justify-content: center; color: #287d91; }
+        .sag-action-icon { display: flex; align-items: center; justify-content: center; width: 27px; height: 25px; border-radius: 7px; color: #2478ae; background: #eaf4fc; }
+        .sag-action-icon-gate { color: #bf750e; background: #fff3de; }
+        .sag-action-icon-fares { color: #16856a; background: #e6f6ef; }
+        .sag-action-icon-facility { color: #3176c4; background: #eaf2ff; }
+        .sag-action-icon-exchange { color: #8c59b8; background: #f3ecfc; }
+        .sag-action-icon-staff { color: #287a83; background: #e6f5f5; }
 
         .sag-gate-topbar {
           flex: 0 0 auto;
