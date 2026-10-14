@@ -29,10 +29,10 @@ const PLACES = [
   },
 ];
 const UI = {
-  ko:{heading:"주변 명소",origin:"종로5가역 주변",exit:"추천 출구",pending:"출구 확인 중",map:"구글 지도에서 보기",back:"다른 장소 선택",note:"추천 출구는 현장 확인 후 순차 등록합니다.",photo:"사진 준비 중",source:"사진 출처"},
-  en:{heading:"Nearby Places",origin:"Near Jongno 5-ga",exit:"Recommended exit",pending:"Exit being verified",map:"View on Google Maps",back:"Choose another place",note:"Exit numbers are added after on-site verification.",photo:"Photo coming soon",source:"Photo credit"},
-  ja:{heading:"周辺スポット",origin:"鍾路5街駅周辺",exit:"おすすめ出口",pending:"出口を確認中",map:"Googleマップで見る",back:"別の場所を選ぶ",note:"出口番号は現地確認後に掲載します。",photo:"写真準備中",source:"写真提供"},
-  zh:{heading:"周边景点",origin:"钟路5街站附近",exit:"推荐出口",pending:"出口待核实",map:"在谷歌地图查看",back:"选择其他地点",note:"出口编号将在现场核实后添加。",photo:"照片准备中",source:"图片来源"},
+  ko:{heading:"출구·관광지",origin:"종로5가역 주변",exit:"추천 출구",pending:"출구 확인 중",map:"구글 지도에서 보기",back:"다른 장소 선택",note:"추천 출구는 현장 확인 후 순차 등록합니다.",photo:"사진 준비 중",source:"사진 출처"},
+  en:{heading:"Exits & Places",origin:"Near Jongno 5-ga",exit:"Recommended exit",pending:"Exit being verified",map:"View on Google Maps",back:"Choose another place",note:"Exit numbers are added after on-site verification.",photo:"Photo coming soon",source:"Photo credit"},
+  ja:{heading:"出口・観光地",origin:"鍾路5街駅周辺",exit:"おすすめ出口",pending:"出口を確認中",map:"Googleマップで見る",back:"別の場所を選ぶ",note:"出口番号は現地確認後に掲載します。",photo:"写真準備中",source:"写真提供"},
+  zh:{heading:"出口·景点",origin:"钟路5街站附近",exit:"推荐出口",pending:"出口待核实",map:"在谷歌地图查看",back:"选择其他地点",note:"出口编号将在现场核实后添加。",photo:"照片准备中",source:"图片来源"},
 };
 const commons = name => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(name.replaceAll(" ","_"));
 const thumb = name => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(name) + "?width=480";
