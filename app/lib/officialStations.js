@@ -13,16 +13,11 @@ export function officialStationMatches(query, lang, limit = 8) {
   const q = clean(query);
   if (!q) return [];
   const results = [];
-  const seen = new Set();
   for (const s of official) {
     const labels = [s.ko,s.en,s.ja,s.zh];
     const match = labels.some(v=>clean(v).includes(q));
     if (!match) continue;
-    const key = s.ko;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const lines = official.filter(x=>x.ko===s.ko).map(x=>x.line.replace(/^0([1-9])호선$/, "$1호선"));
-    results.push({...s,lines:[...new Set(lines)]});
+    results.push(s);
   }
   results.sort((a,b)=>{
     const aa=clean(a[lang]||a.ko),bb=clean(b[lang]||b.ko);
