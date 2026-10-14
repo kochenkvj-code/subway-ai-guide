@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 import { officialStationMatches, officialStationName } from "../lib/officialStations";
 
@@ -90,6 +90,15 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
+  const resultRef = useRef(null);
+  useLayoutEffect(() => {
+    if (!route || !resultRef.current) return;
+    const result = resultRef.current;
+    const scroller = result.closest(".sag-chat");
+    if (!scroller) return;
+    const top = result.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    scroller.scrollTop = Math.max(0, scroller.scrollTop + top - 8);
+  }, [route]);
 
   const choices = [
     { value: "duration", label: t.duration },
@@ -137,7 +146,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         <button type="submit" disabled={busy || !destination.trim()} className="srg-submit">{busy ? t.searching : <>{t.search} <span aria-hidden="true">→</span></>}</button>
       </form>
       {error && <div className="srg-error" role="alert"><strong>{t.searchFailed}</strong><p>{error}</p></div>}
-      {route && <div className="srg-result" aria-live="polite">
+      {route && <div ref={resultRef} className="srg-result" aria-live="polite">
         <div className="srg-separator" />
         <div className="srg-result-label">{t.result}</div>
         <h3>{display(route.origin)} <span>→</span> {display(route.destination)}</h3>
