@@ -77,7 +77,6 @@ export default function NearbyPlacesCard({lang="ko"}) {
       <a className="np-map" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place.map)} target="_blank" rel="noopener noreferrer">🗺 {t.map} ↗</a>
       {place.image && <a className="np-credit" href={commons(place.image)} target="_blank" rel="noopener noreferrer">{t.source}: {place.credit} ↗</a>}
     </div>}
-    <p className="np-note">{t.note}</p>
     <style>{`
       .np-card{box-sizing:border-box;width:100%;padding:10px;border:1px solid #dce7e8;border-radius:16px;background:#fff;color:#1b3038;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
       .np-card *{box-sizing:border-box}.np-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.np-header strong{font-size:16px}.np-header span{font-size:11px;color:#638088}
