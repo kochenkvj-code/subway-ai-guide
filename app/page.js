@@ -1890,14 +1890,14 @@ export default function Home() {
 
         /* v5.3: 승차권·교통카드 목록을 전체 클릭 가능한 세로형 카드로 표시 */
         .sag-purchase-wrap { margin-top: 10px; }
-        .sag-purchase-list { display: grid; gap: 8px; }
+        .sag-purchase-list { display: grid; gap: 6px; }
         .sag-purchase-card {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
           width: 100%;
-          min-height: 66px;
-          padding: 10px;
+          min-height: 56px;
+          padding: 8px;
           border: 1px solid #dce5eb;
           border-radius: 13px;
           background: #fff;
@@ -1911,8 +1911,8 @@ export default function Home() {
         .sag-purchase-card:active { transform: scale(.99); background: #edf6fd; }
         .sag-purchase-card:focus-visible { outline: 2px solid #17618a; outline-offset: 2px; }
         .sag-purchase-icon {
-          flex: 0 0 43px;
-          height: 43px;
+          flex: 0 0 38px;
+          height: 38px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1920,7 +1920,7 @@ export default function Home() {
           background: #eaf3f9;
           color: #236c9d;
         }
-        .sag-purchase-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .sag-purchase-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .sag-purchase-title {
           color: #263440;
           font-size: 12.7px;
@@ -1951,9 +1951,9 @@ export default function Home() {
         }
 
         /* v5.2: 필요한 정보만 즉시 표시하고, 긴 결제 설명은 펼치기 */
-        .sag-fare-compact { margin-top: 9px; }
+        .sag-fare-compact { margin-top: 7px; }
         .sag-fare-intro {
-          margin: 0 0 9px;
+          margin: 0 0 7px;
           color: #32485a;
           font-size: 12.5px;
           line-height: 1.5;
@@ -1961,10 +1961,10 @@ export default function Home() {
         }
         .sag-fare-info-grid {
           display: grid;
-          gap: 7px;
+          gap: 6px;
         }
         .sag-fare-info-section {
-          padding: 9px 10px;
+          padding: 8px 8px;
           background: #fff;
           border: 1px solid #dce6ee;
           border-radius: 10px;
