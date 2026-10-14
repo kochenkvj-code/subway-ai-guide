@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { destinationForApi, directionName, lineName, stationName, searchStations } from "../lib/stationNameI18n";
+import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 
 // Reuses the already tested /api/subway-route endpoint.
 // No Gemini call, prompt classification, or AI translation happens here.
 const COPY = {
   ko: {
     heading: "지하철 경로조회", from: "출발역", to: "도착역", toHint: "도착역 입력 (예: 강남)",
-    shortcuts: "역 목록 · 검색 결과", criterion: "검색 기준", duration: "최소시간", distance: "최단거리", transfer: "최소환승",
+    shortcuts: "빠른 선택", criterion: "검색 기준", duration: "최소시간", distance: "최단거리", transfer: "최소환승",
     search: "경로 조회하기", searching: "공식 경로 조회 중…", result: "공식 경로 조회 결과", time: "예상 소요시간",
     transfers: "환승", fare: "교통카드 운임", length: "이동 거리", itinerary: "추천 이동 경로",
     change: "다른 역 검색", all: "경유 역 전체 보기", ride: "이동", board: "행 열차", transferAt: "환승",
@@ -19,7 +19,7 @@ const COPY = {
   },
   en: {
     heading: "Subway route", from: "From", to: "To", toHint: "Destination (e.g. Gangnam)",
-    shortcuts: "Stations · Results", criterion: "Route preference", duration: "Fastest", distance: "Shortest", transfer: "Fewest transfers",
+    shortcuts: "Popular", criterion: "Route preference", duration: "Fastest", distance: "Shortest", transfer: "Fewest transfers",
     search: "Find route", searching: "Checking official route…", result: "Official route result", time: "Travel time",
     transfers: "Transfers", fare: "Card fare", length: "Distance", itinerary: "Directions",
     change: "Search again", all: "Show all stations", ride: "Ride", board: "-bound train", transferAt: "Transfer",
@@ -30,7 +30,7 @@ const COPY = {
   },
   ja: {
     heading: "地下鉄経路検索", from: "出発駅", to: "到着駅", toHint: "到着駅（例：カンナム）",
-    shortcuts: "駅一覧・検索結果", criterion: "検索条件", duration: "最短時間", distance: "最短距離", transfer: "最少乗換",
+    shortcuts: "よく使う駅", criterion: "検索条件", duration: "最短時間", distance: "最短距離", transfer: "最少乗換",
     search: "経路を検索", searching: "公式経路を検索中…", result: "公式経路検索結果", time: "所要時間",
     transfers: "乗換", fare: "交通カード運賃", length: "移動距離", itinerary: "おすすめ経路",
     change: "別の駅を検索", all: "全駅を見る", ride: "乗車", board: "方面", transferAt: "乗換",
@@ -41,7 +41,7 @@ const COPY = {
   },
   zh: {
     heading: "地铁路线查询", from: "出发站", to: "目的地", toHint: "输入目的地（例如：江南）",
-    shortcuts: "车站列表 · 搜索结果", criterion: "查询方式", duration: "时间最短", distance: "距离最短", transfer: "换乘最少",
+    shortcuts: "热门车站", criterion: "查询方式", duration: "时间最短", distance: "距离最短", transfer: "换乘最少",
     search: "查询路线", searching: "正在查询官方路线…", result: "官方路线查询结果", time: "预计用时",
     transfers: "换乘", fare: "交通卡票价", length: "行驶距离", itinerary: "推荐路线",
     change: "重新查询", all: "显示所有途经站", ride: "乘车", board: "方向", transferAt: "换乘",
@@ -51,6 +51,8 @@ const COPY = {
     disclosure: "路线信息来自官方API，可能与实际运行情况不同。请以现场换乘指示及附加票价为准。",
   },
 };
+
+const DESTINATIONS = ["강남", "안암", "수원", "잠실"];
 
 function stationQuery(value) {
   return destinationForApi(value);
@@ -80,9 +82,6 @@ function Line({ name, lang }) {
 export default function SubwayRouteCard({ lang = "ko" }) {
   const t = COPY[lang] || COPY.ko;
   const [destination, setDestination] = useState("");
-  const [selectedStation, setSelectedStation] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const suggestions = searchStations(destination, lang, 8);
   const [mode, setMode] = useState("duration");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -96,7 +95,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
 
   async function search(event) {
     event.preventDefault();
-    const to = selectedStation || stationQuery(destination);
+    const to = stationQuery(destination);
     if (!destination.trim()) { setError(t.empty); return; }
     if (!to) { setError(t.unsupported); return; }
     setBusy(true);
@@ -123,9 +122,9 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       <form onSubmit={search}>
         <div className="srg-fields">
           <label className="srg-field"><input aria-label={t.from} value={stationName("종로5가", lang)} readOnly /></label>
-          <label className="srg-field"><input aria-label={t.to} value={destination} onFocus={() => setShowSuggestions(true)} onChange={(e) => { setDestination(e.target.value); setSelectedStation(""); setShowSuggestions(true); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={showSuggestions} aria-controls="srg-station-options" aria-autocomplete="list" /></label>
+          <label className="srg-field"><input aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
         </div>
-        <div className="srg-station-search"><div className="srg-station-caption">{t.shortcuts} · {suggestions.length} / {440}</div>{showSuggestions && <div id="srg-station-options" className="srg-station-list" role="listbox" aria-label={t.to}>{suggestions.map((station) => <button type="button" role="option" aria-selected={selectedStation === station.ko} key={station.ko} onClick={() => { setDestination(station.label); setSelectedStation(station.ko); setShowSuggestions(false); setError(""); }} className="srg-station-option"><span className="srg-station-name">{station.label}</span><span className="srg-station-lines">{station.lines.map((line) => lineName(line, lang)).join(" · ")}</span></button>)}</div>}</div>
+        <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((ko) => <button type="button" key={ko} onClick={() => { setDestination(stationName(ko, lang)); setError(""); }} className="srg-preset">{stationName(ko, lang)}</button>)}</div>
         <div className="srg-modes">{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy} className="srg-submit">{busy ? t.searching : t.search}</button>
       </form>
@@ -163,11 +162,8 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         .srg-field input{min-width:0;width:100%;border:1px solid #c9d8dd;border-radius:10px;padding:9px 9px;font-size:16px;outline:none;background:#fff;color:#18313b}
         .srg-field input:read-only{background:#f2f7f8;color:#5b7079}
         .srg-field input:focus{border-color:#00856e;box-shadow:0 0 0 3px #dcefe9}
-        .srg-station-search{margin:9px 0 10px}.srg-station-caption{font-size:11px;color:#778a91;margin-bottom:5px}
-        .srg-station-list{max-height:186px;overflow-y:auto;border:1px solid #d7e5e4;border-radius:10px;background:#fff}
-        .srg-station-option{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;border:0;border-bottom:1px solid #edf2f2;background:#fff;text-align:left;cursor:pointer;color:#20363d}
-        .srg-station-option:last-child{border-bottom:0}.srg-station-option:hover,.srg-station-option:focus-visible{background:#eef8f4}
-        .srg-station-name{font-size:13px;font-weight:700}.srg-station-lines{font-size:10px;color:#6b8188;text-align:right;flex-shrink:0;max-width:55%}
+        .srg-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:9px 0 10px}.srg-presets>span{font-size:11px;color:#778a91}
+        .srg-preset{border:1px solid #d7e5e4;border-radius:20px;background:#f8fbfa;color:#3e5960;padding:5px 9px;font-size:12px;cursor:pointer}
         .srg-mode-label{font-size:12px;font-weight:700;margin-bottom:6px;color:#4e626a}
         .srg-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:9px}
         .srg-mode{display:flex;align-items:center;justify-content:center;border:1px solid #d8e4e5;border-radius:10px;padding:8px 3px;color:#566e75;font-size:12px;font-weight:700;text-align:center;cursor:pointer}
