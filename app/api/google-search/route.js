@@ -64,7 +64,8 @@ Rules:
 - If sources conflict or the answer cannot be verified, clearly say that confirmation with station staff is recommended.
 - Keep the answer concise and practical for a passenger standing in a station.
 - Do not explain your search process.
-- Answer in ${LANGUAGE[lang]}.
+- Always answer ONLY in ${LANGUAGE[lang]}, the language selected in the app, regardless of the language used in the passenger question.
+- Keep original proper names only when useful for identifying a place.
 - Normally use 2 to 5 short sentences.
 `;
 }
@@ -339,7 +340,7 @@ export async function POST(request) {
     // Route lookup is handled by SubwayRouteCard → /api/subway-route.
     // This endpoint is now for Gemini + Google Search general questions only.
 
-    const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.improvedLite;
+    const config = labMode ? LAB_VARIANTS[labMode] : LAB_VARIANTS.baseline;
     const requestStart = Date.now();
     const accessToken = await getGoogleAccessToken();
     const model = config.model;
@@ -367,7 +368,7 @@ export async function POST(request) {
           tools: [{ googleSearch: {} }],
           generationConfig: config.thinking
             ? { maxOutputTokens: config.maxOutputTokens, thinkingConfig: { thinkingLevel: config.thinking } }
-            : { maxOutputTokens: labMode ? 350 : 500 },
+            : { maxOutputTokens: 350 },
         }),
         signal: controller.signal,
         cache: "no-store",
