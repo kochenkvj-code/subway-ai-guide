@@ -368,7 +368,7 @@ export async function POST(request) {
           tools: [{ googleSearch: {} }],
           generationConfig: config.thinking
             ? { maxOutputTokens: config.maxOutputTokens, thinkingConfig: { thinkingLevel: config.thinking } }
-            : { maxOutputTokens: 350 },
+            : { maxOutputTokens: labMode ? 350 : 500 },
         }),
         signal: controller.signal,
         cache: "no-store",
