@@ -147,7 +147,6 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       </form>
       {error && <div className="srg-error" role="alert"><strong>{t.searchFailed}</strong><p>{error}</p></div>}
       {route && <div ref={resultRef} className="srg-result" aria-live="polite">
-        <div className="srg-separator" />
         <div className="srg-result-label">{t.result}</div>
         <h3>{display(route.origin)} <span>→</span> {display(route.destination)}</h3>
         <div className="srg-metrics">
@@ -171,7 +170,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         <button type="button" className="srg-again" onClick={() => { setRoute(null); setError(""); }}>{t.change}</button>
       </div>}
       <style>{`
-        .srg-card{box-sizing:border-box;width:100%;padding:16px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
+        .srg-card{box-sizing:border-box;width:100%;padding:14px 16px 10px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
         .srg-card *{box-sizing:border-box}
         .srg-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
         .srg-title{display:flex;align-items:center;gap:8px;font-size:17px}.srg-train{font-size:19px}
@@ -198,7 +197,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         .srg-mode input{position:absolute;opacity:0;width:1px;height:1px}
         .srg-submit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#008c73;color:#fff;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
         .srg-submit:disabled{opacity:.45;cursor:not-allowed}.srg-error{margin-top:12px;padding:12px;background:#422722;border:1px solid #86564b;border-radius:10px;color:#ffd3c8;font-size:12px}.srg-error p{margin:5px 0 0}
-        .srg-result{margin-top:14px;border-radius:12px;background:#fff;color:#172b33;padding:12px}
+        .srg-result{margin-top:8px;border-radius:12px;background:#fff;color:#172b33;padding:12px}
         .srg-separator{height:1px;background:#e4edef;margin:20px 0}.srg-result-label{font-weight:800;color:#07816b;font-size:12px}.srg-result h3{margin:8px 0 15px;font-size:19px;letter-spacing:-.03em}.srg-result h3>span{color:#07816b}
         .srg-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.srg-metrics>div{background:#f2f7f8;border-radius:10px;padding:12px 10px;min-width:0}
         .srg-metrics span{display:block;color:#68818a;font-size:11px;margin-bottom:7px}.srg-metrics strong{font-size:15px;letter-spacing:-.03em}
