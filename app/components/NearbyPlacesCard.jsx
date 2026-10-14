@@ -70,13 +70,11 @@ export default function NearbyPlacesCard({lang="ko"}) {
       {p.image ? <img src={thumb(p.image)} alt={p.names[lang] || p.names.ko} loading="lazy"/> : <div className="np-photo-missing"><span>✚</span><small>{t.photo}</small></div>}
       <strong className="np-place-title"><span className="np-title-exit">{p.exit ? exitLabel(p.exit,lang,t) : t.pending}</span> <span>{p.names[lang] || p.names.ko}</span></strong>
       <small className="np-place-description">{p.descriptions[lang] || p.descriptions.ko}</small>
-      {p.illustrative && <small className="np-illustrative">{lang==="ko"?"※ 약국 상징 사진":lang==="ja"?"※ 薬局のイメージ写真":lang==="zh"?"※ 药店示意照片":"※ Pharmacy illustration"}</small>}
     </button>)}</div> : <div className="np-detail">
       <button type="button" className="np-back" onClick={()=>setSelected(null)}>← {t.back}</button>
       {place.image && <img className="np-hero" src={thumb(place.image)} alt={place.names[lang] || place.names.ko}/>}
       <h3>{place.names[lang] || place.names.ko}</h3>
       <p>{place.details?.[lang] || place.details?.ko || place.descriptions[lang] || place.descriptions.ko}</p>
-      {place.illustrative && <p className="np-illustrative">{lang==="ko"?"※ 약국을 나타내는 참고사진으로, 종로5가에서 촬영한 사진은 아닙니다.":lang==="ja"?"※ 薬局の参考写真です。鍾路5街で撮影されたものではありません。":lang==="zh"?"※ 药店示意照片，并非拍摄于钟路5街。":"※ Illustrative pharmacy photo, not taken in Jongno 5-ga."}</p>}
       <div className="np-exit"><span>{t.exit}</span><strong>{place.exit ? exitLabel(place.exit,lang,t) : t.pending}</strong></div>
       <a className="np-map" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place.map)} target="_blank" rel="noopener noreferrer">🗺 {t.map} ↗</a>
       {place.image && place.credit && <a className="np-credit" href={commons(place.image)} target="_blank" rel="noopener noreferrer">{t.source}: {place.credit} ↗</a>}
