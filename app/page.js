@@ -51,7 +51,7 @@ const TEXT = {
     bannerBody: "AI answers general questions using web search. Tap Route to look up subway directions here.",
     quick: "Quick guide",
     placeholder: "Type your question",
-    privacyNotice: "Do not enter personal information. Questions are sent to an external AI service to generate answers.",
+    privacyNotice: "No personal info. Questions are sent to external AI for answers.",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
     send: "Send",
     greeting: "Hello. This is the Jongno 5-ga Station AI Guide. How can I help?",
