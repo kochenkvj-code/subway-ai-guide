@@ -1,3 +1,4 @@
+import officialStations from "../../data/seoulMetroOfficialStations.json";
 // Seoul Metro shortest-route API: independent of app/api/google-search/route.js.
 // Only the server reads SEOUL_METRO_API_KEY. The key is never returned to clients.
 export const runtime = "nodejs";
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 const ENDPOINT = "https://apis.data.go.kr/B553766/path2/getShtrmPath2";
 const ORIGIN = "종로5가";
 const MODES = new Set(["duration", "distance", "transfer"]);
+const BY_CODE = new Map(officialStations.map((s) => [s.code, s]));
 
 function seoulTimestamp() {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -112,7 +114,10 @@ export async function GET(request) {
   try { params = new URL(request.url).searchParams; }
   catch { return errorResponse("잘못된 요청입니다.", 400, "BAD_URL"); }
 
-  const destination = cleanStationName(params.get("to"));
+  const destinationCode = String(params.get("toCode") || "").trim();
+  const selectedStation = destinationCode ? BY_CODE.get(destinationCode) : null;
+  if (destinationCode && !selectedStation) return errorResponse("지원하지 않는 역코드입니다.", 400, "BAD_STATION_CODE");
+  const destination = selectedStation ? cleanStationName(selectedStation.ko) : cleanStationName(params.get("to"));
   const mode = params.get("mode") || "duration";
   if (!destination || destination.length > 30 || /[<>\r\n\u0000-\u001f]/.test(destination)) {
     return errorResponse("도착역 이름을 1~30자로 입력해 주세요.", 400, "BAD_DESTINATION");
@@ -122,9 +127,9 @@ export async function GET(request) {
 
   const searchedAt = seoulTimestamp();
   const qs = new URLSearchParams({
-    serviceKey: key, dataType: "JSON", dptreStn: ORIGIN,
-    arvlStn: destination, searchDt: searchedAt,
-    searchType: mode, schInclYn: "Y", stationValueType: "name",
+    serviceKey: key, dataType: "JSON", dptreStn: selectedStation ? "0154" : ORIGIN,
+    arvlStn: selectedStation ? destinationCode : destination, searchDt: searchedAt,
+    searchType: mode, schInclYn: "Y", stationValueType: selectedStation ? "code" : "name",
   });
 
   let upstream;
