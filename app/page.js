@@ -707,6 +707,18 @@ function makeSubmenu(lang, menuName, cardType = null) {
 }
 
 // v5.3: 상품 선택 메뉴 전용 아이콘 (외부 패키지 없이 사용)
+function QuickActionIcon({ type }) {
+  const paths = {
+    route: <><rect x="5" y="3" width="14" height="15" rx="3" /><path d="M5 10h14M8 18l-2 3M16 18l2 3M8 14h.01M16 14h.01" /></>,
+    gate: <><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M3 21h18" /><path d="M9 12h6m-3-3 3 3-3 3" /></>,
+    fares: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></>,
+    facility: <><circle cx="12" cy="4" r="2" /><path d="M12 7v6m-5-3 5-2 5 2M9 13l-2 8m5-8 4 8M5 21h14" /></>,
+    exchange: <><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4" /></>,
+    staff: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
+  };
+  return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
+}
+
 function FareProductIcon({ product }) {
   const paths = {
     single: (
@@ -1202,12 +1214,12 @@ export default function Home() {
   }
 
   const actions = [
-    ["route", "🚇", t.route],
-    ["gate", "🚪", t.ticket],
-    ["fares", "🎫", t.fares],
-    ["facility", "♿", t.facilities],
-    ["exchange", "💱", t.exchange],
-    ["staff", "📍", t.office],
+    ["route", t.route],
+    ["gate", t.ticket],
+    ["fares", t.fares],
+    ["facility", t.facilities],
+    ["exchange", t.exchange],
+    ["staff", t.office],
   ];
 
   return (
@@ -1231,13 +1243,13 @@ export default function Home() {
 
         <div className="sag-section-title"><span>{t.quick}</span><div className="sag-status"><span className={loading ? "loading" : ""} />{t.status}</div></div>
         <div className="sag-actions">
-          {actions.map(([type, icon, label]) => (
+          {actions.map(([type, label]) => (
             <button
               key={type}
               onClick={() => quickAction(type, label)}
               disabled={loading}
             >
-              <span className="sag-action-icon">{icon}</span>
+              <span className="sag-action-icon"><QuickActionIcon type={type} /></span>
               <span>{label}</span>
             </button>
           ))}
@@ -1624,9 +1636,9 @@ export default function Home() {
         }
 
         .sag-actions button {
-          min-height: 55px;
-          border: 1px solid #d9e4ea;
-          border-radius: 14px;
+          min-height: 52px;
+          border: 1px solid #dce6ec;
+          border-radius: 10px;
           background: white;
           cursor: pointer;
           color: #17232d;
@@ -1634,7 +1646,7 @@ export default function Home() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          gap: 3px;
           font-weight: 700;
           font-size: 12px;
         }
@@ -1644,7 +1656,7 @@ export default function Home() {
           background: #f7fafb;
         }
 
-        .sag-action-icon { font-size: 19px; }
+        .sag-action-icon { display: flex; align-items: center; justify-content: center; color: #287d91; }
 
         .sag-gate-topbar {
           flex: 0 0 auto;
@@ -2242,8 +2254,8 @@ export default function Home() {
           }
 
           .sag-actions button {
-            min-height: 58px;
-            border-radius: 12px;
+            min-height: 54px;
+            border-radius: 10px;
             font-size: 11.5px;
           }
 
