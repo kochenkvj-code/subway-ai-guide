@@ -125,7 +125,6 @@ export default function SubwayRouteCard({ lang = "ko" }) {
           <label className="srg-field"><span>{t.to}</span><input value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
         </div>
         <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((ko) => <button type="button" key={ko} onClick={() => { setDestination(stationName(ko, lang)); setError(""); }} className="srg-preset">{stationName(ko, lang)}</button>)}</div>
-        <div className="srg-mode-label">{t.criterion}</div>
         <div className="srg-modes">{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy} className="srg-submit">{busy ? t.searching : t.search}</button>
       </form>
