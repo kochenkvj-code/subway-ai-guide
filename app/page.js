@@ -1154,14 +1154,14 @@ export default function Home() {
     if (gateScreenActive && type !== "gate") leaveGateScreen();
 
     if (type === "facility" || type === "fares") {
-      showMenu(type === "facility" ? "facility" : "fare", label);
+      showMenu(type === "facility" ? "facility" : "fare");
       return;
     }
 
     if (type === "exchange") {
       const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
       setMode(null);
-      setMessages((prev) => [...prev, { role: "user", text: label }, { role: "assistant", text: ui.exchange, feedbackKey: "exchange" }]);
+      setMessages((prev) => [...prev, { role: "assistant", text: ui.exchange, feedbackKey: "exchange" }]);
       return;
     }
 
@@ -1178,7 +1178,6 @@ export default function Home() {
       setInput("");
       setMessages((prev) => [
         ...prev.filter((message) => !message.routeCard),
-        { role: "user", text: label },
         { role: "assistant", text: "", routeCard: true },
       ]);
       return;
