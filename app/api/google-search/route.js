@@ -394,7 +394,9 @@ export async function POST(request) {
     const rawAnswer = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("").trim() ||
       "답변을 생성하지 못했습니다.";
     const finishReason = candidate?.finishReason || "";
-    const answer = rawAnswer;
+    const answer = rawAnswer
+      .replace(/\$\s*\\(?:longrightarrow|rightarrow|leftarrow|leftrightarrow|to)\s*\$/gi, (match) => /leftarrow/i.test(match) ? "←" : /leftrightarrow/i.test(match) ? "↔" : "→")
+      .replace(/\\(?:longrightarrow|rightarrow|leftarrow|leftrightarrow|to)\b/gi, (match) => /leftarrow/i.test(match) ? "←" : /leftrightarrow/i.test(match) ? "↔" : "→");
     const grounding = candidate?.groundingMetadata || {};
     const sources = (grounding.groundingChunks || [])
       .filter((chunk) => chunk.web?.uri)
