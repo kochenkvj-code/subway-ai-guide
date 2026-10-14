@@ -174,7 +174,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         .srg-search-wrap input{width:100%;min-width:0;flex:1;padding:13px 0;background:transparent;border:0;outline:0;color:#fff;font-size:16px}
         .srg-search-wrap input::placeholder{color:#9aa9ae}
         .srg-clear{border:0;background:transparent;color:#aebdc0;font-size:24px;cursor:pointer;padding:0 2px}
-        .srg-suggestions{position:absolute;z-index:30;top:calc(100% + 7px);left:0;right:0;max-height:285px;overflow:auto;background:#1c2429;border:1px solid #3a4b4c;border-radius:13px;box-shadow:0 10px 26px #0007}
+        .srg-suggestions{position:absolute;z-index:30;top:calc(100% + 7px);left:0;right:0;max-height:min(190px,35dvh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#1c2429;border:1px solid #3a4b4c;border-radius:13px;box-shadow:0 10px 26px #0007}
         .srg-suggestion{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-bottom:1px solid #303b40;background:transparent;color:#f2f6f6;text-align:left;cursor:pointer}
         .srg-suggestion:hover,.srg-suggestion:focus{background:#2b393a}
         .srg-suggestion-icon{font-size:17px;opacity:.75}
