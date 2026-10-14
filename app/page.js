@@ -377,7 +377,7 @@ function ExchangeCard({lang}) {
       <strong style={{fontSize:13,lineHeight:1.35}}>{shop.name}</strong>
       <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.location}</b><div>{shop.location}</div></div>
       <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.hours}</b><div>{shop.hours}</div></div>
-      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.phone}</b><div>{shop.phone}</div></div>
+      {shop.phone && <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.phone}</b><div>{shop.phone}</div></div>}
       <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",marginTop:"auto",padding:"8px 3px",borderRadius:8,background:"#e9f4f0",color:"#08755b",fontSize:12,fontWeight:700,textAlign:"center",textDecoration:"none"}}>📍 {ui.map} ↗</a>
     </div>)}
   </div>;
