@@ -7,7 +7,7 @@ const PLACES = [
   {
     id: "gwangjang", names: {ko:"광장시장",en:"Gwangjang Market",ja:"広蔵市場",zh:"广藏市场"},
     descriptions: {ko:"전통시장 · 길거리 음식",en:"Traditional market · street food",ja:"伝統市場・屋台グルメ",zh:"传统市场 · 街头美食"},
-    details:{"ko":"K-푸드의 성지로 꼽히는 대한민국 최초의 상설 전통시장입니다. 빈대떡, 마약김밥, 육회, 수수부꾸미 등 다양한 길거리 음식과 먹거리 장터가 유명합니다.","en":"One of Korea's earliest permanent traditional markets and a favorite for Korean street food. Try bindaetteok (mung bean pancakes), mayak gimbap, yukhoe (beef tartare), and sweet millet pancakes.","ja":"韓国初期の常設伝統市場の一つで、Kフードの名所です。緑豆チヂミ、麻薬キンパ、ユッケ、ススプクミなど多彩な屋台料理を楽しめます。","zh":"韩国最早的常设传统市场之一，也是韩式美食热门地。绿豆煎饼、迷你紫菜包饭、生拌牛肉和小米煎饼等街头美食十分有名。"},
+    details:{"ko":"K-푸드의 성지로 꼽히는 대한민국 최초의 상설 전통시장입니다. 빈대떡, 원조김밥, 육회, 수수부꾸미 등 다양한 길거리 음식과 먹거리 장터가 유명합니다.","en":"One of Korea's earliest permanent traditional markets and a favorite for Korean street food. Try bindaetteok (mung bean pancakes), original-style gimbap, yukhoe (beef tartare), and sweet millet pancakes.","ja":"韓国初期の常設伝統市場の一つで、Kフードの名所です。緑豆チヂミ、元祖キンパ、ユッケ、ススプクミなど多彩な屋台料理を楽しめます。","zh":"韩国最早的常设传统市场之一，也是韩式美食热门地。绿豆煎饼、迷你紫菜包饭、生拌牛肉和小米煎饼等街头美食十分有名。"},
     exit:"7·8", image:"Gwangjang Market, Seoul 02.jpg", credit:"Bgag · CC0 1.0",
     map:"Gwangjang Market Seoul",
   },
