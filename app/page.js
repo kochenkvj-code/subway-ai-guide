@@ -2134,7 +2134,7 @@ export default function Home() {
           z-index: 5;
           background: white;
           border-top: 1px solid #e5edf1;
-          padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+          padding: 7px 14px calc(7px + env(safe-area-inset-bottom));
           display: flex;
           gap: 8px;
           box-shadow: 0 -6px 18px rgba(20, 40, 55, .04);
@@ -2158,7 +2158,7 @@ export default function Home() {
           min-width: 0;
           border: 1px solid #d5e0e6;
           border-radius: 12px;
-          padding: 12px 13px;
+          padding: 10px 13px;
           outline: none;
           color: #18242e;
           background: white;
@@ -2272,7 +2272,7 @@ export default function Home() {
           .sag-gate-code-grid strong { font-size: 15px; }
 
           .sag-input-wrap {
-            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+            padding: 5px 10px calc(5px + env(safe-area-inset-bottom));
           }
         }
       `}</style>
