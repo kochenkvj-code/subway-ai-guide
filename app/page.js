@@ -358,16 +358,16 @@ const GATE_UI = {
 const EXCHANGE_CARD = {
   ko: { location:"위치", hours:"영업시간", phone:"전화", map:"구글 지도", shops:[
     {name:"머니박스 광장시장점",location:"8번 출구 도보 약 1분 · 종로 210, 하이뷰더광장 107호",hours:"매일 09:30~20:30",phone:"02-2269-8898"},
-    {name:"ABC Money Exchange 광장시장지점",location:"종로 198-2, 대동빌딩 1층",hours:"매일 09:00~19:00",phone:"010-5628-2100"}]},
+    {name:"ABC Money Exchange 광장시장지점",location:"종로 198-2, 대동빌딩 1층",hours:"매일 09:00~19:00",phone:""}]},
   en: {location:"Location",hours:"Hours",phone:"Phone",map:"Google Maps",shops:[
     {name:"Moneybox – Gwangjang Market",location:"1 min from Exit 8 · 107, Hi-View the Gwangjang, 210 Jong-ro",hours:"Daily 09:30–20:30",phone:"02-2269-8898"},
-    {name:"ABC Money Exchange – Gwangjang Market",location:"1F, Daedong Building, 198-2 Jong-ro",hours:"Daily 09:00–19:00",phone:"010-5628-2100"}]},
+    {name:"ABC Money Exchange – Gwangjang Market",location:"1F, Daedong Building, 198-2 Jong-ro",hours:"Daily 09:00–19:00",phone:""}]},
   ja: {location:"場所",hours:"営業時間",phone:"電話",map:"Googleマップ",shops:[
     {name:"マネーボックス 広蔵市場店",location:"8番出口から徒歩約1分 · 鍾路210、107号",hours:"毎日09:30～20:30",phone:"02-2269-8898"},
-    {name:"ABC Money Exchange 広蔵市場店",location:"鍾路198-2 大東ビル1階",hours:"毎日09:00～19:00",phone:"010-5628-2100"}]},
+    {name:"ABC Money Exchange 広蔵市場店",location:"鍾路198-2 大東ビル1階",hours:"毎日09:00～19:00",phone:""}]},
   zh: {location:"位置",hours:"营业时间",phone:"电话",map:"谷歌地图",shops:[
     {name:"Moneybox 广藏市场店",location:"8号出口步行约1分钟 · 钟路210号107室",hours:"每天09:30–20:30",phone:"02-2269-8898"},
-    {name:"ABC Money Exchange 广藏市场店",location:"钟路198-2号，大东大厦1层",hours:"每天09:00–19:00",phone:"010-5628-2100"}]},
+    {name:"ABC Money Exchange 广藏市场店",location:"钟路198-2号，大东大厦1层",hours:"每天09:00–19:00",phone:""}]},
 };
 const EXCHANGE_MAP_QUERIES = ["머니박스 광장시장점 서울 종로 210", "ABC Money Exchange 광장시장지점 종로 198-2"];
 function ExchangeCard({lang}) {
@@ -402,7 +402,7 @@ const SUBMENU_TEXT = {
       payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
     },
     facilityPending: (name) => `**${name} 위치 안내**\n\n현재 정확한 시설 위치를 확인 중입니다. 확인된 안내를 등록하기 전까지는 역무실에 문의해 주세요.`,
-    exchange: "**💱 종로5가역 주변 환전소**\n\n**① 머니박스 광장시장점**\n• **위치:** 종로5가역 8번 출구에서 도보 약 1분 (종로 210, 하이뷰더광장 107호)\n• **영업시간:** 매일 09:30~20:30\n• **전화:** 02-2269-8898\n\n**② ABC Money Exchange 광장시장지점**\n• **위치:** 종로 198-2, 대동빌딩 1층 (광장시장 인근)\n• **영업시간:** 매일 09:00~19:00\n• **전화:** 010-5628-2100\n\n※ 매장 영업시간·운영 여부는 변경될 수 있으니 방문 전 확인해 주세요.",
+    exchange: "**💱 종로5가역 주변 환전소**\n\n**① 머니박스 광장시장점**\n• **위치:** 종로5가역 8번 출구에서 도보 약 1분 (종로 210, 하이뷰더광장 107호)\n• **영업시간:** 매일 09:30~20:30\n• **전화:** 02-2269-8898\n\n**② ABC Money Exchange 광장시장지점**\n• **위치:** 종로 198-2, 대동빌딩 1층 (광장시장 인근)\n• **영업시간:** 매일 09:00~19:00\n\n※ 매장 영업시간·운영 여부는 변경될 수 있으니 방문 전 확인해 주세요.",
     nursingGuide: "**🍼 수유실 위치 안내**\n\n**위치:** 종로5가 지하도상가(종오지하쇼핑센터) **지하 1층**, **지하도상가 11번 출구 인근**\n\n여자화장실 옆에 있는 수유실을 찾아주세요.\n\n※ 안내된 **11번 출구는 지하도상가 출구 기준**입니다. 위치가 헷갈리면 가까운 안내소나 역무실에 문의해 주세요.",
     buyDescriptions: {
       single: "지하철 1회 이용",
@@ -435,7 +435,7 @@ const SUBMENU_TEXT = {
       payment: "**How would you like to pay for the top-up?**",
     },
     facilityPending: (name) => `**${name} location**\n\nWe are verifying the exact location. Please ask at the station office until the information is confirmed.`,
-    exchange: "**💱 Currency exchange near Jongno 5-ga Station**\n\n**① Moneybox – Gwangjang Market**\n• **Location:** About 1 minute on foot from Exit 8 (107, Hi-View the Gwangjang, 210 Jong-ro)\n• **Hours:** Daily 09:30–20:30\n• **Phone:** 02-2269-8898\n\n**② ABC Money Exchange – Gwangjang Market**\n• **Location:** 1F, Daedong Building, 198-2 Jong-ro, near Gwangjang Market\n• **Hours:** Daily 09:00–19:00\n• **Phone:** 010-5628-2100\n\n※ Hours and availability may change. Please confirm before visiting.",
+    exchange: "**💱 Currency exchange near Jongno 5-ga Station**\n\n**① Moneybox – Gwangjang Market**\n• **Location:** About 1 minute on foot from Exit 8 (107, Hi-View the Gwangjang, 210 Jong-ro)\n• **Hours:** Daily 09:30–20:30\n• **Phone:** 02-2269-8898\n\n**② ABC Money Exchange – Gwangjang Market**\n• **Location:** 1F, Daedong Building, 198-2 Jong-ro, near Gwangjang Market\n• **Hours:** Daily 09:00–19:00\n\n※ Hours and availability may change. Please confirm before visiting.",
     nursingGuide: "**🍼 Nursing room**\n\n**Location:** B1 of the Jongno 5-ga Underground Shopping Center (Jong-o Underground Shopping Center), **near underground shopping arcade Exit 11**.\n\nLook for the nursing room next to the women's restroom.\n\n※ Exit 11 refers to the **underground shopping arcade's exit numbering**, not the subway station's exit numbers. If you need help, ask station staff.",
     buyDescriptions: {
       single: "One subway journey",
@@ -468,7 +468,7 @@ const SUBMENU_TEXT = {
       payment: "**チャージの支払い方法を選んでください。**",
     },
     facilityPending: (name) => `**${name}の場所**\n\n正確な位置を確認中です。案内が登録されるまでは駅務室でお尋ねください。`,
-    exchange: "**💱 鍾路5街駅周辺の両替所**\n\n**① マネーボックス 広蔵市場店**\n• **場所:** 鍾路5街駅8番出口から徒歩約1分（鍾路210、ハイビュー・ザ・広蔵107号）\n• **営業時間:** 毎日09:30～20:30\n• **電話:** 02-2269-8898\n\n**② ABC Money Exchange 広蔵市場店**\n• **場所:** 鍾路198-2 大東ビル1階（広蔵市場付近）\n• **営業時間:** 毎日09:00～19:00\n• **電話:** 010-5628-2100\n\n※ 営業時間・営業状況は変更される場合があります。訪問前にご確認ください。",
+    exchange: "**💱 鍾路5街駅周辺の両替所**\n\n**① マネーボックス 広蔵市場店**\n• **場所:** 鍾路5街駅8番出口から徒歩約1分（鍾路210、ハイビュー・ザ・広蔵107号）\n• **営業時間:** 毎日09:30～20:30\n• **電話:** 02-2269-8898\n\n**② ABC Money Exchange 広蔵市場店**\n• **場所:** 鍾路198-2 大東ビル1階（広蔵市場付近）\n• **営業時間:** 毎日09:00～19:00\n\n※ 営業時間・営業状況は変更される場合があります。訪問前にご確認ください。",
     nursingGuide: "**🍼 授乳室のご案内**\n\n**場所:** 鍾路5街地下商店街（鍾五地下ショッピングセンター）の**地下1階**、**地下商店街11番出口付近**\n\n女性用トイレの隣にある授乳室をお探しください。\n\n※ **11番出口は地下商店街の出口番号**です。地下鉄駅の出口番号ではありません。不明な場合は駅務室でお尋ねください。",
     buyDescriptions: {
       single: "地下鉄を1回利用",
@@ -501,7 +501,7 @@ const SUBMENU_TEXT = {
       payment: "**请选择充值支付方式。**",
     },
     facilityPending: (name) => `**${name}位置**\n\n正在核实准确位置。确认前请向站务室咨询。`,
-    exchange: "**💱 钟路5街站附近的货币兑换处**\n\n**① Moneybox 广藏市场店**\n• **位置:** 从钟路5街站8号出口步行约1分钟（钟路210号，Hi-View the Gwangjang 107室）\n• **营业时间:** 每天09:30–20:30\n• **电话:** 02-2269-8898\n\n**② ABC Money Exchange 广藏市场店**\n• **位置:** 钟路198-2号，大东大厦1层（广藏市场附近）\n• **营业时间:** 每天09:00–19:00\n• **电话:** 010-5628-2100\n\n※ 营业时间和营业状态可能变化，请出发前再次确认。",
+    exchange: "**💱 钟路5街站附近的货币兑换处**\n\n**① Moneybox 广藏市场店**\n• **位置:** 从钟路5街站8号出口步行约1分钟（钟路210号，Hi-View the Gwangjang 107室）\n• **营业时间:** 每天09:30–20:30\n• **电话:** 02-2269-8898\n\n**② ABC Money Exchange 广藏市场店**\n• **位置:** 钟路198-2号，大东大厦1层（广藏市场附近）\n• **营业时间:** 每天09:00–19:00\n\n※ 营业时间和营业状态可能变化，请出发前再次确认。",
     nursingGuide: "**🍼 母婴室位置**\n\n**位置:** 钟路5街地下商街（钟五地下购物中心）**地下一层**，**地下商街11号出口附近**。\n\n母婴室位于女洗手间旁。\n\n※ 这里的**11号出口是地下商街的出口编号**，不是地铁站出口编号。如找不到，请向站务室咨询。",
     buyDescriptions: {
       single: "乘坐地铁一次",
