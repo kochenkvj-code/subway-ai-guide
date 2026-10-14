@@ -1215,7 +1215,6 @@ export default function Home() {
       <section className="sag-phone">
         <header className="sag-header">
           <div>
-            <div className="sag-kicker">SUBWAY AI GUIDE</div>
             <h1>{STATION[lang]} {t.title}</h1>
           </div>
           <div className="sag-status">
@@ -1540,7 +1539,7 @@ export default function Home() {
         }
 
         .sag-header {
-          padding: 18px 20px 13px;
+          padding: 12px 20px 9px;
           border-bottom: 1px solid #e6edf2;
           display: flex;
           align-items: flex-start;
@@ -2203,7 +2202,7 @@ export default function Home() {
           }
 
           .sag-header {
-            padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+            padding: calc(8px + env(safe-area-inset-top)) 16px 7px;
           }
 
           .sag-kicker {
