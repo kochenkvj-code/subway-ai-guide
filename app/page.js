@@ -710,11 +710,11 @@ function makeSubmenu(lang, menuName, cardType = null) {
 function QuickActionIcon({ type }) {
   const paths = {
     route: <><rect x="5" y="3" width="14" height="15" rx="3" /><path d="M5 10h14M8 18l-2 3M16 18l2 3M8 14h.01M16 14h.01" /></>,
-    gate: <><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M3 21h18" /><path d="M9 12h6m-3-3 3 3-3 3" /></>,
+    gate: <><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M7 7h4v4H7zM14 7h3M14 10h3M7 15h3M7 18h3M14 14l3 3m0-3v3h-3" /></>,
     fares: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18M7 14h4" /></>,
     facility: <><circle cx="12" cy="4" r="2" /><path d="M12 7v6m-5-3 5-2 5 2M9 13l-2 8m5-8 4 8M5 21h14" /></>,
     exchange: <><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4" /></>,
-    staff: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
+    staff: <><circle cx="10" cy="8" r="3" /><path d="M4 20v-2a6 6 0 0 1 12 0v2M17 8h4M17 12h4M18 16h3" /></>,
   };
   return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[type]}</svg>;
 }
