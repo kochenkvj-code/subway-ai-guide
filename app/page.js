@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import SubwayRouteCard from "./components/SubwayRouteCard";
+import NearbyPlacesCard from "./components/NearbyPlacesCard";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -32,6 +33,7 @@ const TEXT = {
     facilities: "시설안내",
     exchange: "환전소 안내",
     office: "역무실 위치",
+    nearby: "주변 명소",
     exit: "출구 안내",
     elevator: "엘리베이터",
     staff: "역무원 문의",
@@ -63,6 +65,7 @@ const TEXT = {
     facilities: "Facilities",
     exchange: "Currency Exchange",
     office: "Station Office",
+    nearby: "Nearby Places",
     exit: "Exit guide",
     elevator: "Elevator",
     staff: "Ask staff",
@@ -94,6 +97,7 @@ const TEXT = {
     facilities: "駅の設備",
     exchange: "両替所",
     office: "駅務室の場所",
+    nearby: "周辺スポット",
     exit: "出口案内",
     elevator: "エレベーター",
     staff: "駅員に相談",
@@ -125,6 +129,7 @@ const TEXT = {
     facilities: "车站设施",
     exchange: "货币兑换",
     office: "站务室位置",
+    nearby: "周边景点",
     exit: "出口指南",
     elevator: "电梯",
     staff: "咨询站务员",
@@ -357,7 +362,7 @@ const SUBMENU_TEXT = {
       tmoney: "티머니", climateShort: "기후동행카드 단기권",
       climatePass: "모두의카드(기후동행패스)", cash: "현금",
       domestic: "국내 발급 카드", foreign: "해외 발급 카드",
-      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함", nursing: "수유실",
+      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함", nursing: "수유실", office: "역무실",
       facilityBack: "시설안내 다시 선택", buyBack: "다른 승차권 보기",
       fareBack: "다른 승차권·카드 선택", topupBack: "다른 교통카드 선택",
     },
@@ -391,7 +396,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "Climate Card short-term pass",
       climatePass: "Modu Card (Climate Pass)", cash: "Cash", domestic: "Korean-issued card",
       foreign: "Overseas-issued card", restroom: "Restroom", elevator: "Elevator",
-      lockers: "Lockers", nursing: "Nursing room", facilityBack: "Other facilities", buyBack: "Other tickets",
+      lockers: "Lockers", nursing: "Nursing room", office: "Station office", facilityBack: "Other facilities", buyBack: "Other tickets",
       fareBack: "Choose another ticket / card", topupBack: "Other card",
     },
     prompts: {
@@ -424,7 +429,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "気候同行カード短期券",
       climatePass: "モドゥカード(気候同行パス)", cash: "現金", domestic: "韓国発行カード",
       foreign: "海外発行カード", restroom: "トイレ", elevator: "エレベーター",
-      lockers: "コインロッカー", nursing: "授乳室", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
+      lockers: "コインロッカー", nursing: "授乳室", office: "駅務室", facilityBack: "ほかの設備", buyBack: "ほかの乗車券",
       fareBack: "ほかの乗車券・カード", topupBack: "ほかのカード",
     },
     prompts: {
@@ -457,7 +462,7 @@ const SUBMENU_TEXT = {
       tmoney: "T-money", climateShort: "气候同行卡短期票",
       climatePass: "Modu卡（气候同行通行证）", cash: "现金", domestic: "韩国发行银行卡",
       foreign: "境外发行银行卡", restroom: "洗手间", elevator: "电梯",
-      lockers: "寄存柜", nursing: "母婴室", facilityBack: "其他设施", buyBack: "其他车票",
+      lockers: "寄存柜", nursing: "母婴室", office: "站务室", facilityBack: "其他设施", buyBack: "其他车票",
       fareBack: "选择其他车票/交通卡", topupBack: "其他交通卡",
     },
     prompts: {
@@ -666,10 +671,16 @@ function productGuideWithDevicePayments(lang, product) {
   return `${ui.buyGuides[product]}\n\n${note[product]}\n\n${note.location}`;
 }
 
-const FACILITY_TYPES = ["restroom", "elevator", "lockers", "nursing"];
+const FACILITY_TYPES = ["restroom", "elevator", "lockers", "nursing", "office"];
 const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
 
 const FACILITY_QUESTIONS = {
+  office: {
+    ko: "종로5가역 역무실의 정확한 위치를 확인된 정보만으로 안내해 주세요. 확인되지 않으면 추측하지 마세요.",
+    en: "Where is the Jongno 5-ga station office? Give only verified directions; do not guess.",
+    ja: "鍾路5街駅の駅務室はどこですか？確認済みの場所だけを案内してください。",
+    zh: "钟路5街站的站务室在哪里？仅提供已核实的位置信息。",
+  },
   restroom: {
     ko: "종로5가역 화장실은 어느 층, 어느 개찰구 또는 출구 방향에 있나요? 검증된 정보를 바탕으로 승객이 따라갈 수 있는 경로를 간단히 안내해 주세요. 위치가 확인되지 않으면 추측하지 말고 역무실에 문의하라고 안내해 주세요.",
     en: "Where is the restroom at Jongno 5-ga Station? Give verified floor, gate or exit-direction information and clear walking directions. If the location cannot be confirmed, do not guess; suggest asking the station office.",
@@ -714,6 +725,7 @@ function QuickActionIcon({ type }) {
     fares: <><path d="M3 7h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4V7Z" fill="currentColor" opacity=".9"/><path d="M12 8v10" stroke="#fff" strokeWidth="1.5" strokeDasharray="2 2"/><path d="M6 11h3M6 15h3" stroke="#fff" strokeWidth="1.4" strokeLinecap="round"/></>,
     facility: <><circle cx="12" cy="4" r="2.5" fill="currentColor"/><path d="M7 9h10l-3 5 2 7h-3l-2-6-2 6H6l3-9-2-3Z" fill="currentColor" opacity=".9"/><path d="M4 9h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>,
     exchange: <><rect x="2" y="5" width="12" height="10" rx="2" fill="currentColor" opacity=".85"/><path d="M5 10h6m-3-3v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><rect x="10" y="11" width="12" height="10" rx="2" fill="currentColor" opacity=".55"/><path d="M13 16h6m-3-3v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><path d="m15 5 4 0-2-2m2 2-2 2" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round"/></>,
+    nearby: <><path d="M4 5h16v14H4z" fill="currentColor" opacity=".18"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="m5 18 5-5 3 3 3-5 4 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round"/></>,
     staff: <><circle cx="12" cy="7" r="4" fill="currentColor" opacity=".9"/><path d="M4 21v-2a8 8 0 0 1 16 0v2H4Z" fill="currentColor" opacity=".9"/><path d="M9 17l3 3 3-3" stroke="#fff" strokeWidth="1.4" fill="none"/><rect x="9" y="2" width="6" height="2" rx="1" fill="#fff"/></>,
   };
   return <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none">{art[type]}</svg>;
@@ -1184,6 +1196,13 @@ export default function Home() {
       return;
     }
 
+    if (type === "nearby") {
+      setMode(null);
+      setInput("");
+      setMessages(prev => [...prev.filter(m => !m.nearbyCard), {role:"assistant",text:"",nearbyCard:true}]);
+      return;
+    }
+
     if (type === "route") {
       // Route lookup is a self-contained form. No language-model requests here.
       setMode(null);
@@ -1219,7 +1238,7 @@ export default function Home() {
     ["fares", t.fares],
     ["facility", t.facilities],
     ["exchange", t.exchange],
-    ["staff", t.office],
+    ["nearby", t.nearby],
   ];
 
   return (
@@ -1267,6 +1286,7 @@ export default function Home() {
             <div key={index} className={`sag-row ${message.role} ${message.routeCard ? "route-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${message.routeCard ? "route-card-bubble" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
+                {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
@@ -1662,6 +1682,7 @@ export default function Home() {
         .sag-action-icon-facility { color: #3176c4; background: #eaf2ff; }
         .sag-action-icon-exchange { color: #8c59b8; background: #f3ecfc; }
         .sag-action-icon-staff { color: #287a83; background: #e6f5f5; }
+        .sag-action-icon-nearby { color: #18856a; background: #e6f5ed; }
 
         .sag-gate-topbar {
           flex: 0 0 auto;
