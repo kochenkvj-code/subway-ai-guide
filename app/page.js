@@ -1214,16 +1214,8 @@ export default function Home() {
     <main className="sag-page">
       <section className="sag-phone">
         <header className="sag-header">
-          <div>
-            <h1>{STATION[lang]} {t.title}</h1>
-          </div>
-          <div className="sag-status">
-            <span className={loading ? "loading" : ""} />
-            {t.status}
-          </div>
-        </header>
-
-        <div className="sag-languages">
+          <div className="sag-header-title"><h1>{STATION[lang]} {t.title}</h1></div>
+          <div className="sag-languages">
           {LANGUAGE_BUTTONS.map(([code, label]) => (
             <button
               key={code}
@@ -1234,9 +1226,10 @@ export default function Home() {
               {label}
             </button>
           ))}
-        </div>
+          </div>
+        </header>
 
-        <div className="sag-section-title">{t.quick}</div>
+        <div className="sag-section-title"><span>{t.quick}</span><div className="sag-status"><span className={loading ? "loading" : ""} />{t.status}</div></div>
         <div className="sag-actions">
           {actions.map(([type, icon, label]) => (
             <button
@@ -1542,9 +1535,9 @@ export default function Home() {
           padding: 12px 20px 9px;
           border-bottom: 1px solid #e6edf2;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: space-between;
-          gap: 14px;
+          gap: 8px;
         }
 
         .sag-kicker {
@@ -1586,19 +1579,21 @@ export default function Home() {
           50% { opacity: 1; }
         }
 
+        .sag-header-title { flex: 1; min-width: 0; }
         .sag-languages {
+          flex: 0 0 142px;
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 4px;
-          padding: 4px 16px 0;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 3px;
+          padding: 0;
         }
 
         .sag-languages button {
           border: 1px solid #dfe8ed;
           background: white;
           border-radius: 8px;
-          height: 32px;
-          padding: 3px 2px;
+          height: 27px;
+          padding: 2px 1px;
           color: #53616c;
           cursor: pointer;
           font-size: 12px;
@@ -1615,6 +1610,10 @@ export default function Home() {
           padding: 10px 16px 7px;
           font-weight: 800;
           font-size: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
         }
 
         .sag-actions {
@@ -2221,14 +2220,15 @@ export default function Home() {
           }
 
           .sag-languages {
-            padding: 3px 12px 0;
-            gap: 4px;
+            flex-basis: 132px;
+            padding: 0;
+            gap: 3px;
           }
 
           .sag-languages button {
-            height: 30px;
-            padding: 2px 1px;
-            font-size: 11px;
+            height: 26px;
+            padding: 1px;
+            font-size: 10.5px;
           }
 
           .sag-section-title {
