@@ -29,7 +29,7 @@ const PLACES = [
     id:"pharmacy", names:{ko:"종로5가 약국거리",en:"Pharmacy Street",ja:"鍾路5街 薬局街",zh:"钟路5街 药店街"},
     descriptions:{ko:"약국 · 의료기기 상가",en:"Pharmacies · medical supplies",ja:"薬局・医療用品",zh:"药店 · 医疗用品"},
     details:{"ko":"보령약국 등 유명 대형 약국들과 의료기기·한방 상가가 밀집해 있어 영양제나 상비약 등을 구매하기 좋은 거리입니다.","en":"A street lined with large pharmacies, including Boryung Pharmacy, as well as medical-supply and traditional-medicine shops. Visitors can shop for supplements and everyday medicines.","ja":"保寧薬局などの大型薬局や医療機器・韓方関連の店舗が集まる通りです。サプリメントや常備薬などを購入できます。","zh":"保宁药局等大型药店，以及医疗器械和韩药商铺集中于此，适合购买营养补充剂和常备药。"},
-    exit:"2·3", image:"The Ceyx pharmacy sign - 22 July 2025.jpg", credit:"Aethonatic · CC0 1.0 (약국 상징 이미지)", illustrative:true, map:"Jongno 5-ga pharmacy street Seoul",
+    exit:"2·3", image:"/images/pharmacy_jongno5.webp", credit:null, illustrative:true, map:"Jongno 5-ga pharmacy street Seoul",
   },
 ];
 const UI = {
@@ -50,7 +50,7 @@ const EXITS = [
 ];
 const exitLabel = (number,lang,t) => lang==="en" ? `Exit ${number}` : `${number}${t.exitSuffix}`;
 const commons = name => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(name.replaceAll(" ","_"));
-const thumb = name => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(name) + "?width=480";
+const thumb = name => name.startsWith("/") ? name : "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(name) + "?width=480";
 export default function NearbyPlacesCard({lang="ko"}) {
   const [selected,setSelected] = useState(null);
   const [tab,setTab] = useState("places");
@@ -79,7 +79,7 @@ export default function NearbyPlacesCard({lang="ko"}) {
       {place.illustrative && <p className="np-illustrative">{lang==="ko"?"※ 약국을 나타내는 참고사진으로, 종로5가에서 촬영한 사진은 아닙니다.":lang==="ja"?"※ 薬局の参考写真です。鍾路5街で撮影されたものではありません。":lang==="zh"?"※ 药店示意照片，并非拍摄于钟路5街。":"※ Illustrative pharmacy photo, not taken in Jongno 5-ga."}</p>}
       <div className="np-exit"><span>{t.exit}</span><strong>{place.exit ? exitLabel(place.exit,lang,t) : t.pending}</strong></div>
       <a className="np-map" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place.map)} target="_blank" rel="noopener noreferrer">🗺 {t.map} ↗</a>
-      {place.image && <a className="np-credit" href={commons(place.image)} target="_blank" rel="noopener noreferrer">{t.source}: {place.credit} ↗</a>}
+      {place.image && place.credit && <a className="np-credit" href={commons(place.image)} target="_blank" rel="noopener noreferrer">{t.source}: {place.credit} ↗</a>}
     </div>}
     <style>{`
       .np-card{box-sizing:border-box;width:100%;padding:10px;border:1px solid #dce7e8;border-radius:16px;background:#fff;color:#1b3038;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
