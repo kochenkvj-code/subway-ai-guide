@@ -26,7 +26,7 @@ export function officialStationMatches(query, lang, limit = 8) {
   results.sort((a,b) => {
     const rank = s => {
       const ko = clean(s.ko), label = clean(s[lang] || s.ko);
-      if (ko === q + "역") return 0;
+      if (ko === q + "역" || (lang === "en" && label === q + "station")) return 0;
       if (ko === q || label === q) return 1;
       if (ko.startsWith(q) || label.startsWith(q)) return 2;
       return 3;
