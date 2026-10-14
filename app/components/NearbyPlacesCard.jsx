@@ -55,8 +55,7 @@ export default function NearbyPlacesCard({lang="ko"}) {
     </nav>
     {tab==="exits" ? <div className="np-exits" aria-label={t.exitHeading}>
       {EXITS.map(e=><div className="np-exit-row" key={e.number}>
-        <span className="np-exit-number">{exitLabel(e.number,lang,t)}</span>
-        <span>{e.names[lang] || e.names.ko}</span>
+        <span className="np-exit-inline"><strong>{exitLabel(e.number,lang,t)}</strong> {e.names[lang] || e.names.ko}</span>
       </div>)}
     </div> : !place ? <div className="np-grid">{PLACES.map(p=><button type="button" className="np-place" key={p.id} onClick={()=>setSelected(p.id)}>
       {p.image ? <img src={thumb(p.image)} alt={p.names[lang] || p.names.ko} loading="lazy"/> : <div className="np-photo-missing"><span>✚</span><small>{t.photo}</small></div>}
@@ -79,8 +78,8 @@ export default function NearbyPlacesCard({lang="ko"}) {
       .np-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 9px;padding:3px;background:#edf3f2;border-radius:10px}
       .np-tabs button{padding:7px 4px;border:0;border-radius:8px;background:transparent;color:#536d71;font-weight:750;font-size:13px;cursor:pointer}
       .np-tabs button.active{background:#fff;color:#087f69;box-shadow:0 1px 5px #00000012}
-      .np-exits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.np-exit-row{display:flex;align-items:center;gap:6px;padding:8px 6px;border:1px solid #e0e9eb;border-radius:10px;font-size:12px;line-height:1.4}
-      .np-exit-number{flex:0 0 49px;text-align:center;background:#e5f5ee;border-radius:7px;padding:6px 2px;color:#087f69;font-size:12px;font-weight:800}
+      .np-exits{display:grid;grid-template-columns:1fr;gap:5px}.np-exit-row{display:block;padding:8px 10px;border:1px solid #e0e9eb;border-radius:9px;font-size:12px;line-height:1.35;white-space:nowrap}
+      .np-exit-inline strong{color:#087f69;font-size:12px;margin-right:7px}
       .np-card-exit{margin:0 7px;color:#087f69;font-size:12px;font-weight:800}
       .np-card-pending{margin:0 7px;color:#75878a;font-size:10px}
       .np-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
