@@ -48,7 +48,6 @@ export default function NearbyPlacesCard({lang="ko"}) {
   const t = UI[lang] || UI.ko;
   const place = PLACES.find(p=>p.id===selected);
   return <section className="np-card" aria-label={t.heading}>
-    <header className="np-header"><strong>📍 {t.heading}</strong><span>{t.origin}</span></header>
     <nav className="np-tabs" aria-label={t.heading}>
       <button type="button" className={tab==="places"?"active":""} onClick={()=>{setTab("places");setSelected(null)}}>{t.places}</button>
       <button type="button" className={tab==="exits"?"active":""} onClick={()=>{setTab("exits");setSelected(null)}}>{t.exits}</button>
