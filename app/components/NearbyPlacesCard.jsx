@@ -25,7 +25,7 @@ const PLACES = [
   {
     id:"pharmacy", names:{ko:"종로5가 약국거리",en:"Pharmacy Street",ja:"鍾路5街 薬局街",zh:"钟路5街 药店街"},
     descriptions:{ko:"약국 · 의료기기 상가",en:"Pharmacies · medical supplies",ja:"薬局・医療用品",zh:"药店 · 医疗用品"},
-    exit:"2·3", image:null, credit:null, map:"Jongno 5-ga pharmacy street Seoul",
+    exit:"2·3", image:"Pharmacy Jongno 1.jpg", credit:"Bonnielou2013 · CC BY-SA 4.0 (종로구 인사동 약국 참고사진)", illustrative:true, map:"Jongno 5-ga pharmacy street Seoul",
   },
 ];
 const UI = {
@@ -66,11 +66,13 @@ export default function NearbyPlacesCard({lang="ko"}) {
       {p.image ? <img src={thumb(p.image)} alt={p.names[lang] || p.names.ko} loading="lazy"/> : <div className="np-photo-missing"><span>✚</span><small>{t.photo}</small></div>}
       <strong className="np-place-title"><span className="np-title-exit">{p.exit ? exitLabel(p.exit,lang,t) : t.pending}</span> <span>{p.names[lang] || p.names.ko}</span></strong>
       <small className="np-place-description">{p.descriptions[lang] || p.descriptions.ko}</small>
+      {p.illustrative && <small className="np-illustrative">{lang==="ko"?"※ 실제 약국거리 사진 아님":lang==="ja"?"※ 現地の写真ではありません":lang==="zh"?"※ 非该街区实景":"※ Illustrative photo"}</small>}
     </button>)}</div> : <div className="np-detail">
       <button type="button" className="np-back" onClick={()=>setSelected(null)}>← {t.back}</button>
       {place.image && <img className="np-hero" src={thumb(place.image)} alt={place.names[lang] || place.names.ko}/>}
       <h3>{place.names[lang] || place.names.ko}</h3>
       <p>{place.descriptions[lang] || place.descriptions.ko}</p>
+      {place.illustrative && <p className="np-illustrative">{lang==="ko"?"※ 종로구 인사동 약국 참고사진으로, 종로5가 약국거리의 실제 모습은 아닙니다.":lang==="ja"?"※ 鍾路区仁寺洞の薬局の参考写真です。":lang==="zh"?"※ 钟路区仁寺洞药店参考照片，非该街区实景。":"※ Reference photo of a pharmacy in Insadong, not this street."}</p>}
       <div className="np-exit"><span>{t.exit}</span><strong>{place.exit ? exitLabel(place.exit,lang,t) : t.pending}</strong></div>
       <a className="np-map" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place.map)} target="_blank" rel="noopener noreferrer">🗺 {t.map} ↗</a>
       {place.image && <a className="np-credit" href={commons(place.image)} target="_blank" rel="noopener noreferrer">{t.source}: {place.credit} ↗</a>}
@@ -90,7 +92,7 @@ export default function NearbyPlacesCard({lang="ko"}) {
       .np-place{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:2px;min-width:0;padding:0 0 5px;background:#fff;border:1px solid #e0e9eb;border-radius:12px;overflow:hidden;cursor:pointer;color:inherit}
       .np-place img,.np-photo-missing{display:block;width:100%;aspect-ratio:2.15/1;object-fit:cover;background:#e8f1ef}
       .np-photo-missing{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:#75928b}.np-photo-missing span{font-size:25px}
-      .np-place strong{font-size:12px;padding:0 7px}.np-place-title{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:-.35px}.np-place-title .np-title-exit{color:#087f69;flex:0 0 auto;font-size:11px}.np-place-description{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-place small{font-size:10px;color:#617b84;padding:0 7px;line-height:1.4}
+      .np-place strong{font-size:12px;padding:0 7px}.np-place-title{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:-.35px}.np-place-title .np-title-exit{color:#087f69;flex:0 0 auto;font-size:11px}.np-place-description{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-illustrative{font-size:9px!important;color:#94672b!important;line-height:1.25!important}.np-place small{font-size:10px;color:#617b84;padding:0 7px;line-height:1.4}
       .np-place:focus-visible,.np-back:focus-visible{outline:3px solid #128a72;outline-offset:2px}
       .np-back{border:0;background:none;color:#087f6d;font-size:12px;font-weight:700;padding:3px 0 12px;cursor:pointer}
       .np-hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px}.np-detail h3{margin:12px 0 5px;font-size:19px}.np-detail p{margin:0 0 14px;font-size:13px;color:#617b84}
