@@ -121,8 +121,8 @@ export default function SubwayRouteCard({ lang = "ko" }) {
       <header className="srg-heading"><span className="srg-train">🚇</span><strong>{t.heading}</strong></header>
       <form onSubmit={search}>
         <div className="srg-fields">
-          <label className="srg-field"><span>{t.from}</span><input value={stationName("종로5가", lang)} readOnly /></label>
-          <label className="srg-field"><span>{t.to}</span><input value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
+          <label className="srg-field"><input aria-label={t.from} value={stationName("종로5가", lang)} readOnly /></label>
+          <label className="srg-field"><input aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setError(""); }} placeholder={t.toHint} maxLength={30} autoComplete="off" /></label>
         </div>
         <div className="srg-presets"><span>{t.shortcuts}</span>{DESTINATIONS.map((ko) => <button type="button" key={ko} onClick={() => { setDestination(stationName(ko, lang)); setError(""); }} className="srg-preset">{stationName(ko, lang)}</button>)}</div>
         <div className="srg-modes">{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
