@@ -390,7 +390,7 @@ const SUBMENU_TEXT = {
       tmoney: "티머니", climateShort: "기후동행카드 단기권",
       climatePass: "모두의카드(기후동행패스)", cash: "현금",
       domestic: "국내 발급 카드", foreign: "해외 발급 카드",
-      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함", nursing: "수유실", office: "역무실",
+      restroom: "화장실", elevator: "엘리베이터", lockers: "물품보관함", nursing: "수유실", office: "고객안전실",
       facilityBack: "시설안내 다시 선택", buyBack: "다른 승차권 보기",
       fareBack: "다른 승차권·카드 선택", topupBack: "다른 교통카드 선택",
     },
@@ -704,7 +704,7 @@ const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
 
 const FACILITY_QUESTIONS = {
   office: {
-    ko: "종로5가역 역무실의 정확한 위치를 확인된 정보만으로 안내해 주세요. 확인되지 않으면 추측하지 마세요.",
+    ko: "종로5가역 고객안전실의 정확한 위치를 확인된 정보만으로 안내해 주세요. 확인되지 않으면 추측하지 마세요.",
     en: "Where is the Jongno 5-ga station office? Give only verified directions; do not guess.",
     ja: "鍾路5街駅の駅務室はどこですか？確認済みの場所だけを案内してください。",
     zh: "钟路5街站的站务室在哪里？仅提供已核实的位置信息。",
