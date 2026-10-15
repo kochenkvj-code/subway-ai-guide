@@ -751,7 +751,6 @@ function FacilityMapCard({ type = null, lang }) {
   };
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
-      <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{({ko:"대합실 시설안내",en:"Concourse facilities",ja:"コンコース施設案内",zh:"站厅设施指南"})[locale]}</div>
       <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
         <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} width={1447} height={1024} style={{ display: "block", width: "100%", height: "auto" }} />
         {(spots[selected] || []).map((p, i) => (
