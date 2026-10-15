@@ -1289,7 +1289,12 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="sag-section-title"><span>{t.quick}</span><div className="sag-status"><span className={loading ? "loading" : ""} />{t.status}</div></div>
+        <div className="sag-hybrid-hero">
+          <div className="sag-hybrid-eyebrow"><span className="sag-hybrid-dot" /> AI SUBWAY GUIDE <span className="sag-hybrid-online">{t.status}</span></div>
+          <h2>{({ko:"무엇을 도와드릴까요?",en:"How can we help?",ja:"何をお手伝いしましょうか？",zh:"需要什么帮助？"})[lang]}</h2>
+          <p>{({ko:"길찾기부터 교통카드 문제까지 빠르게 안내해 드립니다.",en:"Routes, transit cards, and station help in one place.",ja:"経路や交通カード、駅の設備をご案内します。",zh:"路线、交通卡及车站设施，一站式为您解答。"})[lang]}</p>
+        </div>
+        <div className="sag-section-title"><span>{t.quick}</span></div>
         <div className="sag-actions">
           {actions.map(([type, label]) => (
             <button
@@ -2245,6 +2250,33 @@ export default function Home() {
           font-weight: 800;
           cursor: pointer;
           min-width: 62px;
+        }
+
+        /* Hybrid home: prominent welcome, compact two-column shortcuts, persistent chat */
+        .sag-hybrid-hero {
+          margin: 12px 16px 4px;
+          padding: 17px 18px;
+          border-radius: 18px;
+          background: linear-gradient(130deg,#eff7ff 0%,#f3fbf9 100%);
+          border: 1px solid #e0edf5;
+        }
+        .sag-hybrid-eyebrow {display:flex;align-items:center;gap:7px;font-size:10px;font-weight:800;letter-spacing:.8px;color:#226b9a;}
+        .sag-hybrid-dot {width:7px;height:7px;border-radius:50%;background:#20a675;flex:none;}
+        .sag-hybrid-online {margin-left:auto;letter-spacing:0;color:#397966;font-weight:700;}
+        .sag-hybrid-hero h2 {margin:10px 0 5px;font-size:21px;letter-spacing:-.7px;line-height:1.3;color:#142b43;}
+        .sag-hybrid-hero p {margin:0;color:#5d7181;font-size:12px;line-height:1.55;word-break:keep-all;}
+        .sag-actions {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+        .sag-actions button {min-height:62px;border-radius:14px;background:#fbfdff;box-shadow:0 2px 8px rgba(24,58,86,.035);}
+        .sag-actions button:hover:not(:disabled) {background:#eff7ff;border-color:#bcd8ec;}
+        .sag-chat-shell {border-top:1px solid #edf1f5;}
+        .sag-input-wrap input {border-radius:22px;}
+        .sag-input-wrap button {border-radius:22px;}
+        @media (max-width:560px) {
+          .sag-hybrid-hero {margin:8px 12px 2px;padding:12px 14px;border-radius:14px;}
+          .sag-hybrid-hero h2 {font-size:18px;margin:6px 0 3px;}
+          .sag-hybrid-hero p {font-size:11px;}
+          .sag-actions {grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-bottom:7px;}
+          .sag-actions button {min-height:49px;border-radius:11px;}
         }
 
         @media (max-width: 560px) {
