@@ -901,7 +901,6 @@ export default function Home() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
-  const [quickMenuSerial, setQuickMenuSerial] = useState(0);
   const [feedbackByIndex, setFeedbackByIndex] = useState({});
   const [expandedFareDetails, setExpandedFareDetails] = useState({});
   const fareGuideSerial = useRef(0);
@@ -927,7 +926,7 @@ export default function Home() {
     ? "gate-picker"
     : lastMessage?.gateResult
       ? `gate-resolution-${lastMessage.gateMessageId ?? lastMessage.gateResult}`
-      : `normal-chat-${quickMenuSerial}`;
+      : "normal-chat";
 
   function updateScrollIndicator() {
     const el = chatRef.current;
@@ -1014,10 +1013,10 @@ export default function Home() {
     // For regular conversation continue auto-scrolling to the newest answer.
     if (gateScreenActive) {
       el.scrollTop = 0;
-    } else if (lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.menuPhase === "selection") {
-      // Open long interactive cards at their heading, not at the bottom.
-      // In particular, the facility map is taller than the mobile viewport.
-      const targets = el.querySelectorAll(".sag-row.route-row, .sag-row.facility-row, .sag-row.exchange-row");
+    } else if (lastMessage?.routeCard) {
+      // Open the form at its heading, rather than scrolling to the bottom
+      // of the long route card (particularly important on small iPhones).
+      const targets = el.querySelectorAll(".sag-row.route-row");
       const target = targets[targets.length - 1];
       if (target) {
         const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
@@ -1250,42 +1249,51 @@ export default function Home() {
 
   function quickAction(type, label) {
     if (loading) return;
-
-    // Every quick menu opens as its own scroll view. A new key forces iOS
-    // Safari to discard the previous menu's scroll offset and touch momentum.
-    setQuickMenuSerial((n) => n + 1);
-    gateEntryRef.current = false;
-    gateReturnMessagesRef.current = null;
-    setGateEntry(false);
-    setMode(null);
-    setInput("");
+    if (gateScreenActive && type !== "gate") leaveGateScreen();
 
     if (type === "facility") {
-      setMessages([{ role: "assistant", text: "", facilityMap: "selector" }]);
+      setMode(null);
+      setMessages((prev) => [...prev.filter((m) => !m.facilityMap), { role: "assistant", text: "", facilityMap: "selector" }]);
       return;
     }
     if (type === "fares") {
-      setMessages([makeSubmenu(lang, "fare")]);
-      return;
-    }
-    if (type === "exchange") {
-      setMessages([{ role: "assistant", text: "", exchangeCard: true }]);
-      return;
-    }
-    if (type === "gate") {
-      setFeedbackByIndex({});
-      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
-      return;
-    }
-    if (type === "nearby") {
-      setMessages([{ role: "assistant", text: "", nearbyCard: true }]);
-      return;
-    }
-    if (type === "route") {
-      setMessages([{ role: "assistant", text: "", routeCard: true }]);
+      showMenu("fare");
       return;
     }
 
+    if (type === "exchange") {
+      const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
+      setMode(null);
+      setMessages((prev) => [...prev, { role: "assistant", text: "", exchangeCard: true }]);
+      return;
+    }
+
+    if (type === "gate") {
+      setMode(null);
+      if (!gateScreenActive) gateReturnMessagesRef.current = messages;
+      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
+      return;
+    }
+
+    if (type === "nearby") {
+      setMode(null);
+      setInput("");
+      setMessages(prev => [...prev.filter(m => !m.nearbyCard), {role:"assistant",text:"",nearbyCard:true}]);
+      return;
+    }
+
+    if (type === "route") {
+      // Route lookup is a self-contained form. No language-model requests here.
+      setMode(null);
+      setInput("");
+      setMessages((prev) => [
+        ...prev.filter((message) => !message.routeCard),
+        { role: "assistant", text: "", routeCard: true },
+      ]);
+      return;
+    }
+
+    setMode(null);
     const question = quickQuestion(type, lang);
     askGoogle(question, label, type);
   }
@@ -1354,7 +1362,7 @@ export default function Home() {
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
-            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
+            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
