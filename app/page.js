@@ -1249,7 +1249,36 @@ export default function Home() {
 
   function quickAction(type, label) {
     if (loading) return;
-    if (gateScreenActive && type !== "gate") leaveGateScreen();
+    if (gateScreenActive && type !== "gate") {
+      // A gate guide is a dedicated scroll view. Do not restore the previous
+      // chat history and then append another quick menu: on iOS Safari that
+      // leaves the next card scrolled into the middle of old content.
+      gateEntryRef.current = false;
+      gateReturnMessagesRef.current = null;
+      setGateEntry(false);
+      setMode(null);
+      setInput("");
+      if (type === "facility") {
+        setMessages([{ role: "assistant", text: "", facilityMap: "selector" }]);
+        return;
+      }
+      if (type === "fares") {
+        setMessages([makeSubmenu(lang, "fare")]);
+        return;
+      }
+      if (type === "exchange") {
+        setMessages([{ role: "assistant", text: "", exchangeCard: true }]);
+        return;
+      }
+      if (type === "nearby") {
+        setMessages([{ role: "assistant", text: "", nearbyCard: true }]);
+        return;
+      }
+      if (type === "route") {
+        setMessages([{ role: "assistant", text: "", routeCard: true }]);
+        return;
+      }
+    }
 
     if (type === "facility") {
       setMode(null);
