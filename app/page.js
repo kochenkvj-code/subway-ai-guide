@@ -733,7 +733,8 @@ const TOPUP_TYPES = ["tmoney", "climateShort", "climatePass"];
 const PAYMENT_TYPES = ["cash", "domestic", "foreign"];
 
 // Static station map with percentage-based overlay markers. Image retains its native aspect ratio.
-function FacilityMapCard({ type, lang }) {
+function FacilityMapCard({ type = null, lang }) {
+  const [selected, setSelected] = useState(type);
   const locale = lang in STATION ? lang : "ko";
   const names = {
     ko: { kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "주황색 표시로 강조된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
@@ -750,14 +751,19 @@ function FacilityMapCard({ type, lang }) {
   };
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
-      <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{ui[type]}</div>
+      <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{({ko:"대합실 시설안내",en:"Concourse facilities",ja:"コンコース施設案内",zh:"站厅设施指南"})[locale]}</div>
       <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
         <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
-        {spots[type].map((p, i) => (
+        {(spots[selected] || []).map((p, i) => (
           <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #ea580c", background: "rgba(255,255,255,.08)", boxShadow: "0 0 0 2px rgba(255,255,255,.92), 0 2px 8px rgba(124,45,18,.28)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9a3412", textShadow: "0 1px 2px rgba(255,255,255,.95)", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label ? <span style={{ position: "absolute", top: -15, right: -13, background: "#ea580c", color: "#fff", border: "2px solid #fff", borderRadius: 999, minWidth: 19, height: 19, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, lineHeight: 1 }}>{p.label}</span> : null}</span>
         ))}
       </div>
-      <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{ui.note}</p>
+      <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{selected ? ui.note : ({ko:"아래에서 시설을 선택하면 지도에 위치가 표시됩니다.",en:"Choose a facility below to highlight its location.",ja:"下の施設を選ぶと地図上に場所が表示されます。",zh:"选择下方设施，即可在地图上查看位置。"})[locale]}</p>
+      <div role="group" aria-label={ui.note} style={{ display:"grid", gridTemplateColumns:"repeat(3,minmax(0,1fr))", gap:6, marginTop:12 }}>
+        {["kiosk","restroom","lockers"].map((facility) => (
+          <button key={facility} type="button" aria-pressed={selected === facility} onClick={() => setSelected(facility)} style={{ padding:"10px 4px", minWidth:0, minHeight:48, borderRadius:10, border:selected===facility?"2px solid #ea580c":"1px solid #cbd5e1", background:selected===facility?"#fff4e9":"#fff", color:selected===facility?"#9a3412":"#34465a", fontSize:11, fontWeight:selected===facility?800:650, lineHeight:1.4, cursor:"pointer", overflowWrap:"anywhere" }}>{ui[facility]}</button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1245,8 +1251,13 @@ export default function Home() {
     if (loading) return;
     if (gateScreenActive && type !== "gate") leaveGateScreen();
 
-    if (type === "facility" || type === "fares") {
-      showMenu(type === "facility" ? "facility" : "fare");
+    if (type === "facility") {
+      setMode(null);
+      setMessages((prev) => [...prev.filter((m) => !m.facilityMap), { role: "assistant", text: "", facilityMap: "selector" }]);
+      return;
+    }
+    if (type === "fares") {
+      showMenu("fare");
       return;
     }
 
@@ -1356,7 +1367,7 @@ export default function Home() {
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
-                {message.facilityMap && <FacilityMapCard type={message.facilityMap} lang={lang} />}
+                {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
