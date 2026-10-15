@@ -1013,10 +1013,10 @@ export default function Home() {
     // For regular conversation continue auto-scrolling to the newest answer.
     if (gateScreenActive) {
       el.scrollTop = 0;
-    } else if (lastMessage?.routeCard) {
-      // Open the form at its heading, rather than scrolling to the bottom
-      // of the long route card (particularly important on small iPhones).
-      const targets = el.querySelectorAll(".sag-row.route-row");
+    } else if (lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard) {
+      // Open long interactive cards at their heading, not at the bottom.
+      // In particular, the facility map is taller than the mobile viewport.
+      const targets = el.querySelectorAll(".sag-row.route-row, .sag-row.facility-row, .sag-row.exchange-row");
       const target = targets[targets.length - 1];
       if (target) {
         const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
@@ -1362,7 +1362,7 @@ export default function Home() {
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
-            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : ""}`}>
+            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
