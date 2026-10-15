@@ -699,7 +699,7 @@ function productGuideWithDevicePayments(lang, product) {
   return `${ui.buyGuides[product]}\n\n${note[product]}\n\n${note.location}`;
 }
 
-const FACILITY_TYPES = ["restroom", "elevator", "lockers", "nursing", "office"];
+const FACILITY_TYPES = ["kiosk", "restroom", "lockers"];
 const FARE_TYPES = ["single", "tmoney", "climateShort", "climatePass"];
 
 const FACILITY_QUESTIONS = {
@@ -732,12 +732,42 @@ const FACILITY_QUESTIONS = {
 const TOPUP_TYPES = ["tmoney", "climateShort", "climatePass"];
 const PAYMENT_TYPES = ["cash", "domestic", "foreign"];
 
+// Static station map with percentage-based overlay markers. Image retains its native aspect ratio.
+function FacilityMapCard({ type, lang }) {
+  const locale = lang in STATION ? lang : "ko";
+  const names = {
+    ko: { kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "파란 원으로 표시된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
+    en: { kiosk: "Ticket machines · Kiosks", restroom: "Restroom", lockers: "Lockers", note: "Find the highlighted location(s) on the map.", first: "Kiosk 1", second: "Kiosk 2" },
+    ja: { kiosk: "券売機・キオスク", restroom: "トイレ", lockers: "コインロッカー", note: "青い丸で示した場所をご確認ください。", first: "キオスク①", second: "キオスク②" },
+    zh: { kiosk: "售票机·自助终端", restroom: "洗手间", lockers: "寄存柜", note: "请查看地图上蓝色圆圈标记的位置。", first: "自助终端①", second: "自助终端②" },
+  };
+  const ui = names[locale];
+  // Coordinates measured against the original 1447 x 1024 concourse image.
+  const spots = {
+    kiosk: [{ x: 350 / 1447 * 100, y: 617 / 1024 * 100, label: "1" }, { x: 1100 / 1447 * 100, y: 605 / 1024 * 100, label: "2" }],
+    restroom: [{ x: 73 / 1447 * 100, y: 712 / 1024 * 100, label: "" }],
+    lockers: [{ x: 668 / 1447 * 100, y: 315 / 1024 * 100, label: "" }],
+  };
+  return (
+    <div style={{ width: "100%", minWidth: 0 }}>
+      <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{ui[type]}</div>
+      <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
+        <img src="/images/station-concourse-map.PNG" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
+        {spots[type].map((p, i) => (
+          <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #0758e5", background: "rgba(48, 128, 255, .20)", boxShadow: "0 0 0 4px rgba(255,255,255,.85), 0 0 0 7px rgba(7,88,229,.4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#003f9b", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label}</span>
+        ))}
+      </div>
+      <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{ui.note}</p>
+    </div>
+  );
+}
+
 function makeSubmenu(lang, menuName, cardType = null) {
   const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
   const option = (id, label, wide = false, description = null) => ({ id, label, wide, description });
   let options = [];
   if (menuName === "facility") {
-    options = FACILITY_TYPES.map((id) => option(`facility_${id}`, ui.labels[id]));
+    options = FACILITY_TYPES.map((id) => option(`facility_${id}`, id === "kiosk" ? ({ko:"발매기·키오스크",en:"Ticket machines · Kiosks",ja:"券売機・キオスク",zh:"售票机·自助终端"}[lang] || "발매기·키오스크") : ui.labels[id]));
   } else if (menuName === "fare" || menuName === "buy") {
     options = FARE_TYPES.map((id) => option(`buy_${id}`, ui.labels[id], false, ui.buyDescriptions[id]));
   }
@@ -1162,6 +1192,15 @@ export default function Home() {
     }
     if (id.startsWith("facility_")) {
       const facilityType = id.slice("facility_".length);
+      if (["kiosk", "restroom", "lockers"].includes(facilityType)) {
+        const facilityName = option.label;
+        setMessages((prev) => [
+          ...prev.filter((m, i) => i !== prev.length - 1 || m.menuPhase !== "selection"),
+          { role: "user", text: facilityName },
+          { role: "assistant", text: "", facilityMap: facilityType, options: [{ id: "menu_facility", label: ui.labels.facilityBack }], optionsKind: "submenu" },
+        ]);
+        return;
+      }
       if (facilityType === "nursing") {
         // 수유실은 제보된 지하상가 위치를 고정 문구로 안내하며 Gemini를 호출하지 않습니다.
         setMessages((prev) => [
@@ -1317,6 +1356,7 @@ export default function Home() {
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
+                {message.facilityMap && <FacilityMapCard type={message.facilityMap} lang={lang} />}
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
