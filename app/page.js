@@ -736,10 +736,10 @@ const PAYMENT_TYPES = ["cash", "domestic", "foreign"];
 function FacilityMapCard({ type, lang }) {
   const locale = lang in STATION ? lang : "ko";
   const names = {
-    ko: { kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "파란 원으로 표시된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
-    en: { kiosk: "Ticket machines · Kiosks", restroom: "Restroom", lockers: "Lockers", note: "Find the highlighted location(s) on the map.", first: "Kiosk 1", second: "Kiosk 2" },
-    ja: { kiosk: "券売機・キオスク", restroom: "トイレ", lockers: "コインロッカー", note: "青い丸で示した場所をご確認ください。", first: "キオスク①", second: "キオスク②" },
-    zh: { kiosk: "售票机·自助终端", restroom: "洗手间", lockers: "寄存柜", note: "请查看地图上蓝色圆圈标记的位置。", first: "自助终端①", second: "自助终端②" },
+    ko: { kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "주황색 표시로 강조된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
+    en: { kiosk: "Ticket machines · Kiosks", restroom: "Restroom", lockers: "Lockers", note: "Find the orange location marker(s) on the map.", first: "Kiosk 1", second: "Kiosk 2" },
+    ja: { kiosk: "券売機・キオスク", restroom: "トイレ", lockers: "コインロッカー", note: "オレンジ色のマーカーで示した場所をご確認ください。", first: "キオスク①", second: "キオスク②" },
+    zh: { kiosk: "售票机·自助终端", restroom: "洗手间", lockers: "寄存柜", note: "请查看地图上橙色标记的位置。", first: "自助终端①", second: "自助终端②" },
   };
   const ui = names[locale];
   // Coordinates measured against the original 1447 x 1024 concourse image.
@@ -754,7 +754,7 @@ function FacilityMapCard({ type, lang }) {
       <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
         <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
         {spots[type].map((p, i) => (
-          <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #0758e5", background: "rgba(48, 128, 255, .20)", boxShadow: "0 0 0 4px rgba(255,255,255,.85), 0 0 0 7px rgba(7,88,229,.4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#003f9b", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label}</span>
+          <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #ffffff", background: "#f97316", boxShadow: "0 0 0 3px #c2410c, 0 2px 10px 3px rgba(124,45,18,.45)", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", textShadow: "0 1px 2px rgba(0,0,0,.45)", fontWeight: 900, fontSize: 15, lineHeight: 1 }}>{p.label}</span>
         ))}
       </div>
       <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{ui.note}</p>
