@@ -752,7 +752,7 @@ function FacilityMapCard({ type, lang }) {
     <div style={{ width: "100%", minWidth: 0 }}>
       <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{ui[type]}</div>
       <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
-        <img src="/images/station-concourse-map.PNG" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
+        <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
         {spots[type].map((p, i) => (
           <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #0758e5", background: "rgba(48, 128, 255, .20)", boxShadow: "0 0 0 4px rgba(255,255,255,.85), 0 0 0 7px rgba(7,88,229,.4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#003f9b", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label}</span>
         ))}
