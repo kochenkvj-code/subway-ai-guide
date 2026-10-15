@@ -1362,8 +1362,8 @@ export default function Home() {
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
-            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard) ? "route-row" : ""}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
+            <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
                 {message.routeCard && <SubwayRouteCard lang={lang} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
