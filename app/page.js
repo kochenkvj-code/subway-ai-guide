@@ -923,7 +923,11 @@ export default function Home() {
   // Treat normal chat, the gate picker and each gate resolution as distinct
   // scroll views.  Re-mounting the scroll container prevents iOS Safari from
   // restoring a stale offset after content of very different heights is swapped.
-  const chatViewKey = `chat-view-${quickMenuSerial}`;
+  const chatViewKey = lastMessage?.gateMenu
+    ? "gate-picker"
+    : lastMessage?.gateResult
+      ? `gate-resolution-${lastMessage.gateMessageId ?? lastMessage.gateResult}`
+      : `normal-chat-${quickMenuSerial}`;
 
   function updateScrollIndicator() {
     const el = chatRef.current;
@@ -1008,10 +1012,12 @@ export default function Home() {
     // paints.  Combined with chatViewKey this avoids stale Safari scroll
     // offsets AND pending smooth-scroll animations from the previous chat.
     // For regular conversation continue auto-scrolling to the newest answer.
-    if (gateScreenActive || lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.menuPhase === "selection") {
+    if (gateScreenActive) {
+      el.scrollTop = 0;
+    } else if (lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.menuPhase === "selection") {
       // Open long interactive cards at their heading, not at the bottom.
       // In particular, the facility map is taller than the mobile viewport.
-      const targets = el.querySelectorAll(".sag-row");
+      const targets = el.querySelectorAll(".sag-row.route-row, .sag-row.facility-row, .sag-row.exchange-row");
       const target = targets[targets.length - 1];
       if (target) {
         const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
@@ -1115,7 +1121,7 @@ export default function Home() {
     setGateEntry(false);
     setMode(null);
     setInput("");
-    setMessages((prev) => prev.filter((m, i) => i !== prev.length - 1 || (!m.gateMenu && !m.gateResult)));
+    setMessages(gateReturnMessagesRef.current || [{ role: "assistant", text: TEXT[lang].greeting }]);
     gateReturnMessagesRef.current = null;
   }
 
@@ -1245,8 +1251,8 @@ export default function Home() {
   function quickAction(type, label) {
     if (loading) return;
 
-    // Preserve the transcript, but create a fresh scroll viewport on each
-    // quick-menu switch to prevent stale iOS Safari scroll restoration.
+    // Every quick menu opens as its own scroll view. A new key forces iOS
+    // Safari to discard the previous menu's scroll offset and touch momentum.
     setQuickMenuSerial((n) => n + 1);
     gateEntryRef.current = false;
     gateReturnMessagesRef.current = null;
@@ -1255,28 +1261,28 @@ export default function Home() {
     setInput("");
 
     if (type === "facility") {
-      setMessages((prev) => [...prev, { role: "assistant", text: "", facilityMap: "selector" }]);
+      setMessages([{ role: "assistant", text: "", facilityMap: "selector" }]);
       return;
     }
     if (type === "fares") {
-      setMessages((prev) => [...prev, makeSubmenu(lang, "fare")]);
+      setMessages([makeSubmenu(lang, "fare")]);
       return;
     }
     if (type === "exchange") {
-      setMessages((prev) => [...prev, { role: "assistant", text: "", exchangeCard: true }]);
+      setMessages([{ role: "assistant", text: "", exchangeCard: true }]);
       return;
     }
     if (type === "gate") {
       setFeedbackByIndex({});
-      setMessages((prev) => [...prev, { role: "assistant", text: "", gateMenu: true }]);
+      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
       return;
     }
     if (type === "nearby") {
-      setMessages((prev) => [...prev, { role: "assistant", text: "", nearbyCard: true }]);
+      setMessages([{ role: "assistant", text: "", nearbyCard: true }]);
       return;
     }
     if (type === "route") {
-      setMessages((prev) => [...prev, { role: "assistant", text: "", routeCard: true }]);
+      setMessages([{ role: "assistant", text: "", routeCard: true }]);
       return;
     }
 
