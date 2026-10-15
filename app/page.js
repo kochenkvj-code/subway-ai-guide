@@ -753,7 +753,7 @@ function FacilityMapCard({ type = null, lang }) {
     <div style={{ width: "100%", minWidth: 0 }}>
       <div style={{ fontWeight: 750, fontSize: 14, marginBottom: 8 }}>{({ko:"대합실 시설안내",en:"Concourse facilities",ja:"コンコース施設案内",zh:"站厅设施指南"})[locale]}</div>
       <div style={{ position: "relative", width: "100%", lineHeight: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #dbe5f0" }}>
-        <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} style={{ display: "block", width: "100%", height: "auto" }} />
+        <img src="/images/station-concourse-map.png" alt={locale === "ko" ? "종로5가역 대합실 시설 안내도" : "Jongno 5-ga station concourse map"} width={1447} height={1024} style={{ display: "block", width: "100%", height: "auto" }} />
         {(spots[selected] || []).map((p, i) => (
           <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #ea580c", background: "rgba(255,255,255,.08)", boxShadow: "0 0 0 2px rgba(255,255,255,.92), 0 2px 8px rgba(124,45,18,.28)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9a3412", textShadow: "0 1px 2px rgba(255,255,255,.95)", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label ? <span style={{ position: "absolute", top: -15, right: -13, background: "#ea580c", color: "#fff", border: "2px solid #fff", borderRadius: 999, minWidth: 19, height: 19, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, lineHeight: 1 }}>{p.label}</span> : null}</span>
         ))}
@@ -1003,15 +1003,16 @@ export default function Home() {
   useLayoutEffect(() => {
     const el = chatRef.current;
     if (!el) return;
-    // Scroll to the actual final message, not the bottom of a tall card.
-    // offsetTop is stable even if earlier images change their heights.
+    // Scroll to the actual final message. Reserve room after long cards so
+    // the browser can align their heading at the top even at the end of history.
     const target = el.querySelector(".sag-row:last-of-type");
     const isCard = Boolean(lastMessage?.routeCard || lastMessage?.facilityMap ||
       lastMessage?.nearbyCard || lastMessage?.exchangeCard ||
       lastMessage?.gateMenu || lastMessage?.gateResult ||
       lastMessage?.menuPhase === "selection");
     if (isCard && target) {
-      el.scrollTop = Math.max(0, target.offsetTop - el.offsetTop - 6);
+      const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
+      el.scrollTop = Math.max(0, el.scrollTop + top - 6);
     } else {
       el.scrollTop = el.scrollHeight;
     }
@@ -1335,7 +1336,7 @@ export default function Home() {
 
           <div
             key={chatViewKey}
-            className="sag-chat"
+            className={`sag-chat ${(lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
             ref={chatRef}
             onScroll={updateScrollIndicator}
           >
@@ -1834,6 +1835,11 @@ export default function Home() {
           content: "";
           display: block;
           flex: 0 0 2px;
+        }
+        /* Allow the last card to scroll all the way up instead of being
+           clamped at the bottom with the previous card still visible. */
+        .sag-chat.sag-chat-card-active::after {
+          flex-basis: 100%;
         }
 
         .sag-row.user { justify-content: flex-end; }
