@@ -749,7 +749,7 @@ function FacilityMapCard({ type = null, lang }) {
     restroom: [{ x: 73 / 1447 * 100, y: 712 / 1024 * 100, label: "" }],
     lockers: [{ x: 668 / 1447 * 100, y: 315 / 1024 * 100, label: "" }],
     // Customer safety office is marked on the right side of the original map.
-    customerOffice: [{ x: 1160 / 1447 * 100, y: 705 / 1024 * 100, label: "" }],
+    customerOffice: [{ x: 1100 / 1447 * 100, y: 390 / 1024 * 100, label: "" }],
   };
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
@@ -759,7 +759,7 @@ function FacilityMapCard({ type = null, lang }) {
           <span key={i} aria-hidden="true" style={{ position: "absolute", left: p.x + "%", top: p.y + "%", transform: "translate(-50%, -50%)", width: 30, height: 30, borderRadius: "50%", border: "3px solid #ea580c", background: "rgba(255,255,255,.08)", boxShadow: "0 0 0 2px rgba(255,255,255,.92), 0 2px 8px rgba(124,45,18,.28)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9a3412", textShadow: "0 1px 2px rgba(255,255,255,.95)", fontWeight: 900, fontSize: 13, lineHeight: 1 }}>{p.label ? <span style={{ position: "absolute", top: -15, right: -13, background: "#ea580c", color: "#fff", border: "2px solid #fff", borderRadius: 999, minWidth: 19, height: 19, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, lineHeight: 1 }}>{p.label}</span> : null}</span>
         ))}
       </div>
-      <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{selected ? ui.note : ({ko:"아래에서 시설을 선택하면 지도에 위치가 표시됩니다.",en:"Choose a facility below to highlight its location.",ja:"下の施設を選ぶと地図上に場所が表示されます。",zh:"选择下方设施，即可在地图上查看位置。"})[locale]}</p>
+      {selected && <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{ui.note}</p>}
       <div role="group" aria-label={ui.note} style={{ display:"grid", gridTemplateColumns:"repeat(3,minmax(0,1fr))", gap:6, marginTop:12 }}>
         {["kiosk","restroom","lockers","customerOffice","elevator","nursingRoom"].map((facility) => (
           <button key={facility} type="button" aria-pressed={selected === facility} onClick={() => setSelected(facility)} style={{ padding:"10px 4px", minWidth:0, minHeight:48, borderRadius:10, border:selected===facility?"2px solid #ea580c":"1px solid #cbd5e1", background:selected===facility?"#fff4e9":"#fff", color:selected===facility?"#9a3412":"#34465a", fontSize:11, fontWeight:selected===facility?800:650, lineHeight:1.4, cursor:"pointer", overflowWrap:"anywhere" }}>{ui[facility]}</button>
