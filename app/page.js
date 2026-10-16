@@ -749,7 +749,7 @@ function FacilityMapCard({ type = null, lang }) {
     restroom: [{ x: 73 / 1447 * 100, y: 712 / 1024 * 100, label: "" }],
     lockers: [{ x: 668 / 1447 * 100, y: 315 / 1024 * 100, label: "" }],
     // Customer safety office is marked on the right side of the original map.
-    customerOffice: [{ x: 1160 / 1447 * 100, y: 625 / 1024 * 100, label: "" }],
+    customerOffice: [{ x: 1160 / 1447 * 100, y: 705 / 1024 * 100, label: "" }],
   };
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
