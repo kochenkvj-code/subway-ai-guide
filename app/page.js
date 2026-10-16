@@ -153,7 +153,7 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "올바른 게이트(초록색 화살표)에 태그한 뒤, 오류 코드를 확인해 아래에서 선택해 주세요.\n다시 태그해도 **추가요금은 발생하지 않습니다.**",
+    prompt: "올바른 게이트(초록색 화살표)에 태그한 뒤, 오류 코드를 확인해 아래에서 선택해 주세요.",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
       { id: "e03", label: "E-03 하차 처리 누락" },
@@ -167,7 +167,7 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "Tap your card at the correct gate (green arrow), check the error code, and select it below.\nTapping again to check the code **will not incur an extra fare.**",
+    prompt: "Tap your card at the correct gate (green arrow), check the error code, and select it below.",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
       { id: "e03", label: "E-03 No exit record" },
@@ -181,7 +181,7 @@ const GATE_MENU = {
     ],
   },
   ja: {
-    prompt: "正しい改札（緑の矢印）にタッチし、エラーコードを確認して下から選択してください。\n確認のために再度タッチしても**追加料金はかかりません。**",
+    prompt: "正しい改札（緑の矢印）にタッチし、エラーコードを確認して下から選択してください。",
     options: [
       { id: "e01", label: "E-01 カード重複" },
       { id: "e03", label: "E-03 出場記録なし" },
@@ -195,7 +195,7 @@ const GATE_MENU = {
     ],
   },
   zh: {
-    prompt: "请在正确的闸机（绿色箭头）刷卡，确认错误代码后在下方选择。\n为确认代码再次刷卡**不会产生额外费用。**",
+    prompt: "请在正确的闸机（绿色箭头）刷卡，确认错误代码后在下方选择。",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
       { id: "e03", label: "E-03 无出站记录" },
