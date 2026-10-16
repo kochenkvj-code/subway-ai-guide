@@ -737,10 +737,10 @@ function FacilityMapCard({ type = null, lang }) {
   const [selected, setSelected] = useState(type);
   const locale = lang in STATION ? lang : "ko";
   const names = {
-    ko: { kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "주황색 표시로 강조된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
-    en: { kiosk: "Ticket machines · Kiosks", restroom: "Restroom", lockers: "Lockers", note: "Find the orange location marker(s) on the map.", first: "Kiosk 1", second: "Kiosk 2" },
-    ja: { kiosk: "券売機・キオスク", restroom: "トイレ", lockers: "コインロッカー", note: "オレンジ色のマーカーで示した場所をご確認ください。", first: "キオスク①", second: "キオスク②" },
-    zh: { kiosk: "售票机·自助终端", restroom: "洗手间", lockers: "寄存柜", note: "请查看地图上橙色标记的位置。", first: "自助终端①", second: "自助终端②" },
+    ko: { customerOffice: "고객안전실", elevator: "엘리베이터", nursingRoom: "수유실", kiosk: "발매기·키오스크", restroom: "화장실", lockers: "물품보관함", note: "주황색 표시로 강조된 위치를 확인하세요.", first: "키오스크 ①", second: "키오스크 ②" },
+    en: { customerOffice: "Station Office", elevator: "Elevator", nursingRoom: "Nursing Room", kiosk: "Ticket machines · Kiosks", restroom: "Restroom", lockers: "Lockers", note: "Find the orange location marker(s) on the map.", first: "Kiosk 1", second: "Kiosk 2" },
+    ja: { customerOffice: "駅事務室", elevator: "エレベーター", nursingRoom: "授乳室", kiosk: "券売機・キオスク", restroom: "トイレ", lockers: "コインロッカー", note: "オレンジ色のマーカーで示した場所をご確認ください。", first: "キオスク①", second: "キオスク②" },
+    zh: { customerOffice: "车站服务室", elevator: "电梯", nursingRoom: "母婴室", kiosk: "售票机·自助终端", restroom: "洗手间", lockers: "寄存柜", note: "请查看地图上橙色标记的位置。", first: "自助终端①", second: "自助终端②" },
   };
   const ui = names[locale];
   // Coordinates measured against the original 1447 x 1024 concourse image.
@@ -748,6 +748,8 @@ function FacilityMapCard({ type = null, lang }) {
     kiosk: [{ x: 350 / 1447 * 100, y: 617 / 1024 * 100, label: "1" }, { x: 1100 / 1447 * 100, y: 605 / 1024 * 100, label: "2" }],
     restroom: [{ x: 73 / 1447 * 100, y: 712 / 1024 * 100, label: "" }],
     lockers: [{ x: 668 / 1447 * 100, y: 315 / 1024 * 100, label: "" }],
+    // Customer safety office is marked on the right side of the original map.
+    customerOffice: [{ x: 1160 / 1447 * 100, y: 625 / 1024 * 100, label: "" }],
   };
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
@@ -759,7 +761,7 @@ function FacilityMapCard({ type = null, lang }) {
       </div>
       <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{selected ? ui.note : ({ko:"아래에서 시설을 선택하면 지도에 위치가 표시됩니다.",en:"Choose a facility below to highlight its location.",ja:"下の施設を選ぶと地図上に場所が表示されます。",zh:"选择下方设施，即可在地图上查看位置。"})[locale]}</p>
       <div role="group" aria-label={ui.note} style={{ display:"grid", gridTemplateColumns:"repeat(3,minmax(0,1fr))", gap:6, marginTop:12 }}>
-        {["kiosk","restroom","lockers"].map((facility) => (
+        {["kiosk","restroom","lockers","customerOffice","elevator","nursingRoom"].map((facility) => (
           <button key={facility} type="button" aria-pressed={selected === facility} onClick={() => setSelected(facility)} style={{ padding:"10px 4px", minWidth:0, minHeight:48, borderRadius:10, border:selected===facility?"2px solid #ea580c":"1px solid #cbd5e1", background:selected===facility?"#fff4e9":"#fff", color:selected===facility?"#9a3412":"#34465a", fontSize:11, fontWeight:selected===facility?800:650, lineHeight:1.4, cursor:"pointer", overflowWrap:"anywhere" }}>{ui[facility]}</button>
         ))}
       </div>
