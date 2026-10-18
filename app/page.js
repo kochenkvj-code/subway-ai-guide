@@ -1050,38 +1050,60 @@ export default function Home() {
     const recognition = new SpeechRecognition();
     recognition.lang = { ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" }[lang];
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     speechRef.current = recognition;
-    // Keep the final transcript locally: React state may not update before onend.
+    // Safari may delay onend for Japanese and Chinese. Collect interim and
+    // final results and stop after a short silence, then submit once.
     let recognizedText = "";
     let recognitionFailed = false;
+    let silenceTimer = null;
+    let completionTimer = null;
+    let submitted = false;
     const existingText = input.trim();
-    recognition.onresult = (event) => {
-      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
-      if (transcript && event.results[0].isFinal) {
-        recognizedText = transcript;
-        setInput(existingText ? existingText + " " + transcript : transcript);
-      }
-    };
-    recognition.onerror = (event) => {
-      recognitionFailed = true;
-      if (event.error !== "aborted") setVoiceError(event.error === "not-allowed"
-        ? { ko: "마이크 권한을 허용해 주세요.", en: "Please allow microphone access.", ja: "マイクの使用を許可してください。", zh: "请允许使用麦克风。" }[lang]
-        : { ko: "음성 인식에 실패했어요. 다시 시도해 주세요.", en: "Speech recognition failed. Please try again.", ja: "音声認識に失敗しました。", zh: "语音识别失败，请重试。" }[lang]);
-    };
-    recognition.onend = () => {
-      // Ignore manually cancelled or superseded recognition sessions.
-      if (speechRef.current !== recognition) return;
+    const finish = () => {
+      if (submitted || speechRef.current !== recognition) return;
+      submitted = true;
+      clearTimeout(silenceTimer);
+      clearTimeout(completionTimer);
       speechRef.current = null;
       setVoiceListening(false);
-      if (!recognitionFailed && recognizedText) {
-        const question = existingText ? existingText + " " + recognizedText : recognizedText;
+      if (!recognitionFailed && recognizedText.trim()) {
+        const question = existingText ? existingText + " " + recognizedText.trim() : recognizedText.trim();
         setInput("");
         if (gateScreenActive) leaveGateScreen();
         void askGoogle(question, question, "free_question");
       }
     };
+    recognition.onresult = (event) => {
+      let transcript = "";
+      let allFinal = true;
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += (event.results[i]?.[0]?.transcript || "") + " ";
+        if (!event.results[i].isFinal) allFinal = false;
+      }
+      transcript = transcript.trim();
+      if (!transcript) return;
+      recognizedText = transcript;
+      setInput(existingText ? existingText + " " + transcript : transcript);
+      clearTimeout(silenceTimer);
+      // Give users time to finish a sentence; Japanese/Chinese interim text
+      // may take longer to stabilize than Korean/English final results.
+      silenceTimer = setTimeout(() => {
+        if (speechRef.current !== recognition) return;
+        try { recognition.stop(); } catch { /* already stopped */ }
+        completionTimer = setTimeout(finish, 900);
+      }, allFinal ? 1600 : 2600);
+    };
+    recognition.onerror = (event) => {
+      recognitionFailed = true;
+      clearTimeout(silenceTimer);
+      clearTimeout(completionTimer);
+      if (event.error !== "aborted") setVoiceError(event.error === "not-allowed"
+        ? { ko: "마이크 권한을 허용해 주세요.", en: "Please allow microphone access.", ja: "マイクの使用を許可してください。", zh: "请允许使用麦克风。" }[lang]
+        : { ko: "음성 인식에 실패했어요. 다시 시도해 주세요.", en: "Speech recognition failed. Please try again.", ja: "音声認識に失敗しました。", zh: "语音识别失败，请重试。" }[lang]);
+    };
+    recognition.onend = finish;
     try { recognition.start(); setVoiceListening(true); }
     catch { speechRef.current = null; setVoiceListening(false); setVoiceError("음성 인식을 시작할 수 없어요."); }
   }
