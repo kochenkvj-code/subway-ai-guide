@@ -1053,18 +1053,34 @@ export default function Home() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     speechRef.current = recognition;
+    // Keep the final transcript locally: React state may not update before onend.
+    let recognizedText = "";
+    let recognitionFailed = false;
+    const existingText = input.trim();
     recognition.onresult = (event) => {
       const transcript = event.results?.[0]?.[0]?.transcript?.trim();
-      if (transcript) setInput((previous) => previous ? previous.trimEnd() + " " + transcript : transcript);
+      if (transcript && event.results[0].isFinal) {
+        recognizedText = transcript;
+        setInput(existingText ? existingText + " " + transcript : transcript);
+      }
     };
     recognition.onerror = (event) => {
+      recognitionFailed = true;
       if (event.error !== "aborted") setVoiceError(event.error === "not-allowed"
         ? { ko: "마이크 권한을 허용해 주세요.", en: "Please allow microphone access.", ja: "マイクの使用を許可してください。", zh: "请允许使用麦克风。" }[lang]
         : { ko: "음성 인식에 실패했어요. 다시 시도해 주세요.", en: "Speech recognition failed. Please try again.", ja: "音声認識に失敗しました。", zh: "语音识别失败，请重试。" }[lang]);
     };
     recognition.onend = () => {
-      if (speechRef.current === recognition) speechRef.current = null;
+      // Ignore manually cancelled or superseded recognition sessions.
+      if (speechRef.current !== recognition) return;
+      speechRef.current = null;
       setVoiceListening(false);
+      if (!recognitionFailed && recognizedText) {
+        const question = existingText ? existingText + " " + recognizedText : recognizedText;
+        setInput("");
+        if (gateScreenActive) leaveGateScreen();
+        void askGoogle(question, question, "free_question");
+      }
     };
     try { recognition.start(); setVoiceListening(true); }
     catch { speechRef.current = null; setVoiceListening(false); setVoiceError("음성 인식을 시작할 수 없어요."); }
