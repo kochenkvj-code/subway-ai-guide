@@ -1663,7 +1663,17 @@ export default function Home() {
               onClick={toggleVoice} disabled={loading}
               aria-label={voiceListening ? "Stop voice input" : "Start voice input"}
               title={voiceListening ? "Stop voice input" : "Voice input"}>
-              {voiceListening ? "■" : "🎤"}
+              {voiceListening ? (
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="6.5" y="6.5" width="11" height="11" rx="2.5" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="9" y="2.5" width="6" height="12" rx="3" />
+                  <path d="M5.5 10.5v1.5a6.5 6.5 0 0 0 13 0v-1.5M12 18.5v3M8.5 21.5h7" />
+                </svg>
+              )}
             </button>
           )}
           <button type="submit" disabled={loading}>
@@ -2326,8 +2336,10 @@ export default function Home() {
         }
 
         .sag-input-wrap .sag-voice-button {
-          flex: 0 0 42px; padding: 0; background: #edf5f9; color: #174e70;
-          border: 1px solid #c9dce7; font-size: 19px;
+          flex: 0 0 42px; padding: 0; display: inline-flex; align-items: center;
+          justify-content: center; background: #f1f7fa; color: #23698d;
+          border: 1px solid #d0e1eb; border-radius: 12px;
+          transition: background .18s ease, border-color .18s ease, color .18s ease;
         }
         .sag-input-wrap .sag-voice-active {
           background: #fff0ed; color: #c24132; border-color: #e8aa9d;
