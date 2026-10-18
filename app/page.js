@@ -900,6 +900,10 @@ export default function Home() {
   const [mode, setMode] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const speechRef = useRef(null);
   const [messages, setMessages] = useState([
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
@@ -1021,7 +1025,54 @@ export default function Home() {
     updateScrollIndicator();
   }, [messages, loading, chatViewKey]);
 
+  useEffect(() => {
+    setVoiceSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
+    return () => {
+      if (speechRef.current) {
+        speechRef.current.onend = null;
+        speechRef.current.abort();
+        speechRef.current = null;
+      }
+    };
+  }, []);
+
+  function stopVoice() {
+    if (speechRef.current) speechRef.current.abort();
+    speechRef.current = null;
+    setVoiceListening(false);
+  }
+
+  function toggleVoice() {
+    if (voiceListening) return stopVoice();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition || loading) return;
+    setVoiceError("");
+    const recognition = new SpeechRecognition();
+    recognition.lang = { ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" }[lang];
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    speechRef.current = recognition;
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript) setInput((previous) => previous ? previous.trimEnd() + " " + transcript : transcript);
+    };
+    recognition.onerror = (event) => {
+      if (event.error !== "aborted") setVoiceError(event.error === "not-allowed"
+        ? { ko: "마이크 권한을 허용해 주세요.", en: "Please allow microphone access.", ja: "マイクの使用を許可してください。", zh: "请允许使用麦克风。" }[lang]
+        : { ko: "음성 인식에 실패했어요. 다시 시도해 주세요.", en: "Speech recognition failed. Please try again.", ja: "音声認識に失敗しました。", zh: "语音识别失败，请重试。" }[lang]);
+    };
+    recognition.onend = () => {
+      if (speechRef.current === recognition) speechRef.current = null;
+      setVoiceListening(false);
+    };
+    try { recognition.start(); setVoiceListening(true); }
+    catch { speechRef.current = null; setVoiceListening(false); setVoiceError("음성 인식을 시작할 수 없어요."); }
+  }
+
   function changeLanguage(nextLang) {
+    stopVoice();
+    setVoiceError("");
     setLang(nextLang);
     setMode(null);
     setInput("");
@@ -1281,6 +1332,7 @@ export default function Home() {
 
   async function submitMessage(event) {
     event.preventDefault();
+    if (voiceListening) stopVoice();
     if (loading) return;
 
     const raw = input.trim();
@@ -1590,10 +1642,23 @@ export default function Home() {
             aria-label="message"
             disabled={loading}
           />
+          {voiceSupported && (
+            <button type="button" className={`sag-voice-button ${voiceListening ? "sag-voice-active" : ""}`}
+              onClick={toggleVoice} disabled={loading}
+              aria-label={voiceListening ? "Stop voice input" : "Start voice input"}
+              title={voiceListening ? "Stop voice input" : "Voice input"}>
+              {voiceListening ? "■" : "🎤"}
+            </button>
+          )}
           <button type="submit" disabled={loading}>
             {loading ? "…" : t.send}
           </button>
         </form>
+        {(voiceListening || voiceError) && (
+          <p className="sag-voice-status" role="status">
+            {voiceError || {ko:"듣고 있어요… 말씀해 주세요.",en:"Listening… please speak.",ja:"聞き取り中です… 話してください。",zh:"正在聆听… 请讲话。"}[lang]}
+          </p>
+        )}
         <p className="sag-privacy-notice">{t.privacyNotice}</p>
       </section>
 
@@ -2244,6 +2309,19 @@ export default function Home() {
           box-shadow: 0 -6px 18px rgba(20, 40, 55, .04);
         }
 
+        .sag-input-wrap .sag-voice-button {
+          flex: 0 0 42px; padding: 0; background: #edf5f9; color: #174e70;
+          border: 1px solid #c9dce7; font-size: 19px;
+        }
+        .sag-input-wrap .sag-voice-active {
+          background: #fff0ed; color: #c24132; border-color: #e8aa9d;
+          animation: sag-voice-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes sag-voice-pulse { 50% { box-shadow: 0 0 0 4px rgba(194,65,50,.12); } }
+        .sag-voice-status {
+          margin: 0; padding: 5px 14px 0; font-size: 11px;
+          color: #87502e; background: white; text-align: center;
+        }
         .sag-privacy-notice {
           flex: 0 0 auto;
           margin: 0;
