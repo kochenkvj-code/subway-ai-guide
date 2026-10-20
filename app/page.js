@@ -990,6 +990,7 @@ export default function Home() {
     if (params.get("from") !== "gate") return;
 
     gateAutoOpenedRef.current = true;
+    setLang("en");
     gateEntryRef.current = true;
     setGateEntry(true);
     setMode(null);
@@ -1000,7 +1001,7 @@ export default function Home() {
 
     if (GA_ID && typeof window.gtag === "function") {
       window.gtag("event", "gate_qr_open", {
-        language: "ko",
+        language: "en",
         entry_source: "gate_qr",
       });
     }
