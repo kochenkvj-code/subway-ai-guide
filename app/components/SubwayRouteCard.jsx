@@ -8,7 +8,7 @@ import { officialStationMatches, officialStationName } from "../lib/officialStat
 // No Gemini call, prompt classification, or AI translation happens here.
 const COPY = {
   ko: {
-    heading: "길찾기", question: "어디로 가시나요?", originTag: "종로5가 출발", from: "출발역", to: "도착역", toHint: "도착역 입력 (예: 강남)",
+    heading: "길찾기", question: "어디로 가시나요?", originTag: "종로5가 출발", from: "출발역", to: "도착역", toHint: "역명 또는 초성 입력 (예: 강남, ㄱㄴ)",
     shortcuts: "빠른 선택", criterion: "검색 기준", duration: "최소시간", distance: "최단거리", transfer: "최소환승",
     search: "경로 조회하기", searching: "공식 경로 조회 중…", result: "공식 경로 조회 결과", time: "예상 소요시간",
     transfers: "환승", fare: "교통카드 운임", length: "이동 거리", itinerary: "추천 이동 경로",
