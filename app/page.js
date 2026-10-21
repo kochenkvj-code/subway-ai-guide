@@ -390,7 +390,7 @@ function ExchangeCard({lang}) {
       <div style={{display:"grid",gap:i===0?4:7}}>
         {infoRow("location",shop.location)}
         {infoRow("hours",shop.hours)}
-        {shop.phone && infoRow("phone",<a href={"tel:"+shop.phone} style={{color:"inherit",textDecoration:"none"}}>{shop.phone}</a>)}
+        {shop.phone && infoRow("phone",<a href={"tel:"+shop.phone} style={{color:"#087f69",fontWeight:600,textDecoration:"underline",textDecorationColor:"#87bcb0",textUnderlineOffset:2}}>{shop.phone}</a>)}
       </div>
       <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{alignSelf:"flex-end",display:"inline-flex",alignItems:"center",gap:4,color:"#087f69",fontSize:12,fontWeight:750,textDecoration:"none",padding:"4px 0"}}>{ui.map} <span aria-hidden="true">↗</span></a>
     </div>)}
