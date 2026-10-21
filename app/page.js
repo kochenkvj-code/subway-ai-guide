@@ -917,6 +917,7 @@ export default function Home() {
   const gateAutoOpenedRef = useRef(false);
   const gateReturnMessagesRef = useRef(null);
   const chatRef = useRef(null);
+  const lastQuickActionAtRef = useRef(0);
   const [scrollIndicator, setScrollIndicator] = useState({
     visible: false,
     height: 100,
@@ -1336,6 +1337,9 @@ export default function Home() {
 
   function quickAction(type, label) {
     if (loading) return;
+    const now = Date.now();
+    if (now - lastQuickActionAtRef.current < 700) return;
+    lastQuickActionAtRef.current = now;
     // A fresh viewport discards Safari's old scroll inertia, while the
     // messages array remains intact and accessible by scrolling upward.
     setMenuViewSerial((n) => n + 1);
