@@ -384,10 +384,10 @@ function ExchangeCard({lang}) {
     </div>
   );
   return <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:8,width:"100%"}}>
-    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,background:"#fff",border:"1px solid #dce5e5",borderRadius:12,padding:"12px 13px",display:"flex",flexDirection:"column",gap:9}}>
+    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,background:"#fff",border:"1px solid #dce5e5",borderRadius:12,padding:i===0?"9px 13px":"12px 13px",display:"flex",flexDirection:"column",gap:i===0?5:9}}>
       <strong style={{fontSize:14,lineHeight:1.4,color:"#1b3038",overflowWrap:"break-word"}}>{shop.name}</strong>
       <div style={{height:1,background:"#edf1f2"}}/>
-      <div style={{display:"grid",gap:7}}>
+      <div style={{display:"grid",gap:i===0?4:7}}>
         {infoRow("location",shop.location)}
         {infoRow("hours",shop.hours)}
         {shop.phone && infoRow("phone",<a href={"tel:"+shop.phone} style={{color:"inherit",textDecoration:"none"}}>{shop.phone}</a>)}
