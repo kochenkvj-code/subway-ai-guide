@@ -56,7 +56,7 @@ export default function NearbyPlacesCard({lang="ko"}) {
   const [tab,setTab] = useState("places");
   const t = UI[lang] || UI.ko;
   const place = PLACES.find(p=>p.id===selected);
-  return <section className="np-card" aria-label={t.heading}>
+  return <section className={`np-card np-lang-${["ko","ja","zh","en"].includes(lang) ? lang : "ko"}`} aria-label={t.heading}>
     <nav className="np-tabs" aria-label={t.heading}>
       <button type="button" className={tab==="places"?"active":""} onClick={()=>{setTab("places");setSelected(null)}}>{t.places}</button>
       <button type="button" className={tab==="exits"?"active":""} onClick={()=>{setTab("exits");setSelected(null)}}>{t.exits}</button>
@@ -99,6 +99,9 @@ export default function NearbyPlacesCard({lang="ko"}) {
       .np-photo-exit{position:absolute;top:6px;left:6px;z-index:1;max-width:calc(100% - 12px);padding:4px 7px;border-radius:6px;background:#087f69;color:#fff;font-size:11px;font-weight:800;line-height:1.2;box-shadow:0 1px 5px #0005}
       .np-photo-missing{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:#75928b}.np-photo-missing span{font-size:25px}
       .np-place strong{font-size:12px;padding:0 7px}.np-place-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;line-height:1.35;letter-spacing:-.2px;margin-top:4px;overflow-wrap:anywhere}.np-place-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;line-height:1.4}.np-illustrative{font-size:9px!important;color:#94672b!important;line-height:1.25!important}.np-place small{font-size:10px;color:#617b84;padding:0 7px;line-height:1.4}
+      .np-card:not(.np-lang-en) .np-place-title{font-size:14px;line-height:1.4;letter-spacing:-.3px;margin-top:5px}
+      .np-card:not(.np-lang-en) .np-place-description{font-size:11px;line-height:1.5;margin-top:2px}
+      .np-card:not(.np-lang-en) .np-place{padding-bottom:8px;gap:3px}
       .np-place:focus-visible,.np-back:focus-visible{outline:3px solid #128a72;outline-offset:2px}
       .np-back{border:0;background:none;color:#087f6d;font-size:12px;font-weight:700;padding:3px 0 12px;cursor:pointer}
       .np-hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px}.np-detail h3{margin:12px 0 5px;font-size:19px}.np-detail p{margin:0 0 14px;font-size:13px;color:#617b84}
