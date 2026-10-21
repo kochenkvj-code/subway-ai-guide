@@ -18,7 +18,7 @@ export function officialStationName(ko, lang, fallback) {
   const station = byKo.get(String(ko || "").trim());
   return station?.[lang] || fallback(ko, lang);
 }
-export function officialStationMatches(query, lang, limit = 8) {
+export function officialStationMatches(query, lang) {
   const q = clean(query);
   if (!q) return [];
   const grouped = new Map();
@@ -44,7 +44,7 @@ export function officialStationMatches(query, lang, limit = 8) {
     };
     return rank(a)-rank(b) || a.ko.localeCompare(b.ko, "ko");
   });
-  return results.slice(0, limit);
+  return results;
 }
 export function officialCodeForName(ko) {
   return byKo.get(ko)?.code || null;
