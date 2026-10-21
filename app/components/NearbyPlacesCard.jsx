@@ -67,8 +67,11 @@ export default function NearbyPlacesCard({lang="ko"}) {
         <span>{e.names[lang] || e.names.ko}</span>
       </div>)}
     </div> : !place ? <div className="np-grid">{PLACES.map(p=><button type="button" className="np-place" key={p.id} onClick={()=>setSelected(p.id)}>
-      {p.image ? <img src={thumb(p.image)} alt={p.names[lang] || p.names.ko} loading="lazy"/> : <div className="np-photo-missing"><span>✚</span><small>{t.photo}</small></div>}
-      <strong className="np-place-title"><span className="np-title-exit">{p.exit ? exitLabel(p.exit,lang,t) : t.pending}</span> <span>{p.names[lang] || p.names.ko}</span></strong>
+      <div className="np-photo-wrap">
+        {p.image ? <img src={thumb(p.image)} alt={p.names[lang] || p.names.ko} loading="lazy"/> : <div className="np-photo-missing"><span>✚</span><small>{t.photo}</small></div>}
+        <span className="np-photo-exit">{p.exit ? exitLabel(p.exit,lang,t) : t.pending}</span>
+      </div>
+      <strong className="np-place-title">{p.names[lang] || p.names.ko}</strong>
       <small className="np-place-description">{p.descriptions[lang] || p.descriptions.ko}</small>
     </button>)}</div> : <div className="np-detail">
       <button type="button" className="np-back" onClick={()=>setSelected(null)}>← {t.back}</button>
@@ -91,9 +94,11 @@ export default function NearbyPlacesCard({lang="ko"}) {
       .np-card-pending{margin:0 7px;color:#75878a;font-size:10px}
       .np-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
       .np-place{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:2px;min-width:0;padding:0 0 5px;background:#fff;border:1px solid #e0e9eb;border-radius:12px;overflow:hidden;cursor:pointer;color:inherit}
+      .np-photo-wrap{position:relative;width:100%;flex:0 0 auto}
       .np-place img,.np-photo-missing{display:block;width:100%;aspect-ratio:2.15/1;object-fit:cover;background:#e8f1ef}
+      .np-photo-exit{position:absolute;top:6px;left:6px;z-index:1;max-width:calc(100% - 12px);padding:4px 7px;border-radius:6px;background:#087f69;color:#fff;font-size:11px;font-weight:800;line-height:1.2;box-shadow:0 1px 5px #0005}
       .np-photo-missing{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:#75928b}.np-photo-missing span{font-size:25px}
-      .np-place strong{font-size:12px;padding:0 7px}.np-place-title{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:-.35px}.np-place-title .np-title-exit{color:#087f69;flex:0 0 auto;font-size:11px}.np-place-description{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-illustrative{font-size:9px!important;color:#94672b!important;line-height:1.25!important}.np-place small{font-size:10px;color:#617b84;padding:0 7px;line-height:1.4}
+      .np-place strong{font-size:12px;padding:0 7px}.np-place-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;line-height:1.35;letter-spacing:-.2px;margin-top:4px;overflow-wrap:anywhere}.np-place-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;line-height:1.4}.np-illustrative{font-size:9px!important;color:#94672b!important;line-height:1.25!important}.np-place small{font-size:10px;color:#617b84;padding:0 7px;line-height:1.4}
       .np-place:focus-visible,.np-back:focus-visible{outline:3px solid #128a72;outline-offset:2px}
       .np-back{border:0;background:none;color:#087f6d;font-size:12px;font-weight:700;padding:3px 0 12px;cursor:pointer}
       .np-hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px}.np-detail h3{margin:12px 0 5px;font-size:19px}.np-detail p{margin:0 0 14px;font-size:13px;color:#617b84}
