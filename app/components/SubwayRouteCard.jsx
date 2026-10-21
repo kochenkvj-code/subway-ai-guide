@@ -79,7 +79,7 @@ function Line({ name, lang }) {
   return <span className="srg-line" style={{ background: lineColor(name) }}>{lineName(name, lang)}</span>;
 }
 
-export default function SubwayRouteCard({ lang = "ko" }) {
+export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const t = COPY[lang] || COPY.ko;
   const [destination, setDestination] = useState("");
   const [selectedStation, setSelectedStation] = useState(null);
@@ -90,6 +90,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
+  const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
   const cardRef = useRef(null);
   const returningToSearchRef = useRef(false);
@@ -177,7 +178,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         </div>
         {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => display(name)).join(" → ")}</p></details>}
         <p className="srg-disclaimer">{t.disclosure}</p>
-        <button type="button" className="srg-again" onClick={() => { returningToSearchRef.current = true; setRoute(null); setError(""); }}>{t.change}</button>
+        {!newSearchOpened && <button type="button" className="srg-again" onClick={() => { if (onNewSearch) { setNewSearchOpened(true); onNewSearch(); } else { returningToSearchRef.current = true; setRoute(null); setDestination(""); setSelectedStation(null); setError(""); } }}>{t.change}</button>}
       </div>}
       <style>{`
         .srg-card{box-sizing:border-box;width:100%;padding:14px 16px 10px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
