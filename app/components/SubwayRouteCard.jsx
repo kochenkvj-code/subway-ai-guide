@@ -90,6 +90,8 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
+  const [routeHistory, setRouteHistory] = useState([]);
+  const searchFormRef = useRef(null);
   const resultRef = useRef(null);
   const cardRef = useRef(null);
   const returningToSearchRef = useRef(false);
@@ -98,7 +100,8 @@ export default function SubwayRouteCard({ lang = "ko" }) {
     returningToSearchRef.current = false;
     const scroller = cardRef.current.closest(".sag-chat");
     if (!scroller) return;
-    const top = cardRef.current.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    const target = searchFormRef.current || cardRef.current;
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
     scroller.scrollTop = Math.max(0, scroller.scrollTop + top - 8);
   }, [route]);
   useLayoutEffect(() => {
@@ -125,7 +128,6 @@ export default function SubwayRouteCard({ lang = "ko" }) {
     setShowSuggestions(false);
     setBusy(true);
     setError("");
-    setRoute(null);
     try {
       const params = new URLSearchParams({ to, mode });
       if (code) params.set("toCode", code);
@@ -145,7 +147,29 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   return (
     <section ref={cardRef} className="srg-card" aria-label={t.heading}>
       <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin">{t.originTag}</span></header>
-      <form onSubmit={search}>
+      {routeHistory.map((previous, historyIndex) => <div className="srg-result" key={historyIndex}>
+        <div className="srg-result-label">{t.result}</div>
+        <h3>{display(previous.origin)} <span>→</span> {display(previous.destination)}</h3>
+        <div className="srg-metrics">
+          <div><span>{t.time}</span><strong>{elapsed(previous.totalSeconds, t)}</strong></div>
+          <div><span>{t.transfers}</span><strong>{previous.transferCount}{t.suffix}</strong></div>
+          <div><span>{t.fare}</span><strong>{Number(previous.fareWon || 0).toLocaleString("ko-KR")} {t.won}</strong></div>
+          <div><span>{t.length}</span><strong>{(Number(previous.totalMeters || 0) / 1000).toFixed(1)} km</strong></div>
+        </div>
+        <h4>{t.itinerary}</h4>
+        <div className="srg-timeline">
+          {(previous.itinerary || []).map((step, index) => <div className="srg-stop" key={index}>
+            <div className="srg-point">{step.type === "transfer" ? "↔" : "●"}</div>
+            <div className="srg-stop-body">
+              {step.type === "transfer" ? <><strong>{display(step.station)} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} lang={lang} /> → <Line name={step.toLine} lang={lang} /></div></>
+                : <><strong>{display(step.from)} → {display(step.to)}</strong><div className="srg-line-row"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div></>}
+            </div>
+          </div>)}
+        </div>
+        {Array.isArray(previous.allStations) && previous.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({previous.allStations.length})</summary><p>{previous.allStations.map((name) => display(name)).join(" → ")}</p></details>}
+        <p className="srg-disclaimer">{t.disclosure}</p>
+      </div>)}
+      {!route && <form ref={searchFormRef} onSubmit={search}>
         <div className="srg-search-wrap">
           <span className="srg-search-icon" aria-hidden="true">⌕</span>
           <input id="srg-destination-input" aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" aria-controls="srg-suggestions" />
@@ -154,7 +178,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         </div>
         <div className="srg-modes" role="group" aria-label={t.criterion}>{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy || !destination.trim()} className="srg-submit">{busy ? t.searching : <>{t.search} <span aria-hidden="true">→</span></>}</button>
-      </form>
+      </form>}
       {error && <div className="srg-error" role="alert"><strong>{t.searchFailed}</strong><p>{error}</p></div>}
       {route && <div ref={resultRef} className="srg-result" aria-live="polite">
         <div className="srg-result-label">{t.result}</div>
@@ -177,7 +201,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         </div>
         {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => display(name)).join(" → ")}</p></details>}
         <p className="srg-disclaimer">{t.disclosure}</p>
-        <button type="button" className="srg-again" onClick={() => { returningToSearchRef.current = true; setRoute(null); setError(""); }}>{t.change}</button>
+        <button type="button" className="srg-again" onClick={() => { returningToSearchRef.current = true; setRouteHistory((previous) => [...previous, route]); setRoute(null); setDestination(""); setSelectedStation(null); setShowSuggestions(false); setError(""); }}>{t.change}</button>
       </div>}
       <style>{`
         .srg-card{box-sizing:border-box;width:100%;padding:14px 16px 10px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
