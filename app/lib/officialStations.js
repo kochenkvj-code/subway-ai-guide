@@ -1,5 +1,14 @@
 import official from "../data/seoulMetroOfficialStations.json";
 const clean = value => String(value || "").normalize("NFC").trim().toLocaleLowerCase().replace(/[\s._·・･,，‘’'“”"\-‐‑–—:：()（）\[\]{}]/g, "");
+// Match Korean initial consonants locally; no additional API requests.
+const INITIALS = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+const initialsOf = (name) => [...String(name || "")].map(char => {
+  const code = char.charCodeAt(0);
+  return code >= 0xac00 && code <= 0xd7a3
+    ? INITIALS[Math.floor((code - 0xac00) / 588)]
+    : char;
+}).join("");
+const isInitialQuery = query => query.length >= 2 && /^[ㄱ-ㅎ]+$/.test(query);
 const byKo = new Map();
 for (const station of official) {
   if (!byKo.has(station.ko)) byKo.set(station.ko, station);
@@ -15,7 +24,7 @@ export function officialStationMatches(query, lang, limit = 8) {
   const grouped = new Map();
   for (const s of official) {
     if (s.code === "9005" && s.line === "GTX-A") continue;
-    if (![s.ko, s.en, s.ja, s.zh].some(v => clean(v).includes(q))) continue;
+    if (![s.ko, s.en, s.ja, s.zh].some(v => clean(v).includes(q)) && !(isInitialQuery(q) && initialsOf(clean(s.ko)).includes(q))) continue;
     if (!grouped.has(s.ko)) grouped.set(s.ko, []);
     grouped.get(s.ko).push(s);
   }
@@ -26,6 +35,8 @@ export function officialStationMatches(query, lang, limit = 8) {
   results.sort((a,b) => {
     const rank = s => {
       const ko = clean(s.ko), label = clean(s[lang] || s.ko);
+      if (isInitialQuery(q) && initialsOf(ko) === q) return 0;
+      if (isInitialQuery(q) && initialsOf(ko).startsWith(q)) return 1;
       if (ko === q + "역" || (lang === "en" && label === q + "station")) return 0;
       if (ko === q || label === q) return 1;
       if (ko.startsWith(q) || label.startsWith(q)) return 2;
