@@ -91,6 +91,16 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
   const resultRef = useRef(null);
+  const cardRef = useRef(null);
+  const returningToSearchRef = useRef(false);
+  useLayoutEffect(() => {
+    if (!returningToSearchRef.current || route || !cardRef.current) return;
+    returningToSearchRef.current = false;
+    const scroller = cardRef.current.closest(".sag-chat");
+    if (!scroller) return;
+    const top = cardRef.current.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    scroller.scrollTop = Math.max(0, scroller.scrollTop + top - 8);
+  }, [route]);
   useLayoutEffect(() => {
     if (!route || !resultRef.current) return;
     const result = resultRef.current;
@@ -133,7 +143,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
   }
 
   return (
-    <section className="srg-card" aria-label={t.heading}>
+    <section ref={cardRef} className="srg-card" aria-label={t.heading}>
       <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin">{t.originTag}</span></header>
       <form onSubmit={search}>
         <div className="srg-search-wrap">
@@ -167,7 +177,7 @@ export default function SubwayRouteCard({ lang = "ko" }) {
         </div>
         {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => display(name)).join(" → ")}</p></details>}
         <p className="srg-disclaimer">{t.disclosure}</p>
-        <button type="button" className="srg-again" onClick={() => { setRoute(null); setError(""); }}>{t.change}</button>
+        <button type="button" className="srg-again" onClick={() => { returningToSearchRef.current = true; setRoute(null); setError(""); }}>{t.change}</button>
       </div>}
       <style>{`
         .srg-card{box-sizing:border-box;width:100%;padding:14px 16px 10px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
