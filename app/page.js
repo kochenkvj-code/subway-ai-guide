@@ -1257,6 +1257,10 @@ export default function Home() {
     }
   }
 
+  function openAnotherRouteSearch() {
+    setMessages((previous) => [...previous, { role: "assistant", text: "", routeCard: true }]);
+  }
+
   function showMenu(menuName, selectedText = null, cardType = null) {
     setMode(null);
     const menu = makeSubmenu(lang, menuName, cardType);
@@ -1436,7 +1440,7 @@ export default function Home() {
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
-                {message.routeCard && <SubwayRouteCard lang={lang} />}
+                {message.routeCard && <SubwayRouteCard lang={lang} onNewSearch={openAnotherRouteSearch} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
