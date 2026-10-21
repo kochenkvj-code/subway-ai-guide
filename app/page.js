@@ -372,13 +372,25 @@ const EXCHANGE_CARD = {
 const EXCHANGE_MAP_QUERIES = ["머니박스 광장시장점 서울 종로 210", "ABC Money Exchange 광장시장지점 종로 198-2"];
 function ExchangeCard({lang}) {
   const ui = EXCHANGE_CARD[lang] || EXCHANGE_CARD.ko;
-  return <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,width:"100%"}}>
-    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,border:"1px solid #dce5e5",borderRadius:12,padding:10,display:"flex",flexDirection:"column",gap:7,overflowWrap:"anywhere"}}>
-      <strong style={{fontSize:13,lineHeight:1.35}}>{shop.name}</strong>
-      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.location}</b><div>{shop.location}</div></div>
-      <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.hours}</b><div>{shop.hours}</div></div>
-      {shop.phone && <div style={{fontSize:11,lineHeight:1.55}}><b>{ui.phone}</b><div>{shop.phone}</div></div>}
-      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",marginTop:"auto",padding:"8px 3px",borderRadius:8,background:"#e9f4f0",color:"#08755b",fontSize:12,fontWeight:700,textAlign:"center",textDecoration:"none"}}>📍 {ui.map} ↗</a>
+  const infoRow = (icon, content, key) => (
+    <div key={key} style={{display:"flex",alignItems:"flex-start",gap:9,minWidth:0,fontSize:12,lineHeight:1.5,color:"#405961"}}>
+      <span aria-hidden="true" style={{flex:"0 0 17px",fontSize:14,lineHeight:1.5,textAlign:"center"}}>{icon}</span>
+      <span style={{minWidth:0,overflowWrap:"break-word"}}>{content}</span>
+    </div>
+  );
+  return <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:10,width:"100%"}}>
+    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,background:"#fff",border:"1px solid #dce5e5",borderRadius:13,padding:13,display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{display:"flex",alignItems:"flex-start",gap:10,justifyContent:"space-between"}}>
+        <strong style={{fontSize:15,lineHeight:1.4,color:"#1b3038",minWidth:0,overflowWrap:"break-word"}}>{shop.name}</strong>
+        <span aria-hidden="true" style={{flex:"0 0 auto",width:32,height:32,borderRadius:9,background:"#e9f4f0",color:"#08755b",display:"grid",placeItems:"center",fontSize:18}}>⇄</span>
+      </div>
+      <div style={{height:1,background:"#edf1f2"}}/>
+      <div style={{display:"grid",gap:8}}>
+        {infoRow("📍",shop.location,"location")}
+        {infoRow("◷",shop.hours,"hours")}
+        {shop.phone && infoRow("☎",<a href={"tel:"+shop.phone} style={{color:"#405961",textDecoration:"none"}}>{shop.phone}</a>,"phone")}
+      </div>
+      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",padding:"10px 8px",borderRadius:9,background:"#e9f4f0",color:"#08755b",fontSize:13,fontWeight:750,textAlign:"center",textDecoration:"none"}}>🗺 {ui.map} ↗</a>
     </div>)}
   </div>;
 }
