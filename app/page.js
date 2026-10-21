@@ -372,25 +372,27 @@ const EXCHANGE_CARD = {
 const EXCHANGE_MAP_QUERIES = ["머니박스 광장시장점 서울 종로 210", "ABC Money Exchange 광장시장지점 종로 198-2"];
 function ExchangeCard({lang}) {
   const ui = EXCHANGE_CARD[lang] || EXCHANGE_CARD.ko;
-  const infoRow = (icon, content, key) => (
-    <div key={key} style={{display:"flex",alignItems:"flex-start",gap:9,minWidth:0,fontSize:12,lineHeight:1.5,color:"#405961"}}>
-      <span aria-hidden="true" style={{flex:"0 0 17px",fontSize:14,lineHeight:1.5,textAlign:"center"}}>{icon}</span>
+  const icons = {
+    location: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
+    hours: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></>,
+    phone: <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/>,
+  };
+  const infoRow = (kind, content) => (
+    <div style={{display:"flex",alignItems:"flex-start",gap:9,minWidth:0,color:"#536b73",fontSize:12,lineHeight:1.55}}>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#71868d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{flex:"0 0 16px",marginTop:2}}>{icons[kind]}</svg>
       <span style={{minWidth:0,overflowWrap:"break-word"}}>{content}</span>
     </div>
   );
-  return <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:10,width:"100%"}}>
-    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,background:"#fff",border:"1px solid #dce5e5",borderRadius:13,padding:13,display:"flex",flexDirection:"column",gap:10}}>
-      <div style={{display:"flex",alignItems:"flex-start",gap:10,justifyContent:"space-between"}}>
-        <strong style={{fontSize:15,lineHeight:1.4,color:"#1b3038",minWidth:0,overflowWrap:"break-word"}}>{shop.name}</strong>
-        <span aria-hidden="true" style={{flex:"0 0 auto",width:32,height:32,borderRadius:9,background:"#e9f4f0",color:"#08755b",display:"grid",placeItems:"center",fontSize:18}}>⇄</span>
-      </div>
+  return <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:8,width:"100%"}}>
+    {ui.shops.map((shop,i) => <div key={i} style={{minWidth:0,background:"#fff",border:"1px solid #dce5e5",borderRadius:12,padding:"12px 13px",display:"flex",flexDirection:"column",gap:9}}>
+      <strong style={{fontSize:14,lineHeight:1.4,color:"#1b3038",overflowWrap:"break-word"}}>{shop.name}</strong>
       <div style={{height:1,background:"#edf1f2"}}/>
-      <div style={{display:"grid",gap:8}}>
-        {infoRow("📍",shop.location,"location")}
-        {infoRow("◷",shop.hours,"hours")}
-        {shop.phone && infoRow("☎",<a href={"tel:"+shop.phone} style={{color:"#405961",textDecoration:"none"}}>{shop.phone}</a>,"phone")}
+      <div style={{display:"grid",gap:7}}>
+        {infoRow("location",shop.location)}
+        {infoRow("hours",shop.hours)}
+        {shop.phone && infoRow("phone",<a href={"tel:"+shop.phone} style={{color:"inherit",textDecoration:"none"}}>{shop.phone}</a>)}
       </div>
-      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{display:"block",padding:"10px 8px",borderRadius:9,background:"#e9f4f0",color:"#08755b",fontSize:13,fontWeight:750,textAlign:"center",textDecoration:"none"}}>🗺 {ui.map} ↗</a>
+      <a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(EXCHANGE_MAP_QUERIES[i])} target="_blank" rel="noopener noreferrer" style={{alignSelf:"flex-end",display:"inline-flex",alignItems:"center",gap:4,color:"#087f69",fontSize:12,fontWeight:750,textDecoration:"none",padding:"4px 0"}}>{ui.map} <span aria-hidden="true">↗</span></a>
     </div>)}
   </div>;
 }
