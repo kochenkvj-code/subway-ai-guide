@@ -17,7 +17,7 @@ export default function StatsPage() {
     if (!auth) return;
     let active=true;
     setBusy(true);setError("");
-    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok)throw Error("통계 조회에 실패했습니다.");return r.json();}).then(v=>{if(active)setRows(v.rows||[]);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
+    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active)setRows(v.rows||[]);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
   },[auth,start,date]);
   const stats=useMemo(()=>{
