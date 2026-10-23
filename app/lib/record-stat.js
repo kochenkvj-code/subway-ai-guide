@@ -1,8 +1,22 @@
-// Ephemeral per-page-load UUID: not persisted in cookies or local storage.
+// Anonymous ID scoped to a browser tab. Survives reloads, not tab closure.
+const SESSION_KEY = "subway_ai_guide_visit_session";
 let visitSessionId;
 function getVisitSessionId() {
-  if (!visitSessionId && typeof crypto !== "undefined" && crypto.randomUUID) visitSessionId = crypto.randomUUID();
-  return visitSessionId || null;
+  if (visitSessionId) return visitSessionId;
+  if (typeof window === "undefined" || !window.crypto?.randomUUID) return null;
+  try {
+    const saved = window.sessionStorage.getItem(SESSION_KEY);
+    if (saved && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved)) {
+      visitSessionId = saved;
+      return visitSessionId;
+    }
+    visitSessionId = window.crypto.randomUUID();
+    window.sessionStorage.setItem(SESSION_KEY, visitSessionId);
+  } catch {
+    // Storage may be blocked; keep analytics non-blocking.
+    visitSessionId = window.crypto.randomUUID();
+  }
+  return visitSessionId;
 }
 export function recordStat(event_type, event_name, language) {
   if (typeof window === "undefined") return;
