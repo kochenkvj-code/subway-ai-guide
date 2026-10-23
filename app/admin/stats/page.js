@@ -86,7 +86,7 @@ export default function StatsPage() {
                 const r=group.first;
                 const seconds=Math.max(0,Math.round((new Date(group.last.created_at)-new Date(r.created_at))/1000));
                 return <tr key={group.key}>
-                  <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)}<div style={{color:"#819096",marginTop:4}}>{r.session_id?group.events.length+"개 활동 · "+seconds+"초":"이전 개별 기록"}</div></td>
+                  <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)}<div style={{color:"#819096",marginTop:4}}>{r.session_id?"세션 "+r.session_id.slice(0,8)+" · "+group.events.length+"개 활동 · "+seconds+"초":"이전 기록 · 세션 ID 없음"}</div></td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2",minWidth:260,verticalAlign:"top"}}>
