@@ -29,7 +29,7 @@ export async function supabase(path, options = {}) {
   if (!url || !key) throw new Error("Statistics database is not configured");
   const response = await fetch(url + "/rest/v1/" + path, {
     ...options,
-    headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: { apikey: key, "Content-Type": "application/json", ...(options.headers || {}) },
     cache: "no-store",
   });
   if (!response.ok) throw new Error("Statistics database request failed: " + response.status);
