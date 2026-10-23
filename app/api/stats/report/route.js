@@ -16,7 +16,7 @@ export async function GET(request) {
     // PostgREST pages are limited; request in batches to avoid truncating results.
     const rows = [];
     for (let offset = 0; offset < 100000; offset += 1000) {
-      const params = new URLSearchParams({ select: "id,created_at,event_type,event_name,language,country,device_type,os_type,browser", and: "(created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + ")", order: "created_at.asc", limit: "1000", offset: String(offset) });
+      const params = new URLSearchParams({ select: "id,session_id,created_at,event_type,event_name,language,country,device_type,os_type,browser", and: "(created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + ")", order: "created_at.asc", limit: "1000", offset: String(offset) });
       const response = await supabase("chatbot_events?" + params);
       const batch = await response.json();
       rows.push(...batch);
