@@ -68,13 +68,14 @@ function summarizeRoute(body, destination, searchedAt) {
       if (ride && (ride.line !== line || (ride.trainNo && trainNo && ride.trainNo !== trainNo))) flush();
       if (!ride) {
         ride = {
-          type: "ride", line, from, to, segments: 0,
+          type: "ride", line, from, to, segments: 0, stations: [from],
           direction: cleanStationName(step.tmnlStnNm),
           trainNo, departureTime: step.trainDptreTm || null,
           arrivalTime: step.trainArvlTm || null,
         };
       }
       ride.to = to;
+      if (ride.stations[ride.stations.length - 1] !== to) ride.stations.push(to);
       ride.segments += 1;
       if (!ride.direction) ride.direction = cleanStationName(step.tmnlStnNm);
       if (step.trainArvlTm) ride.arrivalTime = step.trainArvlTm;
