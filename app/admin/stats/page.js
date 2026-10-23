@@ -8,6 +8,7 @@ const startOf = (date, days) => { const d = new Date(date + "T00:00:00Z"); d.set
 const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
 const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
+const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback"].includes(e.event_type);
 const countryLabels = {KR:"한국",JP:"일본",HK:"홍콩",SG:"싱가포르",US:"미국",CN:"중국",TW:"대만"};
 const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date(value));
 const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,padding:18};
@@ -40,6 +41,8 @@ export default function StatsPage() {
       return group;
     }).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
   },[rows]);
+  const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
+  const accessOnlySessions = sessionRows.length - activeSessions;
   const pageSize = 50;
   const pageCount = Math.max(1,Math.ceil(sessionRows.length/pageSize));
   const stats=useMemo(()=>{
@@ -63,7 +66,7 @@ export default function StatsPage() {
       {auth===null?<p>인증 확인 중…</p>:!auth?<form onSubmit={login} style={{...card,maxWidth:420,margin:"60px auto"}}><h2 style={{marginTop:0,fontSize:18}}>관리자 로그인</h2><label htmlFor="stats-password">관리자 비밀번호</label><input id="stats-password" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={{display:"block",width:"100%",boxSizing:"border-box",padding:12,border:"1px solid #b9c9cc",borderRadius:9,margin:"10px 0 16px"}}/><button type="submit" style={{background:"#087f69",color:"white",border:0,borderRadius:9,padding:"11px 20px",cursor:"pointer"}}>로그인</button>{error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}</form>:<>
         <section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12,marginBottom:14}}><label>조회 기준 <select value={period} onChange={e=>setPeriod(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}><option value="day">일별</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select></label><label>기준 날짜 <input type="date" value={date} max={today()} onChange={e=>setDate(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}/></label><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span></section>
         {error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}{busy&&<p>통계 불러오는 중…</p>}
-        <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
+        <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:14}}>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>날짜별 이벤트 추이</h2>{chart(stats.dates)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>빠른 안내 메뉴별 이용량</h2>{chart(stats.counts,names)}</div>
@@ -72,7 +75,7 @@ export default function StatsPage() {
         </section>
         <section style={{...card,marginTop:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
-            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 접속 기록 · 최근 활동순 · 50개씩 표시</p></div>
+            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 최근 활동순 · 50개씩 표시</p></div>
             <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
               <button disabled={rawPage===0} onClick={()=>setRawPage(p=>Math.max(0,p-1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>이전</button>
               <span>{rawPage+1} / {pageCount}</span>
@@ -85,8 +88,9 @@ export default function StatsPage() {
               <tbody>{sessionRows.slice(rawPage*pageSize,(rawPage+1)*pageSize).map(group=>{
                 const r=group.first;
                 const seconds=Math.max(0,Math.round((new Date(group.last.created_at)-new Date(r.created_at))/1000));
+                const functional = group.events.some(isFunctionalEvent);
                 return <tr key={group.key}>
-                  <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)}<div style={{color:"#819096",marginTop:4}}>{r.session_id?"세션 "+r.session_id.slice(0,8)+" · "+group.events.length+"개 활동 · "+seconds+"초":"이전 기록 · 세션 ID 없음"}</div></td>
+                  <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)}<div style={{color:"#819096",marginTop:4}}>{r.session_id?"세션 "+r.session_id.slice(0,8)+" · "+group.events.length+"개 활동 · "+seconds+"초":"이전 기록 · 세션 ID 없음"}<div style={{marginTop:5,fontSize:11,fontWeight:700,color:functional?"#087f69":"#8b9398"}}>{functional?"기능 이용":"기능 이용 없음"}</div></div></td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2",minWidth:260,verticalAlign:"top"}}>
@@ -102,7 +106,7 @@ export default function StatsPage() {
           </div>
           <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 저장하지 않습니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
         </section>
-        <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
+        <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 실제 기능 이용 세션은 빠른 안내·AI 질문·길찾기 검색·피드백 이벤트가 하나 이상 있는 세션이며, 단순 접속과 언어 변경만 있는 세션은 제외합니다. 세션 수는 실제 사람 수가 아니며, 세션 ID가 없는 과거 기록은 이벤트별로 개별 집계됩니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
       </>}
     </div>
   </main>;
