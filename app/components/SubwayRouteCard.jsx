@@ -113,11 +113,11 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestions = showSuggestions && destination.trim() ? officialStationMatches(destination, lang) : [];
   const display = (name) => officialStationName(name, lang, stationName);
-  const stationLines = routeStationLines(route?.itinerary);
   const [mode, setMode] = useState("duration");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
+  const stationLines = routeStationLines(route?.itinerary);
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
   const cardRef = useRef(null);
