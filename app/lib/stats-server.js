@@ -32,6 +32,14 @@ export async function supabase(path, options = {}) {
     headers: { apikey: key, "Content-Type": "application/json", ...(options.headers || {}) },
     cache: "no-store",
   });
-  if (!response.ok) throw new Error("Statistics database request failed: " + response.status);
+  if (!response.ok) {
+    let reason = "unknown";
+    try {
+      const data = await response.json();
+      reason = String(data?.code || data?.error_code || data?.message || data?.error || "unknown").slice(0, 180);
+    } catch {}
+    console.error("[stats/supabase] status:", response.status, "reason:", reason);
+    throw new Error("Statistics database request failed: " + response.status + " (" + reason + ")");
+  }
   return response;
 }
