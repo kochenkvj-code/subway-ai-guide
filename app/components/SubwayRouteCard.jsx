@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 import { officialStationMatches, officialStationName } from "../lib/officialStations";
 import { recordStat } from "../lib/record-stat";
@@ -94,6 +94,28 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
   const cardRef = useRef(null);
+  const searchRef = useRef(null);
+  useEffect(() => {
+    if (!showSuggestions || !destination.trim()) return;
+    const viewport = window.visualViewport;
+    const adjust = () => {
+      const field = searchRef.current;
+      const scroller = field?.closest(".sag-chat");
+      if (!field || !scroller || document.activeElement?.id !== "srg-destination-input") return;
+      const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+      const rect = field.getBoundingClientRect();
+      const delta = rect.bottom - Math.min(visibleBottom, scroller.getBoundingClientRect().bottom) + 12;
+      if (delta > 0) scroller.scrollTop += delta;
+    };
+    const frame = requestAnimationFrame(adjust);
+    viewport?.addEventListener("resize", adjust);
+    viewport?.addEventListener("scroll", adjust);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport?.removeEventListener("resize", adjust);
+      viewport?.removeEventListener("scroll", adjust);
+    };
+  }, [showSuggestions, destination]);
   const returningToSearchRef = useRef(false);
   useLayoutEffect(() => {
     if (!returningToSearchRef.current || route || !cardRef.current) return;
@@ -151,11 +173,11 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
     <section ref={cardRef} className="srg-card" aria-label={t.heading}>
       <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin">{t.originTag}</span></header>
       <form onSubmit={search}>
-        <div className="srg-search-wrap">
+        {suggestions.length > 0 && <div id="srg-suggestions" className="srg-suggestions" role="listbox" aria-label={lang === "ko" ? "검색된 역" : "Station suggestions"}>{suggestions.map((s) => <button type="button" role="option" aria-selected="false" key={s.code} className="srg-suggestion" onClick={() => { setSelectedStation(s); setDestination(s[lang] || s.ko); setShowSuggestions(false); setError(""); }}><strong>{s[lang] || s.ko}</strong><small>{(s.lines || [s.line]).map(line => line.replace(/^0([1-9])호선$/, "$1호선")).join(" · ")}</small></button>)}</div>}
+        <div ref={searchRef} className="srg-search-wrap">
           <span className="srg-search-icon" aria-hidden="true">⌕</span>
           <input id="srg-destination-input" aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" aria-controls="srg-suggestions" />
           {destination && <button type="button" className="srg-clear" aria-label={lang === "ko" ? "입력 지우기" : "Clear destination"} onClick={() => {setDestination("");setSelectedStation(null);setShowSuggestions(false);setError("");}}>×</button>}
-          {suggestions.length > 0 && <div id="srg-suggestions" className="srg-suggestions" role="listbox">{suggestions.map((s) => <button type="button" role="option" aria-selected="false" key={s.code} className="srg-suggestion" onClick={() => { setSelectedStation(s); setDestination(s[lang] || s.ko); setShowSuggestions(false); setError(""); }}><span className="srg-suggestion-icon" aria-hidden="true">🚇</span><span className="srg-suggestion-text"><strong>{s[lang] || s.ko}</strong><small>{s.ko} · {(s.lines || [s.line]).map(line => line.replace(/^0([1-9])호선$/, "$1호선")).join(" · ")}</small></span><span className="srg-suggestion-arrow" aria-hidden="true">›</span></button>)}</div>}
         </div>
         <div className="srg-modes" role="group" aria-label={t.criterion}>{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy || !destination.trim()} className="srg-submit">{busy ? t.searching : <>{t.search} <span aria-hidden="true">→</span></>}</button>
@@ -197,13 +219,11 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-search-wrap input{width:100%;min-width:0;flex:1;padding:13px 0;background:transparent;border:0;outline:0;color:#fff;font-size:16px}
         .srg-search-wrap input::placeholder{color:#9aa9ae}
         .srg-clear{border:0;background:transparent;color:#aebdc0;font-size:24px;cursor:pointer;padding:0 2px}
-        .srg-suggestions{position:absolute;z-index:30;top:calc(100% + 7px);left:0;right:0;max-height:min(190px,35dvh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#1c2429;border:1px solid #3a4b4c;border-radius:13px;box-shadow:0 10px 26px #0007}
-        .srg-suggestion{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-bottom:1px solid #303b40;background:transparent;color:#f2f6f6;text-align:left;cursor:pointer}
-        .srg-suggestion:hover,.srg-suggestion:focus{background:#2b393a}
-        .srg-suggestion-icon{font-size:17px;opacity:.75}
-        .srg-suggestion-text{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
-        .srg-suggestion-text strong{font-size:13px;font-weight:700}.srg-suggestion-text small{font-size:11px;color:#a7b8bb}
-        .srg-suggestion-arrow{font-size:23px;color:#87979c}
+        .srg-suggestions{display:flex;gap:7px;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding:3px 1px 9px;margin-bottom:4px;scrollbar-width:thin}
+        .srg-suggestion{display:flex;flex:0 0 auto;flex-direction:column;justify-content:center;gap:3px;max-width:185px;min-height:49px;padding:8px 11px;border:1px solid #405454;border-radius:10px;background:#233138;color:#f2f6f6;text-align:left;cursor:pointer}
+        .srg-suggestion:hover,.srg-suggestion:focus-visible{background:#2c4842;border-color:#61cbb1}
+        .srg-suggestion strong{font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .srg-suggestion small{font-size:10px;color:#a7b8bb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .srg-preference{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:13px 0 12px;padding:9px 11px;border-radius:10px;background:#20292e;color:#a9b9bd;font-size:12px}
         .srg-preference select{max-width:65%;color:#e3f6ef;background:#20292e;border:0;font-size:12px;font-weight:750;text-align:right;outline:none;cursor:pointer}
         .srg-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0 12px}
