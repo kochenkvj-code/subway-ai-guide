@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import SubwayRouteCard from "./components/SubwayRouteCard";
 import NearbyPlacesCard from "./components/NearbyPlacesCard";
+import { recordStat } from "./lib/record-stat";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -911,6 +912,7 @@ function renderBoldMarkdown(text) {
 
 export default function Home() {
   const [lang, setLang] = useState("ko");
+  useEffect(() => { recordStat("page_view", "visit", "ko"); }, []);
   const [mode, setMode] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1125,6 +1127,7 @@ export default function Home() {
   }
 
   function changeLanguage(nextLang) {
+    if (nextLang !== lang) recordStat("language_change", nextLang, nextLang);
     stopVoice();
     setVoiceError("");
     setLang(nextLang);
@@ -1143,6 +1146,7 @@ export default function Home() {
   }
 
   async function askGoogle(question, visibleUserText = question, feedbackKey = "free_question") {
+    recordStat("ai_question", "request", lang);
     setLoading(true);
 
     setMessages((prev) => [
@@ -1258,6 +1262,7 @@ export default function Home() {
       ...prev,
       [index]: result,
     }));
+    recordStat("feedback", result, lang);
 
     if (GA_ID && typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag(
@@ -1354,6 +1359,7 @@ export default function Home() {
     const now = Date.now();
     if (now - lastQuickActionAtRef.current < 700) return;
     lastQuickActionAtRef.current = now;
+    recordStat("quick_menu", type, lang);
     // A fresh viewport discards Safari's old scroll inertia, while the
     // messages array remains intact and accessible by scrolling upward.
     setMenuViewSerial((n) => n + 1);
