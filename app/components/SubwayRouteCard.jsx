@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 import { officialStationMatches, officialStationName } from "../lib/officialStations";
+import { recordStat } from "../lib/record-stat";
 
 // Reuses the already tested /api/subway-route endpoint.
 // No Gemini call, prompt classification, or AI translation happens here.
@@ -127,6 +128,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
     setBusy(true);
     setError("");
     setRoute(null);
+    recordStat("route_search", "request", lang);
     try {
       const params = new URLSearchParams({ to, mode });
       if (code) params.set("toCode", code);
@@ -136,7 +138,9 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         throw new Error(data?.error || t.searchFailed);
       }
       setRoute(data.route);
+      recordStat("route_search", "success", lang);
     } catch (e) {
+      recordStat("route_search", "failure", lang);
       setError(e?.message || t.searchFailed);
     } finally {
       setBusy(false);
