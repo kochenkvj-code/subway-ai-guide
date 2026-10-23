@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 import { officialStationMatches, officialStationName } from "../lib/officialStations";
 import { recordStat } from "../lib/record-stat";
+import RouteMiniMap from "./RouteMiniMap";
 
 // Reuses the already tested /api/subway-route endpoint.
 // No Gemini call, prompt classification, or AI translation happens here.
@@ -264,6 +265,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
             </div>
           ))}
         </div>
+        <RouteMiniMap itinerary={route.itinerary || []} lang={lang} display={display} lineName={lineName} />
         {Array.isArray(route.allStations) && route.allStations.length > 0 && (
           <details className="srg-all-stations">
             <summary>{t.all} ({route.allStations.length})</summary>
