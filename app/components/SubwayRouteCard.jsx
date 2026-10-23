@@ -15,7 +15,7 @@ const COPY = {
     transfers: "환승", fare: "교통카드 운임", length: "이동 거리", itinerary: "추천 이동 경로",
     change: "다른 역 검색", all: "경유 역 전체 보기", ride: "이동", board: "행 열차", transferAt: "환승",
     depart: "출발", arrive: "도착", stops: "정거장", mins: "분", secs: "초", hours: "시간", won: "원",
-    suffix: "회", searchFailed: "조회 실패", empty: "도착역을 입력해주세요.",
+    showStops: "경유역 보기", hideStops: "경유역 접기", suffix: "회", searchFailed: "조회 실패", empty: "도착역을 입력해주세요.",
     unsupported: "역명을 찾지 못했거나 같은 표기의 역이 여러 개입니다. 한국어 공식 역명으로 입력하거나 아래 빠른 선택을 이용해주세요.",
     disclosure: "경로 정보는 공식 API 기준이며 실제 운행과 다를 수 있습니다. 환승 구간 및 추가 운임은 현장 안내를 확인해주세요.",
   },
@@ -26,7 +26,7 @@ const COPY = {
     transfers: "Transfers", fare: "Card fare", length: "Distance", itinerary: "Directions",
     change: "Search again", all: "Show all stations", ride: "Ride", board: "-bound train", transferAt: "Transfer",
     depart: "Departure", arrive: "Arrival", stops: "stops", mins: "min", secs: "sec", hours: "hr", won: "KRW",
-    suffix: "", searchFailed: "Unable to find route", empty: "Please enter a destination.",
+    showStops: "Show stops", hideStops: "Hide stops", suffix: "", searchFailed: "Unable to find route", empty: "Please enter a destination.",
     unsupported: "Station name not found or ambiguous. Try the official Korean name or a popular destination below.",
     disclosure: "Route data comes from the official API and may differ from actual operations. Check local signs for transfers and surcharges.",
   },
@@ -37,7 +37,7 @@ const COPY = {
     transfers: "乗換", fare: "交通カード運賃", length: "移動距離", itinerary: "おすすめ経路",
     change: "別の駅を検索", all: "全駅を見る", ride: "乗車", board: "方面", transferAt: "乗換",
     depart: "出発", arrive: "到着", stops: "駅", mins: "分", secs: "秒", hours: "時間", won: "ウォン",
-    suffix: "回", searchFailed: "検索できませんでした", empty: "到着駅を入力してください。",
+    showStops: "途中駅を見る", hideStops: "途中駅を閉じる", suffix: "回", searchFailed: "検索できませんでした", empty: "到着駅を入力してください。",
     unsupported: "駅名が見つからないか、複数の駅に一致します。韓国語の正式駅名または下の候補を使用してください。",
     disclosure: "公式APIに基づく経路です。実際の運行・乗換・追加運賃については現地案内をご確認ください。",
   },
@@ -48,7 +48,7 @@ const COPY = {
     transfers: "换乘", fare: "交通卡票价", length: "行驶距离", itinerary: "推荐路线",
     change: "重新查询", all: "显示所有途经站", ride: "乘车", board: "方向", transferAt: "换乘",
     depart: "出发", arrive: "到达", stops: "站", mins: "分钟", secs: "秒", hours: "小时", won: "韩元",
-    suffix: "次", searchFailed: "查询失败", empty: "请输入目的地。",
+    showStops: "查看途经站", hideStops: "收起途经站", suffix: "次", searchFailed: "查询失败", empty: "请输入目的地。",
     unsupported: "未找到车站或有多个同名候选。请使用韩文正式站名或选择下方常用车站。",
     disclosure: "路线信息来自官方API，可能与实际运行情况不同。请以现场换乘指示及附加票价为准。",
   },
@@ -210,16 +210,33 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
           <div><span>{t.length}</span><strong>{(Number(route.totalMeters || 0) / 1000).toFixed(1)} km</strong></div>
         </div>
         <h4>{t.itinerary}</h4>
-        <div className="srg-timeline">
-          {(route.itinerary || []).map((step, index) => <div className="srg-stop" key={index}>
-            <div className="srg-point">{step.type === "transfer" ? "↔" : "●"}</div>
-            <div className="srg-stop-body">
-              {step.type === "transfer" ? <><strong>{display(step.station)} · {t.transferAt}</strong><div className="srg-line-row"><Line name={step.fromLine} lang={lang} /> → <Line name={step.toLine} lang={lang} /></div></>
-                : <><strong>{display(step.from)} → {display(step.to)}</strong><div className="srg-line-row"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div></>}
+        <div className="srg-route-steps">
+          {(route.itinerary || []).map((step, index) => step.type === "transfer" ? (
+            <div className="srg-transfer-card" key={index}>
+              <div className="srg-transfer-symbol" aria-hidden="true">⇄</div>
+              <div className="srg-transfer-main"><strong>{display(step.station)} · {t.transferAt}</strong><div className="srg-transfer-lines"><Line name={step.fromLine} lang={lang} /><span aria-hidden="true">→</span><Line name={step.toLine} lang={lang} /></div></div>
             </div>
-          </div>)}
+          ) : (
+            <div className="srg-ride-card" key={index} style={{ "--ride-color": lineColor(step.line) }}>
+              <div className="srg-ride-heading">
+                <span className="srg-ride-badge" aria-hidden="true">{/^([1-9])호선$/.test(step.line) ? step.line[0] : "🚇"}</span>
+                <div className="srg-ride-main">
+                  <strong>{display(step.from)} <span aria-hidden="true">→</span> {display(step.to)}</strong>
+                  <div className="srg-ride-meta"><Line name={step.line} lang={lang} />{step.direction && (lang === "ko" || directionName(step.direction, lang)) && <span>{directionName(step.direction, lang)}{lang === "en" ? "" : " "}{t.board}</span>}</div>
+                </div>
+                {step.segments > 0 && <span className="srg-stop-count">{step.segments} {t.stops}</span>}
+              </div>
+              {Array.isArray(step.stations) && step.stations.length > 2 && (
+                <details className="srg-ride-details">
+                  <summary>{t.showStops} <span className="srg-ride-chevron" aria-hidden="true">⌄</span></summary>
+                  <div className="srg-ride-stations">
+                    {step.stations.slice(1,-1).map((station,i) => <div className="srg-ride-station" key={i}><span className="srg-ride-dot" aria-hidden="true"/><span>{display(station)}</span></div>)}
+                  </div>
+                </details>
+              )}
+            </div>
+          ))}
         </div>
-        {Array.isArray(route.allStations) && route.allStations.length > 0 && <details className="srg-details"><summary>{t.all} ({route.allStations.length})</summary><p>{route.allStations.map((name) => display(name)).join(" → ")}</p></details>}
         <p className="srg-disclaimer">{t.disclosure}</p>
         {!newSearchOpened && <button type="button" className="srg-again" onClick={() => { if (onNewSearch) { setNewSearchOpened(true); onNewSearch(); } else { returningToSearchRef.current = true; setRoute(null); setDestination(""); setSelectedStation(null); setError(""); } }}>{t.change}</button>}
       </div>}
@@ -251,6 +268,23 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-mode input{position:absolute;opacity:0;width:1px;height:1px}
         .srg-submit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#008c73;color:#fff;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
         .srg-submit:disabled{opacity:.45;cursor:not-allowed}.srg-error{margin-top:12px;padding:12px;background:#422722;border:1px solid #86564b;border-radius:10px;color:#ffd3c8;font-size:12px}.srg-error p{margin:5px 0 0}
+        .srg-route-steps{display:flex;flex-direction:column;gap:9px}
+        .srg-ride-card{border:1px solid #e1e8ea;border-left:5px solid var(--ride-color);border-radius:12px;padding:12px 10px 10px;background:#fff;min-width:0}
+        .srg-ride-heading{display:flex;align-items:flex-start;gap:10px;min-width:0}
+        .srg-ride-badge{display:flex;flex:0 0 34px;width:34px;height:34px;align-items:center;justify-content:center;border-radius:50%;background:var(--ride-color);color:#fff;font-size:17px;font-weight:800}
+        .srg-ride-main{flex:1;min-width:0}.srg-ride-main>strong{font-size:13px;line-height:1.5;display:block;overflow-wrap:anywhere}.srg-ride-main>strong>span{color:#6e858c}
+        .srg-ride-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#526771}
+        .srg-stop-count{flex-shrink:0;font-size:10px;color:#647b82;padding-top:5px;white-space:nowrap}
+        .srg-ride-details{margin:10px 0 0 44px;min-width:0}
+        .srg-ride-details>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#f1f5f6;border-radius:8px;color:#526771;font-size:12px;font-weight:700;cursor:pointer}
+        .srg-ride-details>summary::-webkit-details-marker{display:none}
+        .srg-ride-chevron{font-size:18px;line-height:1;transition:transform .15s}.srg-ride-details[open] .srg-ride-chevron{transform:rotate(180deg)}
+        .srg-ride-stations{padding:10px 0 1px 10px;border-left:3px solid var(--ride-color);margin-left:11px}
+        .srg-ride-station{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;color:#455b63}
+        .srg-ride-dot{width:8px;height:8px;flex:0 0 8px;background:var(--ride-color);border-radius:50%;margin-left:-15px;border:1px solid #fff}
+        .srg-transfer-card{display:flex;align-items:center;gap:11px;border:1px solid #d6e8e4;background:#edf7f4;border-radius:11px;padding:11px}
+        .srg-transfer-symbol{display:flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#d1eee5;color:#087c68;font-size:22px;font-weight:700}
+        .srg-transfer-main{min-width:0}.srg-transfer-main>strong{font-size:13px;color:#183b35}.srg-transfer-lines{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px}
         .srg-result{margin-top:8px;border-radius:12px;background:#fff;color:#172b33;padding:12px}
         .srg-separator{height:1px;background:#e4edef;margin:20px 0}.srg-result-label{font-weight:800;color:#07816b;font-size:12px}.srg-result h3{margin:8px 0 15px;font-size:19px;letter-spacing:-.03em}.srg-result h3>span{color:#07816b}
         .srg-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.srg-metrics>div{background:#f2f7f8;border-radius:10px;padding:12px 10px;min-width:0}
