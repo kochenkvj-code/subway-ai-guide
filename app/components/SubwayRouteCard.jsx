@@ -80,6 +80,32 @@ function Line({ name, lang }) {
   return <span className="srg-line" style={{ background: lineColor(name) }}>{lineName(name, lang)}</span>;
 }
 
+// Associate each visited station with the line(s) used at that stop.
+function routeStationLines(itinerary) {
+  const byStation = new Map();
+  const add = (station, line) => {
+    if (!station || !line) return;
+    if (!byStation.has(station)) byStation.set(station, []);
+    const lines = byStation.get(station);
+    if (!lines.includes(line)) lines.push(line);
+  };
+  for (const step of itinerary || []) {
+    if (step.type === "ride") {
+      for (const station of step.stations || [step.from, step.to]) add(station, step.line);
+    } else if (step.type === "transfer") {
+      add(step.station, step.fromLine);
+      add(step.station, step.toLine);
+    }
+  }
+  return byStation;
+}
+
+function ShortLineBadge({ name, lang }) {
+  const match = String(name || "").match(/^0?([1-9])호선$/);
+  const label = match ? match[1] : lineName(name, lang);
+  return <span className="srg-short-line" style={{ background: lineColor(name) }} title={lineName(name, lang)}>{label}</span>;
+}
+
 export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const t = COPY[lang] || COPY.ko;
   const [destination, setDestination] = useState("");
@@ -87,6 +113,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestions = showSuggestions && destination.trim() ? officialStationMatches(destination, lang) : [];
   const display = (name) => officialStationName(name, lang, stationName);
+  const stationLines = routeStationLines(route?.itinerary);
   const [mode, setMode] = useState("duration");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -237,6 +264,20 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
             </div>
           ))}
         </div>
+        {Array.isArray(route.allStations) && route.allStations.length > 0 && (
+          <details className="srg-all-stations">
+            <summary>{t.all} ({route.allStations.length})</summary>
+            <div className="srg-all-stations-list">
+              {route.allStations.map((name, index) => (
+                <span className="srg-all-station" key={index}>
+                  {(stationLines.get(name) || []).map(line => <ShortLineBadge key={line} name={line} lang={lang} />)}
+                  <span>{display(name)}</span>
+                  {index < route.allStations.length - 1 && <span className="srg-all-arrow" aria-hidden="true">→</span>}
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
         <p className="srg-disclaimer">{t.disclosure}</p>
         {!newSearchOpened && <button type="button" className="srg-again" onClick={() => { if (onNewSearch) { setNewSearchOpened(true); onNewSearch(); } else { returningToSearchRef.current = true; setRoute(null); setDestination(""); setSelectedStation(null); setError(""); } }}>{t.change}</button>}
       </div>}
@@ -294,6 +335,12 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-point{width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#e4f4ed;color:#00866d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;z-index:1}
         .srg-stop-body{min-width:0;padding-top:2px;flex:1}.srg-stop-body>strong{font-size:13px}.srg-line-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;color:#526771;font-size:12px}
         .srg-line{display:inline-block;padding:4px 7px;border-radius:5px;color:#fff;font-weight:700;font-size:11px}.srg-details{border-top:1px solid #e6eeee;padding:12px 0;margin-top:4px}.srg-details summary{cursor:pointer;font-size:12px;font-weight:700}.srg-details p{font-size:12px;line-height:1.8;color:#5e717b}
+        .srg-all-stations{border-top:1px solid #e6eeee;padding:12px 0;margin-top:12px}
+        .srg-all-stations>summary{cursor:pointer;font-size:12px;font-weight:750;color:#24343b}
+        .srg-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;column-gap:5px;row-gap:9px;padding:13px 0 2px;color:#536d77;font-size:12px;line-height:1.7}
+        .srg-all-station{display:inline-flex;align-items:center;gap:3px;max-width:100%;white-space:nowrap}
+        .srg-short-line{display:inline-flex;align-items:center;justify-content:center;min-width:18px;max-width:78px;padding:1px 4px;border-radius:4px;color:white;font-size:10px;font-weight:800;line-height:1.5;white-space:nowrap}
+        .srg-all-arrow{color:#859ba3;margin:0 3px;font-weight:700}
         .srg-disclaimer{font-size:11px;line-height:1.6;color:#788d93}.srg-again{width:100%;border:1px solid #bddbcf;background:#f0f9f6;color:#05755e;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
         @media(max-width:420px){.srg-card{padding:13px}.srg-origin{font-size:10px;padding:5px 7px}.srg-metrics strong{font-size:14px}}
       `}</style>
