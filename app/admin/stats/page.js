@@ -7,9 +7,13 @@ const today = () => dateKst(Date.now());
 const startOf = (date, days) => { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0,10); };
 const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
+const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
+const countryLabels = {KR:"한국",JP:"일본",HK:"홍콩",SG:"싱가포르",US:"미국",CN:"중국",TW:"대만"};
+const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date(value));
 const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,padding:18};
 export default function StatsPage() {
   const [auth,setAuth] = useState(null),[password,setPassword] = useState(""),[error,setError] = useState("");
+  const [rawPage,setRawPage] = useState(0);
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
   useEffect(() => { fetch("/api/stats/auth",{cache:"no-store"}).then(r=>r.json()).then(v=>setAuth(!!v.authenticated)).catch(()=>setAuth(false)); },[]);
   const start = period==="day"?date:startOf(date,period==="week"?6:29);
@@ -20,6 +24,10 @@ export default function StatsPage() {
     fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active)setRows(v.rows||[]);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
   },[auth,start,date]);
+  useEffect(()=>setRawPage(0),[start,date]);
+  const rawRows = useMemo(()=>[...rows].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)),[rows]);
+  const pageSize = 50;
+  const pageCount = Math.max(1,Math.ceil(rawRows.length/pageSize));
   const stats=useMemo(()=>{
     const counts={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
     for(const r of rows){const d=dateKst(r.created_at);const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(r.created_at));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
@@ -47,6 +55,32 @@ export default function StatsPage() {
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>빠른 안내 메뉴별 이용량</h2>{chart(stats.counts,names)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>언어별 이용 이벤트</h2>{chart(stats.languages,langs)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시간대별 이벤트 (KST)</h2>{chart(stats.hours)}</div>
+        </section>
+        <section style={{...card,marginTop:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
+            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {rawRows.length.toLocaleString()}건 · 최신순 · 50건씩 표시</p></div>
+            <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
+              <button disabled={rawPage===0} onClick={()=>setRawPage(p=>Math.max(0,p-1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>이전</button>
+              <span>{rawPage+1} / {pageCount}</span>
+              <button disabled={rawPage>=pageCount-1} onClick={()=>setRawPage(p=>Math.min(pageCount-1,p+1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>다음</button>
+            </div>
+          </div>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,textAlign:"left",whiteSpace:"nowrap"}}>
+              <thead><tr>{["접속·이용시간 (KST)","국가","기기","운영체제","브라우저","선택 언어","활동"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f"}}>{h}</th>)}</tr></thead>
+              <tbody>{rawRows.slice(rawPage*pageSize,(rawPage+1)*pageSize).map((r,i)=><tr key={r.id||r.created_at+"-"+i}>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{timeKst(r.created_at)}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{r.device_type||"미확인"}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{r.os_type||"미확인"}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{r.browser||"미확인"}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{langs[r.language]||r.language}</td>
+                <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2"}}>{r.event_type==="quick_menu"?(names[r.event_name]||r.event_name):eventLabels[r.event_type]||r.event_type}{r.event_type==="route_search"?" · "+r.event_name:""}</td>
+              </tr>)}</tbody>
+            </table>
+            {!rawRows.length&&<p style={{color:"#7a858d",fontSize:13}}>해당 기간 기록이 없습니다.</p>}
+          </div>
+          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 저장하지 않습니다. 과거 기록의 국가·기기는 미확인으로 표시됩니다.</p>
         </section>
         <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
       </>}
