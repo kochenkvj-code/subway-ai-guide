@@ -95,6 +95,21 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const resultRef = useRef(null);
   const cardRef = useRef(null);
   const searchRef = useRef(null);
+  const suggestionsRef = useRef(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  useLayoutEffect(() => {
+    const el = suggestionsRef.current;
+    if (!el) { setCanScrollRight(false); return; }
+    const update = () => setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 3);
+    update();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    observer?.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [destination, showSuggestions, lang]);
   useEffect(() => {
     if (!showSuggestions || !destination.trim()) return;
     const viewport = window.visualViewport;
@@ -180,7 +195,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
           <input id="srg-destination-input" aria-label={t.to} value={destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" aria-controls="srg-suggestions" />
           {destination && <button type="button" className="srg-clear" aria-label={lang === "ko" ? "입력 지우기" : "Clear destination"} onClick={() => {setDestination("");setSelectedStation(null);setShowSuggestions(false);setError("");}}>×</button>}
         </div>
-        {suggestions.length > 0 && <div id="srg-suggestions" className="srg-suggestions" role="listbox" aria-label={lang === "ko" ? "검색된 역" : "Station suggestions"}>{suggestions.map((s) => <button type="button" role="option" aria-selected="false" key={s.code} className="srg-suggestion" onClick={() => { setSelectedStation(s); setDestination(s[lang] || s.ko); setShowSuggestions(false); setError(""); }}><strong>{s[lang] || s.ko}</strong><small>{(s.lines || [s.line]).map(line => line.replace(/^0([1-9])호선$/, "$1호선")).join(" · ")}</small></button>)}</div>}
+        {suggestions.length > 0 && <div className="srg-suggestions-wrap"><div ref={suggestionsRef} onScroll={() => { const el = suggestionsRef.current; if (el) setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 3); }} id="srg-suggestions" className="srg-suggestions" role="listbox" aria-label={lang === "ko" ? "검색된 역" : "Station suggestions"}>{suggestions.map((s) => <button type="button" role="option" aria-selected="false" key={s.code} className="srg-suggestion" onClick={() => { setSelectedStation(s); setDestination(s[lang] || s.ko); setShowSuggestions(false); setError(""); }}><strong>{s[lang] || s.ko}</strong><small>{(s.lines || [s.line]).map(line => line.replace(/^0([1-9])호선$/, "$1호선")).join(" · ")}</small></button>)}</div>{canScrollRight && <div className="srg-scroll-hint" aria-hidden="true"><span>›</span></div>}</div>}
         <div className="srg-modes" role="group" aria-label={t.criterion}>{choices.map((choice) => <label className={mode === choice.value ? "srg-mode active" : "srg-mode"} key={choice.value}><input type="radio" name="subway-route-mode" checked={mode === choice.value} onChange={() => setMode(choice.value)} />{choice.label}</label>)}</div>
         <button type="submit" disabled={busy || !destination.trim()} className="srg-submit">{busy ? t.searching : <>{t.search} <span aria-hidden="true">→</span></>}</button>
       </form>
@@ -221,8 +236,10 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-search-wrap input{width:100%;min-width:0;flex:1;padding:13px 0;background:transparent;border:0;outline:0;color:#fff;font-size:16px}
         .srg-search-wrap input::placeholder{color:#9aa9ae}
         .srg-clear{border:0;background:transparent;color:#aebdc0;font-size:24px;cursor:pointer;padding:0 2px}
-        .srg-suggestions{display:flex;gap:7px;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding:7px 1px 4px;margin-top:4px;margin-bottom:3px;scrollbar-width:thin}
-        .srg-suggestion{display:flex;flex:0 0 auto;flex-direction:column;justify-content:center;gap:3px;max-width:185px;min-height:49px;padding:8px 11px;border:1px solid #405454;border-radius:10px;background:#233138;color:#f2f6f6;text-align:left;cursor:pointer}
+        .srg-suggestions-wrap{position:relative;width:100%;min-width:0}
+        .srg-scroll-hint{pointer-events:none;position:absolute;right:0;top:0;bottom:0;width:33px;display:flex;align-items:center;justify-content:flex-end;padding-right:3px;background:linear-gradient(to right,transparent,#11171b 82%);color:#73d5ba;font-size:27px;font-weight:600}
+        .srg-suggestions{display:flex;gap:7px;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding:5px 1px 3px;margin-top:3px;margin-bottom:2px;scrollbar-width:none}
+        .srg-suggestion{display:flex;flex:0 0 auto;flex-direction:column;justify-content:center;gap:2px;max-width:185px;min-height:39px;padding:5px 10px;border:1px solid #405454;border-radius:10px;background:#233138;color:#f2f6f6;text-align:left;cursor:pointer}
         .srg-suggestion:hover,.srg-suggestion:focus-visible{background:#2c4842;border-color:#61cbb1}
         .srg-suggestion strong{font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .srg-suggestion small{font-size:10px;color:#a7b8bb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
