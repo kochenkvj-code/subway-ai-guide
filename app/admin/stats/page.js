@@ -5,6 +5,15 @@ const KST = "Asia/Seoul";
 const dateKst = (value) => new Intl.DateTimeFormat("en-CA", { timeZone: KST, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
 const today = () => dateKst(Date.now());
 const startOf = (date, days) => { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0,10); };
+const shiftDate = (date, delta) => { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + delta); return d.toISOString().slice(0,10); };
+const changeDatePart = (date, part, value) => {
+  const [y,m,d] = date.split("-").map(Number);
+  const parts = {year:y,month:m,day:d};
+  parts[part] = Number(value);
+  const lastDay = new Date(Date.UTC(parts.year,parts.month,0)).getUTCDate();
+  const result = [parts.year,String(parts.month).padStart(2,"0"),String(Math.min(parts.day,lastDay)).padStart(2,"0")].join("-");
+  return result > today() ? today() : result;
+};
 const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
 const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
@@ -64,7 +73,14 @@ export default function StatsPage() {
     <div style={{maxWidth:960,margin:"0 auto"}}>
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22,gap:12}}><div><h1 style={{fontSize:22,margin:0}}>종로5가역 AI 안내 통계</h1><p style={{color:"#667b83",fontSize:13,margin:"6px 0 0"}}>관리자 전용 · 한국시간(KST) 기준</p></div>{auth&&<button onClick={logout} style={{border:"1px solid #ccd9da",background:"#fff",borderRadius:9,padding:10,cursor:"pointer"}}>로그아웃</button>}</header>
       {auth===null?<p>인증 확인 중…</p>:!auth?<form onSubmit={login} style={{...card,maxWidth:420,margin:"60px auto"}}><h2 style={{marginTop:0,fontSize:18}}>관리자 로그인</h2><label htmlFor="stats-password">관리자 비밀번호</label><input id="stats-password" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={{display:"block",width:"100%",boxSizing:"border-box",padding:12,border:"1px solid #b9c9cc",borderRadius:9,margin:"10px 0 16px"}}/><button type="submit" style={{background:"#087f69",color:"white",border:0,borderRadius:9,padding:"11px 20px",cursor:"pointer"}}>로그인</button>{error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}</form>:<>
-        <section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12,marginBottom:14}}><label>조회 기준 <select value={period} onChange={e=>setPeriod(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}><option value="day">일별</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select></label><label>기준 날짜 <input type="date" value={date} max={today()} onChange={e=>setDate(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}/></label><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span></section>
+        <section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12,marginBottom:14}}><label>조회 기준 <select value={period} onChange={e=>setPeriod(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}><option value="day">일별</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select></label><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+          <span style={{fontSize:14}}>기준 날짜</span>
+          <button type="button" aria-label="이전 날짜" onClick={()=>setDate(d=>shiftDate(d,-1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:"pointer"}}>‹</button>
+          <select aria-label="연도" value={Number(date.slice(0,4))} onChange={e=>setDate(d=>changeDatePart(d,"year",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:Math.max(1,Number(today().slice(0,4))-2024+1)},(_,i)=>2024+i).map(y=><option key={y} value={y}>{y}년</option>)}</select>
+          <select aria-label="월" value={Number(date.slice(5,7))} onChange={e=>setDate(d=>changeDatePart(d,"month",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:12},(_,i)=>i+1).map(m=><option key={m} value={m}>{m}월</option>)}</select>
+          <select aria-label="일" value={Number(date.slice(8,10))} onChange={e=>setDate(d=>changeDatePart(d,"day",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:new Date(Date.UTC(Number(date.slice(0,4)),Number(date.slice(5,7)),0)).getUTCDate()},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}일</option>)}</select>
+          <button type="button" aria-label="다음 날짜" disabled={date>=today()} onClick={()=>setDate(d=>shiftDate(d,1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:date>=today()?"not-allowed":"pointer",opacity:date>=today()?0.4:1}}>›</button>
+        </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span></section>
         {error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}{busy&&<p>통계 불러오는 중…</p>}
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:14}}>
