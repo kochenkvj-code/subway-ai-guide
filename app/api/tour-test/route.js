@@ -43,7 +43,7 @@ export async function GET(request) {
     const id = input.get('id') || '';
     if (!/^\d{1,15}$/.test(id)) return reply({ error: '올바른 장소 ID가 필요합니다.' }, 400);
     params.set('contentId',id);
-    if (mode === 'images') { params.set('imageYN','Y'); params.set('subImageYN','Y'); }
+    if (mode === 'images') { params.set('imageYN','Y'); }
 
   }
   const key = process.env.TOUR_API_KEY;
