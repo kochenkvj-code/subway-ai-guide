@@ -20,6 +20,9 @@ const LAB_VARIANTS = {
   improvedLite: { label: "A · Lite + v6.1 검색 개선", model: "gemini-3.5-flash-lite", prompt: "local" },
   liteSpecific: { label: "B · Lite + 위치 정보 구체화", model: "gemini-3.5-flash-lite", prompt: "specific" },
   liteSpecificConcise: { label: "C · Lite + 위치 구체화·간결", model: "gemini-3.5-flash-lite", prompt: "specificConcise" },
+  // Two-model Search Lab: identical prompt, LOW thinking and output limit.
+  comparisonLite: { label: "Gemini 3.5 Flash-Lite · LOW", model: "gemini-3.5-flash-lite", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
+  comparisonFlash38: { label: "Gemini 3.8 Flash · LOW", model: "gemini-3.8-flash", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
   // Compatibility with the previously deployed v6.2 comparison page.
   improvedFlash: { label: "Flash LOW · 기존 개선 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
   flashMinimal: { label: "Flash MINIMAL · 같은 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "MINIMAL", maxOutputTokens: 1600 },
@@ -205,6 +208,7 @@ function cleanRouteAnswer(answer) {
 const MODEL_PRICE_USD_PER_M = {
   "gemini-3.5-flash-lite": { input: 0.30, output: 2.50 },
   "gemini-3.5-flash": { input: 1.50, output: 9.00 },
+  "gemini-3.8-flash": { input: 0.75, output: 3.75 },
 };
 function estimateTokenCost(model, usage) {
   const price = MODEL_PRICE_USD_PER_M[model];
