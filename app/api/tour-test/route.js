@@ -21,7 +21,13 @@ export async function GET(request) {
   if (mode === 'nearby') {
     const radius = input.get('radius') || '1500';
     if (!['500','1500','3000','5000'].includes(radius)) return reply({ error: '지원하지 않는 검색 반경입니다.' }, 400);
-    for (const [k,v] of Object.entries({ mapX:'127.0019', mapY:'37.5709', radius, arrange:'E' })) params.set(k,v);
+    const longitude = input.get('longitude')?.trim();
+    const latitude = input.get('latitude')?.trim();
+    const lon = Number(longitude), lat = Number(latitude);
+    if (!longitude || !latitude || !Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+      return reply({ error: '현재 위치의 올바른 위도·경도가 필요합니다. 위치 권한을 허용하고 다시 조회해 주세요.' }, 400);
+    }
+    for (const [k,v] of Object.entries({ mapX:String(lon), mapY:String(lat), radius, arrange:'E' })) params.set(k,v);
   }
   if (mode === 'keyword') {
     const keyword = (input.get('keyword') || '').trim();
