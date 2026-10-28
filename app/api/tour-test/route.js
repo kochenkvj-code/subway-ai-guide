@@ -55,10 +55,22 @@ export async function GET(request) {
     if (!response.ok) return reply({ error: `관광 API HTTP 오류 (${response.status})` }, 502);
     let data;
     try { data = await response.json(); } catch { return reply({ error: 'API가 JSON 이외의 응답을 반환했습니다. 인증키·활용 승인·서비스 버전을 확인해 주세요.' }, 502); }
-    if (data.response?.header?.resultCode !== '0000') return reply({ error: '관광 API가 요청을 처리하지 못했습니다.', code: data.response?.header?.resultCode || data.resultCode || 'UNKNOWN', message: String(data.resultMsg || '').replaceAll(key, '[redacted]').replaceAll(encodeURIComponent(key), '[redacted]').replace(/https?:\/\/\S+/g, '[url]').slice(0, 180), diagnostics: { rootFields: Object.keys(data || {}), responseFields: Object.keys(data.response || {}), headerFields: Object.keys(data.response?.header || {}) } }, 502);
+    const resultCode = String(data.response?.header?.resultCode ?? data.resultCode ?? 'UNKNOWN');
+    if (!['0000', '00'].includes(resultCode)) {
+      // Expose a short sanitized provider message for diagnosing image API failures.
+      const upstreamMessage = String(data.response?.header?.resultMsg || data.resultMsg || '')
+        .replaceAll(key, '[redacted]')
+        .replaceAll(encodeURIComponent(key), '[redacted]')
+        .replace(/https?:\/\/\S+/g, '[url]').slice(0, 140);
+      return reply({
+        error: '관광 API 오류 (' + resultCode + ')' + (upstreamMessage ? ': ' + upstreamMessage : ''),
+        code: resultCode,
+        diagnostics: { rootFields: Object.keys(data || {}), responseFields: Object.keys(data.response || {}), headerFields: Object.keys(data.response?.header || {}) },
+      }, 502);
+    }
     const raw = data.response?.body?.items?.item || [];
     const list = Array.isArray(raw) ? raw : [raw];
-    if (mode === 'images') return reply({ operation: operations[mode], images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl), credit: plain(x.copyrightdivcode) })).filter(x => x.url) });
+    if (mode === 'images') return reply({ operation: operations[mode], images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl || x.smallimageurl), credit: plain(x.cpyrhtDivCd || x.copyrightdivcode) })).filter(x => x.url) });
     const items = list.map(x => ({ id: x.contentid, type: x.contenttypeid, title: plain(x.title), address: plain([x.addr1,x.addr2].filter(Boolean).join(' ')), image: photo(x.firstimage), distance: x.dist, longitude: x.mapx, latitude: x.mapy, description: plain(x.overview), phone: plain(x.tel), homepage: safeLink(x.homepage), start: x.eventstartdate || '', end: x.eventenddate || '', credit: plain(x.cpyrhtDivCd) }));
     return reply({ operation: operations[mode], items, total: data.response?.body?.totalCount || 0 });
   } catch { return reply({ error: '관광 API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, 502); }
