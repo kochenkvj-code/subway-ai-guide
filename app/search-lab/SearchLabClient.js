@@ -3,9 +3,8 @@
 import { useState } from "react";
 
 const VARIANTS = [
-  { id: "improvedLite", name: "A · Lite 검색 개선", subtitle: "v6.1 기존 지시문 · 비교 기준" },
-  { id: "liteSpecific", name: "B · Lite 위치 구체화", subtitle: "장소명·출구·역 안팎 구분 강화" },
-  { id: "liteSpecificConcise", name: "C · Lite 구체화 + 간결", subtitle: "B의 정확성 규칙 유지 · 2~3문장" },
+  { id: "comparisonLite", name: "A · Gemini 3.5 Flash-Lite", subtitle: "이전 모델 · LOW 추론" },
+  { id: "comparisonFlash38", name: "B · Gemini 3.8 Flash", subtitle: "현재 운영 모델 · LOW 추론" },
 ];
 const EXAMPLES = [
   "종로5가역 근처에 환전소가 어디 있어?",
@@ -128,9 +127,9 @@ export default function SearchLab() {
     <main style={{ minHeight: "100vh", padding: "24px 14px 70px", background: "#edf3f7", color: "#172b3f", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ maxWidth: 1240, margin: "auto" }}>
         <a href="/" style={{ color: "#14785f", fontSize: 13, fontWeight: 700 }}>← 기존 챗봇으로 돌아가기</a>
-        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>Flash-Lite 검색 품질 비교 v6.3</h1>
+        <h1 style={{ fontSize: 27, margin: "14px 0 4px" }}>Gemini 3.5 Flash-Lite vs 3.8 Flash</h1>
         <p style={{ color: "#64748b", fontSize: 14, marginBottom: 20 }}>
-          같은 Flash-Lite 모델에서 기존 검색 지시문 / 위치 정보 구체화 / 구체화+간결 답변을 비교해. 모델과 출력 토큰 상한은 동일하게 유지하며 검색어, 근거와 예상 모델 비용을 보여줘.
+          두 모델에 동일한 질문·검색 지시문·Google Search Grounding·LOW 추론·1,600 출력 토큰을 적용해. 답변 품질, 처리 시간, 검색 출처와 모델 비용을 나란히 비교해.
         </p>
         <form onSubmit={compare} style={{ ...panel, display: "grid", gap: 14, marginBottom: 18 }}>
           <label style={{ fontSize: 13, fontWeight: 700 }}>
@@ -160,10 +159,10 @@ export default function SearchLab() {
           </div>
           <button type="submit" disabled={busy || !question.trim() || !key.trim()}
             style={{ ...button, opacity: busy ? 0.65 : 1 }}>
-            {busy ? "Flash-Lite 세 설정을 순서대로 테스트하는 중…" : "Flash-Lite 3가지 비교 시작"}
+            {busy ? "두 모델을 순서대로 비교하는 중…" : "모델 2종 비교 시작"}
           </button>
           <p style={{ fontSize: 12, margin: 0, color: "#7c8592" }}>
-            테스트 한 번에 Flash-Lite 호출이 최대 3회 발생해. 모델 비용은 글로벌 일반 요금·사용량 기반 추정치이며 검색 Grounding 요금은 포함되지 않아.
+            테스트 한 번에 모델별 1회씩 총 2회 호출해. 비교용으로 두 모델의 LOW 추론·출력 한도를 동일하게 맞췄으며, 과거 Lite 운영 설정(기본 추론·500토큰)과는 달라. 모델 비용은 글로벌 일반 요금 추정치이며 Google Search Grounding 요금은 포함되지 않아.
             실제 청구금액은 Vertex AI 결제 내역에서 확인해. 기존 메인 챗봇은 변경되지 않고, 비밀번호는 브라우저 화면에만 임시 보관돼.
           </p>
         </form>
