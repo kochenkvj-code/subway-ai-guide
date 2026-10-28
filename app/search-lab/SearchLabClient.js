@@ -96,13 +96,12 @@ function Result({ item, state }) {
 export default function SearchLab() {
   const [question, setQuestion] = useState(EXAMPLES[0]);
   const [lang, setLang] = useState("ko");
-  const [key, setKey] = useState("");
   const [results, setResults] = useState({});
   const [busy, setBusy] = useState(false);
 
   async function compare(e) {
     e.preventDefault();
-    if (!question.trim() || !key.trim() || busy) return;
+    if (!question.trim() || busy) return;
     setBusy(true);
     setResults(Object.fromEntries(VARIANTS.map((v) => [v.id, { loading: true }])));
     // Sequential calls reduce peak load and make per-model errors easier to inspect.
@@ -110,7 +109,7 @@ export default function SearchLab() {
       try {
         const response = await fetch("/api/google-search", {
           method: "POST", cache: "no-store",
-          headers: { "Content-Type": "application/json", "x-search-lab-key": key },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: question.trim(), lang, labMode: item.id }),
         });
         const data = await response.json();
@@ -144,27 +143,20 @@ export default function SearchLab() {
               {s}
             </button>)}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 12 }}>
-            <label style={{ fontSize: 13, fontWeight: 700 }}>
-              답변 언어
-              <select value={lang} onChange={(e) => setLang(e.target.value)} style={{ ...inputStyle, marginTop: 6 }}>
-                <option value="ko">한국어</option><option value="en">English</option>
-                <option value="ja">日本語</option><option value="zh">中文</option>
-              </select>
-            </label>
-            <label style={{ fontSize: 13, fontWeight: 700 }}>
-              테스트 비밀번호 (SEARCH_LAB_KEY)
-              <input type="password" autoComplete="off" style={{ ...inputStyle, marginTop: 6 }}
-                value={key} onChange={(e) => setKey(e.target.value)} placeholder="Vercel에 설정한 값" />
-            </label>
-          </div>
-          <button type="submit" disabled={busy || !question.trim() || !key.trim()}
+          <label style={{ fontSize: 13, fontWeight: 700 }}>
+            답변 언어
+            <select value={lang} onChange={(e) => setLang(e.target.value)} style={{ ...inputStyle, marginTop: 6 }}>
+              <option value="ko">한국어</option><option value="en">English</option>
+              <option value="ja">日本語</option><option value="zh">中文</option>
+            </select>
+          </label>
+          <button type="submit" disabled={busy || !question.trim()}
             style={{ ...button, opacity: busy ? 0.65 : 1 }}>
             {busy ? "두 모델을 순서대로 비교하는 중…" : "3.5 Flash-Lite ↔ 3.8 Flash 비교 시작"}
           </button>
           <p style={{ fontSize: 12, margin: 0, color: "#7c8592" }}>
             테스트 한 번에 모델별 1회씩 총 2회 호출해. 비교용으로 두 모델의 LOW 추론·출력 한도를 동일하게 맞췄으며, 현재 운영 중인 Lite의 실제 설정(기본 추론·500토큰)과는 달라. 모델 비용은 글로벌 일반 요금 추정치이며 Google Search Grounding 요금은 포함되지 않아.
-            실제 청구금액은 Vertex AI 결제 내역에서 확인해. 기존 메인 챗봇은 변경되지 않고, 비밀번호는 브라우저 화면에만 임시 보관돼.
+            실제 청구금액은 Vertex AI 결제 내역에서 확인해. 비교 테스트는 비밀번호 없이 실행되며 API 사용에 비용이 발생할 수 있어. 기존 메인 챗봇은 변경되지 않아.
           </p>
         </form>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 12, alignItems: "start" }}>
