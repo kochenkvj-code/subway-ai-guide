@@ -353,7 +353,10 @@ export async function POST(request) {
     if (labMode !== null && !Object.prototype.hasOwnProperty.call(LAB_VARIANTS, labMode)) {
       return json({ ok: false, error: "알 수 없는 테스트 방식입니다." }, 400);
     }
-    if (labMode && !allowTest(request)) {
+    // The two public comparison modes do not require a Search Lab password.
+    // Other legacy lab modes remain protected by SEARCH_LAB_KEY.
+    const openComparison = labMode === "comparisonLite" || labMode === "comparisonFlash38";
+    if (labMode && !openComparison && !allowTest(request)) {
       return json({ ok: false, error: "테스트 인증에 실패했습니다. Vercel의 SEARCH_LAB_KEY 설정과 입력값을 확인해 주세요." }, 403);
     }
 
