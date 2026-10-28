@@ -13,7 +13,7 @@ const LANGUAGE = {
 };
 
 // Search Lab keeps its Flash-Lite A/B/C comparisons and older variant names.
-// v6.4 production visitors (no labMode) use A: improvedLite / local search prompt.
+// Production visitors (no labMode) use Gemini 3.8 Flash with the local search prompt.
 // This does not modify the existing static fare-card and gate guidance.
 const LAB_VARIANTS = {
   baseline: { label: "기존 Lite + 기존 지시문", model: "gemini-3.5-flash-lite", prompt: "legacy" },
@@ -24,6 +24,15 @@ const LAB_VARIANTS = {
   improvedFlash: { label: "Flash LOW · 기존 개선 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "LOW", maxOutputTokens: 1600 },
   flashMinimal: { label: "Flash MINIMAL · 같은 지시문", model: "gemini-3.5-flash", prompt: "local", thinking: "MINIMAL", maxOutputTokens: 1600 },
   flashConcise: { label: "Flash MINIMAL · 간결한 위치 안내", model: "gemini-3.5-flash", prompt: "concise", thinking: "MINIMAL", maxOutputTokens: 1200 },
+};
+
+// 3.8 Flash supports LOW/MEDIUM/HIGH, but not MINIMAL. Allow room for
+// reasoning tokens while the existing prompt keeps passenger answers concise.
+const PRODUCTION_CONFIG = {
+  model: "gemini-3.8-flash",
+  prompt: "local",
+  thinking: "LOW",
+  maxOutputTokens: 1600,
 };
 
 function json(payload, status = 200) {
@@ -356,7 +365,7 @@ export async function POST(request) {
     // Route lookup is handled by SubwayRouteCard → /api/subway-route.
     // This endpoint is now for Gemini + Google Search general questions only.
 
-    const config = labMode ? LAB_VARIANTS[labMode] : { ...LAB_VARIANTS.baseline, prompt: "local" };
+    const config = labMode ? LAB_VARIANTS[labMode] : PRODUCTION_CONFIG;
     const requestStart = Date.now();
     const accessToken = await getGoogleAccessToken();
     const model = config.model;
