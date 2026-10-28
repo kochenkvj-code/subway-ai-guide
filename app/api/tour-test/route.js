@@ -1,19 +1,65 @@
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export async function GET() {
-  const key = process.env.TOUR_API_KEY;
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+const operations = {
+  nearby: 'locationBasedList2', keyword: 'searchKeyword2', area: 'areaBasedList2',
+  festival: 'searchFestival2', detail: 'detailCommon2', images: 'detailImage2',
+};
+const types = new Set(['12','14','15','25','28','32','38','39']);
+const photo = value => /^https?:\/\//.test(value || '') ? value.replace(/^http:/, 'https:') : '';
+// TourAPI descriptions can contain HTML. Return text, never executable markup.
+const plain = value => String(value || '').replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').slice(0, 12000);
+const safeLink = value => { const match = String(value || '').match(/https?:\/\/[^\s"'<>]+/i); return match ? match[0] : ''; };
+export async function GET(request) {
   const reply = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
-  if (!key) return reply({ error: '서버 환경변수 TOUR_API_KEY에 공공데이터포털의 일반 인증키(Decoding)를 설정해 주세요.' }, 503);
-  const url = new URL('https://apis.data.go.kr/B551011/KorService2/locationBasedList2');
-  url.search = new URLSearchParams({ serviceKey: key, MobileOS: 'ETC', MobileApp: 'SubwayAIGuide', _type: 'json', mapX: '127.0019', mapY: '37.5709', radius: '1500', arrange: 'E', numOfRows: '20', pageNo: '1' }).toString();
+  const input = new URL(request.url).searchParams;
+  const mode = input.get('mode') || 'nearby';
+  if (!Object.hasOwn(operations, mode)) return reply({ error: '지원하지 않는 조회 방식입니다.' }, 400);
+  const params = new URLSearchParams({ MobileOS: 'ETC', MobileApp: 'SubwayAIGuide', _type: 'json', numOfRows: '20', pageNo: '1' });
+  const type = input.get('type') || '';
+  if (type && !types.has(type)) return reply({ error: '잘못된 관광 분류입니다.' }, 400);
+  if (type && ['nearby','keyword','area'].includes(mode)) params.set('contentTypeId', type);
+  if (mode === 'nearby') {
+    const radius = input.get('radius') || '1500';
+    if (!['500','1500','3000','5000'].includes(radius)) return reply({ error: '지원하지 않는 검색 반경입니다.' }, 400);
+    for (const [k,v] of Object.entries({ mapX:'127.0019', mapY:'37.5709', radius, arrange:'E' })) params.set(k,v);
+  }
+  if (mode === 'keyword') {
+    const keyword = (input.get('keyword') || '').trim();
+    if (!keyword || keyword.length > 80) return reply({ error: '검색어를 1~80자로 입력해 주세요.' }, 400);
+    params.set('keyword', keyword); params.set('arrange','A');
+  }
+  if (mode === 'area' || mode === 'festival') {
+    const area = input.get('area') || '1';
+    if (!['1','2','3','4','5','6','7','8','31','32','33','34','35','36','37','38','39'].includes(area)) return reply({ error: '잘못된 지역입니다.' }, 400);
+    params.set('areaCode', area); params.set('arrange','A');
+  }
+  if (mode === 'festival') {
+    const start = input.get('start') || '', end = input.get('end') || '';
+    const validDate = s => /^\d{8}$/.test(s) && !Number.isNaN(Date.parse(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T00:00:00Z`));
+    if (!validDate(start) || !validDate(end) || start > end) return reply({ error: '올바른 행사 시작·종료 날짜를 선택해 주세요.' }, 400);
+    params.set('eventStartDate',start); params.set('eventEndDate',end);
+  }
+  if (['detail','images'].includes(mode)) {
+    const id = input.get('id') || '';
+    if (!/^\d{1,15}$/.test(id)) return reply({ error: '올바른 장소 ID가 필요합니다.' }, 400);
+    params.set('contentId',id);
+    if (mode === 'images') { params.set('imageYN','Y'); params.set('subImageYN','Y'); }
+
+  }
+  const key = process.env.TOUR_API_KEY;
+  if (!key) return reply({ error: '서버 환경변수 TOUR_API_KEY에 일반 인증키(Decoding)를 설정해 주세요.' }, 503);
+  params.set('serviceKey',key);
+  const url = `https://apis.data.go.kr/B551011/KorService2/${operations[mode]}?${params}`;
   try {
     const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!response.ok) return reply({ error: `관광 API HTTP 오류 (${response.status})` }, 502);
     let data;
-    try { data = await response.json(); } catch { return reply({ error: 'API가 JSON 대신 다른 형식으로 응답했습니다. 인증키, 활용 신청 승인, API 버전을 확인해 주세요.' }, 502); }
-    if (data.response?.header?.resultCode !== '0000') return reply({ error: '관광 API가 요청을 처리하지 못했습니다. 키의 승인 상태와 서비스 버전을 확인해 주세요.', code: data.response?.header?.resultCode || 'UNKNOWN' }, 502);
+    try { data = await response.json(); } catch { return reply({ error: 'API가 JSON 이외의 응답을 반환했습니다. 인증키·활용 승인·서비스 버전을 확인해 주세요.' }, 502); }
+    if (data.response?.header?.resultCode !== '0000') return reply({ error: '관광 API가 요청을 처리하지 못했습니다.', code: data.response?.header?.resultCode || 'UNKNOWN' }, 502);
     const raw = data.response?.body?.items?.item || [];
-    const items = (Array.isArray(raw) ? raw : [raw]).map(x => ({ id: x.contentid, title: x.title, address: x.addr1 || '', image: /^https?:\/\//.test(x.firstimage || '') ? x.firstimage.replace(/^http:/, 'https:') : '', distance: x.dist, longitude: x.mapx, latitude: x.mapy }));
-    return reply({ items, total: data.response?.body?.totalCount || 0 });
-  } catch { return reply({ error: '관광 API 연결에 실패했습니다. 네트워크의 apis.data.go.kr 허용 여부와 응답 시간을 확인해 주세요.' }, 502); }
+    const list = Array.isArray(raw) ? raw : [raw];
+    if (mode === 'images') return reply({ operation: operations[mode], images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl), credit: plain(x.copyrightdivcode) })).filter(x => x.url) });
+    const items = list.map(x => ({ id: x.contentid, type: x.contenttypeid, title: plain(x.title), address: plain([x.addr1,x.addr2].filter(Boolean).join(' ')), image: photo(x.firstimage), distance: x.dist, longitude: x.mapx, latitude: x.mapy, description: plain(x.overview), phone: plain(x.tel), homepage: safeLink(x.homepage), start: x.eventstartdate || '', end: x.eventenddate || '', credit: plain(x.cpyrhtDivCd) }));
+    return reply({ operation: operations[mode], items, total: data.response?.body?.totalCount || 0 });
+  } catch { return reply({ error: '관광 API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, 502); }
 }
