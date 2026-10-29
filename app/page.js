@@ -924,6 +924,7 @@ export default function Home() {
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
   const [feedbackByIndex, setFeedbackByIndex] = useState({});
+  const [gateQuestionOpen,setGateQuestionOpen] = useState(false);
   const [menuViewSerial, setMenuViewSerial] = useState(0);
   const [expandedFareDetails, setExpandedFareDetails] = useState({});
   const fareGuideSerial = useRef(0);
@@ -1240,6 +1241,7 @@ export default function Home() {
   }
 
   function handleGateOption(option) {
+    setGateQuestionOpen(false);
     if (loading) return;
     setFeedbackByIndex({});
     const gateMessageId = ++gateGuideSerial.current;
@@ -1701,7 +1703,7 @@ export default function Home() {
           </div>
         </div>
 
-        {lastMessage?.gateResult && (
+        {lastMessage?.gateResult && !gateQuestionOpen ? (
           <div className="sag-gate-feedback-bar" aria-live="polite">
             {feedbackByIndex[messages.length-1] ? <span className="sag-feedback-thanks">{t.feedbackThanks}</span> : <>
               <span className="sag-feedback-question">{t.feedbackQuestion}</span>
@@ -1710,8 +1712,9 @@ export default function Home() {
                 <button type="button" onClick={()=>handleFeedback(messages.length-1,lastMessage,"not_solved")}>✕ {t.notSolved}</button>
               </div>
             </>}
+            <button type="button" className="sag-gate-question-toggle" onClick={()=>setGateQuestionOpen(true)}>{{ko:"질문하기",en:"Ask",ja:"質問",zh:"提问"}[lang]}</button>
           </div>
-        )}
+        ) : (
         <form className="sag-input-wrap" onSubmit={submitMessage}>
           <input
             value={input}
@@ -1742,6 +1745,7 @@ export default function Home() {
             {loading ? "…" : t.send}
           </button>
         </form>
+        )}
         {(voiceListening || voiceError) && (
           <p className="sag-voice-status" role="status">
             {voiceError || {ko:"듣고 있어요… 말씀해 주세요.",en:"Listening… please speak.",ja:"聞き取り中です… 話してください。",zh:"正在聆听… 请讲话。"}[lang]}
@@ -2384,10 +2388,19 @@ export default function Home() {
         .sag-feedback-compact .sag-feedback-buttons { flex: 0 0 auto; }
         .sag-feedback-compact .sag-feedback-buttons button { min-height: 34px; }
 
-        .sag-gate-feedback-bar { flex: 0 0 auto; min-height: 40px; padding: 3px 14px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #f3f8fc; border-top: 1px solid #dce6ec; }
-        .sag-gate-feedback-bar .sag-feedback-question { margin: 0; }
+        .sag-gate-feedback-bar { flex: 0 0 auto; min-height: 52px; padding: 7px 10px calc(7px + env(safe-area-inset-bottom)); box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #f3f8fc; border-top: 1px solid #dce6ec; }
+        .sag-gate-feedback-bar .sag-feedback-question { margin: 0; font-size: 10px; }
         .sag-gate-feedback-bar .sag-feedback-buttons { flex: 0 0 auto; }
-        .sag-gate-feedback-bar button { min-height: 34px; }
+        .sag-gate-feedback-bar button { min-height: 34px; padding: 5px 6px; }
+        @media (max-width: 560px) and (max-height: 700px) {
+          .sag-gate-result-heading { padding-bottom: 6px; }
+          .sag-gate-step-title { margin: 6px 0; }
+          .sag-gate-steps { gap: 5px; }
+          .sag-gate-steps li { padding: 6px 8px; gap: 7px; }
+          .sag-gate-details { margin-top: 6px; }
+          .sag-gate-result-actions { margin-top: 6px; }
+        }
+        .sag-gate-question-toggle { border: 1px solid #cbd9df; border-radius: 8px; background: #fff; color: #40505b; font-size: 11px; cursor: pointer; flex: 0 0 auto; }
         .sag-feedback-thanks {
           color: #14785f;
           font-size: 11px;
