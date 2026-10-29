@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import SubwayRouteCard from "./components/SubwayRouteCard";
 import NearbyPlacesCard from "./components/NearbyPlacesCard";
-import { recordStat } from "./lib/record-stat";
+import { recordStat, startActivityTracking } from "./lib/record-stat";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -919,6 +919,7 @@ export default function Home() {
     const entryLang = new URLSearchParams(window.location.search).get("from") === "gate" ? "en" : "ko";
     recordStat("page_view", "visit", entryLang);
   }, []);
+  useEffect(() => startActivityTracking(), []);
   const [mode, setMode] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1249,6 +1250,7 @@ export default function Home() {
 
   function handleGateOption(option) {
     if (loading) return;
+    recordStat("gate_action", option.id, lang, `gate_${option.id}`);
     setFeedbackByIndex({});
     const gateMessageId = ++gateGuideSerial.current;
     setMessages((prev) => {
@@ -1270,7 +1272,7 @@ export default function Home() {
       ...prev,
       [index]: result,
     }));
-    recordStat("feedback", result, lang);
+    recordStat("feedback", result, lang, message.feedbackKey);
 
     if (GA_ID && typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag(
@@ -1534,17 +1536,17 @@ export default function Home() {
                         ))}
                       </ol>
                       {fullGuide && (
-                        <details className="sag-gate-details">
+                        <details className="sag-gate-details" onToggle={e=>{if(e.currentTarget.open)recordStat("gate_action","details_open",lang,message.feedbackKey);}}>
                           <summary>{ui.details}<span aria-hidden="true">⌄</span></summary>
                           <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
                         </details>
                       )}
                       <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>
                       <div className="sag-gate-result-actions">
-                        <button type="button" onClick={() => openGateMenu({ replaceCurrent: true })} disabled={loading}>
+                        <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
                         </button>
-                        <button type="button" onClick={() => quickAction("facility", t.office, "customerOffice")} disabled={loading}>
+                        <button type="button" onClick={() => { recordStat("gate_action","office",lang,message.feedbackKey); quickAction("facility", t.office, "customerOffice"); }} disabled={loading}>
                           📍 {ui.office}
                         </button>
                         <div className="sag-gate-inline-feedback" role="group" aria-label={t.feedbackQuestion} aria-live="polite">

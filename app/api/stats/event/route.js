@@ -9,6 +9,7 @@ const types = {
   route_search: ["request", "success", "failure"],
   language_change: ["ko", "en", "ja", "zh"],
   feedback: ["solved", "not_solved"],
+  gate_action: ["e01","e03","e04","e05","e06","e14","e33","e44","opposite","unknown","another","office","details_open"],
 };
 const deviceType = (ua) => /ipad|tablet|android(?!.*mobile)/i.test(ua) ? "태블릿" : /mobile|iphone|ipod|android/i.test(ua) ? "모바일" : "PC";
 const osType = (ua) => /ipad|iphone|ipod/i.test(ua) ? "iOS" : /android/i.test(ua) ? "Android" : /windows/i.test(ua) ? "Windows" : /macintosh|mac os x/i.test(ua) ? "macOS" : /linux/i.test(ua) ? "Linux" : "기타";
@@ -22,13 +23,16 @@ export async function POST(request) {
     }
     // Accept only an ephemeral UUID; do not accept user-identifying values.
     const sessionId = typeof data.session_id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.session_id) ? data.session_id : null;
+    const context = typeof data.context === "string" && /^gate_(e01|e03|e04|e05|e06|e14|e33|e44|opposite|unknown)$/.test(data.context) ? data.context : null;
+    const clientTime=typeof data.occurred_at === "string" ? Date.parse(data.occurred_at) : NaN;
+    const occurred_at=Number.isFinite(clientTime) && Math.abs(Date.now()-clientTime)<300000 ? new Date(clientTime).toISOString() : new Date().toISOString();
     // Only coarse, non-identifying request metadata. Never persist IP, full user-agent, or question text.
     const ua = request.headers.get("user-agent") || "";
     const countryHeader = (request.headers.get("x-vercel-ip-country") || "").toUpperCase();
     const country = /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : null;
     await supabase("chatbot_events", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({
       event_type: data.event_type, event_name: data.event_name, language: data.language,
-      session_id: sessionId, country, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
+      session_id: sessionId, context, occurred_at, country, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
     }) });
     return new NextResponse(null, { status: 204 });
   } catch {

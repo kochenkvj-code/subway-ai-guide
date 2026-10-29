@@ -16,13 +16,19 @@ export async function GET(request) {
     // PostgREST pages are limited; request in batches to avoid truncating results.
     const rows = [];
     for (let offset = 0; offset < 100000; offset += 1000) {
-      const params = new URLSearchParams({ select: "id,session_id,created_at,event_type,event_name,language,country,device_type,os_type,browser", and: "(created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + ")", order: "created_at.asc", limit: "1000", offset: String(offset) });
+      const params = new URLSearchParams({ select: "id,session_id,created_at,event_type,event_name,language,country,device_type,os_type,browser,context,occurred_at", and: "(created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + ")", order: "created_at.asc,id.asc", limit: "1000", offset: String(offset) });
       const response = await supabase("chatbot_events?" + params);
       const batch = await response.json();
       rows.push(...batch);
       if (batch.length < 1000) break;
     }
-    return NextResponse.json({ rows }, { headers: { "Cache-Control": "private, no-store" } });
+    const activity={};
+    const sessionIds=[...new Set(rows.map(r=>r.session_id).filter(Boolean))];
+    for(let i=0;i<sessionIds.length;i+=200){
+      const response=await supabase("rpc/get_chatbot_activity",{method:"POST",body:JSON.stringify({p_sessions:sessionIds.slice(i,i+200)})});
+      for(const item of await response.json()) activity[item.session_id]=Number(item.visible_ms);
+    }
+    return NextResponse.json({ rows, activity }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("[stats/report]", error);
     const message = String(error?.message || "");

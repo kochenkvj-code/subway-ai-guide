@@ -17,13 +17,17 @@ const changeDatePart = (date, part, value) => {
 const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
 const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
-const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback"].includes(e.event_type);
+const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action"].includes(e.event_type);
+const gateActions = {e01:"E-01 카드 중복",e03:"E-03 하차 처리 누락",e04:"E-04 승차 처리 누락",e05:"E-05 이용시간 초과",e06:"E-06 카드 사용 불가",e14:"E-14 잔액 부족",e33:"E-33 당역 재승차",e44:"E-44 당역 재하차",opposite:"반대편 승강장",unknown:"오류 코드 모름",another:"다른 오류 선택",office:"고객안전실 위치",details_open:"오류 상세 안내 보기"};
+const eventTime = e => e.occurred_at || e.created_at;
+const screenTime = ms => { if(ms == null)return "미측정"; const seconds=Math.floor(ms/1000); return seconds<1?"1초 미만":[seconds>=3600?Math.floor(seconds/3600)+"시간":"",seconds>=60?Math.floor(seconds%3600/60)+"분":"",seconds%60?seconds%60+"초":""].filter(Boolean).join(" "); };
 const countryLabels = {KR:"한국",JP:"일본",HK:"홍콩",SG:"싱가포르",US:"미국",CN:"중국",TW:"대만"};
 const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date(value));
 const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,padding:18};
 export default function StatsPage() {
   const [auth,setAuth] = useState(null),[password,setPassword] = useState(""),[error,setError] = useState("");
   const [rawPage,setRawPage] = useState(0);
+  const [activity,setActivity] = useState({});
   const [pageSize,setPageSize] = useState(25);
   const [recordFilter,setRecordFilter] = useState("functional");
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
@@ -33,7 +37,7 @@ export default function StatsPage() {
     if (!auth) return;
     let active=true;
     setBusy(true);setError("");
-    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active)setRows(v.rows||[]);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
+    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active){setRows(v.rows||[]);setActivity(v.activity||{});}}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
   },[auth,start,date]);
   useEffect(()=>setRawPage(0),[start,date]);
@@ -46,11 +50,11 @@ export default function StatsPage() {
       groups.get(key).events.push(event);
     }
     return [...groups.values()].map(group=>{
-      group.events.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+      group.events.sort((a,b)=>new Date(eventTime(a))-new Date(eventTime(b)) || Number(a.id)-Number(b.id));
       group.first=group.events[0];
       group.last=group.events[group.events.length-1];
       return group;
-    }).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+    }).sort((a,b)=>new Date(eventTime(b.last))-new Date(eventTime(a.last)));
   },[rows]);
   const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
   const accessOnlySessions = sessionRows.length - activeSessions;
@@ -112,16 +116,16 @@ export default function StatsPage() {
               <thead><tr>{["접속시간 (KST)","국가","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
               <tbody>{visibleSessions.slice(rawPage*pageSize,(rawPage+1)*pageSize).map((group,rowIndex)=>{
                 const r=group.first;
-                const seconds=Math.max(0,Math.round((new Date(group.last.created_at)-new Date(r.created_at))/1000));
                 const functional = group.events.some(isFunctionalEvent);
                 return <tr key={group.key} style={{background:rowIndex%2?"#f8fbfb":"#fff"}}>
-                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · {group.events.length===1?"활동 간격 없음":seconds+"초 간격"}</div></td>
+                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(activity[r.session_id])}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",minWidth:180,verticalAlign:"top"}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
-                      const action=e.event_type==="quick_menu"?(names[e.event_name]||e.event_name):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
-                      return <span key={e.id||i} title={timeKst(e.created_at)+" · "+(langs[e.language]||e.language)} style={{display:"inline-block",background:"#eef5f3",color:"#285d52",borderRadius:6,padding:"2px 5px",whiteSpace:"nowrap",fontSize:11}}>{action}</span>;
+                      const action=e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):e.event_type==="quick_menu"?(names[e.event_name]||e.event_name):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
+                      const contextLabel=e.event_type==="feedback"&&e.context?.startsWith("gate_")?gateActions[e.context.slice(5)]:null;
+                      return <span key={e.id||i} title={timeKst(eventTime(e))+" · "+(langs[e.language]||e.language)} style={{display:"inline-block",background:"#eef5f3",color:"#285d52",borderRadius:6,padding:"2px 5px",whiteSpace:"nowrap",fontSize:11}}>{contextLabel?contextLabel+" · ":""}{action}</span>;
                     })}</div>
                   </td>
                 </tr>;
@@ -129,9 +133,9 @@ export default function StatsPage() {
             </table>
             {!visibleSessions.length&&<p style={{color:"#7a858d",fontSize:13}}>선택한 조건에 해당하는 기록이 없습니다.</p>}
           </div>
-          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 활동 간격은 첫 활동과 마지막 활동 사이의 시간이며 실제 체류시간이 아닙니다. 국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 저장하지 않습니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
+          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 저장하지 않습니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
         </section>
-        <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 실제 기능 이용 세션은 빠른 안내·AI 질문·길찾기 검색·피드백 이벤트가 하나 이상 있는 세션이며, 단순 접속과 언어 변경만 있는 세션은 제외합니다. 세션 수는 실제 사람 수가 아니며, 세션 ID가 없는 과거 기록은 이벤트별로 개별 집계됩니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
+        <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 실제 기능 이용 세션은 빠른 안내·게이트 세부 동작·AI 질문·길찾기 검색·피드백 이벤트가 하나 이상 있는 세션이며, 단순 접속과 언어 변경만 있는 세션은 제외합니다. 세션 수는 실제 사람 수가 아니며, 세션 ID가 없는 과거 기록은 이벤트별로 개별 집계됩니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
       </>}
     </div>
   </main>;

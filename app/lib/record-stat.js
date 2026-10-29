@@ -18,14 +18,46 @@ function getVisitSessionId() {
   }
   return visitSessionId;
 }
-export function recordStat(event_type, event_name, language) {
+let lastEventTime = 0;
+export function recordStat(event_type, event_name, language, context = null) {
   if (typeof window === "undefined") return;
   try {
+    lastEventTime = Math.max(Date.now(), lastEventTime + 1);
     void fetch("/api/stats/event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_type, event_name, language, session_id: getVisitSessionId() }),
+      body: JSON.stringify({ event_type, event_name, language, session_id: getVisitSessionId(), context, occurred_at: new Date(lastEventTime).toISOString() }),
       keepalive: true,
     }).catch(() => {});
   } catch { /* Statistics must never interrupt the passenger experience. */ }
+}
+
+// One segment per page load, summed by anonymous tab session. Heartbeats update
+// that segment rather than creating activity-list events. Out-of-order saves
+// cannot reduce the stored total (the database upsert uses greatest).
+export function startActivityTracking() {
+  if (typeof window === "undefined" || !window.crypto?.randomUUID) return () => {};
+  const session_id=getVisitSessionId(), page_id=window.crypto.randomUUID();
+  let total=0, visibleSince=document.visibilityState === "visible" ? performance.now() : null;
+  let stopped=false;
+  const collect=()=>{
+    if(visibleSince!==null){const now=performance.now();total+=Math.max(0,now-visibleSince);visibleSince=now;}
+  };
+  const save=()=>{
+    collect();
+    try { void fetch("/api/stats/activity",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id,page_id,visible_ms:Math.min(604800000,Math.floor(total))}),keepalive:true}).catch(()=>{}); } catch {}
+  };
+  const visibility=()=>{
+    collect();
+    visibleSince=document.visibilityState === "visible" ? performance.now() : null;
+    save();
+  };
+  const hide=()=>{collect();visibleSince=null;save();};
+  const show=()=>{if(document.visibilityState==="visible")visibleSince=performance.now();};
+  const timer=setInterval(()=>{if(visibleSince!==null)save();},15000);
+  document.addEventListener("visibilitychange",visibility);
+  window.addEventListener("pagehide",hide);
+  window.addEventListener("pageshow",show);
+  save();
+  return ()=>{if(stopped)return;stopped=true;save();clearInterval(timer);document.removeEventListener("visibilitychange",visibility);window.removeEventListener("pagehide",hide);window.removeEventListener("pageshow",show);};
 }
