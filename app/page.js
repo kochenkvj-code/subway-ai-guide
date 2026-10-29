@@ -924,7 +924,6 @@ export default function Home() {
     { role: "assistant", text: TEXT.ko.greeting },
   ]);
   const [feedbackByIndex, setFeedbackByIndex] = useState({});
-  const [gateQuestionOpen,setGateQuestionOpen] = useState(false);
   const [menuViewSerial, setMenuViewSerial] = useState(0);
   const [expandedFareDetails, setExpandedFareDetails] = useState({});
   const fareGuideSerial = useRef(0);
@@ -1241,7 +1240,6 @@ export default function Home() {
   }
 
   function handleGateOption(option) {
-    setGateQuestionOpen(false);
     if (loading) return;
     setFeedbackByIndex({});
     const gateMessageId = ++gateGuideSerial.current;
@@ -1541,6 +1539,12 @@ export default function Home() {
                         <button type="button" onClick={() => quickAction("facility", t.office, "customerOffice")} disabled={loading}>
                           📍 {ui.office}
                         </button>
+                        <div className="sag-gate-inline-feedback" role="group" aria-label={t.feedbackQuestion} aria-live="polite">
+                          {feedbackByIndex[index] ? <span className="sag-feedback-thanks">{t.feedbackThanks}</span> : <>
+                            <button type="button" onClick={()=>handleFeedback(index,message,"solved")}>✓ {t.solved}</button>
+                            <button type="button" onClick={()=>handleFeedback(index,message,"not_solved")}>✕ {t.notSolved}</button>
+                          </>}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1622,7 +1626,7 @@ export default function Home() {
                       </div>
                     </div>
                   ) : (
-                    <div className={message.optionsKind === "submenu" ? "sag-submenu-options" : "sag-gate-options"}>
+                    <div className={`${message.optionsKind === "submenu" ? "sag-submenu-options" : "sag-gate-options"} ${message.fareProduct ? "sag-fare-actions" : ""}`}>
                       {message.options.map((option) => (
                         <button
                           key={option.id}
@@ -1634,6 +1638,12 @@ export default function Home() {
                           {option.label}
                         </button>
                       ))}
+                      {message.fareProduct && <div className="sag-fare-feedback" role="group" aria-label={t.feedbackQuestion} aria-live="polite">
+                        {feedbackByIndex[index] ? <span className="sag-feedback-thanks">{t.feedbackThanks}</span> : <>
+                          <button type="button" aria-label={t.solved} title={t.solved} onClick={()=>handleFeedback(index,message,"solved")}>✓ {t.solved}</button>
+                          <button type="button" aria-label={t.notSolved} title={t.notSolved} onClick={()=>handleFeedback(index,message,"not_solved")}>✕ {t.notSolved}</button>
+                        </>}
+                      </div>}
                     </div>
                   )
                 )}
@@ -1659,7 +1669,7 @@ export default function Home() {
                   />
                 )}
 
-                {message.feedbackKey && !message.gateResult && !message.pending && !message.error && (
+                {message.feedbackKey && !message.gateResult && !message.fareProduct && !message.pending && !message.error && (
                   <div className={`sag-feedback ${message.gateResult ? "sag-feedback-compact" : ""}`}>
                     {feedbackByIndex[index] ? (
                       <span className="sag-feedback-thanks">{t.feedbackThanks}</span>
@@ -1703,18 +1713,6 @@ export default function Home() {
           </div>
         </div>
 
-        {lastMessage?.gateResult && !gateQuestionOpen ? (
-          <div className="sag-gate-feedback-bar" aria-live="polite">
-            {feedbackByIndex[messages.length-1] ? <span className="sag-feedback-thanks">{t.feedbackThanks}</span> : <>
-              <span className="sag-feedback-question">{t.feedbackQuestion}</span>
-              <div className="sag-feedback-buttons">
-                <button type="button" onClick={()=>handleFeedback(messages.length-1,lastMessage,"solved")}>✓ {t.solved}</button>
-                <button type="button" onClick={()=>handleFeedback(messages.length-1,lastMessage,"not_solved")}>✕ {t.notSolved}</button>
-              </div>
-            </>}
-            <button type="button" className="sag-gate-question-toggle" onClick={()=>setGateQuestionOpen(true)}>{{ko:"질문하기",en:"Ask",ja:"質問",zh:"提问"}[lang]}</button>
-          </div>
-        ) : (
         <form className="sag-input-wrap" onSubmit={submitMessage}>
           <input
             value={input}
@@ -1745,7 +1743,6 @@ export default function Home() {
             {loading ? "…" : t.send}
           </button>
         </form>
-        )}
         {(voiceListening || voiceError) && (
           <p className="sag-voice-status" role="status">
             {voiceError || {ko:"듣고 있어요… 말씀해 주세요.",en:"Listening… please speak.",ja:"聞き取り中です… 話してください。",zh:"正在聆听… 请讲话。"}[lang]}
@@ -2118,7 +2115,7 @@ export default function Home() {
         .sag-gate-details[open] summary span { transform: rotate(180deg); }
         .sag-gate-full-text { white-space: pre-wrap; padding: 9px 10px 12px;
           border-top: 1px solid #e4edf3; font-size: 12px; line-height: 1.65; }
-        .sag-gate-result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
+        .sag-gate-result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
         .sag-gate-result-actions button { padding: 10px 5px; border: 1px solid #bfd8e9; color: #165c88;
           font-size: 11px; font-weight: 800; background: #fff; border-radius: 9px; cursor: pointer; }
         .sag-gate-result-actions button:active { background: #e8f4fc; }
@@ -2383,15 +2380,10 @@ export default function Home() {
           background: #f3f7f8;
         }
 
-        .sag-feedback-compact { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; padding-top: 5px; min-height: 34px; }
-        .sag-feedback-compact .sag-feedback-question { margin: 0; flex: 1; }
-        .sag-feedback-compact .sag-feedback-buttons { flex: 0 0 auto; }
-        .sag-feedback-compact .sag-feedback-buttons button { min-height: 34px; }
-
-        .sag-gate-feedback-bar { flex: 0 0 auto; min-height: 52px; padding: 7px 10px calc(7px + env(safe-area-inset-bottom)); box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #f3f8fc; border-top: 1px solid #dce6ec; }
-        .sag-gate-feedback-bar .sag-feedback-question { margin: 0; font-size: 10px; }
-        .sag-gate-feedback-bar .sag-feedback-buttons { flex: 0 0 auto; }
-        .sag-gate-feedback-bar button { min-height: 34px; padding: 5px 6px; }
+        .sag-gate-inline-feedback { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; min-height: 47px; }
+        .sag-gate-result-actions > button { padding: 6px 3px; font-size: 10.5px; line-height: 1.3; overflow-wrap: anywhere; }
+        .sag-gate-inline-feedback button { padding: 3px; min-height: 22px; font-size: 10px; line-height: 1.2; }
+        .sag-gate-inline-feedback .sag-feedback-thanks { text-align: center; font-size: 10px; }
         @media (max-width: 560px) and (max-height: 700px) {
           .sag-gate-result-heading { padding-bottom: 6px; }
           .sag-gate-step-title { margin: 6px 0; }
@@ -2400,7 +2392,11 @@ export default function Home() {
           .sag-gate-details { margin-top: 6px; }
           .sag-gate-result-actions { margin-top: 6px; }
         }
-        .sag-gate-question-toggle { border: 1px solid #cbd9df; border-radius: 8px; background: #fff; color: #40505b; font-size: 11px; cursor: pointer; flex: 0 0 auto; }
+        .sag-submenu-options.sag-fare-actions { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 6px; }
+        .sag-fare-actions > button { min-width: 0; }
+        .sag-fare-feedback { display: flex; flex: 0 0 32%; flex-direction: column; justify-content: center; gap: 3px; min-height: 47px; }
+        .sag-fare-actions .sag-fare-feedback button { width: 100%; min-height: 22px; padding: 3px; font-size: 10px; line-height: 1.2; }
+        .sag-fare-feedback .sag-feedback-thanks { max-width: 96px; font-size: 10px; }
         .sag-feedback-thanks {
           color: #14785f;
           font-size: 11px;

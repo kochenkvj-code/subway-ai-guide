@@ -117,6 +117,15 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [route, setRoute] = useState(null);
+  const [feedback,setFeedback] = useState(null);
+  const feedbackRef = useRef(false);
+  const feedbackCopy = ({ko:{yes:"해결됨",no:"해결 안 됨",thanks:"피드백 감사합니다.",label:"이 안내로 해결됐나요?"},en:{yes:"Solved",no:"Not solved",thanks:"Thanks for your feedback.",label:"Did this solve it?"},ja:{yes:"解決した",no:"解決しない",thanks:"ご協力ありがとうございます。",label:"解決しましたか？"},zh:{yes:"已解决",no:"未解决",thanks:"感谢您的反馈。",label:"问题解决了吗？"}})[lang] || {yes:"Solved",no:"Not solved",thanks:"Thank you",label:"Did this solve it?"};
+  function submitFeedback(result) {
+    if(feedbackRef.current) return;
+    feedbackRef.current=true;
+    setFeedback(result);
+    recordStat("feedback",result,lang);
+  }
   const stationLines = routeStationLines(route?.itinerary);
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
@@ -194,6 +203,8 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
     setBusy(true);
     setError("");
     setRoute(null);
+    setFeedback(null);
+    feedbackRef.current=false;
     recordStat("route_search", "request", lang);
     try {
       const params = new URLSearchParams({ to, mode });
@@ -279,7 +290,15 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
           </details>
         )}
         <p className="srg-disclaimer">{t.disclosure}</p>
+        <div className="srg-result-actions">
         {!newSearchOpened && <button type="button" className="srg-again" onClick={() => { if (onNewSearch) { setNewSearchOpened(true); onNewSearch(); } else { returningToSearchRef.current = true; setRoute(null); setDestination(""); setSelectedStation(null); setError(""); } }}>{t.change}</button>}
+          <div className="srg-feedback" role="group" aria-label={feedbackCopy.label} aria-live="polite">
+            {feedback ? <span>{feedbackCopy.thanks}</span> : <>
+              <button type="button" onClick={()=>submitFeedback("solved")}>✓ {feedbackCopy.yes}</button>
+              <button type="button" onClick={()=>submitFeedback("not_solved")}>✕ {feedbackCopy.no}</button>
+            </>}
+          </div>
+        </div>
       </div>}
       <style>{`
         .srg-card{box-sizing:border-box;width:100%;padding:14px 16px 10px;border:1px solid #313b40;border-radius:18px;background:#11171b;color:#f2f6f6;box-shadow:0 6px 20px rgba(13,60,65,.08);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-wrap:anywhere}
@@ -342,6 +361,9 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-short-line{display:inline-flex;align-items:center;justify-content:center;min-width:18px;max-width:78px;padding:1px 4px;border-radius:4px;color:white;font-size:10px;font-weight:800;line-height:1.5;white-space:nowrap}
         .srg-all-arrow{color:#859ba3;margin:0 3px;font-weight:700}
         .srg-disclaimer{font-size:11px;line-height:1.6;color:#788d93}.srg-again{width:100%;border:1px solid #bddbcf;background:#f0f9f6;color:#05755e;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
+        .srg-result-actions{display:grid;grid-template-columns:2fr 1fr;gap:7px;align-items:stretch}
+        .srg-feedback{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:47px;color:#14785f;font-size:10px;text-align:center}
+        .srg-feedback button{border:1px solid #bfd8e9;background:#f7fbfe;color:#165c88;border-radius:8px;padding:3px;min-height:22px;font-size:10px;line-height:1.2;cursor:pointer}
         @media(max-width:420px){.srg-card{padding:13px}.srg-origin{font-size:10px;padding:5px 7px}.srg-metrics strong{font-size:14px}}
       `}</style>
     </section>
