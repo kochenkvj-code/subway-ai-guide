@@ -21,11 +21,11 @@ const TEXT = {
     bannerTitle: "종로5가역 AI 안내",
     bannerBody: "일반 문의는 AI가 검색 결과를 바탕으로 안내합니다. 길찾기는 위 메뉴에서 조회할 수 있습니다.",
     quick: "빠른 안내",
-    placeholder: "궁금한 점을 입력하세요",
+    placeholder: "궁금한 것을 입력하세요",
     privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI 서비스로 전송됩니다.",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
     send: "전송",
-    greeting: "**궁금한 점, AI에게 물어보세요**\n지하철 이용부터 주변 관광지까지 안내해 드려요.",
+    greeting: "안녕하세요. 종로5가역 AI 안내입니다. 무엇을 도와드릴까요?",
     routePrompt: "목적지를 입력해주세요. 예: 명동, 서울역, 강남",
     route: "길찾기",
     restroom: "화장실",
@@ -57,7 +57,7 @@ const TEXT = {
     privacyNotice: "No personal info. Questions are sent to external AI for answers.",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
     send: "Send",
-    greeting: "**Have a question? Ask AI.**\nGet help with the subway and nearby attractions.",
+    greeting: "Hello. This is the Jongno 5-ga Station AI Guide. How can I help?",
     routePrompt: "Enter your destination. Example: Myeong-dong, Seoul Station, Gangnam",
     route: "Route",
     restroom: "Restroom",
@@ -89,7 +89,7 @@ const TEXT = {
     privacyNotice: "個人情報を入力しないでください。質問は回答生成のため外部AIサービスに送信されます。",
     routePlaceholder: "目的地を入力（例：明洞）",
     send: "送信",
-    greeting: "**気になることはAIに聞いてみましょう**\n地下鉄の利用から周辺の観光までご案内します。",
+    greeting: "こんにちは。鍾路5街駅AI案内です。何をお手伝いしましょうか？",
     routePrompt: "目的地を入力してください。例：明洞、ソウル駅、江南",
     route: "経路検索",
     restroom: "トイレ",
@@ -112,7 +112,7 @@ const TEXT = {
     feedbackThanks: "ご協力ありがとうございます。",
   },
   zh: {
-    title: "AI 智能向导",
+    title: "AI 指南",
     status: "AI 指南运行中",
     bannerTitle: "钟路5街站 AI 指南",
     bannerBody: "普通问题由AI结合搜索结果回答。地铁路线可通过上方的路线菜单查询。",
@@ -121,7 +121,7 @@ const TEXT = {
     privacyNotice: "请勿输入个人信息。问题将发送至外部AI服务以生成回答。",
     routePlaceholder: "请输入目的地（例如：明洞）",
     send: "发送",
-    greeting: "**有问题？问问AI吧**\n从地铁出行到周边景点，为您提供指引。",
+    greeting: "您好，这里是钟路5街站 AI 指南。请问需要什么帮助？",
     routePrompt: "请输入目的地。例如：明洞、首尔站、江南",
     route: "路线",
     restroom: "洗手间",
@@ -1424,7 +1424,7 @@ export default function Home() {
     <main className="sag-page">
       <section className="sag-phone">
         <header className="sag-header">
-          <div className="sag-header-title"><h1>{t.title}</h1><p className="sag-station-subtitle">{STATION[lang]}</p></div>
+          <div className="sag-header-title"><h1>{STATION[lang]} {t.title}</h1></div>
           <div className="sag-languages">
           {LANGUAGE_BUTTONS.map(([code, label]) => (
             <button
@@ -1468,7 +1468,7 @@ export default function Home() {
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
-                {message.text && <div className={`sag-answer ${message.text === t.greeting ? "sag-welcome" : ""}`}>{renderBoldMarkdown(message.text)}</div>}
+                {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
                   const ui = GATE_UI[lang] || GATE_UI.ko;
@@ -2470,17 +2470,6 @@ export default function Home() {
           cursor: pointer;
           min-width: 62px;
         }
-
-        .sag-header h1 { color: #142f3e; font-weight: 850; letter-spacing: -.8px; margin: 0; }
-        .sag-station-subtitle { margin: 4px 0 0; font-size: 11px; color: #72858d; line-height: 1.3; }
-        .sag-languages button { border-color: #e5ebed; color: #657a83; background: #fafcfc; border-radius: 7px; }
-        .sag-languages button.active { border-color: #0e7169; background: #0e7169; color: #fff; }
-        .sag-actions button { border-color: #e1e9e9; background: #fbfdfd; color: #203e49; box-shadow: 0 1px 2px rgba(15,55,55,.025); }
-        .sag-actions button:nth-child(2) { border-color: #e3d1b3; background: #fffcf6; }
-        .sag-action-icon { border-radius: 7px; }
-        .sag-welcome { font-size: 11px; line-height: 1.6; color: #6b7f86; }
-        .sag-welcome strong { font-size: 15px; color: #213d46; line-height: 1.5; }
-        .sag-bubble:has(.sag-welcome) { background: #f1f6f5; border: 1px solid #e4eeeb; border-radius: 13px; }
 
         @media (max-width: 560px) {
           html, body {
