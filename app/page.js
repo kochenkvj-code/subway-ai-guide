@@ -42,7 +42,7 @@ const TEXT = {
     error: "검색 기반 답변을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.",
     sources: "출처",
     source: "출처",
-    feedbackQuestion: "이 안내로 해결됐나요?",
+    feedbackQuestion: "도움이 됐나요?",
     solved: "해결됨",
     notSolved: "해결 안 됨",
     feedbackThanks: "피드백 감사합니다.",
@@ -74,7 +74,7 @@ const TEXT = {
     error: "I couldn't load a search-grounded answer. Please try again.",
     sources: "Sources",
     source: "Source",
-    feedbackQuestion: "Did this solve it?",
+    feedbackQuestion: "Helpful?",
     solved: "Solved",
     notSolved: "Not solved",
     feedbackThanks: "Thanks for your feedback.",
@@ -106,7 +106,7 @@ const TEXT = {
     error: "検索に基づく回答を読み込めませんでした。もう一度お試しください。",
     sources: "出典",
     source: "出典",
-    feedbackQuestion: "解決しましたか？",
+    feedbackQuestion: "役立ちましたか？",
     solved: "解決した",
     notSolved: "未解決",
     feedbackThanks: "ご協力ありがとうございます。",
@@ -138,7 +138,7 @@ const TEXT = {
     error: "无法加载基于搜索的回答，请稍后重试。",
     sources: "来源",
     source: "来源",
-    feedbackQuestion: "问题解决了吗？",
+    feedbackQuestion: "有帮助吗？",
     solved: "已解决",
     notSolved: "未解决",
     feedbackThanks: "感谢您的反馈。",
@@ -942,6 +942,7 @@ export default function Home() {
 
   const t = TEXT[lang];
   const lastMessage = messages[messages.length - 1];
+  const answerReady = Boolean(lastMessage?.role === "assistant" && lastMessage?.text && lastMessage?.feedbackKey && !lastMessage.pending && !lastMessage.error);
   const gateScreenActive = Boolean(lastMessage?.gateMenu || lastMessage?.gateResult);
   // Treat normal chat, the gate picker and each gate resolution as distinct
   // scroll views.  Re-mounting the scroll container prevents iOS Safari from
@@ -1034,7 +1035,7 @@ export default function Home() {
       lastMessage?.nearbyCard || lastMessage?.exchangeCard ||
       lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct ||
       lastMessage?.menuPhase === "selection");
-    if (isCard && target) {
+    if ((isCard || answerReady) && target) {
       const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
       el.scrollTop = Math.max(0, el.scrollTop + top - 6);
     } else {
@@ -1457,7 +1458,7 @@ export default function Home() {
 
           <div
             key={chatViewKey}
-            className={`sag-chat ${(lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
+            className={`sag-chat ${(answerReady || lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
             ref={chatRef}
             onScroll={updateScrollIndicator}
           >
@@ -2342,37 +2343,45 @@ export default function Home() {
         }
 
         .sag-search-suggestion {
-          margin-top: 10px;
-          overflow: hidden;
+          margin-top: 6px;
+          overflow: visible;
         }
 
         .sag-feedback {
-          margin-top: 9px;
-          padding-top: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 5px;
+          min-height: 30px;
+          margin-top: 6px;
+          padding-top: 6px;
           border-top: 1px solid rgba(44, 57, 67, .10);
         }
 
         .sag-feedback-question {
           display: block;
-          margin-bottom: 6px;
+          margin: 0;
+          white-space: nowrap;
           color: #66747e;
-          font-size: 11px;
-          font-weight: 700;
+          font-size: 10px;
+          font-weight: 500;
         }
 
         .sag-feedback-buttons {
           display: flex;
-          gap: 6px;
+          flex-shrink: 0;
+          gap: 4px;
         }
 
         .sag-feedback-buttons button {
-          border: 1px solid #cbd9df;
-          background: white;
+          border: 1px solid #dce5e8;
+          background: #fafcfc;
           color: #40505b;
           border-radius: 8px;
-          padding: 5px 8px;
-          font-size: 11px;
-          font-weight: 750;
+          padding: 4px 6px;
+          min-height: 28px;
+          font-size: 10px;
+          font-weight: 600;
           cursor: pointer;
         }
 
