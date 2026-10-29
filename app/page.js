@@ -912,7 +912,13 @@ function renderBoldMarkdown(text) {
 
 export default function Home() {
   const [lang, setLang] = useState("ko");
-  useEffect(() => { recordStat("page_view", "visit", "ko"); }, []);
+  const visitRecordedRef = useRef(false);
+  useEffect(() => {
+    if (visitRecordedRef.current) return;
+    visitRecordedRef.current = true;
+    const entryLang = new URLSearchParams(window.location.search).get("from") === "gate" ? "en" : "ko";
+    recordStat("page_view", "visit", entryLang);
+  }, []);
   const [mode, setMode] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1008,6 +1014,7 @@ export default function Home() {
     if (params.get("from") !== "gate") return;
 
     gateAutoOpenedRef.current = true;
+    recordStat("quick_menu", "gate", "en");
     setLang("en");
     gateEntryRef.current = true;
     setGateEntry(true);
