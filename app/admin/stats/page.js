@@ -24,6 +24,8 @@ const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,paddi
 export default function StatsPage() {
   const [auth,setAuth] = useState(null),[password,setPassword] = useState(""),[error,setError] = useState("");
   const [rawPage,setRawPage] = useState(0);
+  const [pageSize,setPageSize] = useState(10);
+  const [expandedSessions,setExpandedSessions] = useState({});
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
   useEffect(() => { fetch("/api/stats/auth",{cache:"no-store"}).then(r=>r.json()).then(v=>setAuth(!!v.authenticated)).catch(()=>setAuth(false)); },[]);
   const start = period==="day"?date:startOf(date,period==="week"?6:29);
@@ -52,7 +54,6 @@ export default function StatsPage() {
   },[rows]);
   const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
   const accessOnlySessions = sessionRows.length - activeSessions;
-  const pageSize = 50;
   const pageCount = Math.max(1,Math.ceil(sessionRows.length/pageSize));
   const stats=useMemo(()=>{
     const counts={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
@@ -91,29 +92,31 @@ export default function StatsPage() {
         </section>
         <section style={{...card,marginTop:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
-            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 최근 활동순 · 50개씩 표시</p></div>
+            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 최근 활동순 · {pageSize}개씩 표시</p></div>
             <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
+              <label>표시 <select aria-label="페이지당 기록 수" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setRawPage(0);}} style={{padding:7,border:"1px solid #ccd9da",borderRadius:8,background:"#fff"}}>{[10,25,50].map(n=><option key={n} value={n}>{n}개</option>)}</select></label>
               <button disabled={rawPage===0} onClick={()=>setRawPage(p=>Math.max(0,p-1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>이전</button>
               <span>{rawPage+1} / {pageCount}</span>
               <button disabled={rawPage>=pageCount-1} onClick={()=>setRawPage(p=>Math.min(pageCount-1,p+1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>다음</button>
             </div>
           </div>
-          <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,textAlign:"left"}}>
-              <thead><tr>{["접속시간 (KST)","국가","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <div role="region" aria-label="접속·이용 기록 목록" tabIndex={0} style={{overflow:"auto",maxHeight:"60vh",border:"1px solid #e3eaed",borderRadius:10}}>
+            <table style={{width:"100%",borderCollapse:"separate",borderSpacing:0,fontSize:12,textAlign:"left"}}>
+              <thead><tr>{["접속시간 (KST)","국가","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",position:"sticky",top:0,zIndex:1,background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
               <tbody>{sessionRows.slice(rawPage*pageSize,(rawPage+1)*pageSize).map(group=>{
                 const r=group.first;
                 const seconds=Math.max(0,Math.round((new Date(group.last.created_at)-new Date(r.created_at))/1000));
                 const functional = group.events.some(isFunctionalEvent);
-                return <tr key={group.key}>
+                return <tr key={group.key} style={{background:sessionRows.indexOf(group)%2?"#f8fbfb":"#fff"}}>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(r.created_at)}<div style={{color:"#819096",marginTop:4}}>{r.session_id?"세션 "+r.session_id.slice(0,8)+" · "+group.events.length+"개 활동 · "+seconds+"초":"이전 기록 · 세션 ID 없음"}<div style={{marginTop:5,fontSize:11,fontWeight:700,color:functional?"#087f69":"#8b9398"}}>{functional?"기능 이용":"기능 이용 없음"}</div></div></td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"12px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"10px 9px",borderBottom:"1px solid #edf1f2",minWidth:260,verticalAlign:"top"}}>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{group.events.map((e,i)=>{
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{(expandedSessions[group.key]?group.events:group.events.slice(0,3)).map((e,i)=>{
                       const action=e.event_type==="quick_menu"?(names[e.event_name]||e.event_name):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
                       return <span key={e.id||i} title={timeKst(e.created_at)+" · "+(langs[e.language]||e.language)} style={{display:"inline-block",background:"#eef5f3",color:"#285d52",borderRadius:6,padding:"5px 8px",whiteSpace:"nowrap"}}>{action}</span>;
                     })}</div>
+                    {group.events.length>3&&<button type="button" aria-expanded={!!expandedSessions[group.key]} onClick={()=>setExpandedSessions(v=>({...v,[group.key]:!v[group.key]}))} style={{marginTop:8,padding:"5px 8px",border:"1px solid #c8dcd6",borderRadius:6,background:"#fff",color:"#087f69",cursor:"pointer",fontSize:12}}>{expandedSessions[group.key]?"활동 접기":"+ "+(group.events.length-3)+"개 활동 더 보기"}</button>}
                   </td>
                 </tr>;
               })}</tbody>

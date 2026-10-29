@@ -33,7 +33,7 @@ const TEXT = {
     fares: "승차권·교통카드",
     facilities: "시설안내",
     exchange: "환전소 안내",
-    office: "역무실 위치",
+    office: "고객안전실 위치",
     nearby: "출구·관광지",
     exit: "출구 안내",
     elevator: "엘리베이터",
@@ -280,7 +280,7 @@ const GATE_UI = {
     stepTitle: "해결 방법",
     details: "오류 원인과 자세한 안내 보기",
     another: "다른 오류 선택",
-    office: "역무실 위치",
+    office: "고객안전실 위치",
     help: "문제가 해결되지 않으면 **HELP 버튼**을 눌러 역무실에 문의해 주세요.",
     steps: {
       e01: ["지갑·휴대폰 케이스에서 사용할 카드 **한 장만 꺼내세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
@@ -1354,7 +1354,7 @@ export default function Home() {
     }));
   }
 
-  function quickAction(type, label) {
+  function quickAction(type, label, facilityType = "selector") {
     if (loading) return;
     const now = Date.now();
     if (now - lastQuickActionAtRef.current < 700) return;
@@ -1370,7 +1370,7 @@ export default function Home() {
     setInput("");
 
     if (type === "facility") {
-      setMessages((prev) => [...prev, { role: "assistant", text: "", facilityMap: "selector" }]);
+      setMessages((prev) => [...prev, { role: "assistant", text: "", facilityMap: facilityType }]);
       return;
     }
     if (type === "fares") {
@@ -1536,7 +1536,7 @@ export default function Home() {
                         <button type="button" onClick={() => openGateMenu({ replaceCurrent: true })} disabled={loading}>
                           ← {ui.another}
                         </button>
-                        <button type="button" onClick={() => quickAction("staff", t.office)} disabled={loading}>
+                        <button type="button" onClick={() => quickAction("facility", t.office, "customerOffice")} disabled={loading}>
                           📍 {ui.office}
                         </button>
                       </div>
@@ -1657,8 +1657,8 @@ export default function Home() {
                   />
                 )}
 
-                {GA_ID && message.feedbackKey && !message.pending && !message.error && (
-                  <div className="sag-feedback">
+                {message.feedbackKey && !message.pending && !message.error && (
+                  <div className={`sag-feedback ${message.gateResult ? "sag-feedback-compact" : ""}`}>
                     {feedbackByIndex[index] ? (
                       <span className="sag-feedback-thanks">{t.feedbackThanks}</span>
                     ) : (
@@ -2367,6 +2367,11 @@ export default function Home() {
           transform: scale(.98);
           background: #f3f7f8;
         }
+
+        .sag-feedback-compact { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; padding-top: 5px; min-height: 34px; }
+        .sag-feedback-compact .sag-feedback-question { margin: 0; flex: 1; }
+        .sag-feedback-compact .sag-feedback-buttons { flex: 0 0 auto; }
+        .sag-feedback-compact .sag-feedback-buttons button { min-height: 34px; }
 
         .sag-feedback-thanks {
           color: #14785f;
