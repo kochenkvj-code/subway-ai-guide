@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { ANALYTICS_EXCLUDED_KEY } from "../../lib/analytics-preference";
+import { FACILITY_LABELS, isFacilityContext } from "../../lib/facility-stat";
 
 const KST = "Asia/Seoul";
 const dateKst = (value) => new Intl.DateTimeFormat("en-CA", { timeZone: KST, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
@@ -79,16 +80,16 @@ export default function StatsPage() {
   const visibleSessions = useMemo(() => sessionRows.filter(group => recordFilter === "all" || (recordFilter === "functional" ? group.events.some(isFunctionalEvent) : !group.events.some(isFunctionalEvent))), [sessionRows,recordFilter]);
   const pageCount = Math.max(1,Math.ceil(visibleSessions.length/pageSize));
   const stats=useMemo(()=>{
-    const counts={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
+    const counts={},facilities={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
     for(const r of rows){const d=dateKst(r.created_at);const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(r.created_at));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
       if(r.event_type==="page_view")visits++;
       if(r.event_type==="ai_question")questions++;
       if(r.event_type==="route_search"&&r.event_name==="request")routes++;
-      if(r.event_type==="quick_menu")counts[r.event_name]=(counts[r.event_name]||0)+1;
+      if(r.event_type==="quick_menu"){if(r.event_name==="facility"&&isFacilityContext(r.context))facilities[r.context]=(facilities[r.context]||0)+1;else counts[r.event_name]=(counts[r.event_name]||0)+1;}
       if(r.event_type==="feedback"){feedback++;if(r.event_name==="solved")solved++;}
       if(r.event_type==="page_view"||r.event_type==="quick_menu"||r.event_type==="ai_question")languages[r.language]=(languages[r.language]||0)+1;
     }
-    return {visits,questions,routes,counts,languages,hours,dates,feedback,solved};
+    return {visits,questions,routes,counts,facilities,languages,hours,dates,feedback,solved};
   },[rows]);
   const chart=(data,labels)=>{const entries=Object.entries(data).sort((a,b)=>labels?b[1]-a[1]:a[0].localeCompare(b[0]));const max=Math.max(1,...entries.map(x=>x[1]));return entries.length?<div style={{display:"grid",gap:10}}>{entries.map(([key,value])=><div key={key} style={{display:"grid",gridTemplateColumns:"110px 1fr 42px",alignItems:"center",gap:10,fontSize:13}}><span>{labels?.[key]||key}</span><div style={{height:12,borderRadius:8,background:"#edf4f3",overflow:"hidden"}}><div style={{height:"100%",width:(value/max*100)+"%",background:"#16836e",borderRadius:8}}/></div><strong style={{textAlign:"right"}}>{value}</strong></div>)}</div>:<p style={{color:"#7a858d"}}>해당 기간 기록이 없습니다.</p>;};
   const timeline=(data, hourly=false)=>{
@@ -116,6 +117,7 @@ export default function StatsPage() {
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,440px),1fr))",gap:14}}>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>빠른 안내 메뉴별 이용량</h2>{chart(stats.counts,names)}</div>
+          <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시설별 안내 선택</h2>{chart(stats.facilities,FACILITY_LABELS)}<p style={{fontSize:11,color:"#687c82",marginBottom:0}}>세부 수집 시작 이후 기록입니다. 빠른 안내 메뉴 클릭 수와 별도로 집계합니다.</p></div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>언어별 이용 이벤트</h2>{chart(stats.languages,langs)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>날짜별 이벤트 추이</h2>{timeline(stats.dates)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시간대별 이벤트 (KST)</h2>{timeline(stats.hours,true)}</div>
@@ -143,8 +145,8 @@ export default function StatsPage() {
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",minWidth:180,verticalAlign:"top"}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
-                      const action=e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):e.event_type==="quick_menu"?(names[e.event_name]||e.event_name):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
-                      const contextLabel=e.event_type==="feedback"&&e.context?.startsWith("gate_")?gateActions[e.context.slice(5)]:null;
+                      const action=e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):e.event_type==="quick_menu"?(e.event_name==="facility"&&isFacilityContext(e.context)?"시설: "+FACILITY_LABELS[e.context]:(names[e.event_name]||e.event_name)):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
+                      const contextLabel=e.event_type==="feedback"&&e.context?.startsWith("gate_")?gateActions[e.context.slice(5)]:e.event_type==="feedback"&&isFacilityContext(e.context)?FACILITY_LABELS[e.context]:null;
                       return <span key={e.id||i} title={timeKst(eventTime(e))+" · "+(langs[e.language]||e.language)} style={{display:"inline-block",background:"#eef5f3",color:"#285d52",borderRadius:6,padding:"2px 5px",whiteSpace:"nowrap",fontSize:11}}>{contextLabel?contextLabel+" · ":""}{action}</span>;
                     })}</div>
                   </td>

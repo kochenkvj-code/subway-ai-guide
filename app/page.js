@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import SubwayRouteCard from "./components/SubwayRouteCard";
 import NearbyPlacesCard from "./components/NearbyPlacesCard";
 import { recordStat, startActivityTracking } from "./lib/record-stat";
+import { facilityContext } from "./lib/facility-stat";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 
@@ -778,7 +779,7 @@ function FacilityMapCard({ type = null, lang }) {
       <p style={{ fontSize: 12, lineHeight: 1.5, color: "#526276", margin: "8px 0 0" }}>{selected ? ui.note : ({ko:"아래에서 시설을 선택하면 지도에 위치가 표시됩니다.",en:"Choose a facility below to highlight its location.",ja:"下の施設を選ぶと地図上に場所が表示されます。",zh:"选择下方设施，即可在地图上查看位置。"})[locale]}</p>
       <div role="group" aria-label={ui.note} style={{ display:"grid", gridTemplateColumns:"repeat(3,minmax(0,1fr))", gap:6, marginTop:12 }}>
         {["kiosk","restroom","lockers","customerOffice","elevator","nursingRoom"].map((facility) => (
-          <button key={facility} type="button" aria-pressed={selected === facility} onClick={() => setSelected(facility)} style={{ padding:"10px 4px", minWidth:0, minHeight:48, borderRadius:10, border:selected===facility?"2px solid #ea580c":"1px solid #cbd5e1", background:selected===facility?"#fff4e9":"#fff", color:selected===facility?"#9a3412":"#34465a", fontSize:11, fontWeight:selected===facility?800:650, lineHeight:1.4, cursor:"pointer", overflowWrap:"anywhere" }}>{ui[facility]}</button>
+          <button key={facility} type="button" aria-pressed={selected === facility} onClick={() => { recordStat("quick_menu", "facility", lang, facilityContext(facility)); setSelected(facility); }} style={{ padding:"10px 4px", minWidth:0, minHeight:48, borderRadius:10, border:selected===facility?"2px solid #ea580c":"1px solid #cbd5e1", background:selected===facility?"#fff4e9":"#fff", color:selected===facility?"#9a3412":"#34465a", fontSize:11, fontWeight:selected===facility?800:650, lineHeight:1.4, cursor:"pointer", overflowWrap:"anywhere" }}>{ui[facility]}</button>
         ))}
       </div>
     </div>
@@ -1315,6 +1316,8 @@ export default function Home() {
     }
     if (id.startsWith("facility_")) {
       const facilityType = id.slice("facility_".length);
+      const context = facilityContext(facilityType);
+      if (context) recordStat("quick_menu", "facility", lang, context);
       if (["kiosk", "restroom", "lockers"].includes(facilityType)) {
         const facilityName = option.label;
         setMessages((prev) => [
@@ -1369,7 +1372,7 @@ export default function Home() {
     const now = Date.now();
     if (now - lastQuickActionAtRef.current < 700) return;
     lastQuickActionAtRef.current = now;
-    recordStat("quick_menu", type, lang);
+    recordStat("quick_menu", type, lang, type === "facility" ? facilityContext(facilityType) : null);
     // A fresh viewport discards Safari's old scroll inertia, while the
     // messages array remains intact and accessible by scrolling upward.
     setMenuViewSerial((n) => n + 1);

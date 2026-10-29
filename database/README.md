@@ -25,3 +25,9 @@ transaction, including a lower out-of-order update and multiple page segments.
 Local production-mode browser/API/report verification used an isolated local
 PostgREST fixture, including reversed request arrival, background pause/resume,
 reload, admin authentication and detailed gate feedback rendering.
+
+Facility selections reuse `quick_menu` / `facility` with an allowlisted
+`facility_*` context (see `app/lib/facility-stat.js`). No schema upgrade is needed.
+Menu-open events retain a null context. The admin view counts facility selections
+separately from top-level menu opens and names each selection in the activity log.
+Historical null-context events cannot identify which facility was selected.

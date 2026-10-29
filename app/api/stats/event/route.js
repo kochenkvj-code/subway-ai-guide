@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/stats-server";
+import { isFacilityContext } from "../../../lib/facility-stat";
 
 export const runtime = "nodejs";
 const types = {
@@ -23,7 +24,9 @@ export async function POST(request) {
     }
     // Accept only an ephemeral UUID; do not accept user-identifying values.
     const sessionId = typeof data.session_id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.session_id) ? data.session_id : null;
-    const context = typeof data.context === "string" && /^gate_(e01|e03|e04|e05|e06|e14|e33|e44|opposite|unknown)$/.test(data.context) ? data.context : null;
+    const gateContext = typeof data.context === "string" && /^gate_(e01|e03|e04|e05|e06|e14|e33|e44|opposite|unknown)$/.test(data.context);
+    const facilitySelection = isFacilityContext(data.context) && ((data.event_type === "quick_menu" && data.event_name === "facility") || data.event_type === "feedback");
+    const context = gateContext || facilitySelection ? data.context : null;
     const clientTime=typeof data.occurred_at === "string" ? Date.parse(data.occurred_at) : NaN;
     const occurred_at=Number.isFinite(clientTime) && Math.abs(Date.now()-clientTime)<300000 ? new Date(clientTime).toISOString() : new Date().toISOString();
     // Only coarse, non-identifying request metadata. Never persist IP, full user-agent, or question text.
