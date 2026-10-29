@@ -25,7 +25,7 @@ const TEXT = {
     privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI 서비스로 전송됩니다.",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
     send: "전송",
-    greeting: "안녕하세요. 종로5가역 AI 안내입니다. 무엇을 도와드릴까요?",
+    greeting: "**궁금한 점, AI에게 물어보세요**\n지하철 이용부터 주변 관광지까지 안내해 드려요.",
     routePrompt: "목적지를 입력해주세요. 예: 명동, 서울역, 강남",
     route: "길찾기",
     restroom: "화장실",
@@ -57,7 +57,7 @@ const TEXT = {
     privacyNotice: "No personal info. Questions are sent to external AI for answers.",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
     send: "Send",
-    greeting: "Hello. This is the Jongno 5-ga Station AI Guide. How can I help?",
+    greeting: "**Have a question? Ask AI.**\nGet help with the subway and nearby attractions.",
     routePrompt: "Enter your destination. Example: Myeong-dong, Seoul Station, Gangnam",
     route: "Route",
     restroom: "Restroom",
@@ -89,7 +89,7 @@ const TEXT = {
     privacyNotice: "個人情報を入力しないでください。質問は回答生成のため外部AIサービスに送信されます。",
     routePlaceholder: "目的地を入力（例：明洞）",
     send: "送信",
-    greeting: "こんにちは。鍾路5街駅AI案内です。何をお手伝いしましょうか？",
+    greeting: "**気になることはAIに聞いてみましょう**\n地下鉄の利用から周辺の観光までご案内します。",
     routePrompt: "目的地を入力してください。例：明洞、ソウル駅、江南",
     route: "経路検索",
     restroom: "トイレ",
@@ -121,7 +121,7 @@ const TEXT = {
     privacyNotice: "请勿输入个人信息。问题将发送至外部AI服务以生成回答。",
     routePlaceholder: "请输入目的地（例如：明洞）",
     send: "发送",
-    greeting: "您好，这里是钟路5街站 AI 指南。请问需要什么帮助？",
+    greeting: "**有问题？问问AI吧**\n从地铁出行到周边景点，为您提供指引。",
     routePrompt: "请输入目的地。例如：明洞、首尔站、江南",
     route: "路线",
     restroom: "洗手间",
@@ -946,7 +946,7 @@ export default function Home() {
   // Treat normal chat, the gate picker and each gate resolution as distinct
   // scroll views.  Re-mounting the scroll container prevents iOS Safari from
   // restoring a stale offset after content of very different heights is swapped.
-  const chatViewKey = `history-${menuViewSerial}-${lastMessage?.gateMessageId ?? ""}`;
+  const chatViewKey = `history-${menuViewSerial}-${lastMessage?.gateMessageId ?? ""}-${lastMessage?.fareMessageId ?? ""}`;
 
   function updateScrollIndicator() {
     const el = chatRef.current;
@@ -1032,7 +1032,7 @@ export default function Home() {
     const target = el.querySelector(".sag-row:last-of-type");
     const isCard = Boolean(lastMessage?.routeCard || lastMessage?.facilityMap ||
       lastMessage?.nearbyCard || lastMessage?.exchangeCard ||
-      lastMessage?.gateMenu || lastMessage?.gateResult ||
+      lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct ||
       lastMessage?.menuPhase === "selection");
     if (isCard && target) {
       const top = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
@@ -1457,7 +1457,7 @@ export default function Home() {
 
           <div
             key={chatViewKey}
-            className={`sag-chat ${(lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
+            className={`sag-chat ${(lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
             ref={chatRef}
             onScroll={updateScrollIndicator}
           >
