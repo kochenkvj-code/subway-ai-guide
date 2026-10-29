@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { ANALYTICS_EXCLUDED_KEY } from "../../lib/analytics-preference";
 
 const KST = "Asia/Seoul";
 const dateKst = (value) => new Intl.DateTimeFormat("en-CA", { timeZone: KST, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
@@ -26,6 +27,23 @@ const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"n
 const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,padding:18};
 export default function StatsPage() {
   const [auth,setAuth] = useState(null),[password,setPassword] = useState(""),[error,setError] = useState("");
+  const [analyticsExcluded,setAnalyticsExcluded] = useState(null);
+  const [preferenceError,setPreferenceError] = useState("");
+  useEffect(() => {
+    const sync=()=>{try{setAnalyticsExcluded(localStorage.getItem(ANALYTICS_EXCLUDED_KEY)==="1");setPreferenceError("");}catch{setPreferenceError("브라우저 설정 저장소에 접근할 수 없습니다.");}};
+    sync();window.addEventListener("storage",sync);
+    return ()=>window.removeEventListener("storage",sync);
+  },[]);
+  const toggleAnalyticsExcluded=()=>{
+    if(!auth || analyticsExcluded===null)return;
+    try{
+      const next=!analyticsExcluded;
+      if(next)localStorage.setItem(ANALYTICS_EXCLUDED_KEY,"1");else localStorage.removeItem(ANALYTICS_EXCLUDED_KEY);
+      if((localStorage.getItem(ANALYTICS_EXCLUDED_KEY)==="1")!==next)throw Error("Storage unavailable");
+      setAnalyticsExcluded(next);setPreferenceError("");
+      window.dispatchEvent(new Event("analytics-preference-change"));
+    }catch{setPreferenceError("설정을 저장하지 못했습니다. 브라우저의 사이트 데이터 저장 허용 여부를 확인해 주세요.");}
+  };
   const [rawPage,setRawPage] = useState(0);
   const [activity,setActivity] = useState({});
   const [pageSize,setPageSize] = useState(25);
@@ -82,8 +100,10 @@ export default function StatsPage() {
   const logout=async()=>{await fetch("/api/stats/auth",{method:"DELETE"});setAuth(false);setRows([]);};
   return <main style={{minHeight:"100dvh",background:"#f5f8f8",color:"#19323a",fontFamily:"system-ui,sans-serif",padding:"24px 14px"}}>
     <div style={{maxWidth:1360,margin:"0 auto"}}>
-      <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22,gap:12}}><div><h1 style={{fontSize:22,margin:0}}>종로5가역 AI 안내 통계</h1><p style={{color:"#667b83",fontSize:13,margin:"6px 0 0"}}>관리자 전용 · 한국시간(KST) 기준</p></div>{auth&&<button onClick={logout} style={{border:"1px solid #ccd9da",background:"#fff",borderRadius:9,padding:10,cursor:"pointer"}}>로그아웃</button>}</header>
+      <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",marginBottom:22,gap:12}}><div><h1 style={{fontSize:22,margin:0}}>종로5가역 AI 안내 통계</h1><p style={{color:"#667b83",fontSize:13,margin:"6px 0 0"}}>관리자 전용 · 한국시간(KST) 기준</p></div>{auth&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,flexWrap:"wrap"}}><button type="button" role="switch" aria-label="이 브라우저 통계 제외" aria-checked={analyticsExcluded===true} disabled={analyticsExcluded===null} onClick={toggleAnalyticsExcluded} title="켜면 이 브라우저의 Vercel 방문 분석과 자체 통계 수집을 제외합니다. 로그아웃 후에도 유지됩니다." style={{border:analyticsExcluded?"1px solid #16836e":"1px solid #ccd9da",background:analyticsExcluded?"#e7f5ee":"#fff",color:analyticsExcluded?"#087f69":"#526970",borderRadius:9,padding:10,cursor:"pointer",fontSize:12}}>이 브라우저 통계 제외 <strong>{analyticsExcluded===null?"확인 중":analyticsExcluded?"ON":"OFF"}</strong></button><button onClick={logout} style={{border:"1px solid #ccd9da",background:"#fff",borderRadius:9,padding:10,cursor:"pointer"}}>로그아웃</button></div>}</header>
       {auth===null?<p>인증 확인 중…</p>:!auth?<form onSubmit={login} style={{...card,maxWidth:420,margin:"60px auto"}}><h2 style={{marginTop:0,fontSize:18}}>관리자 로그인</h2><label htmlFor="stats-password">관리자 비밀번호</label><input id="stats-password" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={{display:"block",width:"100%",boxSizing:"border-box",padding:12,border:"1px solid #b9c9cc",borderRadius:9,margin:"10px 0 16px"}}/><button type="submit" style={{background:"#087f69",color:"white",border:0,borderRadius:9,padding:"11px 20px",cursor:"pointer"}}>로그인</button>{error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}</form>:<>
+        <p style={{fontSize:12,color:"#667b83",lineHeight:1.7,margin:"0 0 14px"}}>통계 제외는 현재 브라우저에만 적용되며 로그아웃 후에도 유지됩니다. 다른 기기·브라우저에서는 각각 설정해 주세요. 설정 변경 후 이미 열린 챗봇 탭은 새로고침해 주세요. 과거 기록은 삭제하지 않습니다.</p>
+        {preferenceError&&<p role="alert" style={{color:"#ba3333"}}>{preferenceError}</p>}
         <section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12,marginBottom:14}}><label>조회 기준 <select value={period} onChange={e=>setPeriod(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}><option value="day">일별</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select></label><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
           <span style={{fontSize:14}}>기준 날짜</span>
           <button type="button" aria-label="이전 날짜" onClick={()=>setDate(d=>shiftDate(d,-1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:"pointer"}}>‹</button>

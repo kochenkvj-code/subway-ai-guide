@@ -1,5 +1,5 @@
 import './globals.css';
-import { Analytics } from '@vercel/analytics/next';
+import SiteAnalytics from './components/SiteAnalytics';
 
 export const metadata = {
   title: '지하철역 AI 안내',
@@ -9,7 +9,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ko">
-      <body>{children}<Analytics /></body>
+      <body>{children}<SiteAnalytics /></body>
     </html>
   );
 }
