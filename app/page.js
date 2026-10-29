@@ -21,11 +21,11 @@ const TEXT = {
     bannerTitle: "종로5가역 AI 안내",
     bannerBody: "일반 문의는 AI가 검색 결과를 바탕으로 안내합니다. 길찾기는 위 메뉴에서 조회할 수 있습니다.",
     quick: "빠른 안내",
-    placeholder: "궁금한 것을 입력하세요",
+    placeholder: "궁금한 점을 입력하세요",
     privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI 서비스로 전송됩니다.",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
     send: "전송",
-    greeting: "안녕하세요. 종로5가역 AI 안내입니다. 무엇을 도와드릴까요?",
+    greeting: "**궁금한 점, AI에게 물어보세요**\n지하철 이용부터 주변 관광지까지 안내해 드려요.",
     routePrompt: "목적지를 입력해주세요. 예: 명동, 서울역, 강남",
     route: "길찾기",
     restroom: "화장실",
@@ -57,7 +57,7 @@ const TEXT = {
     privacyNotice: "No personal info. Questions are sent to external AI for answers.",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
     send: "Send",
-    greeting: "Hello. This is the Jongno 5-ga Station AI Guide. How can I help?",
+    greeting: "**Have a question? Ask AI.**\nGet help with the subway and nearby attractions.",
     routePrompt: "Enter your destination. Example: Myeong-dong, Seoul Station, Gangnam",
     route: "Route",
     restroom: "Restroom",
@@ -89,7 +89,7 @@ const TEXT = {
     privacyNotice: "個人情報を入力しないでください。質問は回答生成のため外部AIサービスに送信されます。",
     routePlaceholder: "目的地を入力（例：明洞）",
     send: "送信",
-    greeting: "こんにちは。鍾路5街駅AI案内です。何をお手伝いしましょうか？",
+    greeting: "**気になることはAIに聞いてみましょう**\n地下鉄の利用から周辺の観光までご案内します。",
     routePrompt: "目的地を入力してください。例：明洞、ソウル駅、江南",
     route: "経路検索",
     restroom: "トイレ",
@@ -112,7 +112,7 @@ const TEXT = {
     feedbackThanks: "ご協力ありがとうございます。",
   },
   zh: {
-    title: "AI 指南",
+    title: "AI 智能向导",
     status: "AI 指南运行中",
     bannerTitle: "钟路5街站 AI 指南",
     bannerBody: "普通问题由AI结合搜索结果回答。地铁路线可通过上方的路线菜单查询。",
@@ -121,7 +121,7 @@ const TEXT = {
     privacyNotice: "请勿输入个人信息。问题将发送至外部AI服务以生成回答。",
     routePlaceholder: "请输入目的地（例如：明洞）",
     send: "发送",
-    greeting: "您好，这里是钟路5街站 AI 指南。请问需要什么帮助？",
+    greeting: "**有问题？问问AI吧**\n从地铁出行到周边景点，为您提供指引。",
     routePrompt: "请输入目的地。例如：明洞、首尔站、江南",
     route: "路线",
     restroom: "洗手间",
@@ -154,7 +154,7 @@ const LANGUAGE_BUTTONS = [
 
 const GATE_MENU = {
   ko: {
-    prompt: "올바른 게이트(초록색 화살표)에 태그한 뒤, 오류 코드를 확인해 아래에서 선택해 주세요.",
+    prompt: "① **초록색 화살표 게이트**에 카드 태그\n② **오류 코드 확인** → ③ **아래에서 선택**",
     options: [
       { id: "e01", label: "E-01 카드 중복" },
       { id: "e03", label: "E-03 하차 처리 누락" },
@@ -168,7 +168,7 @@ const GATE_MENU = {
     ],
   },
   en: {
-    prompt: "Tap your card at the correct gate (green arrow), check the error code, and select it below.",
+    prompt: "① Tap at a **green-arrow gate**\n② **Check error code** → ③ **Select below**",
     options: [
       { id: "e01", label: "E-01 Multiple cards" },
       { id: "e03", label: "E-03 No exit record" },
@@ -182,7 +182,7 @@ const GATE_MENU = {
     ],
   },
   ja: {
-    prompt: "正しい改札（緑の矢印）にタッチし、エラーコードを確認して下から選択してください。",
+    prompt: "① **緑の矢印の改札**にカードをタッチ\n② **エラーコードを確認** → ③ **下から選択**",
     options: [
       { id: "e01", label: "E-01 カード重複" },
       { id: "e03", label: "E-03 出場記録なし" },
@@ -196,7 +196,7 @@ const GATE_MENU = {
     ],
   },
   zh: {
-    prompt: "请在正确的闸机（绿色箭头）刷卡，确认错误代码后在下方选择。",
+    prompt: "① 在有**绿色箭头的闸机**刷卡\n② **确认错误代码** → ③ **在下方选择**",
     options: [
       { id: "e01", label: "E-01 多卡识别" },
       { id: "e03", label: "E-03 无出站记录" },
@@ -1424,7 +1424,7 @@ export default function Home() {
     <main className="sag-page">
       <section className="sag-phone">
         <header className="sag-header">
-          <div className="sag-header-title"><h1>{STATION[lang]} {t.title}</h1></div>
+          <div className="sag-header-title"><h1>{t.title}</h1><p className="sag-station-subtitle">{STATION[lang]}</p></div>
           <div className="sag-languages">
           {LANGUAGE_BUTTONS.map(([code, label]) => (
             <button
@@ -1468,7 +1468,7 @@ export default function Home() {
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
-                {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
+                {message.text && <div className={`sag-answer ${message.text === t.greeting ? "sag-welcome" : ""}`}>{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
                   const ui = GATE_UI[lang] || GATE_UI.ko;
@@ -2069,7 +2069,8 @@ export default function Home() {
         .sag-gate-card-heading h2 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
         .sag-gate-card-heading p { margin: 0; font-size: 11px; color: #566d81; }
         .sag-gate-notice { white-space: pre-line; background: #eef6fd; border-left: 3px solid #2382c7;
-          border-radius: 8px; padding: 6px 8px; font-size: 11px; color: #243e55; line-height: 1.38; }
+          border-radius: 8px; padding: 7px 8px; font-size: 12.5px; font-weight: 650; color: #183e55; line-height: 1.5; }
+        .sag-gate-notice strong { font-weight: 850; }
         .sag-gate-section-label { font-size: 12px; font-weight: 800; margin: 9px 0 7px; color: #244b6e; }
         .sag-gate-code-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
         .sag-gate-code-grid button { display: flex; min-width: 0; flex-direction: column; align-items: center;
@@ -2469,6 +2470,17 @@ export default function Home() {
           cursor: pointer;
           min-width: 62px;
         }
+
+        .sag-header h1 { color: #142f3e; font-weight: 850; letter-spacing: -.8px; margin: 0; }
+        .sag-station-subtitle { margin: 4px 0 0; font-size: 11px; color: #72858d; line-height: 1.3; }
+        .sag-languages button { border-color: #e5ebed; color: #657a83; background: #fafcfc; border-radius: 7px; }
+        .sag-languages button.active { border-color: #0e7169; background: #0e7169; color: #fff; }
+        .sag-actions button { border-color: #e1e9e9; background: #fbfdfd; color: #203e49; box-shadow: 0 1px 2px rgba(15,55,55,.025); }
+        .sag-actions button:nth-child(2) { border-color: #e3d1b3; background: #fffcf6; }
+        .sag-action-icon { border-radius: 7px; }
+        .sag-welcome { font-size: 11px; line-height: 1.6; color: #6b7f86; }
+        .sag-welcome strong { font-size: 15px; color: #213d46; line-height: 1.5; }
+        .sag-bubble:has(.sag-welcome) { background: #f1f6f5; border: 1px solid #e4eeeb; border-radius: 13px; }
 
         @media (max-width: 560px) {
           html, body {

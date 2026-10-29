@@ -17,7 +17,6 @@ const COPY = {
     depart: "출발", arrive: "도착", stops: "정거장", mins: "분", secs: "초", hours: "시간", won: "원",
     showStops: "경유역 보기", hideStops: "경유역 접기", suffix: "회", searchFailed: "조회 실패", empty: "도착역을 입력해주세요.",
     unsupported: "역명을 찾지 못했거나 같은 표기의 역이 여러 개입니다. 한국어 공식 역명으로 입력하거나 아래 빠른 선택을 이용해주세요.",
-    disclosure: "경로 정보는 공식 API 기준이며 실제 운행과 다를 수 있습니다. 환승 구간 및 추가 운임은 현장 안내를 확인해주세요.",
   },
   en: {
     heading: "Directions", question: "Where would you like to go?", originTag: "From Jongno 5(o)-ga", from: "From", to: "To", toHint: "Destination (e.g. Gangnam)",
@@ -28,7 +27,6 @@ const COPY = {
     depart: "Departure", arrive: "Arrival", stops: "stops", mins: "min", secs: "sec", hours: "hr", won: "KRW",
     showStops: "Show stops", hideStops: "Hide stops", suffix: "", searchFailed: "Unable to find route", empty: "Please enter a destination.",
     unsupported: "Station name not found or ambiguous. Try the official Korean name or a popular destination below.",
-    disclosure: "Route data comes from the official API and may differ from actual operations. Check local signs for transfers and surcharges.",
   },
   ja: {
     heading: "経路検索", question: "どちらへ行きますか？", originTag: "鍾路5街から出発", from: "出発駅", to: "到着駅", toHint: "到着駅（例：カンナム）",
@@ -39,7 +37,6 @@ const COPY = {
     depart: "出発", arrive: "到着", stops: "駅", mins: "分", secs: "秒", hours: "時間", won: "ウォン",
     showStops: "途中駅を見る", hideStops: "途中駅を閉じる", suffix: "回", searchFailed: "検索できませんでした", empty: "到着駅を入力してください。",
     unsupported: "駅名が見つからないか、複数の駅に一致します。韓国語の正式駅名または下の候補を使用してください。",
-    disclosure: "公式APIに基づく経路です。実際の運行・乗換・追加運賃については現地案内をご確認ください。",
   },
   zh: {
     heading: "路线查询", question: "您想去哪里？", originTag: "从钟路五街出发", from: "出发站", to: "目的地", toHint: "输入目的地（例如：江南）",
@@ -50,7 +47,6 @@ const COPY = {
     depart: "出发", arrive: "到达", stops: "站", mins: "分钟", secs: "秒", hours: "小时", won: "韩元",
     showStops: "查看途经站", hideStops: "收起途经站", suffix: "次", searchFailed: "查询失败", empty: "请输入目的地。",
     unsupported: "未找到车站或有多个同名候选。请使用韩文正式站名或选择下方常用车站。",
-    disclosure: "路线信息来自官方API，可能与实际运行情况不同。请以现场换乘指示及附加票价为准。",
   },
 };
 
@@ -289,7 +285,6 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
             </div>
           </details>
         )}
-        <p className="srg-disclaimer">{t.disclosure}</p>
         <div className="srg-result-actions">
         {!newSearchOpened && <button type="button" className="srg-again" onClick={() => { if (onNewSearch) { setNewSearchOpened(true); onNewSearch(); } else { returningToSearchRef.current = true; setRoute(null); setDestination(""); setSelectedStation(null); setError(""); } }}>{t.change}</button>}
           <div className="srg-feedback" role="group" aria-label={feedbackCopy.label} aria-live="polite">
@@ -354,14 +349,14 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
         .srg-point{width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:#e4f4ed;color:#00866d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;z-index:1}
         .srg-stop-body{min-width:0;padding-top:2px;flex:1}.srg-stop-body>strong{font-size:13px}.srg-line-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;color:#526771;font-size:12px}
         .srg-line{display:inline-block;padding:4px 7px;border-radius:5px;color:#fff;font-weight:700;font-size:11px}.srg-details{border-top:1px solid #e6eeee;padding:12px 0;margin-top:4px}.srg-details summary{cursor:pointer;font-size:12px;font-weight:700}.srg-details p{font-size:12px;line-height:1.8;color:#5e717b}
-        .srg-all-stations{border-top:1px solid #e6eeee;padding:12px 0;margin-top:12px}
+        .srg-all-stations{border-top:1px solid #e6eeee;padding:9px 0 0;margin:10px 0 0}
         .srg-all-stations>summary{cursor:pointer;font-size:12px;font-weight:750;color:#24343b}
         .srg-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;column-gap:5px;row-gap:9px;padding:13px 0 2px;color:#536d77;font-size:12px;line-height:1.7}
         .srg-all-station{display:inline-flex;align-items:center;gap:3px;max-width:100%;white-space:nowrap}
         .srg-short-line{display:inline-flex;align-items:center;justify-content:center;min-width:18px;max-width:78px;padding:1px 4px;border-radius:4px;color:white;font-size:10px;font-weight:800;line-height:1.5;white-space:nowrap}
         .srg-all-arrow{color:#859ba3;margin:0 3px;font-weight:700}
-        .srg-disclaimer{font-size:11px;line-height:1.6;color:#788d93}.srg-again{width:100%;border:1px solid #bddbcf;background:#f0f9f6;color:#05755e;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
-        .srg-result-actions{display:grid;grid-template-columns:2fr 1fr;gap:7px;align-items:stretch}
+        .srg-again{width:100%;border:1px solid #bddbcf;background:#f0f9f6;color:#05755e;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer}
+        .srg-result-actions{margin-top:10px;display:grid;grid-template-columns:2fr 1fr;gap:7px;align-items:stretch}
         .srg-feedback{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:47px;color:#14785f;font-size:10px;text-align:center}
         .srg-feedback button{border:1px solid #bfd8e9;background:#f7fbfe;color:#165c88;border-radius:8px;padding:3px;min-height:22px;font-size:10px;line-height:1.2;cursor:pointer}
         @media(max-width:420px){.srg-card{padding:13px}.srg-origin{font-size:10px;padding:5px 7px}.srg-metrics strong{font-size:14px}}
