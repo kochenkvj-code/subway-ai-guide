@@ -1657,7 +1657,7 @@ export default function Home() {
                   />
                 )}
 
-                {message.feedbackKey && !message.pending && !message.error && (
+                {message.feedbackKey && !message.gateResult && !message.pending && !message.error && (
                   <div className={`sag-feedback ${message.gateResult ? "sag-feedback-compact" : ""}`}>
                     {feedbackByIndex[index] ? (
                       <span className="sag-feedback-thanks">{t.feedbackThanks}</span>
@@ -1701,6 +1701,17 @@ export default function Home() {
           </div>
         </div>
 
+        {lastMessage?.gateResult && (
+          <div className="sag-gate-feedback-bar" aria-live="polite">
+            {feedbackByIndex[messages.length-1] ? <span className="sag-feedback-thanks">{t.feedbackThanks}</span> : <>
+              <span className="sag-feedback-question">{t.feedbackQuestion}</span>
+              <div className="sag-feedback-buttons">
+                <button type="button" onClick={()=>handleFeedback(messages.length-1,lastMessage,"solved")}>✓ {t.solved}</button>
+                <button type="button" onClick={()=>handleFeedback(messages.length-1,lastMessage,"not_solved")}>✕ {t.notSolved}</button>
+              </div>
+            </>}
+          </div>
+        )}
         <form className="sag-input-wrap" onSubmit={submitMessage}>
           <input
             value={input}
@@ -2373,6 +2384,10 @@ export default function Home() {
         .sag-feedback-compact .sag-feedback-buttons { flex: 0 0 auto; }
         .sag-feedback-compact .sag-feedback-buttons button { min-height: 34px; }
 
+        .sag-gate-feedback-bar { flex: 0 0 auto; min-height: 40px; padding: 3px 14px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #f3f8fc; border-top: 1px solid #dce6ec; }
+        .sag-gate-feedback-bar .sag-feedback-question { margin: 0; }
+        .sag-gate-feedback-bar .sag-feedback-buttons { flex: 0 0 auto; }
+        .sag-gate-feedback-bar button { min-height: 34px; }
         .sag-feedback-thanks {
           color: #14785f;
           font-size: 11px;
