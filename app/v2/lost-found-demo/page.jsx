@@ -74,6 +74,8 @@ export default function LostFoundDemo() {
   const [end,setEnd] = useState(()=>koreaDate());
   const [source,setSource] = useState('both');
   const [keyword,setKeyword] = useState('');
+  const [place,setPlace] = useState('');
+  const [searchMode,setSearchMode] = useState('area-date');
   const [category,setCategory] = useState('전체');
   const [items,setItems] = useState([]);
   const [status,setStatus] = useState(null);
@@ -88,9 +90,10 @@ export default function LostFoundDemo() {
   const filters = useRef(null);
   const load = async (number=1,reset=true,signal) => {
     const id=++current.current;
-    const f=reset ? {start,end,source} : filters.current;
-    if (!f || !f.start || !f.end || f.start>f.end ||
-        (Date.parse(f.end)-Date.parse(f.start))/86400000>90) {
+    const f=reset ? {start,end,source,item:keyword.trim(),place:place.trim()} : filters.current;
+    const isNamed=Boolean(f?.item||f?.place);
+    if (!f || (!isNamed && (!f.start || !f.end || f.start>f.end ||
+        (Date.parse(f.end)-Date.parse(f.start))/86400000>90))) {
       setError('검색 기간을 확인해 주세요. 최대 90일까지 조회할 수 있어요.');setLoading(false);setLoadingMore(false);return;
     }
     if (reset) {
@@ -111,7 +114,7 @@ export default function LostFoundDemo() {
           seen.add(key);return true;
         }).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
       });
-      setStatus(result.status);setFailed(result.errors||[]);setPage(number);setMore(result.hasMore);
+      setStatus(result.status);setFailed(result.errors||[]);setSearchMode(result.searchMode||'area-date');setPage(number);setMore(result.hasMore);
     } catch(e) {
       if (current.current!==id || signal?.aborted) return;
       setError(e?.message==='API_KEY_MISSING' ? 'API 환경변수가 확인되지 않았습니다.' :
@@ -122,11 +125,7 @@ export default function LostFoundDemo() {
   };
   useEffect(()=>{const c=new AbortController();load(1,true,c.signal);return ()=>c.abort();},[]);
   const cats=useMemo(()=>['전체',...Array.from(new Set(items.map(categoryOf))).slice(0,14)], [items]);
-  const visible=useMemo(()=>{
-    const q=keyword.trim().toLocaleLowerCase('ko-KR');
-    return items.filter(x=>(category==='전체'||categoryOf(x)===category) &&
-      (!q||[x.title,x.subject,x.place,x.category,x.color].some(s=>String(s||'').toLocaleLowerCase('ko-KR').includes(q))));
-  },[items,category,keyword]);
+  const visible=useMemo(()=>items.filter(x=>category==='전체'||categoryOf(x)===category),[items,category]);
   const allTotal=status ? Object.values(status).reduce((n,x)=>n+(x.ok&&Number.isFinite(x.total)?x.total:0),0) : 0;
   return <div className="lf"><style>{css}</style><div className="lf-shell">
     <header className="lf-top">
@@ -140,20 +139,24 @@ export default function LostFoundDemo() {
     </div>
     <section className="lf-panel" aria-label="습득물 조회 조건">
       <div className="lf-section-heading"><strong>습득물 검색</strong><small>공식 공공데이터 API</small></div>
-      <div className="lf-region"><span>검색지역 · 서울특별시</span><small>전국 제외 · LOST112 공식 API 지역코드 적용</small></div>
+      <div className="lf-region"><span>{searchMode==='name-place'?'물품명·보관장소 직접 검색':'검색지역 · 서울특별시'}</span>
+      <small>{searchMode==='name-place'?'장소별 API는 서울·기간 필터를 지원하지 않아요':'전국 제외 · 공식 API 지역코드 적용'}</small></div>
       <div className="lf-sources" aria-label="조회 기관 선택">{SOURCES.map(([key,label])=>
         <button key={key} className={'lf-chip'+(source===key?' active':'')} onClick={()=>setSource(key)} aria-pressed={source===key}>{label}</button>)}</div>
       <form onSubmit={e=>{e.preventDefault();load(1,true);}}>
         <div className="lf-row">
-          <label className="lf-field">시작일<input type="date" value={start} max={end} onChange={e=>setStart(e.target.value)} required/></label>
-          <label className="lf-field">종료일<input type="date" value={end} min={start} max={koreaDate()} onChange={e=>setEnd(e.target.value)} required/></label>
-          <label className="lf-field lf-wide">물품명·보관장소 키워드<input type="search" value={keyword} maxLength={60} onChange={e=>setKeyword(e.target.value)} placeholder="예: 지갑, 휴대전화, 종로, 가방"/></label>
+          <label className="lf-field lf-wide">보관장소 (역명·유실물센터·경찰서)<input type="search" value={place} maxLength={80} onChange={e=>setPlace(e.target.value)} placeholder="예: 종로5가역, 서울교통공사 유실물센터"/></label>
+          <label className="lf-field lf-wide">물품명<input type="search" value={keyword} maxLength={80} onChange={e=>setKeyword(e.target.value)} placeholder="예: 지갑, 휴대폰, 가방"/></label>
+          <label className="lf-field">시작일<input type="date" value={start} max={end} disabled={Boolean(place.trim()||keyword.trim())} onChange={e=>setStart(e.target.value)} required/></label>
+          <label className="lf-field">종료일<input type="date" value={end} min={start} max={koreaDate()} disabled={Boolean(place.trim()||keyword.trim())} onChange={e=>setEnd(e.target.value)} required/></label>
         </div>
-        <div className="lf-controls"><span className="lf-help">검색 기간 최대 90일 · 물품명은 불러온 목록 내 검색</span>
+        <div className="lf-controls"><span className="lf-help">{place.trim()||keyword.trim()
+          ? '물품명·보관장소를 공식 API에서 직접 검색합니다. 이 조회 방식은 서울·기간 조건을 지원하지 않습니다.'
+          : '검색 범위: 서울 전체 · 최대 90일 · 물품명과 보관장소를 비우면 서울 날짜 검색'}</span>
           <button className="lf-primary" type="submit" disabled={loading||loadingMore}>{loading?'조회 중…':'습득물 조회하기'}</button></div>
       </form>
     </section>
-    <div className="lf-heading-results"><h2>서울 습득물 조회 결과</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
+    <div className="lf-heading-results"><h2>{searchMode==='name-place'?'물품명·보관장소 검색 결과':'서울 습득물 조회 결과'}</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
     {items.length>0&&<div className="lf-tags">{cats.map(cat=><button key={cat} className={'lf-small-chip'+(category===cat?' active':'')} onClick={()=>setCategory(cat)} aria-pressed={category===cat}>{cat}</button>)}</div>}
     {failed.length>0&&<div className="lf-alert" role="status"><strong>일부 기관 조회 실패</strong>
       {failed.map(x=>LABEL[x.source]||x.source).join(' · ')} 데이터는 이번 요청에서 확인되지 않았습니다. 실제 습득물이 없다는 뜻은 아닙니다.</div>}
@@ -169,12 +172,13 @@ export default function LostFoundDemo() {
           <span className="lf-card-link">자세히 보기 ›</span>
         </div>
       </button>)}</div>:
-      !error&&<div className="lf-state">{items.length>0?'현재 불러온 목록에는 검색어와 일치하는 물품이 없습니다. 다음 목록을 불러와 보세요.':
+      !error&&<div className="lf-state">{items.length>0?'현재 불러온 목록에 선택한 분류의 습득물이 없습니다. 다른 분류나 추가 목록을 확인해 보세요.':
+      searchMode==='name-place'?'입력한 물품명·보관장소로 검색된 목록이 없습니다. 습득 장소와 보관 장소는 다를 수 있고, 역에서 접수된 물품도 유실물센터나 경찰서에 보관될 수 있어요. 다른 기관명으로도 검색해 보세요.':
       '서울에서 조회된 습득물이 없습니다. 날짜 범위를 넓히거나 다른 기관을 선택해 보세요.'}</div>}
     {!loading&&more&&<button className="lf-more" disabled={loadingMore} onClick={()=>load(page+1,false)}>
       {loadingMore?'불러오는 중…':'다음 목록 불러오기 +'}
     </button>}
-    {!loading&&<p className="lf-note">※ 서울특별시 습득지역 코드(LCA000)를 공식 API에 직접 전달합니다. 물품명·보관장소·분류 필터는 현재 불러온 목록에만 적용됩니다. 더 많은 항목을 확인하려면 ‘다음 목록 불러오기’를 눌러주세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있으므로 수령 전 보관기관에 확인하세요.</p>}
+    {!loading&&<p className="lf-note">※ 기본 조회는 서울 지역코드(LCA000)와 기간을 적용합니다. 물품명이나 보관장소를 입력하면 경찰청의 별도 직접 검색 API로 전환되며, 이 API에는 서울·날짜 필터가 없어 검색 결과에 전국·전체 기간의 기록이 포함될 수 있습니다. 보관장소는 실제 습득장소와 다릅니다. 자세한 확인은 LOST112 공식 홈페이지를 이용하세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있습니다.</p>}
     {selected&&<section className="lf-detail" aria-label="선택한 습득물 상세정보">
       <div className="lf-detail-head"><strong>습득물 상세정보</strong><button className="lf-close" onClick={()=>setSelected(null)} aria-label="상세정보 닫기">×</button></div>
       <dl className="lf-detail-grid">
