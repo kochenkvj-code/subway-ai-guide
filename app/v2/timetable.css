@@ -22,8 +22,9 @@
 .tt-station-matches button:last-child{border:0}
 .tt-mini-line{width:25px;height:25px;font-size:12px}
 .tt-station-matches button small{font-weight:500;color:#8295ae;margin-left:auto;font-size:12px}
-.tt-toggle-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}
+.tt-toggle-wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:10px;margin:13px 0}
 .tt-toggle{display:grid;grid-template-columns:1fr 1fr;gap:5px;border:1px solid #e1e8f1;background:#fff;border-radius:13px;padding:5px}
+.tt-toggle-directions{grid-template-columns:repeat(3,minmax(0,1fr))}
 .tt-toggle button{border:0;background:transparent;color:#667e9b;font-size:15px;font-weight:800;border-radius:9px;padding:12px 5px}
 .tt-toggle button.chosen{background:#2767a8;color:#fff}
 .tt-shortcuts{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;padding:1px 1px 12px;scrollbar-width:none}
@@ -43,6 +44,9 @@
 .tt-dest strong{font-size:17px;line-height:1.35;font-weight:850;word-break:keep-all;overflow-wrap:anywhere}
 .tt-dest span{font-size:11px;color:#8497ac}
 .tt-express{border-radius:7px;background:#fff1dd;color:#986019;padding:6px 7px;font-size:11px;white-space:nowrap;font-weight:900}
+.tt-train-badges{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;flex-shrink:0}
+.tt-dir-tag{border-radius:7px;background:#e7f2ff;color:#2865a6;padding:6px 7px;font-size:11px;white-space:nowrap;font-weight:900}
+
 .tt-state{padding:35px 17px;text-align:center;color:#7f90a5;font-size:14px;line-height:1.75}
 .tt-error{color:#aa5b55}
 .tt-error button{display:block;margin:14px auto 0;border:0;background:#27649f;color:white;border-radius:10px;padding:9px 20px;font-weight:800}
@@ -52,3 +56,5 @@
 .tt-source{text-align:center;color:#abb8c6;letter-spacing:.8px;font-size:9px;margin-top:20px}
 @media(max-width:500px){.tt-root{padding:10px 10px 28px}.tt-title h2{font-size:21px}.tt-title p{font-size:11px}.tt-current>div strong{font-size:18px}.tt-toggle button{font-size:13px;padding:12px 4px}.tt-toggle-wrap{gap:7px}.tt-time{width:75px}.tt-time strong{font-size:23px}.tt-dest strong{font-size:15px}.tt-train{padding:12px 13px;gap:9px}.tt-express{font-size:10px}}
 @media(max-width:365px){.tt-toggle-wrap{grid-template-columns:1fr}.tt-title h2{font-size:19px}}
+
+@media(max-width:560px){.tt-toggle-wrap{grid-template-columns:1fr}.tt-toggle-directions button{min-height:48px}.tt-train-badges{align-items:flex-end}.tt-dir-tag{font-size:12px;padding:6px 9px}}
