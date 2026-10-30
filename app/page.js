@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { buildChatHistory } from "./lib/chat-history";
 import SubwayRouteCard from "./components/SubwayRouteCard";
 import NearbyPlacesCard from "./components/NearbyPlacesCard";
 import { recordStat, startActivityTracking } from "./lib/record-stat";
@@ -943,6 +944,7 @@ export default function Home() {
   const chatRef = useRef(null);
   const lastQuickActionAtRef = useRef(0);
   const languageChangeScrollRef = useRef(false);
+  const chatContextScopeRef = useRef(0);
   const [scrollIndicator, setScrollIndicator] = useState({
     visible: false,
     height: 100,
@@ -1145,7 +1147,12 @@ export default function Home() {
   function changeLanguage(nextLang) {
     if (nextLang === lang) return;
     recordStat("language_change", nextLang, nextLang);
-    stopVoice();
+    // A language change cancels recognition; normal Stop still submits speech.
+    // Detach first so abort/onend cannot send a question in the old language.
+    const recognition=speechRef.current;
+    speechRef.current=null;
+    if(recognition){recognition.onend=null;recognition.onresult=null;recognition.abort();}
+    setVoiceListening(false);
     setVoiceError("");
     languageChangeScrollRef.current = true;
     setLang(nextLang);
@@ -1158,26 +1165,39 @@ export default function Home() {
       if (option.id === "menu_facility") return {...option,label:ui.labels.facilityBack};
       return option;
     };
-    setMessages(previous => previous.map(message => {
-      if (Object.values(TEXT).some(copy => message.text === copy.greeting)) return {...message,text:TEXT[nextLang].greeting};
-      if (message.menuPhase === "selection") {
-        const menuName=message.menuName || (message.optionsKind === "purchaseTable" ? "fare" : "facility");
-        return {...message,...makeSubmenu(nextLang,menuName)};
+    setMessages(previous => {
+      const current=previous[previous.length-1];
+      const isChatView=Boolean(current?.chatTurn || current?.languageChange);
+      const localized=previous.map(message => {
+        if (Object.values(TEXT).some(copy => message.text === copy.greeting)) return {...message,text:TEXT[nextLang].greeting};
+        if (message.menuPhase === "selection") {
+          const menuName=message.menuName || (message.optionsKind === "purchaseTable" ? "fare" : "facility");
+          return {...message,...makeSubmenu(nextLang,menuName)};
+        }
+        if (message.fareProduct) return {...message,text:`**${ui.labels[message.fareProduct]}**`,options:message.options?.map(optionLabel)};
+        if (message.feedbackKey === "facility_nursing") return {...message,text:ui.nursingGuide};
+        if (message.facilityMap && message.options) return {...message,options:message.options.map(optionLabel)};
+        return message;
+      });
+      if(isChatView){
+        const names={ko:"한국어",en:"English",ja:"日本語",zh:"中文"};
+        const prefix={ko:"언어 변경",en:"Language changed",ja:"言語変更",zh:"语言切换"};
+        localized.push({role:"system",languageChange:true,text:`${prefix[nextLang]}: ${names[lang]} → ${names[nextLang]}`});
       }
-      if (message.fareProduct) return {...message,text:`**${ui.labels[message.fareProduct]}**`,options:message.options?.map(optionLabel)};
-      if (message.feedbackKey === "facility_nursing") return {...message,text:ui.nursingGuide};
-      if (message.facilityMap && message.options) return {...message,options:message.options.map(optionLabel)};
-      return message;
-    }));
+      return localized;
+    });
   }
 
   async function askGoogle(question, visibleUserText = question, feedbackKey = "free_question") {
     recordStat("ai_question", "request", lang);
+    const contextScope=chatContextScopeRef.current;
+    const generalChat=feedbackKey === "free_question";
+    const {history,historyCompletedAt}=generalChat?buildChatHistory(messages,{scope:contextScope}):{history:[],historyCompletedAt:null};
     setLoading(true);
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", text: visibleUserText },
+      { role: "user", text: visibleUserText, contextText: question, chatTurn: true, contextScope, generalChat },
       { role: "assistant", text: t.loading, pending: true },
     ]);
 
@@ -1190,6 +1210,8 @@ export default function Home() {
         body: JSON.stringify({
           question,
           lang,
+          history,
+          historyCompletedAt,
         }),
       });
 
@@ -1206,6 +1228,11 @@ export default function Home() {
         const message = {
           role: "assistant",
           text: data.answer,
+          chatTurn: true,
+          answerLang: lang,
+          contextScope,
+          generalChat,
+          completedAt: Date.now(),
           sources: data.sources || [],
           searchSuggestion: data.searchSuggestion || null,
           feedbackKey,
@@ -1228,6 +1255,9 @@ export default function Home() {
           role: "assistant",
           text: t.error,
           error: true,
+          chatTurn: true,
+          contextScope,
+          generalChat,
         };
 
         if (pendingIndex >= 0) {
@@ -1267,6 +1297,7 @@ export default function Home() {
 
   function handleGateOption(option) {
     if (loading) return;
+    chatContextScopeRef.current += 1;
     recordStat("gate_action", option.id, lang, `gate_${option.id}`);
     setFeedbackByIndex({});
     const gateMessageId = ++gateGuideSerial.current;
@@ -1305,10 +1336,12 @@ export default function Home() {
   }
 
   function openAnotherRouteSearch() {
+    chatContextScopeRef.current += 1;
     setMessages((previous) => [...previous, { role: "assistant", text: "", routeCard: true }]);
   }
 
   function showMenu(menuName, selectedText = null, cardType = null) {
+    chatContextScopeRef.current += 1;
     setMode(null);
     const menu = makeSubmenu(lang, menuName, cardType);
     setMessages((prev) => {
@@ -1323,6 +1356,7 @@ export default function Home() {
 
   function handleSubmenuOption(option) {
     if (loading) return;
+    chatContextScopeRef.current += 1;
     const ui = SUBMENU_TEXT[lang] || SUBMENU_TEXT.ko;
     const id = option.id;
     if (id === "menu_fare" || id === "menu_facility" || id === "fare_buy") {
@@ -1388,6 +1422,7 @@ export default function Home() {
     const now = Date.now();
     if (now - lastQuickActionAtRef.current < 700) return;
     lastQuickActionAtRef.current = now;
+    chatContextScopeRef.current += 1;
     recordStat("quick_menu", type, lang, type === "facility" ? facilityContext(facilityType) : null);
     // A fresh viewport discards Safari's old scroll inertia, while the
     // messages array remains intact and accessible by scrolling upward.
@@ -2027,6 +2062,8 @@ export default function Home() {
           flex-basis: 100%;
         }
 
+        .sag-row.system { justify-content: center; }
+        .sag-bubble.system { width: 100%; max-width: 100%; padding: 6px 0; background: transparent; border-top: 1px solid #e7ecef; border-radius: 0; color: #7b8992; font-size: 10px; text-align: center; }
         .sag-row.user { justify-content: flex-end; }
         .sag-row.assistant { justify-content: flex-start; }
         /* The route form needs the full available width of the chat panel. */
