@@ -1,29 +1,11 @@
 "use client";
 import { useState } from 'react';
+import { requestTour as query, currentLocation } from '../lib/tour-client';
 const MODES = { nearby: { label:'내 주변', title:'현재 위치 주변 탐색', hint:'조회할 때 현재 위치를 확인해 가까운 관광정보부터 보여드립니다.', api:'locationBasedList2' }, keyword: { label:'장소 검색', title:'이름으로 장소 찾기', hint:'장소명이나 키워드로 전국 관광정보를 검색합니다.', api:'searchKeyword2' }, area: { label:'지역별', title:'지역별 관광정보', hint:'지역과 분류를 선택해 등록된 관광정보를 살펴보세요.', api:'areaBasedList2' }, festival: { label:'축제·행사', title:'기간별 축제·행사', hint:'지역과 날짜 조건으로 행사를 조회합니다. 실제 운영 여부는 주최 측에 확인하세요.', api:'searchFestival2' } };
 const TYPES = [['','전체'],['12','관광지'],['14','문화시설'],['39','음식점'],['38','쇼핑'],['28','레포츠'],['32','숙박'],['25','여행코스']];
 const AREAS = [['1','서울'],['2','인천'],['31','경기'],['32','강원'],['6','부산'],['4','대구'],['3','대전'],['5','광주'],['7','울산'],['8','세종'],['33','충북'],['34','충남'],['35','경북'],['36','경남'],['37','전북'],['38','전남'],['39','제주']];
 const INTRO_LABELS = {detail:'상세 소개',images:'사진'};
 function dateInSeoul(offset=0) { const d = new Date(); d.setUTCDate(d.getUTCDate()+offset); return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); }
-async function query(params) {
-  const response = await fetch(`/api/tour-test?${new URLSearchParams(params)}`, {cache:'no-store'});
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || '정보를 불러오지 못했습니다.');
-  return result;
-}
-function currentLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) { reject(new Error('이 브라우저에서는 현재 위치를 확인할 수 없습니다.')); return; }
-    navigator.geolocation.getCurrentPosition(resolve, error => {
-      const messages = {
-        1: '위치 권한이 차단되어 있습니다. 브라우저 또는 기기 설정에서 이 사이트의 위치 접근을 허용한 뒤 다시 조회해 주세요.',
-        2: '현재 위치를 확인할 수 없습니다. 기기의 위치 서비스를 켜고 신호가 잡히는 곳에서 다시 시도해 주세요.',
-        3: '위치 확인 시간이 초과됐습니다. 신호가 잡히는 곳에서 다시 조회해 주세요.',
-      };
-      reject(new Error(messages[error.code] || '현재 위치 확인에 실패했습니다. 다시 조회해 주세요.'));
-    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
-  });
-}
 function Picture({src,alt=''}) { const [failed,setFailed] = useState(false); return src && !failed ? <img src={src} alt={alt} loading="lazy" referrerPolicy="no-referrer" onError={()=>setFailed(true)}/> : <div className="placeholder">등록된 사진이 없습니다</div>; }
 function Detail({place,onBack}) {
   const [tab,setTab] = useState('detail');

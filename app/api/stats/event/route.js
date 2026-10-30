@@ -5,7 +5,7 @@ import { isFacilityContext } from "../../../lib/facility-stat";
 export const runtime = "nodejs";
 const types = {
   page_view: ["visit"],
-  quick_menu: ["route", "gate", "fares", "facility", "exchange", "nearby", "staff", "live"],
+  quick_menu: ["route", "gate", "fares", "facility", "exchange", "nearby", "staff", "live", "tour"],
   ai_question: ["request"],
   route_search: ["request", "success", "failure"],
   language_change: ["ko", "en", "ja", "zh"],
