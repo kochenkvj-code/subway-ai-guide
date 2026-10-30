@@ -157,12 +157,18 @@ export default function CompactLostFound(){
     }
     if(!hasMore)return;
     const before=visible.length;
+    const currentPageWasFull=before>=(safePage+1)*pageSize;
     const result=await queryRecords(remotePage+1,false);
     if(!result)return;
     const merged=dedupe([...items,...result.incoming]);
     const moreVisible=merged.filter(match).length;
-    if(moreVisible>before)setScreenPage(safePage+1);
-    else setMessage('다음 목록을 조회했지만 현재 분류·기간에 맞는 물품이 추가되지 않았습니다. 필요하면 다음을 다시 눌러주세요.');
+    if(currentPageWasFull&&moreVisible>(safePage+1)*pageSize){
+      setScreenPage(safePage+1);
+    }else if(moreVisible===before){
+      setMessage('다음 목록에서 조건에 맞는 물품이 추가되지 않았습니다. 다시 다음을 누르면 그 이후 기록을 조회합니다.');
+    }else{
+      setMessage('현재 페이지에 새 검색 결과가 추가되었습니다.');
+    }
     setSelected(null);
   }
   const nextAllowed=(safePage+1)*pageSize<visible.length||hasMore;
