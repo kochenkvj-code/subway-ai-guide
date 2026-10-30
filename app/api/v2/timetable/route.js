@@ -34,7 +34,7 @@ function row(a){
   const time=dateTime(a.trainDptreTm||a.dptreTm||a.trainArvlTm||a.arvlTm);
   if(!time)return null;
   const express=safe(a.etrnYn,20),kind=safe(a.trainKnd,60);
-  const isExpress=['Y','1','true'].includes(express.toLowerCase())||/급행|특급/.test(kind);
+  const isExpress=['y','1','true'].includes(express.toLowerCase())||/급행|특급/.test(kind);
   return {time,arrival:dateTime(a.trainArvlTm||a.arvlTm),departure:dateTime(a.trainDptreTm||a.dptreTm),
     destination:safe(a.arvlStnNm||a.destStnNm||a.destNm||''),
     origin:safe(a.dptreStnNm||''),number:safe(a.trainno,30),
