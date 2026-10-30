@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { captureLanguageScroll, restoreLanguageScroll } from "./lib/language-scroll";
 import { buildChatHistory } from "./lib/chat-history";
 import SubwayRouteCard from "./components/SubwayRouteCard";
 import NearbyPlacesCard from "./components/NearbyPlacesCard";
@@ -1041,9 +1042,17 @@ export default function Home() {
     const el = chatRef.current;
     if (!el) return;
     if (languageChangeScrollRef.current) {
+      const snapshot=languageChangeScrollRef.current;
       languageChangeScrollRef.current = false;
+      // Stop old iOS scroll inertia without remounting cards or losing state.
+      el.style.overflowY = "";
+      restoreLanguageScroll(el,snapshot);
       updateScrollIndicator();
-      return;
+      const frame=requestAnimationFrame(()=>{
+        restoreLanguageScroll(el,snapshot);
+        updateScrollIndicator();
+      });
+      return ()=>cancelAnimationFrame(frame);
     }
     // Scroll to the actual final message. Reserve room after long cards so
     // the browser can align their heading at the top even at the end of history.
@@ -1154,7 +1163,9 @@ export default function Home() {
     if(recognition){recognition.onend=null;recognition.onresult=null;recognition.abort();}
     setVoiceListening(false);
     setVoiceError("");
-    languageChangeScrollRef.current = true;
+    const kind=lastMessage?.chatTurn || lastMessage?.languageChange ? "chat" : "guide";
+    languageChangeScrollRef.current=captureLanguageScroll(chatRef.current,kind);
+    if(chatRef.current) chatRef.current.style.overflowY="hidden";
     setLang(nextLang);
     // Keep component keys, selections, expanded details, draft and feedback.
     // Only prewritten UI copy changes; previous user questions and AI answers
