@@ -36,6 +36,7 @@ export default function TrainTimetable({lang='ko',active=true}){
  const [loading,setLoading]=useState(false);
  const [now,setNow]=useState(()=>seoulNow());
  const [listLimit,setListLimit]=useState(15);
+ const [refreshNonce,setRefreshNonce]=useState(0);
  const fetched=useRef(0);
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,12)
    .flatMap(s=>(s.lines||[s.line]).filter(l=>normalizeLine(l)).map(l=>({name:s.ko.replace(/역$/,''),line:normalizeLine(l),display:s[lang]||s.ko}))):[],[query,lang]);
@@ -51,7 +52,7 @@ export default function TrainTimetable({lang='ko',active=true}){
      .catch(e=>{if(ticket===fetched.current&&!controller.signal.aborted)setError(e.message||t.notReady);})
      .finally(()=>{if(ticket===fetched.current&&!controller.signal.aborted)setLoading(false);});
    return()=>controller.abort();
- },[selection.name,selection.line,selectedDay,dir,active]);
+ },[selection.name,selection.line,selectedDay,dir,active,refreshNonce]);
  function choose(s){
    setSelection({name:s.name,line:s.line});
    setDir(s.line==='2'?'내선':'상행');
@@ -106,7 +107,7 @@ export default function TrainTimetable({lang='ko',active=true}){
     <div className="tt-list-head"><strong>{scope==='firstLast'?t.firstLast:scope==='upcoming'&&todayMatches?t.today:t.allPeriod}</strong>
       <small>{loading?'…':matching.length+' '+t.total}</small></div>
     {loading?<div className="tt-state" role="status">{t.loading}</div>:
-     error?<div className="tt-state tt-error" role="alert">{error}<button onClick={()=>{setSelection({...selection});}}>{t.retry}</button></div>:
+     error?<div className="tt-state tt-error" role="alert">{error}<button onClick={()=>setRefreshNonce(x=>x+1)}>{t.retry}</button></div>:
      displayed.length===0?<div className="tt-state">{t.noData}</div>:
      <div className="tt-trains">{displayed.map((train,i)=>
        <div className="tt-train" key={[train.time,train.number,train.destination,i].join(':')}>
