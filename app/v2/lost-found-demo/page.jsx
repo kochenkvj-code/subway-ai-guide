@@ -116,7 +116,7 @@ export default function LostFoundDemo() {
     const onEscape=e=>{if(e.key==='Escape')setSelected(null);};
     document.addEventListener('keydown',onEscape);
     setDetail(null);setDetailError(false);setDetailLoading(false);
-    if(selected.id && /^\\d{1,5}$/.test(selected.sequence||'')) {
+    if(selected.id && /^\d{1,5}$/.test(selected.sequence||'')) {
       setDetailLoading(true);
       const params=new URLSearchParams({source:selected.source,id:selected.id,sequence:selected.sequence});
       fetch('/api/v2/lost-found/detail?'+params.toString(),{cache:'no-store',signal:controller.signal})
@@ -253,7 +253,7 @@ export default function LostFoundDemo() {
             <dt>보관장소</dt><dd>{detail?.place||selected.place||'원본 데이터 확인 필요'}</dd>
             {detail?.custody&&<><dt>보관 상태</dt><dd>{detail.custody}</dd></>}
             {detail?.organization&&<><dt>보관기관</dt><dd>{detail.organization}</dd></>}
-            {detail?.phone&&<><dt>문의 전화</dt><dd><a href={'tel:'+detail.phone.replace(/[^\\d+]/g,'')}>{detail.phone}</a></dd></>}
+            {detail?.phone&&<><dt>문의 전화</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}
             {detail?.note&&<><dt>특이사항</dt><dd className="lf-detail-note">{detail.note}</dd></>}
             <dt>제공기관</dt><dd>{LABEL[selected.source]||selected.source}</dd>
             <dt>관리번호</dt><dd>{selected.id||'미등록'}{selected.sequence?' / '+selected.sequence:''}</dd>
