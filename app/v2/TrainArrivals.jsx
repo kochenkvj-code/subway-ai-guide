@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { ARRIVAL_DIRECTIONS, arrivalStatus } from '../lib/train-arrivals';
 import { stationName } from '../lib/stationNameI18n';
+const FOLLOWING={ko:'뒤 열차',en:'Following',ja:'次の列車',zh:'后续列车'};
 const COPY={
   ko:{loading:'도착정보 확인 중…',error:'도착정보 조회 실패',empty:'확인 가능한 도착정보 없음',stale:'도착정보 갱신 지연',updated:'정보 기준',refresh:'새로고침',automatic:'30초 간격 갱신',source:'서울시 실시간 지하철 도착정보',train:'열차번호',destination:'행선지',bound:'방면',minutes:n=>`약 ${n}분 후`,approaching:'진입 중',arrived:'도착',previousDeparted:'전역 출발',previousApproaching:'전역 진입',previousArrived:'전역 도착',general:'일반',express:'급행',special:'특급',last:'막차',notConfigured:'관리자가 도착정보 API 환경변수를 확인해야 합니다.',note:'도착시간은 예상값이며 실제 운행과 다를 수 있습니다. 다음 역 방향과 열차의 최종 행선지는 다를 수 있습니다.',position:'열차 위치도는 추후 연결 예정입니다.'},
   en:{loading:'Checking arrivals…',error:'Could not load arrivals',empty:'No current arrival information',stale:'Arrival updates delayed',updated:'Data as of',refresh:'Refresh',automatic:'Updates every 30 seconds',source:'Seoul real-time subway arrivals',train:'Train',destination:'Destination',bound:'Toward',minutes:n=>`About ${n} min`,approaching:'Approaching',arrived:'Arrived',previousDeparted:'Left previous station',previousApproaching:'Approaching previous station',previousArrived:'At previous station',general:'Local',express:'Express',special:'Limited express',last:'Last train',notConfigured:'The administrator needs to check the arrival API configuration.',note:'Arrival times are estimates and may differ from actual operations. The next-station direction is not necessarily the final destination.',position:'The train position diagram will be added later.'},
@@ -24,8 +25,8 @@ export function TrainSummary({state,lang,t,onDetails,active}) {
   return <section className="v2-trains" aria-label={t.next}>
     <div className="v2-train-head"><div><span className="v2-line">1</span><strong>{t.station}</strong><span className="v2-separator">·</span><span>{t.next}</span></div><button onClick={onDetails}>{t.detail} ↗</button></div>
     <div className="v2-directions">{t.direction.map((direction,index)=>{
-      const selected=usable(state.data?.groups?.[index],now)[0];
-      return <div key={direction}><span>{lang==='en'?stationName(ARRIVAL_DIRECTIONS[index].nextStation,lang)+' →':direction}</span><b className={selected&&!message?'v2-arrival-available':''}>{selected&&!message?summaryText(selected.status,labels,lang):'—'}</b></div>;
+      const [selected,following]=message?[]:usable(state.data?.groups?.[index],now);
+      return <div key={direction}><div className="v2-arrival-primary"><span>{lang==='en'?stationName(ARRIVAL_DIRECTIONS[index].nextStation,lang)+' →':direction}</span><b className={selected?'v2-arrival-available':''}>{selected?summaryText(selected.status,labels,lang):'—'}</b></div><small className="v2-arrival-following">{FOLLOWING[lang]} · {following?summaryText(following.status,labels,lang):'—'}</small></div>;
     })}</div>
     <div className="v2-arrival-footer"><p role={state.error?'status':undefined}>{message||`${labels.updated} ${time(state.data.updatedAt||state.data.fetchedAt,lang)} · KST`}</p><button onClick={state.refresh} disabled={state.loading} aria-label={labels.refresh}>↻</button></div>
   </section>;
