@@ -16,7 +16,7 @@ const changeDatePart = (date, part, value) => {
   const result = [parts.year,String(parts.month).padStart(2,"0"),String(Math.min(parts.day,lastDay)).padStart(2,"0")].join("-");
   return result > today() ? today() : result;
 };
-const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실"};
+const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실",live:"실시간 열차정보"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
 const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
 const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action"].includes(e.event_type);

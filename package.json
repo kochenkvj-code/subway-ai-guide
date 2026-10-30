@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs"
+    "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
+    "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs"
   },
   "dependencies": {
     "next": "16.0.10",
