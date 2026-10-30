@@ -2,7 +2,7 @@
 export async function requestTour(params, { signal } = {}) {
   const response = await fetch(`/api/tour-test?${new URLSearchParams(params)}`, { cache:'no-store', signal });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || '정보를 불러오지 못했습니다.');
+  if (!response.ok) {const error=new Error(result.error || '정보를 불러오지 못했습니다.');error.code=result.code;throw error;}
   return result;
 }
 export function currentLocation() {

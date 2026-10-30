@@ -1,3 +1,4 @@
+import { TOUR_SERVICES, canonicalTourType } from '../../lib/tour-services';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const operations = {
@@ -13,11 +14,17 @@ export async function GET(request) {
   const reply = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
   const input = new URL(request.url).searchParams;
   const mode = input.get('mode') || 'nearby';
+  const language = input.get('lang') || 'ko';
+  if (!Object.hasOwn(TOUR_SERVICES, language)) return reply({error:'지원하지 않는 관광정보 언어입니다.',code:'INVALID_LANGUAGE'},400);
+  const config = TOUR_SERVICES[language];
   if (!Object.hasOwn(operations, mode)) return reply({ error: '지원하지 않는 조회 방식입니다.' }, 400);
   const params = new URLSearchParams({ MobileOS: 'ETC', MobileApp: 'SubwayAIGuide', _type: 'json', numOfRows: '20', pageNo: '1' });
   const type = input.get('type') || '';
   if (type && !types.has(type)) return reply({ error: '잘못된 관광 분류입니다.' }, 400);
-  if (type && ['nearby','keyword','area'].includes(mode)) params.set('contentTypeId', type);
+  if (type && ['nearby','keyword','area'].includes(mode)) {
+    if (!config.types[type]) return reply({error:'선택 언어에서 지원하지 않는 관광 분류입니다.',code:'UNSUPPORTED_CATEGORY'},422);
+    params.set('contentTypeId', config.types[type]);
+  }
   if (mode === 'nearby') {
     const radius = input.get('radius') || '1500';
     if (!['500','1500','3000','5000'].includes(radius)) return reply({ error: '지원하지 않는 검색 반경입니다.' }, 400);
@@ -52,10 +59,10 @@ export async function GET(request) {
     if (mode === 'images') { params.set('imageYN','Y'); }
 
   }
-  const key = process.env.TOUR_API_KEY;
-  if (!key) return reply({ error: '서버 환경변수 TOUR_API_KEY에 일반 인증키(Decoding)를 설정해 주세요.' }, 503);
+  const key = process.env[config.keyName]?.trim();
+  if (!key) return reply({ error: `서버 환경변수 ${config.keyName}에 해당 언어 일반 인증키(Decoding)를 설정해 주세요.`,code:'TOUR_NOT_CONFIGURED' }, 503);
   params.set('serviceKey',key);
-  const url = `https://apis.data.go.kr/B551011/KorService2/${operations[mode]}?${params}`;
+  const url = `https://apis.data.go.kr/B551011/${config.service}/${operations[mode]}?${params}`;
   try {
     const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!response.ok) return reply({ error: `관광 API HTTP 오류 (${response.status})` }, 502);
@@ -76,8 +83,8 @@ export async function GET(request) {
     }
     const raw = data.response?.body?.items?.item || [];
     const list = Array.isArray(raw) ? raw : [raw];
-    if (mode === 'images') return reply({ operation: operations[mode], images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl || x.smallimageurl), credit: plain(x.cpyrhtDivCd || x.copyrightdivcode) })).filter(x => x.url) });
-    const items = list.map(x => ({ id: x.contentid, type: x.contenttypeid, title: plain(x.title), address: plain([x.addr1,x.addr2].filter(Boolean).join(' ')), image: photo(x.firstimage), distance: x.dist, longitude: x.mapx, latitude: x.mapy, description: plain(x.overview), phone: plain(x.tel), homepage: safeLink(x.homepage), start: x.eventstartdate || '', end: x.eventenddate || '', credit: plain(x.cpyrhtDivCd) }));
-    return reply({ operation: operations[mode], items, total: data.response?.body?.totalCount || 0 });
+    if (mode === 'images') return reply({ operation: operations[mode], language, images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl || x.smallimageurl), credit: plain(x.cpyrhtDivCd || x.copyrightdivcode) })).filter(x => x.url) });
+    const items = list.map(x => ({ id: x.contentid, type: canonicalTourType(language,x.contenttypeid), title: plain(x.title), address: plain([x.addr1,x.addr2].filter(Boolean).join(' ')), image: photo(x.firstimage), distance: x.dist, longitude: x.mapx, latitude: x.mapy, description: plain(x.overview), phone: plain(x.tel), homepage: safeLink(x.homepage), start: x.eventstartdate || '', end: x.eventenddate || '', credit: plain(x.cpyrhtDivCd) }));
+    return reply({ operation: operations[mode], language, items, total: data.response?.body?.totalCount || 0 });
   } catch { return reply({ error: '관광 API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, 502); }
 }
