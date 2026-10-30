@@ -17,6 +17,14 @@ function formatDate(value) {
 function itemKey(item) {
   return [item.source,item.id,item.sequence,item.date,item.title].join('|');
 }
+function nearStationScore(item) {
+  // This is a *storage-location-name relevance sort*, not GPS or found-location evidence.
+  const place=String(item.place||'').replace(/\s/g,'');
+  if (/종로5가|종로오가|광장시장/.test(place)) return 3;
+  if (/종로|동대문|중부경찰서|을지로|청계|혜화|동묘/.test(place)) return 2;
+  if (/중구|성북|서대문|용산/.test(place)) return 1;
+  return 0;
+}
 function categoryOf(item) {
   return (item.category||'').split(/[>＞]/)[0].trim() || '기타';
 }
@@ -36,6 +44,10 @@ const css = `
 .lf-hero-mark{display:grid;place-items:center;flex:none;width:88px;height:88px;background:linear-gradient(135deg,#e1ebf9,#f6fafe);border-radius:27px;font-size:39px;color:#3a689d}
 .lf-panel{background:#fff;border:1px solid #e1e9f2;border-radius:20px;padding:23px;margin-bottom:18px;box-shadow:0 4px 22px #1c355506}
 .lf-section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}.lf-section-heading strong{font-size:16px}.lf-section-heading small{font-size:11px;color:#96a5b8}
+.lf-region{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border:1px solid #dbe8f6;background:#f1f7ff;border-radius:12px;padding:12px 14px;margin:0 0 17px;color:#2e6095;font-size:12px;font-weight:850}
+.lf-region small{font-size:10px;font-weight:600;color:#758eac}
+.lf-near{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:0 12px 13px}
+.lf-near small{font-size:11px;color:#7489a1;line-height:1.65}
 .lf-row{display:flex;gap:12px;flex-wrap:wrap}.lf-field{display:flex;flex:1 1 150px;flex-direction:column;gap:7px;font-size:12px;font-weight:750;color:#506780}
 .lf-field input{font:inherit;font-size:13px;font-weight:500;color:#233852;width:100%;border:1px solid #dce5f0;background:#f9fbfe;border-radius:11px;padding:12px 13px;min-height:44px;outline-color:#7aa5d9}
 .lf-field input[type=date]{min-width:0;color-scheme:light}.lf-wide{flex:2 1 270px}.lf-sources{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:17px}.lf-chip{border:1px solid #dbe5f0;background:#f7fafe;border-radius:50px;padding:9px 15px;color:#677d98;font-size:12px;font-weight:750;cursor:pointer}
@@ -71,6 +83,7 @@ export default function LostFoundDemo() {
   const [source,setSource] = useState('both');
   const [keyword,setKeyword] = useState('');
   const [category,setCategory] = useState('전체');
+  const [nearFirst,setNearFirst] = useState(false);
   const [items,setItems] = useState([]);
   const [status,setStatus] = useState(null);
   const [failed,setFailed] = useState([]);
@@ -120,9 +133,11 @@ export default function LostFoundDemo() {
   const cats=useMemo(()=>['전체',...Array.from(new Set(items.map(categoryOf))).slice(0,14)], [items]);
   const visible=useMemo(()=>{
     const q=keyword.trim().toLocaleLowerCase('ko-KR');
-    return items.filter(x=>(category==='전체'||categoryOf(x)===category) &&
+    const list=items.filter(x=>(category==='전체'||categoryOf(x)===category) &&
       (!q||[x.title,x.subject,x.place,x.category,x.color].some(s=>String(s||'').toLocaleLowerCase('ko-KR').includes(q))));
-  },[items,category,keyword]);
+    if (nearFirst) list.sort((a,b)=>nearStationScore(b)-nearStationScore(a) || String(b.date).localeCompare(String(a.date)));
+    return list;
+  },[items,category,keyword,nearFirst]);
   const allTotal=status ? Object.values(status).reduce((n,x)=>n+(x.ok&&Number.isFinite(x.total)?x.total:0),0) : 0;
   return <div className="lf"><style>{css}</style><div className="lf-shell">
     <header className="lf-top">
@@ -136,6 +151,7 @@ export default function LostFoundDemo() {
     </div>
     <section className="lf-panel" aria-label="습득물 조회 조건">
       <div className="lf-section-heading"><strong>습득물 검색</strong><small>공식 공공데이터 API</small></div>
+      <div className="lf-region"><span>⌖ &nbsp; 습득지역 · 서울특별시</span><small>전국 데이터 제외 · 공식 API에서 지역 필터링</small></div>
       <div className="lf-sources" aria-label="조회 기관 선택">{SOURCES.map(([key,label])=>
         <button key={key} className={'lf-chip'+(source===key?' active':'')} onClick={()=>setSource(key)} aria-pressed={source===key}>{label}</button>)}</div>
       <form onSubmit={e=>{e.preventDefault();load(1,true);}}>
@@ -148,7 +164,8 @@ export default function LostFoundDemo() {
           <button className="lf-primary" type="submit" disabled={loading||loadingMore}>{loading?'조회 중…':'습득물 조회하기'}</button></div>
       </form>
     </section>
-    <div className="lf-heading-results"><h2>조회 결과</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
+    <div className="lf-heading-results"><h2>서울 습득물 조회 결과</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
+    {items.length>0&&<div className="lf-near"><button type="button" className={'lf-small-chip'+(nearFirst?' active':'')} aria-pressed={nearFirst} onClick={()=>setNearFirst(v=>!v)}>⌖ 종로5가역 주변 보관기관 우선 {nearFirst?'✓':''}</button><small>보관기관명 기준으로 정렬합니다. 실제 습득 위치나 GPS 거리를 뜻하지 않습니다.</small></div>}
     {items.length>0&&<div className="lf-tags">{cats.map(cat=><button key={cat} className={'lf-small-chip'+(category===cat?' active':'')} onClick={()=>setCategory(cat)} aria-pressed={category===cat}>{cat}</button>)}</div>}
     {failed.length>0&&<div className="lf-alert" role="status"><strong>일부 기관 조회 실패</strong>
       {failed.map(x=>LABEL[x.source]||x.source).join(' · ')} 데이터는 이번 요청에서 확인되지 않았습니다. 실제 습득물이 없다는 뜻은 아닙니다.</div>}
@@ -168,7 +185,7 @@ export default function LostFoundDemo() {
     {!loading&&more&&<button className="lf-more" disabled={loadingMore} onClick={()=>load(page+1,false)}>
       {loadingMore?'불러오는 중…':'다음 목록 불러오기 +'}
     </button>}
-    {!loading&&<p className="lf-note">※ 물품명·보관장소·분류 필터는 현재 불러온 목록에만 적용됩니다. 더 많은 항목을 확인하려면 ‘다음 목록 불러오기’를 눌러주세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있으므로 수령 전 보관기관에 확인하세요.</p>}
+    {!loading&&<p className="lf-note">※ 서울특별시 습득지역 코드를 API에 전달합니다. 종로5가역 주변 보관기관 우선은 불러온 목록에서 보관기관명으로 정렬하는 기능이며 지역 한정 검색은 아닙니다. 물품명·보관장소·분류 필터는 현재 불러온 목록에만 적용됩니다. 더 많은 항목을 확인하려면 ‘다음 목록 불러오기’를 눌러주세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있으므로 수령 전 보관기관에 확인하세요.</p>}
     {selected&&<section className="lf-detail" aria-label="선택한 습득물 상세정보">
       <div className="lf-detail-head"><strong>습득물 상세정보</strong><button className="lf-close" onClick={()=>setSelected(null)} aria-label="상세정보 닫기">×</button></div>
       <dl className="lf-detail-grid">
