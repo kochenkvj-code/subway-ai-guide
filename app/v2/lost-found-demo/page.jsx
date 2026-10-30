@@ -65,6 +65,24 @@ const css = `
 .lf-detail-grid dt{color:#8799ac}.lf-detail-grid dd{margin:0;color:#2b4059;overflow-wrap:anywhere}
 .lf-detail-link{display:inline-block;margin-top:15px;color:#28649f;font-size:12px;font-weight:850;text-decoration:none}
 .lf-footer{text-align:center;color:#9eacbc;font-size:10px;letter-spacing:1px;margin-top:38px}
+.lf-modal-backdrop{position:fixed;inset:0;z-index:99999;background:rgba(15,29,46,.68);display:flex;align-items:center;justify-content:center;padding:14px}
+.lf-modal{width:min(100%,590px);max-height:calc(100dvh - 28px);border-radius:20px;background:#fff;color:#233d59;box-shadow:0 24px 65px #07192c50;overflow:hidden;display:flex;flex-direction:column;overscroll-behavior:contain}
+.lf-modal-header{background:#f3f7fc;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #e1e9f1;flex:none}
+.lf-modal-header small{color:#5982a7;font-size:10px;font-weight:850;letter-spacing:1px}
+.lf-modal-header h2{margin:6px 0 0;font-size:19px;line-height:1.45;word-break:keep-all}
+.lf-modal-close{width:38px;height:38px;min-width:38px;border:0;background:#e2ebf5;color:#365f85;font-size:27px;border-radius:12px;cursor:pointer}
+.lf-modal-body{padding:18px 20px;overflow-y:auto;min-height:0;overscroll-behavior:contain}
+.lf-modal-preview{display:flex;align-items:center;gap:15px;margin-bottom:18px}
+.lf-modal-preview .lf-photo{width:122px;height:124px}
+.lf-modal-preview>div:last-child{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lf-modal-preview strong{font-size:14px}.lf-modal-preview span:not(.lf-card-source){font-size:12px;color:#667f9a;line-height:1.6}
+.lf-modal .lf-detail-grid{padding-top:14px;margin-top:14px;border-top:1px solid #e6edf5}
+.lf-modal .lf-detail-grid a{color:#2468a8}
+.lf-detail-fetch{margin:8px 0;background:#f0f6ff;border-radius:9px;padding:10px 12px;font-size:11px;color:#567b9f;line-height:1.65}
+.lf-detail-note{white-space:pre-wrap;overflow-wrap:anywhere}
+.lf-modal-bottom{padding:12px 20px;background:#fff;border-top:1px solid #edf1f6;flex:none}
+.lf-modal-bottom button{width:100%;border:0;border-radius:11px;background:#28639e;color:white;font-weight:800;padding:13px;cursor:pointer}
+@media(max-width:510px){.lf-modal-backdrop{padding:0;align-items:flex-end}.lf-modal{max-height:94dvh;border-radius:20px 20px 0 0}.lf-modal-header{padding:16px}.lf-modal-body{padding:16px}.lf-modal-preview .lf-photo{width:95px;height:105px}}
 @media(max-width:730px){.lf-grid{grid-template-columns:1fr}.lf-hero h1{font-size:27px}.lf-hero-mark{width:70px;height:70px;font-size:33px}}
 @media(max-width:510px){.lf{padding:0 0 30px}.lf-top{border-radius:0;border-left:0;border-right:0}.lf-shell{width:100%}.lf-hero{padding:24px 19px 18px}.lf-hero-mark{display:none}.lf-panel{border-radius:16px;margin:0 12px 16px;padding:17px}.lf-heading-results{margin-left:16px;margin-right:16px}.lf-tags,.lf-grid,.lf-alert,.lf-state,.lf-note,.lf-detail{margin-left:12px;margin-right:12px}.lf-grid{gap:10px}.lf-card{padding:11px}.lf-photo{width:95px;height:105px}.lf-field{flex-basis:135px}.lf-wide{flex-basis:100%}.lf-controls .lf-primary{width:100%}}
 `;
@@ -86,6 +104,33 @@ export default function LostFoundDemo() {
   const [page,setPage] = useState(0);
   const [more,setMore] = useState(false);
   const [selected,setSelected] = useState(null);
+  const [detail,setDetail] = useState(null);
+  const [detailLoading,setDetailLoading] = useState(false);
+  const [detailError,setDetailError] = useState(false);
+  // Keep details visible immediately; enrich them with the provider's detail API when available.
+  useEffect(()=>{
+    if(!selected)return;
+    const controller=new AbortController();
+    const formerOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    const onEscape=e=>{if(e.key==='Escape')setSelected(null);};
+    document.addEventListener('keydown',onEscape);
+    setDetail(null);setDetailError(false);setDetailLoading(false);
+    if(selected.id && /^\\d{1,5}$/.test(selected.sequence||'')) {
+      setDetailLoading(true);
+      const params=new URLSearchParams({source:selected.source,id:selected.id,sequence:selected.sequence});
+      fetch('/api/v2/lost-found/detail?'+params.toString(),{cache:'no-store',signal:controller.signal})
+        .then(async res=>{const body=await res.json();if(!res.ok||!body.ok)throw Error('DETAIL_FAILED');return body.detail;})
+        .then(data=>{if(!controller.signal.aborted)setDetail(data);})
+        .catch(()=>{if(!controller.signal.aborted)setDetailError(true);})
+        .finally(()=>{if(!controller.signal.aborted)setDetailLoading(false);});
+    } else setDetailError(true);
+    return ()=>{
+      controller.abort();
+      document.removeEventListener('keydown',onEscape);
+      document.body.style.overflow=formerOverflow;
+    };
+  },[selected]);
   const current = useRef(0);
   const filters = useRef(null);
   const load = async (number=1,reset=true,signal) => {
@@ -179,21 +224,46 @@ export default function LostFoundDemo() {
       {loadingMore?'불러오는 중…':'다음 목록 불러오기 +'}
     </button>}
     {!loading&&<p className="lf-note">※ 기본 조회는 서울 지역코드(LCA000)와 기간을 적용합니다. 물품명이나 보관장소를 입력하면 경찰청의 별도 직접 검색 API로 전환되며, 이 API에는 서울·날짜 필터가 없어 검색 결과에 전국·전체 기간의 기록이 포함될 수 있습니다. 보관장소는 실제 습득장소와 다릅니다. 자세한 확인은 LOST112 공식 홈페이지를 이용하세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있습니다.</p>}
-    {selected&&<section className="lf-detail" aria-label="선택한 습득물 상세정보">
-      <div className="lf-detail-head"><strong>습득물 상세정보</strong><button className="lf-close" onClick={()=>setSelected(null)} aria-label="상세정보 닫기">×</button></div>
-      <dl className="lf-detail-grid">
-        <dt>물품명</dt><dd>{selected.title}</dd>
-        <dt>게시 내용</dt><dd>{selected.subject||'별도 내용 없음'}</dd>
-        <dt>물품 분류</dt><dd>{selected.category||'미등록'}</dd>
-        <dt>색상</dt><dd>{selected.color||'미등록'}</dd>
-        <dt>습득일자</dt><dd>{formatDate(selected.date)}</dd>
-        <dt>보관장소</dt><dd>{selected.place||'원본 데이터 확인 필요'}</dd>
-        <dt>제공기관</dt><dd>{LABEL[selected.source]}</dd>
-        <dt>관리번호</dt><dd>{selected.id||'미등록'}</dd>
-      </dl>
-      <a className="lf-detail-link" href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer">LOST112 공식 홈페이지에서 확인 ↗</a>
-      <p className="lf-note">방문 전 관리번호를 이용해 해당 보관기관에 연락해 주세요. 연결된 링크는 개별 물품 상세 링크가 아닌 공식 홈페이지입니다.</p>
-    </section>}
+    {selected&&<div className="lf-modal-backdrop" onClick={e=>{if(e.target===e.currentTarget)setSelected(null);}}>
+      <section className="lf-modal" role="dialog" aria-modal="true" aria-labelledby="lf-detail-title">
+        <header className="lf-modal-header">
+          <div><small>LOST112 · 습득물 상세정보</small><h2 id="lf-detail-title">{detail?.title||selected.title}</h2></div>
+          <button className="lf-modal-close" onClick={()=>setSelected(null)} autoFocus aria-label="상세정보 닫기">×</button>
+        </header>
+        <div className="lf-modal-body">
+          <div className="lf-modal-preview">
+            <Photo src={detail?.image||selected.image} title={detail?.title||selected.title}/>
+            <div>
+              <span className="lf-card-source">{LABEL[selected.source]||'공식 기관'}</span>
+              <strong>{detail?.category||selected.category||'습득물'}</strong>
+              <span>습득일 {formatDate(detail?.date||selected.date)}</span>
+              <span>보관 {detail?.place||selected.place||'보관장소 확인 필요'}</span>
+            </div>
+          </div>
+          {detailLoading&&<p className="lf-detail-fetch" role="status">공식 API에서 추가 상세정보를 확인하는 중입니다…</p>}
+          {detailError&&<p className="lf-detail-fetch">추가 상세정보를 불러오지 못했어요. 목록에서 제공된 정보는 아래에서 확인할 수 있습니다.</p>}
+          <dl className="lf-detail-grid">
+            <dt>물품명</dt><dd>{detail?.title||selected.title}</dd>
+            <dt>게시 내용</dt><dd>{selected.subject||'별도 내용 없음'}</dd>
+            <dt>물품 분류</dt><dd>{detail?.category||selected.category||'미등록'}</dd>
+            <dt>색상</dt><dd>{selected.color||'미등록'}</dd>
+            <dt>습득일</dt><dd>{formatDate(detail?.date||selected.date)}</dd>
+            {detail?.foundHour&&<><dt>습득 시각</dt><dd>{detail.foundHour}</dd></>}
+            {detail?.foundPlace&&<><dt>습득 장소</dt><dd>{detail.foundPlace}</dd></>}
+            <dt>보관장소</dt><dd>{detail?.place||selected.place||'원본 데이터 확인 필요'}</dd>
+            {detail?.custody&&<><dt>보관 상태</dt><dd>{detail.custody}</dd></>}
+            {detail?.organization&&<><dt>보관기관</dt><dd>{detail.organization}</dd></>}
+            {detail?.phone&&<><dt>문의 전화</dt><dd><a href={'tel:'+detail.phone.replace(/[^\\d+]/g,'')}>{detail.phone}</a></dd></>}
+            {detail?.note&&<><dt>특이사항</dt><dd className="lf-detail-note">{detail.note}</dd></>}
+            <dt>제공기관</dt><dd>{LABEL[selected.source]||selected.source}</dd>
+            <dt>관리번호</dt><dd>{selected.id||'미등록'}{selected.sequence?' / '+selected.sequence:''}</dd>
+          </dl>
+          <a className="lf-detail-link" href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer">LOST112 공식 홈페이지에서 확인 ↗</a>
+          <p className="lf-note">해당 링크는 개별 물품의 상세 페이지가 아닌 LOST112 홈페이지입니다. 방문 전 관리번호와 보관기관을 확인해 주세요.</p>
+        </div>
+        <div className="lf-modal-bottom"><button type="button" onClick={()=>setSelected(null)}>닫기</button></div>
+      </section>
+    </div>}
     <footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC API DEMO</footer>
   </div></div>;
 }
