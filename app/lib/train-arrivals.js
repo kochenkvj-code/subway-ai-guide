@@ -10,6 +10,16 @@ export function receiptTime(value) {
   return Date.parse(value.replace(' ', 'T') + '+09:00');
 }
 const clean = (value, length = 80) => String(value || '').replace(/[<>\u0000-\u001f]/g, '').slice(0, length);
+function destinationOf(row) {
+  // trainLineNm explicitly names the destination, e.g. 천안행 - 종로3가방면.
+  // Keep arvlMsg3 (last reported location) completely separate.
+  const match = String(row.trainLineNm || '').match(/^\s*(.+?)행\s*(?:[-–—]|$)/);
+  const explicit = match ? clean(match[1], 40).trim() : '';
+  if (explicit && !explicit.endsWith('급')) return { destination: explicit, destinationSource: 'trainLineNm' };
+  // Do not silently trust bstatnNm when no explicit bound label is available:
+  // reported live examples disagree with the actual destination.
+  return { destination: '', destinationSource: null };
+}
 export function normalizeArrivals(payload, now = Date.now()) {
   const rows = Array.isArray(payload.realtimeArrivalList) ? payload.realtimeArrivalList : [];
   let staleCount = 0;
@@ -26,7 +36,7 @@ export function normalizeArrivals(payload, now = Date.now()) {
       const estimatedAt = /^\d+$/.test(String(row.barvlDt)) && rawSeconds > 0 && rawSeconds <= 86400 ? new Date(received + rawSeconds * 1000).toISOString() : null;
       const rank = /^[01][12]/.test(String(row.ordkey)) ? Number(String(row.ordkey)[1]) : 9;
       const train = {
-        trainNo: clean(row.btrainNo, 16), destination: clean(row.bstatnNm, 40),
+        trainNo: clean(row.btrainNo, 16), ...destinationOf(row),
         kind: clean(row.btrainSttus, 16), arrivalCode, receivedAt: new Date(received).toISOString(),
         estimatedAt, message: clean(row.arvlMsg2), location: clean(row.arvlMsg3, 40),
         lastTrain: String(row.lstcarAt) === '1', rank,
