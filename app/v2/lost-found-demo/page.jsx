@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import seoulDistricts from './seoul-gu-geo.json';
 
 const SOURCES = [
   ['both','전체 기관'],
@@ -17,43 +16,6 @@ function formatDate(value) {
 }
 function itemKey(item) {
   return [item.source,item.id,item.sequence,item.date,item.title].join('|');
-}
-// Map agency names only when a district can be identified; never invent a found-item location.
-const GU_ALIASES = {
- '강남구':['강남','수서'], '강동구':['강동'], '강북구':['강북'],
- '강서구':['강서'], '관악구':['관악'], '광진구':['광진'],
- '구로구':['구로'], '금천구':['금천'], '노원구':['노원'],
- '도봉구':['도봉'], '동대문구':['동대문'], '동작구':['동작'],
- '마포구':['마포'], '서대문구':['서대문'], '서초구':['서초','방배'],
- '성동구':['성동'], '성북구':['성북'], '송파구':['송파'],
- '양천구':['양천'], '영등포구':['영등포'], '용산구':['용산'],
- '은평구':['은평'], '종로구':['종로','혜화'],
- '중구':['중구','중부경찰서','남대문경찰서'], '중랑구':['중랑']
-};
-const GU_NAMES = seoulDistricts.features.map(f=>f.properties.name).sort((a,b)=>a.localeCompare(b,'ko'));
-function getAgencyDistrict(place) {
-  const name=String(place||'').replace(/\s/g,'');
-  const exact=GU_NAMES.find(gu=>name.includes(gu));
-  if(exact)return exact;
-  for(const [gu,aliases] of Object.entries(GU_ALIASES)) {
-    if(aliases.some(x=>name.includes(x)))return gu;
-  }
-  return '';
-}
-function insideRing(lon,lat,ring) {
-  let inside=false;
-  for(let i=0,j=ring.length-1;i<ring.length;j=i++) {
-    const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
-    if((yi>lat)!==(yj>lat) && lon<(xj-xi)*(lat-yi)/(yj-yi)+xi) inside=!inside;
-  }
-  return inside;
-}
-function insideGeometry(lon,lat,geometry) {
-  const polygons=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];
-  return polygons.some(rings=>rings.length && insideRing(lon,lat,rings[0]) && !rings.slice(1).some(r=>insideRing(lon,lat,r)));
-}
-function districtAtLocation(lon,lat) {
-  return seoulDistricts.features.find(f=>insideGeometry(lon,lat,f.geometry))?.properties?.name||'';
 }
 function categoryOf(item) {
   return (item.category||'').split(/[>＞]/)[0].trim() || '기타';
@@ -78,15 +40,6 @@ const css = `
 .lf-region small{font-size:10px;font-weight:600;color:#758eac}
 .lf-near{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:0 12px 13px}
 .lf-near small{font-size:11px;color:#7489a1;line-height:1.65}
-.lf-location-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:0 0 14px}
-.lf-location-option{border:1px solid #dce5f1;background:#f8fbfe;border-radius:12px;min-height:55px;padding:9px 5px;font-size:12px;font-weight:800;color:#617b99;cursor:pointer}
-.lf-location-option.active{border:2px solid #2f6ba9;color:#285e9a;background:#eaf3ff}
-.lf-location-details{padding:12px 13px;background:#f2f7fd;border:1px solid #e1eaf5;border-radius:12px;margin:0 0 17px}
-.lf-location-details p{margin:5px 0;font-size:11px;color:#687f99;line-height:1.7}
-.lf-location-details select{width:100%;max-width:320px;padding:11px 12px;font-size:13px;border:1px solid #cddfee;border-radius:10px;color:#29425d;background:#fff}
-.lf-location-details .lf-button-gps{border:0;background:#2e659e;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer}
-.lf-location-details .lf-button-gps:disabled{opacity:.6}
-.lf-location-error{color:#a45037!important}
 .lf-row{display:flex;gap:12px;flex-wrap:wrap}.lf-field{display:flex;flex:1 1 150px;flex-direction:column;gap:7px;font-size:12px;font-weight:750;color:#506780}
 .lf-field input{font:inherit;font-size:13px;font-weight:500;color:#233852;width:100%;border:1px solid #dce5f0;background:#f9fbfe;border-radius:11px;padding:12px 13px;min-height:44px;outline-color:#7aa5d9}
 .lf-field input[type=date]{min-width:0;color-scheme:light}.lf-wide{flex:2 1 270px}.lf-sources{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:17px}.lf-chip{border:1px solid #dbe5f0;background:#f7fafe;border-radius:50px;padding:9px 15px;color:#677d98;font-size:12px;font-weight:750;cursor:pointer}
@@ -122,11 +75,6 @@ export default function LostFoundDemo() {
   const [source,setSource] = useState('both');
   const [keyword,setKeyword] = useState('');
   const [category,setCategory] = useState('전체');
-  const [locationMode,setLocationMode] = useState('seoul');
-  const [district,setDistrict] = useState('');
-  const [gpsDistrict,setGpsDistrict] = useState('');
-  const [gpsLoading,setGpsLoading] = useState(false);
-  const [gpsError,setGpsError] = useState('');
   const [items,setItems] = useState([]);
   const [status,setStatus] = useState(null);
   const [failed,setFailed] = useState([]);
@@ -136,25 +84,6 @@ export default function LostFoundDemo() {
   const [page,setPage] = useState(0);
   const [more,setMore] = useState(false);
   const [selected,setSelected] = useState(null);
-  const locationFilter = locationMode==='district' ? district : locationMode==='nearby' ? gpsDistrict : '';
-  function locateMe() {
-    setGpsLoading(true);setGpsError('');setGpsDistrict('');
-    if(!navigator.geolocation){setGpsError('이 브라우저에서는 현재 위치를 확인할 수 없습니다.');setGpsLoading(false);return;}
-    navigator.geolocation.getCurrentPosition(
-      ({coords})=>{
-        const gu=districtAtLocation(coords.longitude,coords.latitude);
-        if(gu)setGpsDistrict(gu);
-        else setGpsError('서울의 자치구를 확인하지 못했습니다. 자치구를 직접 선택해 주세요.');
-        setGpsLoading(false);
-      },
-      err=>{
-        setGpsError(err.code===1?'위치 접근 권한이 거부됐습니다. 브라우저 설정을 확인해 주세요.':
-          err.code===3?'위치 확인 시간이 초과됐습니다. 다시 시도해 주세요.':'현재 위치를 확인하지 못했습니다.');
-        setGpsLoading(false);
-      },
-      {enableHighAccuracy:true,maximumAge:0,timeout:11000}
-    );
-  }
   const current = useRef(0);
   const filters = useRef(null);
   const load = async (number=1,reset=true,signal) => {
@@ -195,11 +124,9 @@ export default function LostFoundDemo() {
   const cats=useMemo(()=>['전체',...Array.from(new Set(items.map(categoryOf))).slice(0,14)], [items]);
   const visible=useMemo(()=>{
     const q=keyword.trim().toLocaleLowerCase('ko-KR');
-    if(locationMode!=='seoul'&&!locationFilter)return [];
-    return items.filter(x=>(locationMode==='seoul'||getAgencyDistrict(x.place)===locationFilter) &&
-      (category==='전체'||categoryOf(x)===category) &&
+    return items.filter(x=>(category==='전체'||categoryOf(x)===category) &&
       (!q||[x.title,x.subject,x.place,x.category,x.color].some(s=>String(s||'').toLocaleLowerCase('ko-KR').includes(q))));
-  },[items,category,keyword,locationMode,locationFilter]);
+  },[items,category,keyword]);
   const allTotal=status ? Object.values(status).reduce((n,x)=>n+(x.ok&&Number.isFinite(x.total)?x.total:0),0) : 0;
   return <div className="lf"><style>{css}</style><div className="lf-shell">
     <header className="lf-top">
@@ -213,29 +140,7 @@ export default function LostFoundDemo() {
     </div>
     <section className="lf-panel" aria-label="습득물 조회 조건">
       <div className="lf-section-heading"><strong>습득물 검색</strong><small>공식 공공데이터 API</small></div>
-      <div className="lf-location-modes" role="group" aria-label="지역 검색 방식">
-        <button type="button" className={'lf-location-option'+(locationMode==='seoul'?' active':'')} aria-pressed={locationMode==='seoul'} onClick={()=>setLocationMode('seoul')}>서울 전체</button>
-        <button type="button" className={'lf-location-option'+(locationMode==='district'?' active':'')} aria-pressed={locationMode==='district'} onClick={()=>setLocationMode('district')}>자치구 선택</button>
-        <button type="button" className={'lf-location-option'+(locationMode==='nearby'?' active':'')} aria-pressed={locationMode==='nearby'} onClick={()=>setLocationMode('nearby')}>내 위치 근처</button>
-      </div>
-      <div className="lf-location-details">
-        {locationMode==='seoul'&&<><strong>서울특별시 전체 검색</strong><p>전국 데이터는 제외하고 서울의 습득물만 API에서 조회해요.</p></>}
-        {locationMode==='district'&&<>
-          <label className="lf-field" htmlFor="lf-district">검색할 자치구</label>
-          <select id="lf-district" value={district} onChange={e=>setDistrict(e.target.value)}>
-            <option value="">자치구를 선택하세요</option>
-            {GU_NAMES.map(gu=><option key={gu} value={gu}>{gu}</option>)}
-          </select>
-          <p>서울 데이터를 불러온 뒤, 보관기관명을 통해 해당 구로 확인되는 물품을 필터링해요.</p>
-        </>}
-        {locationMode==='nearby'&&<>
-          <button className="lf-button-gps" type="button" disabled={gpsLoading} onClick={locateMe}>{gpsLoading?'위치 확인 중…':'⌖ 내 위치 확인하기'}</button>
-          {gpsDistrict&&<p><strong>확인된 지역: 서울 {gpsDistrict}</strong> · 현재 위치와 같은 자치구의 보관기관을 검색합니다.</p>}
-          {!gpsDistrict&&!gpsError&&<p>GPS로 현재 위치의 자치구를 확인해요. 물품별 좌표가 없어 정확한 반경 검색은 지원하지 않아요.</p>}
-          {gpsError&&<p className="lf-location-error" role="status">{gpsError}</p>}
-          <p>위치 확인은 기기에서 처리하며 좌표를 습득물 검색 서버로 전송하지 않습니다.</p>
-        </>}
-      </div>
+      <div className="lf-region"><span>검색지역 · 서울특별시</span><small>전국 제외 · LOST112 공식 API 지역코드 적용</small></div>
       <div className="lf-sources" aria-label="조회 기관 선택">{SOURCES.map(([key,label])=>
         <button key={key} className={'lf-chip'+(source===key?' active':'')} onClick={()=>setSource(key)} aria-pressed={source===key}>{label}</button>)}</div>
       <form onSubmit={e=>{e.preventDefault();load(1,true);}}>
@@ -248,8 +153,7 @@ export default function LostFoundDemo() {
           <button className="lf-primary" type="submit" disabled={loading||loadingMore}>{loading?'조회 중…':'습득물 조회하기'}</button></div>
       </form>
     </section>
-    <div className="lf-heading-results"><h2>{locationMode==='seoul'?'서울 전체':locationFilter?('서울 '+locationFilter):'지역 선택 필요'} 습득물</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
-    {items.length>0&&locationMode!=='seoul'&&locationFilter&&<div className="lf-near"><small>보관기관명에서 서울 {locationFilter}로 확인되는 항목만 표시합니다. 검색 결과 중 소재지를 식별할 수 없는 기관은 제외될 수 있습니다.</small></div>}
+    <div className="lf-heading-results"><h2>서울 습득물 조회 결과</h2><span>{loading?'검색 중…':items.length+'건 불러옴'+(allTotal?' · 전체 '+allTotal.toLocaleString('ko-KR')+'건':'')}</span></div>
     {items.length>0&&<div className="lf-tags">{cats.map(cat=><button key={cat} className={'lf-small-chip'+(category===cat?' active':'')} onClick={()=>setCategory(cat)} aria-pressed={category===cat}>{cat}</button>)}</div>}
     {failed.length>0&&<div className="lf-alert" role="status"><strong>일부 기관 조회 실패</strong>
       {failed.map(x=>LABEL[x.source]||x.source).join(' · ')} 데이터는 이번 요청에서 확인되지 않았습니다. 실제 습득물이 없다는 뜻은 아닙니다.</div>}
@@ -265,13 +169,12 @@ export default function LostFoundDemo() {
           <span className="lf-card-link">자세히 보기 ›</span>
         </div>
       </button>)}</div>:
-      !error&&<div className="lf-state">{locationMode!=='seoul'&&!locationFilter?'자치구를 선택하거나 내 위치를 확인해 주세요.':
-      items.length>0?'현재 불러온 목록에는 해당 조건과 일치하는 물품이 없습니다. 다음 목록을 조회하거나 서울 전체로 검색해 보세요.':
-      '조회된 습득물이 없습니다. 날짜 범위를 넓히거나 다른 기관을 선택해 보세요.'}</div>}
+      !error&&<div className="lf-state">{items.length>0?'현재 불러온 목록에는 검색어와 일치하는 물품이 없습니다. 다음 목록을 불러와 보세요.':
+      '서울에서 조회된 습득물이 없습니다. 날짜 범위를 넓히거나 다른 기관을 선택해 보세요.'}</div>}
     {!loading&&more&&<button className="lf-more" disabled={loadingMore} onClick={()=>load(page+1,false)}>
       {loadingMore?'불러오는 중…':'다음 목록 불러오기 +'}
     </button>}
-    {!loading&&<p className="lf-note">※ 서울특별시 습득지역 코드를 API에 전달합니다. 자치구·내 위치 검색은 현재 불러온 목록 중 보관기관 이름으로 소재지를 식별할 수 있는 항목에 적용됩니다. GPS는 같은 자치구를 찾는 데 사용하며 실제 습득 위치나 반경 거리 검색은 아닙니다. 물품명·보관장소·분류 필터도 불러온 목록에만 적용됩니다. 더 많은 항목을 확인하려면 ‘다음 목록 불러오기’를 눌러주세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있으므로 수령 전 보관기관에 확인하세요.</p>}
+    {!loading&&<p className="lf-note">※ 서울특별시 습득지역 코드(LCA000)를 공식 API에 직접 전달합니다. 물품명·보관장소·분류 필터는 현재 불러온 목록에만 적용됩니다. 더 많은 항목을 확인하려면 ‘다음 목록 불러오기’를 눌러주세요. 조회 정보는 실제 보관·반환 상태와 다를 수 있으므로 수령 전 보관기관에 확인하세요.</p>}
     {selected&&<section className="lf-detail" aria-label="선택한 습득물 상세정보">
       <div className="lf-detail-head"><strong>습득물 상세정보</strong><button className="lf-close" onClick={()=>setSelected(null)} aria-label="상세정보 닫기">×</button></div>
       <dl className="lf-detail-grid">
@@ -287,6 +190,6 @@ export default function LostFoundDemo() {
       <a className="lf-detail-link" href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer">LOST112 공식 홈페이지에서 확인 ↗</a>
       <p className="lf-note">방문 전 관리번호를 이용해 해당 보관기관에 연락해 주세요. 연결된 링크는 개별 물품 상세 링크가 아닌 공식 홈페이지입니다.</p>
     </section>}
-    <footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC API DEMO · 서울 자치구 경계 자료: southkorea/seoul-maps (Apache 2.0, KOSTAT 2013)</footer>
+    <footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC API DEMO</footer>
   </div></div>;
 }
