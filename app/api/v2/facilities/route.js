@@ -34,6 +34,8 @@ function jsonRows(data){
 function parse(body){
   try{
     const d=JSON.parse(body);
+    // An unexpected JSON response is an API failure, not a verified empty result.
+    if(!d||typeof d!=='object'||Array.isArray(d)||!('response' in d||'body' in d||'resultCode' in d||'items' in d||'item' in d))throw new Error('UNEXPECTED_JSON_SHAPE');
     const h=d?.response?.header||d?.header||{};
     const code=String(h?.resultCode??d?.resultCode??'');
     const message=String(h?.resultMsg??h?.resultMessage??d?.resultMsg??'');
