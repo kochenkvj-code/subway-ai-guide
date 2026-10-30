@@ -72,6 +72,8 @@ async function loadOne(id, start, end, page) {
   if (!key) throw new Error('KEY_NOT_CONFIGURED');
   const url = new URL(provider.url);
   url.searchParams.set('serviceKey', key);
+  // Region supplied directly to LOST112, not filtered after pagination.
+  url.searchParams.set('N_FD_LCT_CD', 'LCA000'); // 서울특별시
   url.searchParams.set('START_YMD', start.replaceAll('-', ''));
   url.searchParams.set('END_YMD', end.replaceAll('-', ''));
   url.searchParams.set('pageNo', String(page));
@@ -138,7 +140,7 @@ export async function GET(request) {
   return reply({
     ok:true, items:unique, status, errors, partial:errors.length > 0,
     hasMore:ids.some(id => status[id]?.hasMore),
-    page, pageSize:PAGE_SIZE, start, end,
+    page, pageSize:PAGE_SIZE, start, end, region:'서울특별시', regionCode:'LCA000',
     note:'목록 조회 API입니다. 물품명 검색은 불러온 결과 내에서 적용됩니다.',
   });
 }
