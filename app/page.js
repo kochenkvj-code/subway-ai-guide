@@ -796,7 +796,7 @@ function makeSubmenu(lang, menuName, cardType = null) {
     options = FARE_TYPES.map((id) => option(`buy_${id}`, ui.labels[id], false, ui.buyDescriptions[id]));
   }
   const normalizedMenu = menuName === "buy" ? "fare" : menuName;
-  return { role: "assistant", text: ui.prompts[normalizedMenu], options, optionsKind: normalizedMenu === "fare" ? "purchaseTable" : "submenu", menuPhase: "selection" };
+  return { role: "assistant", text: ui.prompts[normalizedMenu], options, optionsKind: normalizedMenu === "fare" ? "purchaseTable" : "submenu", menuPhase: "selection", menuName: normalizedMenu };
 }
 
 // v5.3: 상품 선택 메뉴 전용 아이콘 (외부 패키지 없이 사용)
@@ -942,6 +942,7 @@ export default function Home() {
   const gateReturnMessagesRef = useRef(null);
   const chatRef = useRef(null);
   const lastQuickActionAtRef = useRef(0);
+  const languageChangeScrollRef = useRef(false);
   const [scrollIndicator, setScrollIndicator] = useState({
     visible: false,
     height: 100,
@@ -1037,6 +1038,11 @@ export default function Home() {
   useLayoutEffect(() => {
     const el = chatRef.current;
     if (!el) return;
+    if (languageChangeScrollRef.current) {
+      languageChangeScrollRef.current = false;
+      updateScrollIndicator();
+      return;
+    }
     // Scroll to the actual final message. Reserve room after long cards so
     // the browser can align their heading at the top even at the end of history.
     const target = el.querySelector(".sag-row:last-of-type");
@@ -1137,22 +1143,32 @@ export default function Home() {
   }
 
   function changeLanguage(nextLang) {
-    if (nextLang !== lang) recordStat("language_change", nextLang, nextLang);
+    if (nextLang === lang) return;
+    recordStat("language_change", nextLang, nextLang);
     stopVoice();
     setVoiceError("");
+    languageChangeScrollRef.current = true;
     setLang(nextLang);
-    setMode(null);
-    setInput("");
-    setLoading(false);
-    setFeedbackByIndex({});
-    setExpandedFareDetails({});
-
-    if (gateEntryRef.current) {
-      setMessages([{ role: "assistant", text: "", gateMenu: true }]);
-      return;
-    }
-
-    setMessages([{ role: "assistant", text: TEXT[nextLang].greeting }]);
+    // Keep component keys, selections, expanded details, draft and feedback.
+    // Only prewritten UI copy changes; previous user questions and AI answers
+    // (including their search attribution) stay in their original language.
+    const ui = SUBMENU_TEXT[nextLang] || SUBMENU_TEXT.ko;
+    const optionLabel = option => {
+      if (option.id === "menu_fare") return {...option,label:ui.labels.fareBack};
+      if (option.id === "menu_facility") return {...option,label:ui.labels.facilityBack};
+      return option;
+    };
+    setMessages(previous => previous.map(message => {
+      if (Object.values(TEXT).some(copy => message.text === copy.greeting)) return {...message,text:TEXT[nextLang].greeting};
+      if (message.menuPhase === "selection") {
+        const menuName=message.menuName || (message.optionsKind === "purchaseTable" ? "fare" : "facility");
+        return {...message,...makeSubmenu(nextLang,menuName)};
+      }
+      if (message.fareProduct) return {...message,text:`**${ui.labels[message.fareProduct]}**`,options:message.options?.map(optionLabel)};
+      if (message.feedbackKey === "facility_nursing") return {...message,text:ui.nursingGuide};
+      if (message.facilityMap && message.options) return {...message,options:message.options.map(optionLabel)};
+      return message;
+    }));
   }
 
   async function askGoogle(question, visibleUserText = question, feedbackKey = "free_question") {
