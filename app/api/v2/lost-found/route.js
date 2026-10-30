@@ -8,11 +8,13 @@ const PROVIDERS = {
     label: '포털기관',
     env: 'LOST112_PORTAL_API_KEY',
     url: 'https://apis.data.go.kr/1320000/LosPtfundInfoInqireService/getPtLosfundInfoAccToClAreaPd',
+    searchUrl: 'https://apis.data.go.kr/1320000/LosPtfundInfoInqireService/getPtLosfundInfoAccTpNmCstdyPlace',
   },
   police: {
     label: '경찰관서',
     env: 'LOST112_POLICE_API_KEY',
     url: 'https://apis.data.go.kr/1320000/LosfundInfoInqireService/getLosfundInfoAccToClAreaPd',
+    searchUrl: 'https://apis.data.go.kr/1320000/LosfundInfoInqireService/getLosfundInfoAccTpNmCstdyPlace',
   },
 };
 const reply = (body, status = 200) => Response.json(body, {
@@ -66,16 +68,28 @@ function normalized(row, source) {
     image: safeImage(row.fdFilePathImg),
   };
 }
-async function loadOne(id, start, end, page) {
+async function loadOne(id, start, end, page, item, place) {
   const provider = PROVIDERS[id];
   const key = process.env[provider.env]?.trim();
   if (!key) throw new Error('KEY_NOT_CONFIGURED');
-  const url = new URL(provider.url);
+  const namedSearch = Boolean(item || place);
+  const url = new URL(namedSearch ? provider.searchUrl : provider.url);
   url.searchParams.set('serviceKey', key);
-  // Region supplied directly to LOST112, not filtered after pagination.
-  url.searchParams.set('N_FD_LCT_CD', 'LCA000'); // 서울특별시
-  url.searchParams.set('START_YMD', start.replaceAll('-', ''));
-  url.searchParams.set('END_YMD', end.replaceAll('-', ''));
+  if (namedSearch) {
+    // LOST112 name/place endpoint searches across the actual upstream dataset.
+    // It does not document date or province filters. Never pretend it does.
+    if (item) url.searchParams.set('PRDT_NM', item);
+    if (place) {
+      // Handles both "종로5가" and "종로5가역" in storage-agency names.
+      const term = place.endsWith('역') && place.length > 2 ? place.slice(0,-1) : place;
+      url.searchParams.set('DEP_PLACE', term);
+    }
+  } else {
+    // The area/date endpoint supports region and date filters.
+    url.searchParams.set('N_FD_LCT_CD', 'LCA000'); // 서울특별시
+    url.searchParams.set('START_YMD', start.replaceAll('-', ''));
+    url.searchParams.set('END_YMD', end.replaceAll('-', ''));
+  }
   url.searchParams.set('pageNo', String(page));
   url.searchParams.set('numOfRows', String(PAGE_SIZE));
   const result = await fetch(url, { cache:'no-store', signal: AbortSignal.timeout(13500) });
@@ -100,16 +114,21 @@ export async function GET(request) {
   const query = new URL(request.url).searchParams;
   const start = query.get('start') || '', end = query.get('end') || '';
   const source = query.get('source') || 'both';
+  const item = (query.get('item') || '').trim();
+  const place = (query.get('place') || '').trim();
+  const namedSearch = Boolean(item || place);
   const rawPage = query.get('page') || '1';
   const page = Number(rawPage);
-  if (!validDate(start) || !validDate(end) || start > end ||
-      (Date.parse(end) - Date.parse(start)) / 86400000 > 90 ||
+  if ((!namedSearch && (!validDate(start) || !validDate(end) || start > end ||
+      (Date.parse(end) - Date.parse(start)) / 86400000 > 90)) ||
+      item.length > 80 || place.length > 80 ||
+      (item && item.length < 2) || (place && place.length < 2) ||
       !['both','portal','police'].includes(source) ||
       !/^\d+$/.test(rawPage) || !Number.isInteger(page) || page < 1 || page > 20) {
     return reply({ ok:false, error:'INVALID_FILTER', message:'검색 기간(최대 90일) 또는 조회 조건을 확인해 주세요.' }, 400);
   }
   const ids = source === 'both' ? ['portal','police'] : [source];
-  const resolved = await Promise.allSettled(ids.map(id => loadOne(id, start, end, page)));
+  const resolved = await Promise.allSettled(ids.map(id => loadOne(id, start, end, page, item, place)));
   const status = {}, items = [], errors = [];
   resolved.forEach((result, i) => {
     const id = ids[i];
@@ -140,7 +159,13 @@ export async function GET(request) {
   return reply({
     ok:true, items:unique, status, errors, partial:errors.length > 0,
     hasMore:ids.some(id => status[id]?.hasMore),
-    page, pageSize:PAGE_SIZE, start, end, region:'서울특별시', regionCode:'LCA000',
-    note:'목록 조회 API입니다. 물품명 검색은 불러온 결과 내에서 적용됩니다.',
+    page, pageSize:PAGE_SIZE, start, end,
+    searchMode: namedSearch ? 'name-place' : 'area-date',
+    region: namedSearch ? null : '서울특별시',
+    regionCode: namedSearch ? null : 'LCA000',
+    itemQuery:item, placeQuery:place,
+    note:namedSearch
+      ? 'LOST112 보관장소·물품명 직접검색 API입니다. 이 API는 서울 지역·기간 필터를 지원하지 않으므로 검색 결과가 전국·전체 기간일 수 있습니다. 보관장소와 습득장소는 다를 수 있습니다.'
+      : 'LOST112 서울 지역·기간 직접검색 API입니다. 물품명과 보관장소를 서버에서 검색하려면 전용 검색칸을 사용하세요.',
   });
 }
