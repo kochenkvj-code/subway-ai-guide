@@ -62,7 +62,7 @@ async function fetchType(type,key,station,line){
   if(!res.ok)throw new Error('UPSTREAM_HTTP_'+res.status);
   const parsed=parse(await res.text());
   if(parsed.code&&!['00','0','INFO-000'].includes(parsed.code)){
-    if(['03','04','INFO-200'].includes(parsed.code)||/NO_DATA|NODATA/i.test(parsed.message))return [];
+    if(['03','INFO-200'].includes(parsed.code)||/NO_DATA|NODATA/i.test(parsed.message))return [];
     throw new Error('UPSTREAM_RESULT_'+parsed.code);
   }
   let rows=parsed.rows.filter(r=>r&&typeof r==='object'&&matches(r,station,line));
