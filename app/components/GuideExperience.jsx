@@ -1853,8 +1853,8 @@ export default function GuideExperience({ embedded = false, initialAction = null
 
       <style>{`
         * { box-sizing: border-box; }
-        html, body { margin: 0; min-height: 100%; background: #eef4f8; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #14202b; }
+        ${embedded ? ".sag-embedded-document" : "html, body"} { margin: 0; min-height: 100%; background: #eef4f8; }
+        ${embedded ? ".sag-embedded-document" : "body"} { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #14202b; }
         button, input { font: inherit; }
         button:disabled, input:disabled { opacity: .62; cursor: default; }
 
@@ -2582,7 +2582,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
         }
 
         @media (max-width: 560px) {
-          html, body {
+          ${embedded ? ".sag-embedded-document" : "html, body"} {
             height: 100%;
             overflow: hidden;
           }

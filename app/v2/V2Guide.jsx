@@ -14,7 +14,7 @@ export default function V2Guide() {
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const t=copy[lang];
   const title=view==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
-  function activate(next){setMounted(prev=>({...prev,[next]:true}));setView(next);}
+  function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
     if(started.current)return;started.current=true;
     const initial=readView();activate(initial);window.history.replaceState({...(window.history.state||{}),sagV2:true,sagV2Depth:0},'',window.location.href);

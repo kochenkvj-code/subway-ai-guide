@@ -5,3 +5,7 @@
 /* Single-function guide pages do not need the legacy chat's trailing viewport. */
 .v2-guide-pane .sag-chat.sag-chat-card-active::after{flex-basis:2px}
 .v2-guide-pane .sag-bubble.route-card-bubble{border-radius:16px}
+/* iOS Safari zooms focused form controls below 16px. Keep pinch zoom available. */
+.v2-app input:not([type=radio]):not([type=checkbox]),
+.v2-app textarea,
+.v2-app select{font-size:16px!important}
