@@ -35,6 +35,7 @@ function latestTrains(positions,line){
 export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,onSnapshot,onPick,onRestart}){
  const t=words[lang]||words.ko;
  const [refreshing,setRefreshing]=useState(false),[error,setError]=useState(false);
+ const viewportRef=useRef(null);
  const [lastPoll,setLastPoll]=useState(null);
  const onSnapshotRef=useRef(onSnapshot);
  useEffect(()=>{onSnapshotRef.current=onSnapshot;},[onSnapshot]);
@@ -45,6 +46,13 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const selectedNo=selected?trainKey(selected.number):null;
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
+ useEffect(()=>{
+  const viewport=viewportRef.current;
+  const origin=viewport?.querySelector('[data-tf-origin="true"]');
+  if(!viewport||!origin)return;
+  const delta=origin.getBoundingClientRect().top-viewport.getBoundingClientRect().top;
+  viewport.scrollTop+=Math.max(0,delta-100);
+ },[line,station,next]);
  const pollRef=useRef(null);
  useEffect(()=>{
   if(!active)return;
@@ -78,7 +86,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const number=trainKey(p.trainNo),cand=selectedLane?candidateByNumber.get(number):null;
   const isSelected=selectedLane&&selectedNo===number;
   const tooltip=(p.destination?clean(p.destination)+' · ':'')+p.trainNo+' · '+getTime(p.receivedAt,lang);
-  const content=<><span className="tf-train-icon" aria-hidden="true">▣</span><span className="tf-train-number">{p.trainNo}</span>{cand&&<span className="tf-train-candidate">{isSelected?t.selected:t.candidate}</span>}</>;
+  const content=<><span className="tf-train-icon" aria-hidden="true">▣</span><span className="tf-train-number">{p.trainNo}</span>{p.destination&&<span className="tf-train-destination">{clean(p.destination)}</span>}{cand&&<span className="tf-train-candidate">{isSelected?t.selected:t.candidate}</span>}</>;
   return cand?<button key={number+'-'+p.direction} type="button" title={tooltip}
    className={'tf-train tf-train-pick'+(isSelected?' tf-train-picked':'')}
    aria-pressed={isSelected} aria-label={p.trainNo+' '+t.candidate+' '+clean(p.station)}
@@ -92,17 +100,18 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    </div>
    <div className="tf-board-summary">
     <span><span className="tf-board-dot"/> {t.candidate} <strong>{candidates.length}</strong></span>
+    {selected&&<span>{lang==='ko'?'선택한 열차':t.selected}: <strong>#{selected.number}</strong></span>}
     <span>{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
     <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
     <div className="tf-board-columns"><span>↑ {t.opposite}</span><span>↓ {t.forward}</span><span>{line} {lang==='ko'?'호선':'Line'}</span></div>
-    <div className="tf-board-viewport">
+    <div className="tf-board-viewport" ref={viewportRef}>
       {path.stops.map((s,index)=>{
        const left=trains.filter(p=>clean(p.station)===s&&String(p.direction)!==String(direction));
        const right=trains.filter(p=>clean(p.station)===s&&String(p.direction)===String(direction));
-       return <div key={s+'-'+index} className={'tf-board-row'+(s===clean(station)?' tf-board-origin':'')}>
+       return <div key={s+'-'+index} data-tf-origin={s===clean(station)?"true":undefined} className={'tf-board-row'+(s===clean(station)?' tf-board-origin':'')}>
         <div className="tf-board-track tf-board-track-muted"><div className="tf-board-sleeper"/>{left.map(p=>renderTrain(p,false))}</div>
         <div className="tf-board-track tf-board-track-main"><div className="tf-board-sleeper"/>{right.map(p=>renderTrain(p,true))}</div>
         <div className="tf-board-station"><span className="tf-board-station-name">{stationName(s,lang)||s}</span>{s===clean(station)&&<span className="tf-board-alighted">{t.alighted}</span>}</div>
