@@ -14,13 +14,10 @@ const words={
 };
 
 function mapStations(line,station,next){
+ // One-way diagram: start at the station where the passenger got off and
+ // extend in the direction that the passenger actually selected.
  const forward=followStops(line,station,next,20);
- const behindOptions=stationNeighbors(line,station).filter(s=>s!==next);
- const required=expectedLiveDirection(line,station,next);
- const behind=behindOptions.filter(st=>expectedLiveDirection(line,st,station)===required);
- const prev=behind.length===1?behind[0]:behindOptions.length===1?behindOptions[0]:null;
- const backwards=prev?followStops(line,station,prev,6).stops.slice(0,5).reverse():[];
- return {stops:[...backwards,clean(station),...forward.stops.slice(0,16)],ambiguous:forward.ambiguous};
+ return {stops:[clean(station),...forward.stops.slice(0,16)],ambiguous:forward.ambiguous};
 }
 function latestTrains(positions,line){
  const map=new Map();
@@ -43,7 +40,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  useEffect(()=>{onSnapshotRef.current=onSnapshot;},[onSnapshot]);
  const path=useMemo(()=>mapStations(line,station,next),[line,station,next]);
  const direction=expectedLiveDirection(line,station,next);
- const trains=useMemo(()=>latestTrains(positions,line),[positions,line]);
+ const trains=useMemo(()=>latestTrains(positions,line).filter(p=>String(p.direction)===String(direction)),[positions,line,direction]);
  const candidateByNumber=useMemo(()=>new Map(candidates.map(c=>[trainKey(c.number),c])),[candidates]);
  const selectedNo=selected?trainKey(selected.number):null;
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
@@ -52,8 +49,9 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const viewport=viewportRef.current;
   const origin=viewport?.querySelector('[data-tf-origin="true"]');
   if(!viewport||!origin)return;
-  const delta=origin.getBoundingClientRect().top-viewport.getBoundingClientRect().top;
-  viewport.scrollTop+=Math.max(0,delta-100);
+  // Horizontal scrolling is confined to the diagram, never the whole V2 page.
+  const delta=origin.getBoundingClientRect().left-viewport.getBoundingClientRect().left;
+  viewport.scrollLeft+=Math.max(0,delta-20);
  },[line,station,next]);
  const pollRef=useRef(null);
  const advanceDemo=()=>{
@@ -102,9 +100,9 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    onSnapshotRef.current?.(data.positions||[],data.fetchedAt);setLastPoll(new Date().toISOString());setError(false);
   }catch{setError(true);}finally{setRefreshing(false);}
  };
- const renderTrain=(p,selectedLane)=>{
-  const number=trainKey(p.trainNo),cand=selectedLane?candidateByNumber.get(number):null;
-  const isSelected=selectedLane&&selectedNo===number;
+ const renderTrain=p=>{
+  const number=trainKey(p.trainNo),cand=candidateByNumber.get(number);
+  const isSelected=selectedNo===number;
   const tooltip=(p.destination?clean(p.destination)+' · ':'')+p.trainNo+' · '+getTime(p.receivedAt,lang);
   const content=<><span className="tf-train-icon" aria-hidden="true">▣</span><span className="tf-train-number">{p.trainNo}</span>{p.destination&&<span className="tf-train-destination">{clean(p.destination)}</span>}{cand&&<span className="tf-train-candidate">{isSelected?t.selected:t.candidate}</span>}</>;
   return cand?<button key={number+'-'+p.direction} type="button" title={tooltip}
@@ -113,6 +111,15 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    onClick={()=>onPick(cand)}>{content}</button>:
    <div key={number+'-'+p.direction} title={tooltip} className="tf-train tf-train-other">{content}</div>;
  };
+ const toCandidates=()=>{
+  const viewport=viewportRef.current;
+  if(!viewport)return;
+  const target=viewport.querySelector('[data-tf-candidate="true"]');
+  if(!target)return;
+  const difference=target.getBoundingClientRect().left-viewport.getBoundingClientRect().left;
+  viewport.scrollBy({left:difference-35,behavior:'smooth'});
+ };
+
  return <section className="tf-board-section" aria-label={t.title}>
    <div className="tf-board-heading">
     <div><h3>{t.title}</h3><p>{t.hint}</p></div>
@@ -126,19 +133,28 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
-    <div className="tf-board-columns"><span>↑ {t.opposite}</span><span>↓ {t.forward}</span><span>{line} {lang==='ko'?'호선':'Line'}</span></div>
-    <div className="tf-board-viewport" ref={viewportRef}>
-      {path.stops.map((s,index)=>{
-       const left=trains.filter(p=>clean(p.station)===s&&String(p.direction)!==String(direction));
-       const right=trains.filter(p=>clean(p.station)===s&&String(p.direction)===String(direction));
-       return <div key={s+'-'+index} data-tf-origin={s===clean(station)?"true":undefined} className={'tf-board-row'+(s===clean(station)?' tf-board-origin':'')}>
-        <div className="tf-board-track tf-board-track-muted"><div className="tf-board-sleeper"/>{left.map(p=>renderTrain(p,false))}</div>
-        <div className="tf-board-track tf-board-track-main"><div className="tf-board-sleeper"/>{right.map(p=>renderTrain(p,true))}</div>
-        <div className="tf-board-station"><span className="tf-board-station-name">{stationName(s,lang)||s}</span>{s===clean(station)&&<span className="tf-board-alighted">{t.alighted}</span>}</div>
-       </div>;
-      })}
+    <div className="tf-h-topline">
+      <span><strong>{stationName(station,lang)||station}</strong> → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</span>
+      <span className="tf-h-swipe">← {lang==='ko'?'좌우로 밀어보기':lang==='en'?'Swipe sideways':lang==='ja'?'左右にスワイプ':'左右滑动'} →</span>
+    </div>
+    <div className="tf-board-viewport tf-board-horizontal" ref={viewportRef} tabIndex={0}>
+      <div className="tf-h-flow" role="list">
+        {path.stops.map((s,index)=>{
+          const here=trains.filter(p=>clean(p.station)===s);
+          const hasCandidate=here.some(p=>candidateByNumber.has(trainKey(p.trainNo)));
+          return <div key={s+'-'+index} data-tf-origin={s===clean(station)?"true":undefined}
+           data-tf-candidate={hasCandidate?"true":undefined}
+           className={'tf-h-stop'+(s===clean(station)?' tf-h-origin':'')} role="listitem">
+           <div className="tf-h-trains">{here.map(renderTrain)}</div>
+           <div className="tf-h-rail"><span className="tf-h-node"/></div>
+           <div className="tf-h-name">{stationName(s,lang)||s}</div>
+           <div className="tf-h-detail">{index===0?t.alighted:(lang==='ko'?index+'정거장':index+' stop'+(index===1?'':'s'))}</div>
+          </div>;
+        })}
+      </div>
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
+    {!!candidates.length&&<div className="tf-h-foot"><button type="button" onClick={toCandidates}>◎ {lang==='ko'?'후보 열차 위치로':lang==='en'?'Go to candidates':lang==='ja'?'候補列車へ':'前往候选列车'}</button></div>}
    </div>
    <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {demo?(lang==='ko'?'DEMO · 20초마다 가상 열차 위치 이동':'DEMO · Fictional train moves every 20s'):t.refresh} · {t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
    {!!candidates.length&&!selected&&<p className="tf-board-choice">{lang==='ko'?'테두리가 강조된 후보 열차를 눌러 선택해 주세요.':lang==='en'?'Tap a highlighted candidate train to select.':lang==='ja'?'強調表示された候補列車を選択してください。':'点击高亮的候选列车进行选择。'}</p>}
