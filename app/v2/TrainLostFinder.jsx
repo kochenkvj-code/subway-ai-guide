@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {officialStationMatches} from '../lib/officialStations';
 import {stationName,lineName} from '../lib/stationNameI18n';
-import {stationNeighbors,supportsStation,matchCandidates,followStops,futureStops} from '../lib/train-lost';
+import {stationNeighbors,supportsStation,findLiveCandidates,followStops,futureStops} from '../lib/train-lost';
 import './train-lost.css';
 
 const labels={
@@ -11,28 +11,19 @@ const labels={
  ja:{head:'車内の忘れ物を探す',sub:'下車した列車の候補と現在位置を調べます。',station:'下車駅',change:'駅を変更',search:'駅を検索',line:'路線',toward:'列車が進んだ次の駅',towardHint:'列車はどちらへ向かいましたか？',time:'下車時刻',date:'下車日',thing:'忘れ物',thingExample:'例：黒いかばん',car:'車両・ドア',carExample:'例：4-2',lookup:'列車候補を検索',looking:'時刻表と現在位置を確認中…',none:'候補がありません。条件を確認してください。',candidates:'列車候補',scheduled:'予定時刻',live:'列車番号一致・現在位置確認',onlySchedule:'時刻表による推定・位置未確認',directionUnknown:'方向を検証できません。両方向の候補が表示されることがあります。',uncertain:'複数候補がある場合はご自身で確認してください。',choose:'この列車を追跡',selected:'選択した列車',update:'位置更新',position:'最新の位置',absent:'現在位置を確認できません。',forth:'連絡候補駅',forthNote:'普通列車・分岐なしの区間に限ります。',noForth:'急行・分岐などのため候補駅を提示できません。',sms:'コールセンターへSMS',copy:'文面をコピー',call:'1577-1234へ電話',smsNote:'SMSアプリで確認して送信してください。本文が自動入力されない場合があります。',openSms:'SMSアプリを開く',again:'再検索',guide:'列車番号は推定であり、乗車列車の確定ではありません。',failure:'情報取得に失敗しました。電話をご利用ください。',emptyQuery:'駅を選択してください。',dateNote:'祝日や遅延時のダイヤは異なることがあります。',branch:'同じ方向でも支線に分かれることがあります。',noApi:'リアルタイム情報がない場合は時刻表のみ表示します。',pick:'選択',arrivalGap:'時間差'},
  zh:{head:'查找遗落在列车上的物品',sub:'推测乘坐列车并查看实时位置。',station:'下车站',change:'更换车站',search:'搜索车站',line:'线路',toward:'列车驶往的下一站',towardHint:'列车朝哪个方向离开？',time:'下车时间',date:'下车日期',thing:'遗失物品',thingExample:'例如：黑色背包',car:'车厢/车门',carExample:'例如：4-2',lookup:'查找候选列车',looking:'正在核对时刻表和实时位置…',none:'没有符合条件的列车，请检查时间。',candidates:'候选列车',scheduled:'时刻表',live:'车次匹配·实时位置已核对',onlySchedule:'仅时刻表推测·未实时确认',directionUnknown:'无法确认方向，可能显示两个方向的候选列车。',uncertain:'请自行确认候选车次，时刻表不能保证乘坐的列车。',choose:'追踪此列车',selected:'已选列车',update:'更新位置',position:'最近报告位置',absent:'无法核实实时位置。',forth:'可联系的后续车站',forthNote:'仅适用于普通列车及无分岔路段，请核实停站。',noForth:'因快车或支线不确定，暂不推荐车站。',sms:'向客服发送短信',copy:'复制短信',call:'拨打1577-1234',smsNote:'请在短信应用中确认后自行发送，部分设备不会自动填入正文。',openSms:'打开短信应用',again:'重新搜索',guide:'列车号码仅为推测，不保证为您乘坐的列车。',failure:'无法获取信息，请拨打客服。',emptyQuery:'请先选择车站。',dateNote:'节假日、延误及末班车时刻可能不同。',branch:'即使方向相同，线路也可能分岔。',noApi:'没有实时数据时仅提供时刻表候选。',pick:'选择',arrivalGap:'时间差'}
 };
-const korea=()=>{
- const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+const korea=(minutesAgo=0)=>{
+ const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(Date.now()-minutesAgo*60000));
  const m=Object.fromEntries(p.map(x=>[x.type,x.value]));return {date:m.year+'-'+m.month+'-'+m.day,time:m.hour+':'+m.minute};
 };
-const weekday=date=>{const d=new Date(date+'T12:00:00Z').getUTCDay();return d===0||d===6?'주말':'평일';};
 const fmt=(name,lang)=>stationName(name,lang)||name;
 const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
-const expectedCode=d=>d==='상행'||d==='내선'?'0':d==='하행'||d==='외선'?'1':null;
-function selectDirection(evidence,next){
- const matching=evidence.filter(e=>{
-   const suffix=(e.label.split(/[-–—]/).slice(1).join('')||'').replace(/\s|역(?=방면)/g,'');
-   return suffix.includes(next+'방면');
- }).map(e=>e.direction).filter(Boolean);
- return [...new Set(matching)].length===1?matching[0]:null;
-}
 function validLocation(candidate,p,selection,next,when){
  if(!candidate||!p||compareNo(p.trainNo)!==compareNo(candidate.number))return false;
  const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
- if(!Number.isFinite(elapsed)||elapsed < -180000||elapsed>7200000)return false;
- if(expectedCode(candidate.direction)!==null && p.direction!==expectedCode(candidate.direction))return false;
- const path=followStops(selection.line,selection.name,next,38);
- if(![selection.name,...path.stops].includes(p.station))return false;
+ if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000)return false;
+ if(String(candidate.live.direction)!==String(p.direction))return false;
+ const route=followStops(selection.line,selection.name,next,38);
+ if(![selection.name,...route.stops].includes(p.station))return false;
  const age=Date.now()-Date.parse(p.receivedAt);
  return age>=-60000&&age<=120000;
 }
@@ -76,36 +67,36 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  async function lookup(e){
    e.preventDefault();
    if(!supportsStation(selection.line,selection.name)||!next||!when.date||!when.time){setError(t.emptyQuery);return;}
+   const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
+   if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000){
+     setError('하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.');
+     setCandidates([]);setChosen(null);setSearched(true);return;
+   }
    setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);
-   const dirs=selection.line==='2'?['내선','외선']:['상행','하행'];
-   const readTimetable=async d=>{
-     const p=new URLSearchParams({station:selection.name,line:selection.line,day:weekday(when.date),direction:d});
-     const response=await fetch('/api/v2/timetable?'+p.toString(),{cache:'no-store'});
-     const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'TIMETABLE_FAILED');
-     return (data.rows||[]).map(row=>({...row,direction:d}));
-   };
-   const getJSON=async path=>{
-     try{const res=await fetch(path,{cache:'no-store'});return res.ok?await res.json():null;}catch{return null;}
-   };
+   const getJSON=async url=>{try{const r=await fetch(url,{cache:'no-store'});return r.ok?await r.json():null;}catch{return null;}};
    try{
-     const [tt,position,arrival]=await Promise.all([
-       Promise.allSettled(dirs.map(readTimetable)),
+     const route=followStops(selection.line,selection.name,next,8).stops;
+     const stations=[selection.name,...route.slice(1,7)];
+     const [position,...arrivals]=await Promise.all([
        getJSON('/api/v2/train-lost/position?line='+selection.line),
-       getJSON('/api/v2/train-lost/arrival?station='+encodeURIComponent(selection.name)+'&line='+selection.line)
+       ...stations.map(st=>getJSON('/api/v2/train-lost/arrival?line='+selection.line+'&station='+encodeURIComponent(st)))
      ]);
-     const rows=tt.filter(x=>x.status==='fulfilled').flatMap(x=>x.value);
-     if(!rows.length)throw Error(t.failure);
-     const direction=selectDirection(arrival?.evidence||[],next);
-     setDirectionWarning(!direction);
-     const found=matchCandidates(rows,position?.positions||[],{time:when.time,date:when.date,line:selection.line,station:selection.name,next,direction});
-     setCandidates(found);setLiveInfo(position?.ok?'':t.noApi);
+     if(!position?.ok)throw Error(t.failure);
+     const evidence=arrivals.flatMap((result,i)=>(result?.evidence||[]).map(x=>({
+       ...x,routeIndex:stations[i]===selection.name?0:route.indexOf(stations[i])+1
+     })));
+     const result=findLiveCandidates(position.positions||[],{
+       date:when.date,time:when.time,line:selection.line,station:selection.name,next,arrivalEvidence:evidence
+     });
+     setCandidates(result.candidates);
+     setDirectionWarning(result.candidates.some(x=>!x.corroborated));
    }catch(ex){setError(ex.message||t.failure);}finally{setBusy(false);}
  }
  function pick(candidate){setChosen(candidate);setCurrent(candidate.live||null);setRefresh(x=>x+1);}
  const where=current?.station||'';
- const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express);
+ const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express&&chosen.corroborated);
  const recommended=canRecommend?futureStops(selection.line,selection.name,next,where):{stations:[],reason:'NO_POSITION'};
- const message=chosen?'[서울교통공사 열차 내 유실물 수배 요청]\n노선: '+selection.line+'호선\n하차역: '+selection.name+'역\n하차일시: '+when.date+' '+when.time+'경\n열차 진행 방향: '+next+'역 방면\n열차번호: '+chosen.number+' (추정)\n현재 확인 위치: '+(current?current.station+'역 ('+current.receivedAt+')':'실시간 확인 불가')+'\n탑승 위치: '+(car.trim()||'미입력')+'\n분실물: '+(thing.trim()||'미입력')+'\n\n위 정보는 승객 입력과 공개 교통정보에 근거한 추정입니다. 해당 열차 유실물 수배를 요청드립니다.':'';
+ const message=chosen?'[서울교통공사 열차 내 유실물 수배 요청]\n노선: '+selection.line+'호선\n하차역: '+selection.name+'역\n하차일시: '+when.date+' '+when.time+'경\n열차 진행 방향: '+next+'역 방면\n열차번호: '+chosen.number+' (실시간 위치 기반 추정·미확정)\n현재 확인 위치: '+(current?current.station+'역 ('+current.receivedAt+')':'실시간 확인 불가')+'\n탑승 위치: '+(car.trim()||'미입력')+'\n분실물: '+(thing.trim()||'미입력')+'\n\n해당 열차번호는 실시간 위치 기반 추정이며 실제 탑승열차로 확정되지 않았습니다. 해당 열차 유실물 수배를 요청드립니다.':'';
  function sms(){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);window.location.href='sms:15771234'+(ios?'&':'?')+'body='+encodeURIComponent(message);}
  async function copyMessage(){try{await navigator.clipboard.writeText(message);setCopyStatus(true);}catch{setCopyStatus(false);}}
  return <div className="tf-root">
