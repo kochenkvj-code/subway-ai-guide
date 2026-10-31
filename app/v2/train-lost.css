@@ -60,3 +60,36 @@
 
 .tf-train-destination{width:100%;font-size:9px;font-weight:650;line-height:1;color:#d1e5f4;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tf-train-other .tf-train-destination{color:#9eafc1}
+
+
+/* Horizontal, one-direction train timeline */
+.tf-h-topline{padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#202d42;color:#dfebfb;font-size:11px}
+.tf-h-topline>span:first-child{flex:1;min-width:0;line-height:1.45}
+.tf-h-topline strong{color:#ffc968}
+.tf-h-swipe{color:#86a9cd;white-space:nowrap;font-size:10px}
+.tf-board-viewport.tf-board-horizontal{overflow-x:auto;overflow-y:hidden;max-height:none;min-height:0;width:100%;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#5c7b9e #18243a;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.tf-board-horizontal:focus-visible{outline:2px solid #8bbbfa;outline-offset:-2px}
+.tf-h-flow{display:flex;align-items:stretch;min-width:max-content;width:max-content;background:#121d2e;padding:9px 10px 12px}
+.tf-h-stop{width:130px;min-width:130px;flex:0 0 130px;display:flex;flex-direction:column;align-items:stretch;text-align:center;scroll-snap-align:start;border-radius:10px;position:relative}
+.tf-h-stop.tf-h-origin{background:rgba(239,191,84,.12)}
+.tf-h-trains{height:121px;min-height:121px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;padding:5px 7px;overflow-y:auto;scrollbar-width:thin}
+.tf-h-rail{height:30px;min-height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+.tf-h-rail::before{content:'';position:absolute;left:0;right:0;top:50%;height:4px;transform:translateY(-50%);background:#3177c1}
+.tf-h-origin .tf-h-rail::before{background:linear-gradient(to right,#3177c1,#e9b654)}
+.tf-h-node{z-index:1;width:14px;height:14px;border-radius:50%;background:#1b2d44;border:3px solid #74a8df;box-shadow:0 0 0 2px #142135}
+.tf-h-origin .tf-h-node{width:19px;height:19px;background:#eab95c;border-color:#fff1bd;box-shadow:0 0 0 3px rgba(242,192,99,.25)}
+.tf-h-name{padding:8px 4px 2px;color:#e7f3ff;font-weight:850;font-size:12px;line-height:1.45;min-height:34px;overflow-wrap:anywhere}
+.tf-h-origin .tf-h-name{color:#ffd98e}
+.tf-h-detail{color:#819fbd;font-size:10px;line-height:1.5;padding:0 5px 8px}
+.tf-h-origin .tf-h-detail{color:#ffe1a7;font-weight:800}
+.tf-h-stop .tf-train{min-width:0;width:116px;max-width:116px;min-height:36px;flex-shrink:0;padding:5px 3px;border-radius:8px}
+.tf-h-stop .tf-train-number{font-size:13px}
+.tf-h-stop .tf-train-destination{font-size:9px}
+.tf-h-stop .tf-train-candidate{font-size:9px}
+.tf-h-stop .tf-train-pick{animation:tf-pulse 2.5s ease-in-out infinite}
+.tf-h-stop .tf-train-picked{animation:none}
+.tf-h-stop .tf-train-other{opacity:.72}
+.tf-h-foot{display:flex;justify-content:center;padding:10px 14px;background:#1c2a3b;border-top:1px solid #2b4058}
+.tf-h-foot button{border:1px solid #e3bb71;background:#fff4d7;color:#734e0d;border-radius:9px;padding:9px 15px;font-size:11px;font-weight:850;cursor:pointer}
+@media(max-width:380px){.tf-h-stop{width:114px;min-width:114px;flex-basis:114px}.tf-h-stop .tf-train{width:104px;max-width:104px}.tf-h-topline{padding:10px}.tf-h-swipe{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.tf-h-stop .tf-train-pick{animation:none}.tf-board-horizontal{scroll-behavior:auto}}
