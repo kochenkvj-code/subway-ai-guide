@@ -79,7 +79,8 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    }
    return true;
  };
- useEffect(()=>{candidateJumpIndex.current=0;setJumpStatus('');setFocusedTrain('');},[line,station,next,candidates]);
+ const candidateKeys=candidates.map(c=>trainKey(c.number)).join('|');
+ useEffect(()=>{candidateJumpIndex.current=0;setJumpStatus('');setFocusedTrain('');},[line,station,next,candidateKeys]);
  useEffect(()=>{
   const viewport=viewportRef.current;
   const origin=viewport?.querySelector('[data-tf-origin="true"]');
