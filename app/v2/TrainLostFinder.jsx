@@ -66,6 +66,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const [quickMin,setQuickMin]=useState(5);
  const requestId=useRef(0);
  const arrivalEvidenceRef=useRef([]);
+ const trackedTrainRef=useRef('');
  const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
  const [destinationHints,setDestinationHints]=useState({});
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
@@ -78,7 +79,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
  useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
 
- function resetMatches(){arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
+ function resetMatches(){trackedTrainRef.current='';arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
  function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
  async function lookup(){
    const token=++requestId.current;
@@ -158,6 +159,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    return ()=>{clearTimeout(timer);requestId.current+=1;};
  },[active,editing,selection.name,selection.line,next,when.date,when.time,demoMode]);
  function pick(candidate){
+   trackedTrainRef.current=compareNo(candidate.number);
    setChosen(candidate);
    const found=livePositions.find(p=>compareNo(p.trainNo)===compareNo(candidate.number)&&String(p.direction)===String(requiredDirection));
    setCurrent(found||candidate.live||null);
@@ -176,12 +178,12 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      if(!prev)return null;
      return result.candidates.find(c=>compareNo(c.number)===compareNo(prev.number))||prev;
    });
-   setCurrent(prev=>{
-     if(!prev)return null;
-     const matched=enriched.find(p=>compareNo(p.trainNo)===compareNo(prev.trainNo)&&
-       String(p.direction)===String(requiredDirection));
-     return matched||null;
-   });
+   // Recover the selected train after a temporary missing snapshot, without
+   // requiring the operator to select it again.
+   const selectedNumber=trackedTrainRef.current;
+   const matched=selectedNumber?enriched.find(p=>compareNo(p.trainNo)===selectedNumber&&
+     String(p.direction)===String(requiredDirection)):null;
+   setCurrent(matched||null);
  }
  const where=current?.station||'';
  const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express&&chosen.corroborated&&String(current.direction)===requiredDirection);
@@ -258,7 +260,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    </div>}
    {chosen&&<section className="tf-results tf-compact-results">
      <div className="tf-summary-head"><h3>{t.selected} · #{chosen.number}</h3>
-       <button type="button" onClick={()=>{setChosen(null);setCurrent(null);}}>{lang==='ko'?'선택 해제':t.again}</button>
+       <button type="button" onClick={()=>{trackedTrainRef.current='';setChosen(null);setCurrent(null);}}>{lang==='ko'?'선택 해제':t.again}</button>
      </div>
      <div className="tf-location tf-compact-location">
        <div><small>{t.position}</small><strong>{current?fmt(current.station,lang):t.absent}</strong></div>
