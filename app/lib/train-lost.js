@@ -1,10 +1,20 @@
 // Station topology comes from the static subway section graph.
 // This module deliberately does not use scheduled train times.
 import graph from '../data/trainLostGraph.json';
+import directions from '../data/trainLostDirection.json';
 
 const clean=value=>String(value||'').trim().replace(/역$/,'');
 export const stationNeighbors=(line,station)=>graph[Number(line)+'호선']?.[clean(station)]||[];
 export const supportsStation=(line,station)=>stationNeighbors(line,station).length>0;
+// Determine the actual 0(up/inner) or 1(down/outer) live API direction for
+// the passenger-selected immediate adjacent station. Missing means unsupported,
+// not "include both directions".
+export function expectedLiveDirection(line,station,next){
+  const from=clean(station),to=clean(next);
+  if(!stationNeighbors(line,from).includes(to))return null;
+  const value=directions[Number(line)+'호선']?.[from]?.[to];
+  return value==='0'||value==='1'?value:null;
+}
 export function followStops(line,origin,first,limit=35){
   let previous=clean(origin),current=clean(first);
   if(!stationNeighbors(line,previous).includes(current))return {stops:[],ambiguous:true};
@@ -35,6 +45,8 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
   // A snapshot cannot establish a historical train. Only recent alightings can be estimated.
   if(!Number.isFinite(elapsed)||elapsed < -120000||elapsed>30*60000)return {candidates:[],reason:'OUTSIDE_LIVE_WINDOW'};
   if(!stationNeighbors(line,station).includes(next))return {candidates:[],reason:'INVALID_DIRECTION'};
+  const requiredDirection=expectedLiveDirection(line,station,next);
+  if(requiredDirection===null)return {candidates:[],reason:'DIRECTION_UNVERIFIED'};
   const path=followStops(line,station,next,38);
   const expected=elapsed/120000; // Initial HEURISTIC: 2 minutes per stop, not a timetable.
   const radius=Math.max(1.5,expected*.5);
@@ -43,6 +55,9 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
   const candidates=(Array.isArray(positions)?positions:[]).flatMap(p=>{
     const number=trainKey(p.trainNo);
     if(!number||Number(p.line)!==Number(line))return [];
+    // Essential safety gate: a train moving the OPPOSITE WAY must NEVER
+    // become a candidate, even if it is geographically 2-3 stations ahead.
+    if(String(p.direction)!==requiredDirection)return [];
     const routeIndex=path.stops.indexOf(clean(p.station));
     const distance=p.station===clean(station)?0:routeIndex<0?-1:routeIndex+1;
     if(distance<0||distance>max)return [];
@@ -69,10 +84,19 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
       estimatedStops:Number(expected.toFixed(1)),difference:Number(delta.toFixed(1)),
       corroborated:directionEvidence,express:Boolean(p.express),score,
       confidence:directionEvidence?'direction-supported':'position-only',
-      receivedAt:p.receivedAt
+      receivedAt:p.receivedAt,expectedDirection:requiredDirection
     }];
-  }).sort((a,b)=>a.score-b.score||a.difference-b.difference).slice(0,8);
-  return {candidates,reason:candidates.length?'LIVE_CANDIDATES':'NO_LIVE_CANDIDATES',
+  }).sort((a,b)=>a.score-b.score||a.difference-b.difference);
+  // API may list the same train number more than once (e.g. consecutive
+  // tracking states). Present one candidate per train and direction.
+  const seen=new Set();
+  const unique=candidates.filter(item=>{
+    const key=trainKey(item.number)+'/'+item.expectedDirection;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  }).slice(0,8);
+  return {candidates:unique,reason:unique.length?'LIVE_CANDIDATES':'NO_LIVE_CANDIDATES',
     expectedStops:Number(expected.toFixed(1)),range:[min,max],
     routeAmbiguous:path.ambiguous};
 }
