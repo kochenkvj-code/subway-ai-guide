@@ -64,6 +64,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
  const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState('');
  const [when,setWhen]=useState(()=>korea(5));
  const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
+ const [destinationHints,setDestinationHints]=useState({});
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
@@ -74,7 +75,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/ì—­$/,''),line:String(Number(l.match(/(\d+)í˜¸ì„ /)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
  useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
 
- function resetMatches(){setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);}
+ function resetMatches(){setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
  function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
  async function lookup(e){
    e.preventDefault();
@@ -93,7 +94,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
      const direction=expectedLiveDirection(selection.line,selection.name,next);
      const opposite=direction==='0'?'1':'0';
      const make=(trainNo,st,dir)=>({trainNo,line:selection.line,station:st,direction:dir,
-       destination:'DEMO',express:false,receivedAt:new Date(now).toISOString()});
+       destination:'ì‹œì—°',express:false,receivedAt:new Date(now).toISOString()});
      const sample=[
        make('D001',path[1]||next,direction),
        make('D002',path[2]||next,direction),
@@ -117,12 +118,21 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
        ...stations.map(st=>getJSON('/api/v2/train-lost/arrival?line='+selection.line+'&station='+encodeURIComponent(st)))
      ]);
      if(!position?.ok)throw Error(t.failure+' (LIVE API)');
-     setLivePositions(position.positions||[]);setLiveFetchedAt(position.fetchedAt);
      setLookupStats(position.diagnostics||{usableRows:position.positions?.length||0});
      const evidence=arrivals.flatMap((result,i)=>(result?.evidence||[]).map(x=>({
        ...x,routeIndex:stations[i]===selection.name?0:route.indexOf(stations[i])+1
      })));
-     const result=findLiveCandidates(position.positions||[],{
+     // Match a missing terminus only using the same train number AND live direction.
+     const hints={};
+     for(const row of evidence){
+       if(!row.trainNo||!row.destination||!['0','1'].includes(String(row.directionCode)))continue;
+       hints[compareNo(row.trainNo)+'/'+row.directionCode]=row.destination;
+     }
+     setDestinationHints(hints);
+     const enriched=(position.positions||[]).map(p=>!p.destination&&hints[compareNo(p.trainNo)+'/'+p.direction]?
+       {...p,destination:hints[compareNo(p.trainNo)+'/'+p.direction]}:p);
+     setLivePositions(enriched);setLiveFetchedAt(position.fetchedAt);
+     const result=findLiveCandidates(enriched,{
        date:when.date,time:when.time,line:selection.line,station:selection.name,next,arrivalEvidence:evidence
      });
      setCandidates(result.candidates);
@@ -135,10 +145,12 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    setCurrent(found||candidate.live||null);
  }
  function onLiveSnapshot(nextPositions,at){
-   setLivePositions(nextPositions);
+   const enriched=nextPositions.map(p=>!p.destination&&destinationHints[compareNo(p.trainNo)+'/'+p.direction]?
+     {...p,destination:destinationHints[compareNo(p.trainNo)+'/'+p.direction]}:p);
+   setLivePositions(enriched);
    setLiveFetchedAt(at);
    if(chosen){
-     const matched=nextPositions.find(p=>compareNo(p.trainNo)===compareNo(chosen.number)&&String(p.direction)===String(requiredDirection));
+     const matched=enriched.find(p=>compareNo(p.trainNo)===compareNo(chosen.number)&&String(p.direction)===String(requiredDirection));
      setCurrent(matched||null);
    }
  }
