@@ -205,7 +205,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
          onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}>
          {index===0&&neighbors.length>1?'← ':''}{fmt(st,lang)}{index===0&&neighbors.length>1?'':index>1?' ↗':' →'}
        </button>)}</div>
-       {next&&requiredDirection===null&&<p className="tf-warning">{lang==='ko'?'이 방향의 실시간 운행 코드가 확인되지 않았어요.':lang==='en'?'Real-time direction unavailable.':'進行方向を確認できません。':'无法确认该方向。'}</p>}
+       {next&&requiredDirection===null&&<p className="tf-warning">{lang==='ko'?'이 방향의 실시간 운행 코드가 확인되지 않았어요.':lang==='en'?'Real-time direction unavailable.':lang==='ja'?'進行方向を確認できません。':'无法确认该方向。'}</p>}
        {neighbors.length>2&&<p className="tf-mini-help">{t.branch}</p>}
      </div>
      <div className="tf-field tf-time-field">
