@@ -57,3 +57,6 @@
 @keyframes tf-pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,188,79,.13)}50%{box-shadow:0 0 0 4px rgba(255,188,79,.35)}}
 @media (max-width:400px){.tf-board-section{padding:10px}.tf-board-station-name{font-size:12px}.tf-train-number{font-size:11px}.tf-board-columns{font-size:9px}.tf-board-row{min-height:73px}}
 @media (prefers-reduced-motion:reduce){.tf-train-pick{animation:none}}
+
+.tf-train-destination{width:100%;font-size:9px;font-weight:650;line-height:1;color:#d1e5f4;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tf-train-other .tf-train-destination{color:#9eafc1}
