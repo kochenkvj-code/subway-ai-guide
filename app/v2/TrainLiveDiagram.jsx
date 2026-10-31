@@ -112,8 +112,20 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const renderTrain=p=>{
   const number=trainKey(p.trainNo),cand=candidateByNumber.get(number);
   const isSelected=selectedNo===number;
-  const tooltip=(p.destination?clean(p.destination)+' · ':'')+p.trainNo+' · '+getTime(p.receivedAt,lang);
-  const content=<><span className="tf-train-icon" aria-hidden="true">▣</span><span className="tf-train-number">{p.trainNo}</span>{p.destination&&<span className="tf-train-destination">{clean(p.destination)}</span>}{cand&&<span className="tf-train-candidate">{isSelected?t.selected:t.candidate}</span>}</>;
+  const rawDestination=clean(p.destination||'').replace(/(?:방면|행)$/,'').trim();
+  const destinationLabel=rawDestination?
+    (lang==='ko'?rawDestination+'행':lang==='ja'?rawDestination+'行':lang==='zh'?rawDestination+'方向':'To '+rawDestination):
+    (lang==='ko'?'행선지 미확인':lang==='ja'?'行先未確認':lang==='zh'?'终点未确认':'Destination unknown');
+  // Keep the provider's train number unchanged. Adding a K prefix without
+  // verified source information could misidentify the train.
+  const tooltip=destinationLabel+' · '+p.trainNo+' · '+getTime(p.receivedAt,lang);
+  const content=<span className="tf-train-inner">
+    <span className="tf-train-topline">
+      <span className="tf-train-destination" title={destinationLabel}>{destinationLabel}</span>
+      {cand&&<span className="tf-train-candidate">{isSelected?t.selected:t.candidate}</span>}
+    </span>
+    <strong className="tf-train-number">{p.trainNo}</strong>
+  </span>;
   return cand?<button key={number+'-'+p.direction} type="button" title={tooltip}
    className={'tf-train tf-train-pick'+(isSelected?' tf-train-picked':'')}
    aria-pressed={isSelected} aria-label={p.trainNo+' '+t.candidate+' '+clean(p.station)}
