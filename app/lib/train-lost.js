@@ -43,7 +43,8 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
   const candidates=(Array.isArray(positions)?positions:[]).flatMap(p=>{
     const number=trainKey(p.trainNo);
     if(!number||Number(p.line)!==Number(line))return [];
-    const distance=p.station===clean(station)?0:path.stops.indexOf(clean(p.station))+1;
+    const routeIndex=path.stops.indexOf(clean(p.station));
+    const distance=p.station===clean(station)?0:routeIndex<0?-1:routeIndex+1;
     if(distance<0||distance>max)return [];
     const recv=Date.parse(p.receivedAt);
     const age=now-recv;
