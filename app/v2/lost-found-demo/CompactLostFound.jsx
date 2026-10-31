@@ -27,7 +27,7 @@ function Photo({src,title}){
     <div className="lf-no-image"><span>▧</span>사진 없음</div>}</div>;
 }
 
-export default function CompactLostFound(){
+export default function CompactLostFound({embedded=false}){
   const [place,setPlace]=useState('');
   const [itemName,setItemName]=useState('');
   const [from,setFrom]=useState('');
@@ -172,12 +172,12 @@ export default function CompactLostFound(){
     setSelected(null);
   }
   const nextAllowed=(safePage+1)*pageSize<visible.length||hasMore;
-  return <main className="lf-page"><div className="lf-shell">
-    <header className="lf-top">
+  return <main className={embedded?"lf-page lf-embedded":"lf-page"}><div className="lf-shell">
+    {!embedded&&<header className="lf-top">
       <button className="lf-back" aria-label="챗봇으로 돌아가기" onClick={()=>window.location.assign('/v2')}>‹</button>
       <div className="lf-top-title">습득물 검색</div>
       <div className="lf-top-note">LOST112 · 서울 중심</div>
-    </header>
+    </header>}
     <form className="lf-search" onSubmit={submit}>
       <div className="lf-search-grid">
         <label className="lf-field">보관장소
@@ -275,6 +275,6 @@ export default function CompactLostFound(){
         <p className="lf-bottom">방문 전 해당 기관에 보관 여부를 문의해 주세요. 위 링크는 개별 물품이 아닌 공식 홈페이지로 연결됩니다.</p>
       </div>
     </section>}
-    <footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC DATA</footer>
+    {!embedded&&<footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC DATA</footer>}
   </div></main>;
 }
