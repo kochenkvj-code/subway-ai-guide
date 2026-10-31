@@ -22,5 +22,5 @@ export async function GET(request){
        arrivalCode:String(row.arvlCd||''),receivedAt:row.recptnDt,
        label:String(row.trainLineNm||'').slice(0,100)}));
    return Response.json({ok:true,evidence},{headers:{'Cache-Control':'no-store'}});
- }catch{return Response.json({ok:false,error:'ARRIVAL_UNAVAILABLE'},{status:502,headers:{'Cache-Control':'no-store'});}
+ }catch{return Response.json({ok:false,error:'ARRIVAL_UNAVAILABLE'},{status:502,headers:{'Cache-Control':'no-store'}});}
 }
