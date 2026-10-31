@@ -43,6 +43,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const trains=useMemo(()=>latestTrains(positions,line).filter(p=>String(p.direction)===String(direction)),[positions,line,direction]);
  const candidateByNumber=useMemo(()=>new Map(candidates.map(c=>[trainKey(c.number),c])),[candidates]);
  const selectedNo=selected?trainKey(selected.number):null;
+ const trackedStation=selectedNo?trains.find(p=>trainKey(p.trainNo)===selectedNo)?.station:null;
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
  useEffect(()=>{
@@ -53,6 +54,14 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const delta=origin.getBoundingClientRect().left-viewport.getBoundingClientRect().left;
   viewport.scrollLeft+=Math.max(0,delta-20);
  },[line,station,next]);
+ useEffect(()=>{
+  if(!trackedStation)return;
+  const viewport=viewportRef.current;
+  const target=[...(viewport?.querySelectorAll('[data-tf-station]')||[])].find(node=>node.dataset.tfStation===clean(trackedStation));
+  if(!viewport||!target)return;
+  const offset=target.getBoundingClientRect().left-viewport.getBoundingClientRect().left;
+  viewport.scrollBy({left:offset-40,behavior:'smooth'});
+ },[trackedStation,selectedNo,line,station,next]);
  const pollRef=useRef(null);
  const advanceDemo=()=>{
   const at=new Date().toISOString();
@@ -143,7 +152,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
           const here=trains.filter(p=>clean(p.station)===s);
           const hasCandidate=here.some(p=>candidateByNumber.has(trainKey(p.trainNo)));
           return <div key={s+'-'+index} data-tf-origin={s===clean(station)?"true":undefined}
-           data-tf-candidate={hasCandidate?"true":undefined}
+           data-tf-station={s} data-tf-candidate={hasCandidate?"true":undefined}
            className={'tf-h-stop'+(s===clean(station)?' tf-h-origin':'')} role="listitem">
            <div className="tf-h-trains">{here.map(renderTrain)}</div>
            <div className="tf-h-rail"><span className="tf-h-node"/></div>
