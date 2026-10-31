@@ -20,16 +20,42 @@ function getVisitSessionId() {
   return visitSessionId;
 }
 let lastEventTime = 0;
-export function recordStat(event_type, event_name, language, context = null) {
+const pendingEvents = new Map();
+let retryListenerInstalled = false;
+async function sendEvent(id) {
+  const item = pendingEvents.get(id);
+  if (!item || item.sending) return;
+  if (isAnalyticsExcluded()) { pendingEvents.delete(id); return; }
+  item.sending = true;
+  try {
+    const response = await fetch("/api/stats/event", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: item.body, keepalive: true,
+    });
+    if (response.ok || (response.status >= 400 && response.status < 500 && ![408,429].includes(response.status))) {
+      pendingEvents.delete(id); return;
+    }
+  } catch { /* Retry transient network failures without blocking the UI. */ }
+  finally { item.sending = false; }
+  if (pendingEvents.has(id) && ++item.attempts < 4) {
+    setTimeout(() => sendEvent(id), 1000 * 2 ** item.attempts);
+  } else pendingEvents.delete(id);
+}
+export function recordStat(event_type, event_name, language, context = null, question = null) {
   if (typeof window === "undefined" || isAnalyticsExcluded()) return;
   try {
+    if (!retryListenerInstalled) {
+      retryListenerInstalled = true;
+      window.addEventListener("online", () => { for (const id of pendingEvents.keys()) void sendEvent(id); });
+    }
+    if (pendingEvents.size >= 100) return;
     lastEventTime = Math.max(Date.now(), lastEventTime + 1);
-    void fetch("/api/stats/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_type, event_name, language, session_id: getVisitSessionId(), context, occurred_at: new Date(lastEventTime).toISOString() }),
-      keepalive: true,
-    }).catch(() => {});
+    const event_id = window.crypto.randomUUID();
+    const body = JSON.stringify({event_id,event_type,event_name,language,session_id:getVisitSessionId(),context,
+      question: event_type === "ai_question" && typeof question === "string" ? question.slice(0,500) : null,
+      occurred_at:new Date(lastEventTime).toISOString()});
+    pendingEvents.set(event_id, {body,attempts:0,sending:false});
+    void sendEvent(event_id);
   } catch { /* Statistics must never interrupt the passenger experience. */ }
 }
 

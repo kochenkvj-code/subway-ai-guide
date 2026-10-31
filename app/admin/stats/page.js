@@ -45,6 +45,7 @@ export default function StatsPage() {
       window.dispatchEvent(new Event("analytics-preference-change"));
     }catch{setPreferenceError("설정을 저장하지 못했습니다. 브라우저의 사이트 데이터 저장 허용 여부를 확인해 주세요.");}
   };
+  const [questionPage,setQuestionPage] = useState(0);
   const [rawPage,setRawPage] = useState(0);
   const [activity,setActivity] = useState({});
   const [pageSize,setPageSize] = useState(25);
@@ -59,7 +60,8 @@ export default function StatsPage() {
     fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active){setRows(v.rows||[]);setActivity(v.activity||{});}}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
   },[auth,start,date]);
-  useEffect(()=>setRawPage(0),[start,date]);
+  useEffect(()=>{setRawPage(0);setQuestionPage(0);},[start,date]);
+  const aiQuestions = useMemo(()=>rows.filter(r=>r.event_type==="ai_question").sort((a,b)=>new Date(eventTime(b))-new Date(eventTime(a))),[rows]);
   const sessionRows = useMemo(()=>{
     const groups = new Map();
     for (const event of rows) {
@@ -122,6 +124,11 @@ export default function StatsPage() {
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>날짜별 이벤트 추이</h2>{timeline(stats.dates)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시간대별 이벤트 (KST)</h2>{timeline(stats.hours,true)}</div>
         </section>
+        <section style={{...card,marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}><h2 style={{fontSize:17}}>AI 질문 기록 · {aiQuestions.length}건</h2><div><button disabled={questionPage===0} onClick={()=>setQuestionPage(p=>p-1)}>이전</button> {questionPage+1} / {Math.max(1,Math.ceil(aiQuestions.length/25))} <button disabled={(questionPage+1)*25>=aiQuestions.length} onClick={()=>setQuestionPage(p=>p+1)}>다음</button></div></div>
+          <p style={{fontSize:12,color:"#687c82"}}>위 조회 기간 기준 · 최신순 · 질문 시각(KST) · 과거 질문 원문은 복구할 수 없습니다.</p>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,textAlign:"left"}}><thead><tr><th>질문 시각 (KST)</th><th>언어 / 세션</th><th>질문 내용</th></tr></thead><tbody>{aiQuestions.slice(questionPage*25,(questionPage+1)*25).map(q=><tr key={q.id}><td style={{padding:"8px 4px",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(q))}</td><td style={{padding:8,verticalAlign:"top"}}>{langs[q.language]||q.language}<br/>{q.session_id?.slice(0,8)||"미확인"}</td><td style={{padding:8,whiteSpace:"pre-wrap",overflowWrap:"anywhere",borderBottom:"1px solid #edf1f2"}}>{q.question||"내용 미수집 (기존 기록)"}</td></tr>)}</tbody></table>{!aiQuestions.length&&<p>해당 기간 AI 질문이 없습니다.</p>}
+        </section>
         <section style={{...card,marginTop:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
             <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 목록 {visibleSessions.length.toLocaleString()}개 · 최근 활동순 · {pageSize}개씩 표시</p></div>
@@ -155,7 +162,7 @@ export default function StatsPage() {
             </table>
             {!visibleSessions.length&&<p style={{color:"#7a858d",fontSize:13}}>선택한 조건에 해당하는 기록이 없습니다.</p>}
           </div>
-          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 저장하지 않습니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
+          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 서비스 개선을 위해 저장되며 관리자만 조회합니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
         </section>
         <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 실제 기능 이용 세션은 빠른 안내·게이트 세부 동작·AI 질문·길찾기 검색·피드백 이벤트가 하나 이상 있는 세션이며, 단순 접속과 언어 변경만 있는 세션은 제외합니다. 세션 수는 실제 사람 수가 아니며, 세션 ID가 없는 과거 기록은 이벤트별로 개별 집계됩니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
       </>}

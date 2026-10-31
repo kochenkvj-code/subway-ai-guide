@@ -17,8 +17,11 @@ const osType = (ua) => /ipad|iphone|ipod/i.test(ua) ? "iOS" : /android/i.test(ua
 const browserType = (ua) => /edg\//i.test(ua) ? "Edge" : /crios|chrome\//i.test(ua) ? "Chrome" : /fxios|firefox\//i.test(ua) ? "Firefox" : /safari\//i.test(ua) ? "Safari" : "기타";
 export async function POST(request) {
   try {
-    if (Number(request.headers.get("content-length") || 0) > 2048) return NextResponse.json({ error: "Invalid request" }, { status: 413 });
+    if (Number(request.headers.get("content-length") || 0) > 8192) return NextResponse.json({ error: "Invalid request" }, { status: 413 });
     const data = await request.json();
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (data?.event_id != null && (typeof data.event_id !== "string" || !uuid.test(data.event_id))) return NextResponse.json({error:"Invalid event ID"},{status:400});
+    const question = data?.event_type === "ai_question" && typeof data.question === "string" ? data.question.trim().slice(0,500) : null;
     if (!data || !Object.hasOwn(types, data.event_type) || !types[data.event_type].includes(data.event_name) || !["ko","en","ja","zh"].includes(data.language)) {
       return NextResponse.json({ error: "Invalid event" }, { status: 400 });
     }
@@ -29,13 +32,13 @@ export async function POST(request) {
     const context = gateContext || facilitySelection ? data.context : null;
     const clientTime=typeof data.occurred_at === "string" ? Date.parse(data.occurred_at) : NaN;
     const occurred_at=Number.isFinite(clientTime) && Math.abs(Date.now()-clientTime)<300000 ? new Date(clientTime).toISOString() : new Date().toISOString();
-    // Only coarse, non-identifying request metadata. Never persist IP, full user-agent, or question text.
+    // Only coarse, non-identifying request metadata. Never persist IP or full user-agent. AI question text is restricted to the admin report.
     const ua = request.headers.get("user-agent") || "";
     const countryHeader = (request.headers.get("x-vercel-ip-country") || "").toUpperCase();
     const country = /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : null;
-    await supabase("chatbot_events", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({
+    await supabase(data.event_id ? "chatbot_events?on_conflict=event_id" : "chatbot_events", { method: "POST", headers: { Prefer: data.event_id ? "resolution=ignore-duplicates,return=minimal" : "return=minimal" }, body: JSON.stringify({
       event_type: data.event_type, event_name: data.event_name, language: data.language,
-      session_id: sessionId, context, occurred_at, country, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
+      event_id: data.event_id || null, question, session_id: sessionId, context, occurred_at, country, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
     }) });
     return new NextResponse(null, { status: 204 });
   } catch {

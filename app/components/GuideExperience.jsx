@@ -25,7 +25,7 @@ const TEXT = {
     bannerBody: "일반 문의는 AI가 검색 결과를 바탕으로 안내합니다. 길찾기는 위 메뉴에서 조회할 수 있습니다.",
     quick: "빠른 안내",
     placeholder: "궁금한 것을 입력하세요",
-    privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI 서비스로 전송됩니다.",
+    privacyNotice: "개인정보를 입력하지 마세요. 질문은 답변 생성을 위해 외부 AI 서비스로 전송되며 서비스 개선을 위해 저장됩니다.",
     routePlaceholder: "목적지를 입력하세요 (예: 명동)",
     send: "전송",
     greeting: "**궁금한 점, AI에게 물어보세요**\n지하철 이용부터 주변 관광지까지 안내해 드려요.",
@@ -57,7 +57,7 @@ const TEXT = {
     bannerBody: "AI answers general questions using web search. Tap Route to look up subway directions here.",
     quick: "Quick guide",
     placeholder: "Type your question",
-    privacyNotice: "No personal info. Questions are sent to external AI for answers.",
+    privacyNotice: "No personal info. Questions are sent to external AI for answers and stored to improve this service.",
     routePlaceholder: "Enter destination (e.g. Myeong-dong)",
     send: "Send",
     greeting: "**Have a question? Ask AI.**\nFrom using the subway to exploring nearby attractions.",
@@ -89,7 +89,7 @@ const TEXT = {
     bannerBody: "一般的な質問はAIが検索結果をもとに案内します。経路検索は上のメニューからご利用ください。",
     quick: "クイック案内",
     placeholder: "質問を入力してください",
-    privacyNotice: "個人情報を入力しないでください。質問は回答生成のため外部AIサービスに送信されます。",
+    privacyNotice: "個人情報を入力しないでください。質問は回答生成のため外部AIサービスに送信され、サービス改善のため保存されます。",
     routePlaceholder: "目的地を入力（例：明洞）",
     send: "送信",
     greeting: "**気になることはAIに聞いてみましょう**\n地下鉄のご利用から周辺観光までご案内します。",
@@ -121,7 +121,7 @@ const TEXT = {
     bannerBody: "普通问题由AI结合搜索结果回答。地铁路线可通过上方的路线菜单查询。",
     quick: "快捷指南",
     placeholder: "请输入问题",
-    privacyNotice: "请勿输入个人信息。问题将发送至外部AI服务以生成回答。",
+    privacyNotice: "请勿输入个人信息。问题将发送至外部AI服务以生成回答，并保存用于改善服务。",
     routePlaceholder: "请输入目的地（例如：明洞）",
     send: "发送",
     greeting: "**有问题？问问AI吧**\n从乘坐地铁到游览周边景点，为您提供指引。",
@@ -1225,7 +1225,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
   }
 
   async function askGoogle(question, visibleUserText = question, feedbackKey = "free_question") {
-    recordStat("ai_question", "request", lang);
+    recordStat("ai_question", "request", lang, null, visibleUserText);
     const contextScope=chatContextScopeRef.current;
     const generalChat=feedbackKey === "free_question";
     const {history,historyCompletedAt}=generalChat?buildChatHistory(messages,{scope:contextScope}):{history:[],historyCompletedAt:null};
