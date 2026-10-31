@@ -26,8 +26,10 @@ function selectDirection(evidence,next){
  }).map(e=>e.direction).filter(Boolean);
  return [...new Set(matching)].length===1?matching[0]:null;
 }
-function validLocation(candidate,p,selection,next){
+function validLocation(candidate,p,selection,next,when){
  if(!candidate||!p||compareNo(p.trainNo)!==compareNo(candidate.number))return false;
+ const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
+ if(!Number.isFinite(elapsed)||elapsed < -180000||elapsed>7200000)return false;
  if(expectedCode(candidate.direction)!==null && p.direction!==expectedCode(candidate.direction))return false;
  const path=followStops(selection.line,selection.name,next,38);
  if(![selection.name,...path.stops].includes(p.station))return false;
@@ -43,11 +45,11 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
- const [refresh,setRefresh]=useState(0),[copyStatus,setCopyStatus]=useState(false);
+ const [refresh,setRefresh]=useState(0),[copyStatus,setCopyStatus]=useState(false),[searched,setSearched]=useState(false);
  const neighbors=useMemo(()=>stationNeighbors(selection.line,selection.name),[selection.name,selection.line]);
  const lines=useMemo(()=>Array.from({length:9},(_,i)=>String(i+1)).filter(line=>supportsStation(line,selection.name)),[selection.name]);
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
- useEffect(()=>{if(!next||!neighbors.includes(next))setNext(neighbors[0]||'');},[neighbors,next]);
+ useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
  useEffect(()=>{
    if(!active||!chosen)return;
    let disposed=false;const ac=new AbortController();
@@ -55,18 +57,19 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      try{
        const res=await fetch('/api/v2/train-lost/position?line='+selection.line,{cache:'no-store',signal:ac.signal});
        const data=await res.json();if(disposed)return;
-       const found=data.ok?(data.positions||[]).find(p=>validLocation(chosen,p,selection,next)):null;
+       const found=data.ok?(data.positions||[]).find(p=>validLocation(chosen,p,selection,next,when)):null;
        setCurrent(found||null);setLiveInfo(data.ok?'':t.absent);
      }catch{if(!disposed){setCurrent(null);setLiveInfo(t.absent);}}
    }
    void update();const timer=setInterval(update,30000);
    return()=>{disposed=true;clearInterval(timer);ac.abort();};
- },[chosen,active,selection.name,selection.line,next,refresh]);
- function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');setChosen(null);setCandidates([]);setCurrent(null);setError('');}
+ },[chosen,active,selection.name,selection.line,next,when.date,when.time,refresh]);
+ function resetMatches(){setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);}
+ function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
  async function lookup(e){
    e.preventDefault();
    if(!supportsStation(selection.line,selection.name)||!next||!when.date||!when.time){setError(t.emptyQuery);return;}
-   setBusy(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);
+   setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);
    const dirs=selection.line==='2'?['내선','외선']:['상행','하행'];
    const readTimetable=async d=>{
      const p=new URLSearchParams({station:selection.name,line:selection.line,day:weekday(when.date),direction:d});
@@ -87,7 +90,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      if(!rows.length)throw Error(t.failure);
      const direction=selectDirection(arrival?.evidence||[],next);
      setDirectionWarning(!direction);
-     const found=matchCandidates(rows,position?.positions||[],{time:when.time,line:selection.line,station:selection.name,next,direction});
+     const found=matchCandidates(rows,position?.positions||[],{time:when.time,date:when.date,line:selection.line,station:selection.name,next,direction});
      setCandidates(found);setLiveInfo(position?.ok?'':t.noApi);
    }catch(ex){setError(ex.message||t.failure);}finally{setBusy(false);}
  }
@@ -111,12 +114,12 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      </div>
      {lines.length>1&&<div className="tf-field"><label>{t.line}</label><select value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})}>{lines.map(line=><option value={line} key={line}>{lineName(line+'호선',lang)}</option>)}</select></div>}
      <div className="tf-field"><label>{t.toward}</label><p className="tf-hint">{t.towardHint}</p>
-       <div className="tf-options">{neighbors.map(st=><button type="button" key={st} className={next===st?'chosen':''} aria-pressed={next===st} onClick={()=>{setNext(st);setCandidates([]);setChosen(null);setCurrent(null);}}>{fmt(st,lang)} →</button>)}</div>
+       <div className="tf-options">{neighbors.map(st=><button type="button" key={st} className={next===st?'chosen':''} aria-pressed={next===st} onClick={()=>{setNext(st);resetMatches();}}>{fmt(st,lang)} →</button>)}</div>
        {neighbors.length>2&&<p className="tf-warning">{t.branch}</p>}
      </div>
      <div className="tf-two">
-       <div className="tf-field"><label>{t.date}</label><input type="date" value={when.date} max={korea().date} onChange={e=>setWhen(s=>({...s,date:e.target.value}))}/></div>
-       <div className="tf-field"><label>{t.time}</label><input type="time" value={when.time} onChange={e=>setWhen(s=>({...s,time:e.target.value}))}/></div>
+       <div className="tf-field"><label>{t.date}</label><input type="date" value={when.date} max={korea().date} onChange={e=>{setWhen(s=>({...s,date:e.target.value}));resetMatches();}}/></div>
+       <div className="tf-field"><label>{t.time}</label><input type="time" value={when.time} onChange={e=>{setWhen(s=>({...s,time:e.target.value}));resetMatches();}}/></div>
      </div>
      <p className="tf-hint">{t.dateNote}</p>
      <div className="tf-two">
@@ -135,7 +138,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
        <small>{r.live?t.live:t.onlySchedule} · {t.arrivalGap} {r.diff}{lang==='ko'?'분':'min'}</small></div>
        <button type="button" onClick={()=>pick(r)}>{t.choose}</button></div>)}
    </section>}
-   {!busy&&!chosen&&!error&&candidates.length===0&&<p className="tf-hint">{t.noApi}</p>}
+   {!busy&&!chosen&&!error&&candidates.length===0&&<p className="tf-hint">{searched?t.none:t.noApi}</p>}
    {chosen&&<section className="tf-results">
      <div className="tf-summary-head"><h3>{t.selected} · #{chosen.number}</h3><button type="button" onClick={()=>{setChosen(null);setCurrent(null);}}>{t.again}</button></div>
      <div className="tf-location">
