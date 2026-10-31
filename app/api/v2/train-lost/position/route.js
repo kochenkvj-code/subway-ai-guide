@@ -27,23 +27,25 @@ export async function GET(request){
   try{
     const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(11000)});
     if(!response.ok)throw Error('HTTP_ERROR');
-    const json=await response.json(),code=json.RESULT?.CODE||json.errorMessage?.code||'';
+    const json=await response.json(),code=json.realtimePosition?.RESULT?.CODE||json.RESULT?.CODE||json.errorMessage?.code||'';
     if(code&&!['INFO-000','INFO-200'].includes(code))throw Error('PROVIDER_ERROR');
     if(!Array.isArray(json.realtimePositionList)&&code!=='INFO-200')throw Error('INVALID_DATA');
     const rows=json.realtimePositionList||[];
-    const positions=rows.map(row=>{
+    const parsed=rows.map(row=>{
       const received=positionReceipt(row);
       return {trainNo:safe(row.trainNo),line,station:safe(row.statnNm).replace(/역$/,''),
         status:safe(row.trainSttus),direction:safe(row.updnLine),
         destination:safe(row.statnTnm),express:['1','7'].includes(safe(row.directAt)),
         receivedAt:Number.isFinite(received)?new Date(received).toISOString():null};
-    }).filter(x=>x.trainNo&&x.receivedAt&&supportsStation(line,x.station)&&
-      Date.now()-Date.parse(x.receivedAt)>=-60000&&Date.now()-Date.parse(x.receivedAt)<=120000);
+    });
+    const validTime=parsed.filter(x=>x.receivedAt&&now-Date.parse(x.receivedAt)>=-60000&&now-Date.parse(x.receivedAt)<=180000);
+    const positions=validTime.filter(x=>x.trainNo&&supportsStation(line,x.station));
     const data={ok:true,positions,fetchedAt:new Date().toISOString(),
+      diagnostics:{providerRows:rows.length,validTimestamps:parsed.filter(x=>x.receivedAt).length,recentRows:validTime.length,usableRows:positions.length},
       partial:Number(json.realtimePosition?.list_total_count||0)>rows.length};
     cache.set(line,{at:now,data});
     return Response.json(data,{headers:{'Cache-Control':'no-store'}});
-  }catch{
-    return Response.json({ok:false,error:'LIVE_UNAVAILABLE',positions:[]},{status:502,headers:{'Cache-Control':'no-store'}});
+  }catch(error){
+    return Response.json({ok:false,error:String(error?.message||'LIVE_UNAVAILABLE').slice(0,60),positions:[]},{status:502,headers:{'Cache-Control':'no-store'}});
   }
 }
