@@ -374,3 +374,8 @@
   .tf-h-stop .tf-train{width:67px;max-width:67px}
   .tf-train-inner{padding-right:10px}
 }
+
+/* Candidate navigation: center the actual live train, without snap-to-stop overrides. */
+.tf-board-viewport.tf-board-horizontal{scroll-snap-type:none}
+.tf-h-foot{flex-wrap:wrap;align-items:center;gap:6px}
+.tf-h-jump-status{max-width:100%;font-size:10px;line-height:1.4;color:#d2e5fb;text-align:center;overflow-wrap:anywhere}
