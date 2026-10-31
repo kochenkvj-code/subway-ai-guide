@@ -32,12 +32,14 @@ function latestTrains(positions,line){
  }
  return [...map.values()];
 }
-export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,onSnapshot,onPick,onRestart}){
+export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart}){
  const t=words[lang]||words.ko;
  const [refreshing,setRefreshing]=useState(false),[error,setError]=useState(false);
  const viewportRef=useRef(null);
  const [lastPoll,setLastPoll]=useState(null);
  const onSnapshotRef=useRef(onSnapshot);
+ const positionsRef=useRef(positions);
+ useEffect(()=>{positionsRef.current=positions;},[positions]);
  useEffect(()=>{onSnapshotRef.current=onSnapshot;},[onSnapshot]);
  const path=useMemo(()=>mapStations(line,station,next),[line,station,next]);
  const direction=expectedLiveDirection(line,station,next);
@@ -54,8 +56,25 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   viewport.scrollTop+=Math.max(0,delta-100);
  },[line,station,next]);
  const pollRef=useRef(null);
+ const advanceDemo=()=>{
+  const at=new Date().toISOString();
+  const advanced=positionsRef.current.map(p=>{
+   const index=path.stops.indexOf(clean(p.station));
+   if(index<0)return {...p,receivedAt:at};
+   const delta=String(p.direction)===String(direction)?1:-1;
+   const target=Math.max(0,Math.min(path.stops.length-1,index+delta));
+   return {...p,station:path.stops[target],receivedAt:at};
+  });
+  positionsRef.current=advanced;
+  onSnapshotRef.current?.(advanced,at);
+  setLastPoll(at);setError(false);
+ };
  useEffect(()=>{
   if(!active)return;
+  if(demo){
+   const timer=setInterval(()=>advanceDemo(),20000);
+   return ()=>clearInterval(timer);
+  }
   let gone=false;
   async function poll(){
    if(pollRef.current)return;
@@ -71,8 +90,9 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   }
   const timer=setInterval(poll,20000);
   return()=>{gone=true;clearInterval(timer);pollRef.current?.abort();pollRef.current=null;};
- },[active,line]);
+ },[active,line,station,next,demo]);
  const refresh=async()=>{
+  if(demo){advanceDemo();return;}
   if(refreshing)return;
   setRefreshing(true);
   try{
@@ -120,7 +140,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
    </div>
-   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {t.refresh} · {t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
+   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {demo?(lang==='ko'?'DEMO · 20초마다 가상 열차 위치 이동':'DEMO · Fictional train moves every 20s'):t.refresh} · {t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
    {!!candidates.length&&!selected&&<p className="tf-board-choice">{lang==='ko'?'테두리가 강조된 후보 열차를 눌러 선택해 주세요.':lang==='en'?'Tap a highlighted candidate train to select.':lang==='ja'?'強調表示された候補列車を選択してください。':'点击高亮的候选列车进行选择。'}</p>}
  </section>;
 }
