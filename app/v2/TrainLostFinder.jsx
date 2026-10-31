@@ -52,12 +52,14 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const t={...(labels[lang]||labels.ko),...(liveWords[lang]||liveWords.ko)};
  const initial=()=>supportsStation(defaultLine,defaultStation)?{name:defaultStation,line:defaultLine}:{name:'종로5가',line:'1'};
  const [selection,setSelection]=useState(initial);
+ const [demoMode,setDemoMode]=useState(false);
  useEffect(()=>{
    // A separate installation may link directly to its station; validate against the line graph.
    const p=new URLSearchParams(window.location.search);
    const station=(p.get('station')||'').trim().replace(/역$/,'');
    const line=p.get('line')||'';
    if(/^[1-9]$/.test(line)&&supportsStation(line,station))setSelection({name:station,line});
+   setDemoMode(p.get('trainDemo')==='1');
  },[]);
  const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState('');
  const [when,setWhen]=useState(()=>korea(5));
@@ -83,6 +85,29 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      setCandidates([]);setChosen(null);setSearched(true);return;
    }
    setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);setLookupStats(null);
+   if(demoMode){
+     // Explicit visual-only preview for branch URLs without live API credentials.
+     // Never mix synthetic train numbers with actual lost property reports.
+     const now=Date.now();
+     const path=followStops(selection.line,selection.name,next,18).stops;
+     const direction=expectedLiveDirection(selection.line,selection.name,next);
+     const opposite=direction==='0'?'1':'0';
+     const make=(trainNo,st,dir)=>({trainNo,line:selection.line,station:st,direction:dir,
+       destination:'DEMO',express:false,receivedAt:new Date(now).toISOString()});
+     const sample=[
+       make('D001',path[1]||next,direction),
+       make('D002',path[2]||next,direction),
+       make('D003',path[4]||next,direction),
+       make('D004',path[1]||next,opposite),
+       make('D005',selection.name,opposite)
+     ];
+     const result=findLiveCandidates(sample,{
+       date:when.date,time:when.time,line:selection.line,station:selection.name,next,now
+     });
+     setLivePositions(sample);setLiveFetchedAt(new Date(now).toISOString());
+     setCandidates(result.candidates);setDirectionWarning(false);setBusy(false);
+     return;
+   }
    const getJSON=async url=>{try{const r=await fetch(url,{cache:'no-store'});return r.ok?await r.json():null;}catch{return null;}};
    try{
      const route=followStops(selection.line,selection.name,next,8).stops;
@@ -126,6 +151,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  return <div className="tf-root">
    <div className="tf-eyebrow">SUBWAY AI GUIDE · TRAIN FINDER</div>
    <h2>{t.head}</h2><p className="tf-sub">{t.sub}</p>
+   {demoMode&&<p className="tf-warning" role="status">DEMO · {lang==='ko'?'시연용 가상 열차입니다. 실제 운행 정보가 아니며 유실물 수배에 사용할 수 없습니다.':lang==='en'?'Visual demo only. These are fictional trains, not live positions.':lang==='ja'?'デモ用の架空の列車です。実際の運行情報ではありません。':'仅供演示，列车和位置均为虚构。'}</p>}
    {(!searched||busy||error)&&<form onSubmit={lookup} className="tf-form">
      <div className="tf-field"><label>{t.station}</label>
        <div className="tf-selected"><strong>{fmt(selection.name,lang)}</strong><span>{lineName(selection.line+'호선',lang)}</span><button type="button" onClick={()=>setEditing(!editing)}>{t.change}</button></div>
@@ -153,7 +179,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    {searched&&!busy&&!error&&<TrainLiveDiagram
       line={selection.line} station={selection.name} next={next} lang={lang}
       positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates}
-      selected={chosen} active={active} onSnapshot={onLiveSnapshot}
+      selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot}
       onPick={pick} onRestart={resetMatches}
     />}
    {searched&&!busy&&!error&&candidates.length===0&&<p className="tf-warning">{t.none}{lookupStats&&lang==='ko'?(' · 실시간 API '+(lookupStats.usableRows??'-')+'건'):''}</p>}
@@ -169,9 +195,9 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      <p className="tf-warning">{t.guide}</p>
      <h3>{t.forth}</h3>
      {recommended.stations.length>0?<div className="tf-stops">{recommended.stations.map((s,i)=><div className="tf-stop" key={s}><span>{i+3}</span><strong>{fmt(s,lang)}</strong></div>)}</div>:<p className="tf-hint">{t.noForth}</p>}
-     <h3>{t.sms}</h3>
+     {!demoMode&&<><h3>{t.sms}</h3>
      <textarea className="tf-message" readOnly aria-label={t.sms} value={message} rows={9}/>
-     <div className="tf-actions"><button type="button" className="tf-submit" onClick={sms}>{t.openSms} ↗</button><button type="button" onClick={copyMessage}>{copyStatus?'✓ '+t.copy:t.copy}</button><a href="tel:15771234">{t.call}</a></div>
+     <div className="tf-actions"><button type="button" className="tf-submit" onClick={sms}>{t.openSms} ↗</button><button type="button" onClick={copyMessage}>{copyStatus?'✓ '+t.copy:t.copy}</button><a href="tel:15771234">{t.call}</a></div></>}
      <p className="tf-hint">{t.smsNote}</p>
    </section>}
    <p className="tf-footer">SOURCE · 서울시 실시간 열차 위치·도착정보 (역 단위)</p>
