@@ -4,11 +4,17 @@ export const dynamic='force-dynamic';
 const cache=new Map();
 const safe=v=>String(v??'').trim().slice(0,90);
 export function positionReceipt(row){
-  const raw=safe(row.recptnDt),date=safe(row.lastRecptnDt);
-  const complete=/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d$/.test(raw)?raw:
-    /^\d{4}-\d\d-\d\d$/.test(date)&&/^\d\d:\d\d:\d\d$/.test(raw)?date+' '+raw:
-    /^\d{8}$/.test(date)&&/^\d\d:\d\d:\d\d$/.test(raw)?date.slice(0,4)+'-'+date.slice(4,6)+'-'+date.slice(6)+' '+raw:'';
-  return complete?Date.parse(complete.replace(' ','T')+'+09:00'):NaN;
+  const raw=safe(row.recptnDt),last=safe(row.lastRecptnDt);
+  const pattern=/^(\d{4}-\d\d-\d\d)[ T](\d\d:\d\d:\d\d)(?:\.\d+)?$/;
+  const full=[raw,last].find(x=>pattern.test(x));
+  if(full){const m=full.match(pattern);return Date.parse(m[1]+'T'+m[2]+'+09:00');}
+  const date=last.match(/^(\d{4}-\d\d-\d\d|\d{8})/);
+  const time=raw.match(/^(\d\d:\d\d:\d\d)(?:\.\d+)?$/);
+  if(date&&time){
+    const d=date[1].length===8?date[1].slice(0,4)+'-'+date[1].slice(4,6)+'-'+date[1].slice(6):date[1];
+    return Date.parse(d+'T'+time[1]+'+09:00');
+  }
+  return NaN;
 }
 export async function GET(request){
   const line=new URL(request.url).searchParams.get('line');
