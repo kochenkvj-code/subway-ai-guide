@@ -184,13 +184,13 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
 
  return <section className="tf-board-section" aria-label={t.title}>
    <div className="tf-board-heading">
-    <div><h3>{t.title}</h3><p>{t.hint}</p></div>
-    <button className="tf-board-back" onClick={onRestart} type="button">{lang==='ko'?'조건 변경':lang==='en'?'Edit search':lang==='ja'?'条件変更':'修改条件'}</button>
+    <div><h3>{t.title}</h3></div>
+    <span className="tf-live-tag">{demo?'DEMO':t.refresh}</span>
    </div>
    <div className="tf-board-summary">
     <span><span className="tf-board-dot"/> {t.candidate} <strong>{candidates.length}</strong></span>
     {selected&&<span>{lang==='ko'?'선택한 열차':t.selected}: <strong>#{selected.number}</strong></span>}
-    <span>{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
+    <span className="tf-last-update">{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
     <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
@@ -223,7 +223,6 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
       {jumpStatus&&<span className="tf-h-jump-status" role="status">{jumpStatus}</span>}
     </div>}
    </div>
-   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {demo?(lang==='ko'?'DEMO · 20초마다 가상 열차 위치 이동':'DEMO · Fictional train moves every 20s'):t.refresh} · {t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
-   {!!candidates.length&&!selected&&<p className="tf-board-choice">{lang==='ko'?'테두리가 강조된 후보 열차를 눌러 선택해 주세요.':lang==='en'?'Tap a highlighted candidate train to select.':lang==='ja'?'強調表示された候補列車を選択してください。':'点击高亮的候选列车进行选择。'}</p>}
+   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {lang==='ko'?'현재 위치는 역 단위 추정이며 실제 탑승 열차는 미확정입니다.':t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
  </section>;
 }

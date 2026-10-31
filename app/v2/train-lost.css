@@ -379,3 +379,73 @@
 .tf-board-viewport.tf-board-horizontal{scroll-snap-type:none}
 .tf-h-foot{flex-wrap:wrap;align-items:center;gap:6px}
 .tf-h-jump-status{max-width:100%;font-size:10px;line-height:1.4;color:#d2e5fb;text-align:center;overflow-wrap:anywhere}
+
+
+/* Single-screen auto-search: station, direction and time remain visible beside
+   live results, with optional lost-item details only after train selection. */
+.tf-onepage{padding:11px 11px 22px;background:#f5f8fc}
+.tf-compact-header{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0 0 7px}
+.tf-compact-header h2{font-size:18px;line-height:1.35;letter-spacing:-.5px;margin:0}
+.tf-mode-pill{margin-left:auto;font-size:10px;font-weight:800;border:1px solid #cfe0ed;border-radius:20px;color:#346894;background:#eaf4fd;padding:4px 7px}
+.tf-onepage .tf-auto-form{margin:0;padding:10px 10px 7px;border-radius:12px;display:grid;grid-template-columns:1fr;gap:7px}
+.tf-auto-form .tf-field{margin:0}
+.tf-auto-form .tf-field label{font-size:11px;line-height:1.25;margin:0 0 5px;color:#4b6683}
+.tf-auto-form .tf-selected{padding:5px 8px;min-height:33px;gap:6px;border-radius:8px;flex-wrap:nowrap}
+.tf-auto-form .tf-selected strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tf-auto-form .tf-selected span{font-size:10px;white-space:nowrap}
+.tf-auto-form .tf-selected button{white-space:nowrap;margin-left:auto}
+.tf-auto-form .tf-direction-options{display:flex;flex-wrap:nowrap;gap:6px}
+.tf-auto-form .tf-direction-options button{flex:1 1 0;min-width:0;min-height:35px;padding:7px 4px;font-size:11px;border-radius:8px;text-align:center;line-height:1.25}
+.tf-auto-form .tf-time-controls{display:flex;align-items:center;gap:7px}
+.tf-auto-form .tf-quick-times{margin:0;min-width:0;flex:1 1 auto;display:block}
+.tf-auto-form .tf-quick-times>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.tf-auto-form .tf-quick-times button{min-height:35px;padding:6px 2px;font-size:11px;border-radius:7px;white-space:nowrap}
+.tf-auto-form .tf-quick-times button.chosen{border-color:#2e75a9;color:white;background:#2e75a9}
+.tf-auto-form .tf-time-controls input[type=time]{width:109px;flex:0 0 109px;min-width:0;min-height:35px;padding:5px 4px;font-size:12px;border-radius:8px;color:#224f77;background:#f8fbff}
+.tf-auto-form .tf-station-picker{margin-top:5px}
+.tf-auto-state{font-size:10px;color:#69849f;line-height:1.35;min-height:15px}
+.tf-auto-form .tf-line-field select{min-height:35px;padding:5px 8px}
+.tf-onepage .tf-board-section{padding:7px;margin-top:8px;border-radius:12px}
+.tf-onepage .tf-board-heading{align-items:center;gap:8px}
+.tf-onepage .tf-board-heading h3{font-size:12px;margin:2px 0 4px}
+.tf-live-tag{font-size:9px;color:#718da9;white-space:nowrap;margin-left:auto}
+.tf-onepage .tf-board-summary{gap:7px;padding:5px 7px;margin-bottom:5px;font-size:10px}
+.tf-onepage .tf-board-summary button{padding:4px 7px;font-size:10px}
+.tf-onepage .tf-h-topline{padding:5px 7px;font-size:10px}
+.tf-onepage .tf-h-swipe{font-size:9px}
+.tf-onepage .tf-h-foot{padding:4px}
+.tf-onepage .tf-h-foot button{padding:5px 8px;font-size:10px}
+.tf-onepage .tf-board-caption{font-size:9px;padding:4px 1px 0;line-height:1.4}
+.tf-estimate-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:7px;margin-top:7px;border:1px solid #dfe8f1;border-radius:10px;background:white}
+.tf-estimate-row>span{font-size:10px;font-weight:750;color:#4e718f}
+.tf-candidate-chips{display:flex;gap:5px;overflow-x:auto;width:100%;padding:0 0 2px;scrollbar-width:thin}
+.tf-candidate-chips button{min-width:max-content;display:flex;align-items:center;gap:5px;border:1px solid #e7c995;background:#fff8ed;color:#6a511f;padding:6px 7px;border-radius:7px;font-size:10px;cursor:pointer}
+.tf-candidate-chips button.chosen{background:#d6faf0;border-color:#65cdb1;color:#195e51}
+.tf-candidate-chips button span{color:inherit;opacity:.82;font-size:10px}
+.tf-onepage .tf-compact-results{padding:10px;margin-top:8px;border-radius:12px}
+.tf-compact-results .tf-summary-head h3{margin:0;font-size:13px}
+.tf-compact-results .tf-compact-location{margin:7px 0;padding:9px;border-radius:9px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px}
+.tf-compact-location>div{display:flex;gap:7px;align-items:center}
+.tf-compact-location strong{font-size:15px}
+.tf-compact-results .tf-contact-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:7px 0}
+.tf-contact-row>small{font-size:10px;color:#6b85a1;font-weight:750}
+.tf-contact-row .tf-stops{display:flex;flex-wrap:wrap;gap:5px}
+.tf-contact-row .tf-stop{padding:5px 8px;border-radius:7px;font-size:11px}
+.tf-contact-row .tf-stop strong{font-size:11px}
+.tf-compact-results .tf-lost-inputs{gap:7px}
+.tf-compact-results .tf-lost-inputs .tf-field{margin:4px 0}
+.tf-compact-results .tf-lost-inputs label{margin:0 0 4px;font-size:10px}
+.tf-compact-results .tf-lost-inputs input{min-height:35px;padding:7px 8px;font-size:11px}
+.tf-compact-results .tf-actions{margin:7px 0;gap:5px}
+.tf-compact-results .tf-actions button,.tf-compact-results .tf-actions a{padding:8px 9px;font-size:10px}
+.tf-message-details{margin-top:8px;border:1px solid #e4edf5;border-radius:8px;padding:6px;font-size:11px;color:#54738e}
+.tf-message-details summary{cursor:pointer;font-weight:750;padding:2px}
+.tf-message-details .tf-message{margin-top:7px;min-height:120px}
+.tf-compact-results .tf-hint{margin:6px 0 0;font-size:9px;line-height:1.5}
+.tf-onepage .tf-footer{margin-top:9px}
+@media(max-width:360px){
+ .tf-onepage{padding:9px 7px 18px}
+ .tf-auto-form .tf-time-controls{gap:4px}
+ .tf-auto-form .tf-time-controls input[type=time]{width:96px;flex-basis:96px;font-size:11px}
+ .tf-auto-form .tf-direction-options button{font-size:10px}
+}
