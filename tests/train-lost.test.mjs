@@ -1,6 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {findLiveCandidates,reachableTrainStations,expectedLiveDirection} from '../app/lib/train-lost.js';
+import {readFile} from 'node:fs/promises';
+import {SourceTextModule,SyntheticModule} from 'node:vm';
+
+// Next.js supports JSON imports via Turbopack. Node's native ESM loader
+// requires a JSON import attribute, so use a tiny isolated VM module with
+// explicit fixtures instead of changing the production bundling semantics.
+const file=new URL('../app/lib/train-lost.js',import.meta.url);
+const graph=JSON.parse(await readFile(new URL('../app/data/trainLostGraph.json',import.meta.url),'utf8'));
+const directions=JSON.parse(await readFile(new URL('../app/data/trainLostDirection.json',import.meta.url),'utf8'));
+const source=await readFile(file,'utf8');
+const moduleUnderTest=new SourceTextModule(source,{identifier:file.href});
+await moduleUnderTest.link(specifier=>{
+  const fixture=specifier.endsWith('trainLostGraph.json')?graph:
+    specifier.endsWith('trainLostDirection.json')?directions:null;
+  if(!fixture)throw Error('Unexpected dependency: '+specifier);
+  return new SyntheticModule(['default'],function(){this.setExport('default',fixture);});
+});
+await moduleUnderTest.evaluate();
+const {findLiveCandidates,reachableTrainStations,expectedLiveDirection}=moduleUnderTest.namespace;
 
 const now=Date.parse('2026-10-31T18:20:00+09:00');
 const date='2026-10-31',time='18:10',line='1',station='종로5가',next='동대문';
