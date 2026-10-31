@@ -449,3 +449,21 @@
  .tf-auto-form .tf-time-controls input[type=time]{width:96px;flex-basis:96px;font-size:11px}
  .tf-auto-form .tf-direction-options button{font-size:10px}
 }
+
+
+/* Candidate jump visibility on narrow phones: prioritize candidates in a
+   vertically scrollable station bay and make focused candidate unmistakable. */
+.tf-h-trains{
+  justify-content:flex-start;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+}
+.tf-h-trains>.tf-train:first-child{margin-top:auto}
+.tf-h-stop .tf-train-focused,
+.tf-h-stop .tf-train-focused.tf-train-picked{
+  --tf-train-border:#eaff80;
+  filter:drop-shadow(0 0 4px rgba(233,255,143,.85));
+  animation:none;
+}
+.tf-h-stop .tf-train-focused:focus-visible{outline:2px solid #eaff80;outline-offset:2px}
+.tf-h-jump-status{font-weight:800;color:#eaffab}
