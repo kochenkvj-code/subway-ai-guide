@@ -20,3 +20,40 @@
 .tf-quick-times small{font-size:11px;font-weight:750;color:#7d91a8}
 .tf-quick-times>div{display:flex;gap:6px;flex-wrap:wrap}
 .tf-quick-times button{border:1px solid #d7e6f4;border-radius:9px;background:#f2f8ff;color:#2866a0;padding:9px 10px;font-size:11px;font-weight:800}
+
+
+/* Live, station-level train diagram. Based on public position snapshots, not GPS. */
+.tf-board-section{border:1px solid #dce5ee;border-radius:17px;background:#fff;padding:13px;margin-top:14px}
+.tf-board-heading{display:flex;gap:9px;align-items:flex-start;justify-content:space-between}
+.tf-board-heading h3{margin:3px 0 4px;font-size:17px}.tf-board-heading p{color:#7890a9;font-size:11px;line-height:1.5;margin:0 0 11px}
+.tf-board-back{border:1px solid #d5e3ef;border-radius:9px;background:#f5f9fd;color:#376c9a;white-space:nowrap;padding:8px;font-size:11px;font-weight:750}
+.tf-board-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:#5a7690;border-radius:11px;background:#f3f7fc;padding:9px;margin-bottom:10px}
+.tf-board-summary>span{display:flex;align-items:center;gap:3px}.tf-board-summary button{margin-left:auto;background:#fff;border:1px solid #cbddeb;border-radius:8px;color:#28618b;padding:7px;font-size:11px;font-weight:700}
+.tf-board-dot{width:9px;height:9px;background:#ffaf3e;border:2px solid #e17d1d;display:inline-block;border-radius:50%}
+.tf-board{border:1px solid #2c3748;border-radius:13px;background:#111a28;color:#eef5ff;overflow:hidden}
+.tf-board-columns{display:grid;grid-template-columns: 30% 30% 40%;align-items:center;text-align:center;gap:0;background:#202d42;color:#c7d7eb;padding:10px 0;font-size:10px;font-weight:750}
+.tf-board-columns span:nth-child(2){color:#8acaff}
+.tf-board-viewport{max-height:min(62dvh,580px);min-height:180px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.tf-board-row{display:grid;grid-template-columns:30% 30% 40%;border-bottom:1px solid #243247;min-height:76px;position:relative}
+.tf-board-row.tf-board-origin{background:rgba(237,183,55,.11);outline:1px solid rgba(241,177,47,.3);outline-offset:-1px}
+.tf-board-track{min-width:0;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:3px;position:relative;padding:5px 2px}
+.tf-board-sleeper{position:absolute;width:3px;background:#3d73d2;top:0;bottom:0;left:50%;transform:translateX(-50%);opacity:.75}
+.tf-board-track-muted .tf-board-sleeper{background:#526a8f;opacity:.56}
+.tf-board-track::after{position:absolute;content:'';width:9px;height:9px;border:2px solid #607da3;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);background:#111a28;pointer-events:none}
+.tf-board-origin .tf-board-track::after{background:#a18237;border-color:#fed575}
+.tf-board-station{display:flex;align-items:flex-start;justify-content:center;flex-direction:column;padding:6px 7px;gap:4px}
+.tf-board-station-name{font-size:13px;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+.tf-board-alighted{font-size:9px;font-weight:700;color:#ffdf95}
+.tf-train{position:relative;z-index:2;max-width:100%;min-width:0;min-height:31px;padding:5px 3px;display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap;border:1px solid #65788d;background:#27364b;color:#c2cfe0;border-radius:9px;font-size:11px}
+.tf-train-other{opacity:.62}.tf-train-icon{background:#52a877;color:white;padding:1px 3px;border-radius:4px;font-size:10px}
+.tf-train-number{font-weight:850;font-variant-numeric:tabular-nums;font-size:12px}
+.tf-train-pick{background:#183d60;border:2px solid #ffc46d;box-shadow:0 0 0 2px rgba(255,188,79,.18);color:#fff;cursor:pointer;animation:tf-pulse 2.5s ease-in-out infinite}
+.tf-train-pick .tf-train-icon{background:#ffab36;color:#44270a}.tf-train-candidate{display:block;width:100%;font-size:9px;line-height:1;color:#ffcf81;font-weight:900}
+.tf-train-picked{background:#0c655b;border-color:#77f1c9;box-shadow:0 0 0 2px rgba(65,210,168,.23);animation:none}.tf-train-picked .tf-train-candidate{color:#a9f8dc}
+.tf-board-empty{color:#9aadc6;text-align:center;font-size:12px;padding:14px}
+.tf-board-caption{color:#7b90a5;font-size:10px;line-height:1.7;padding:10px 2px 2px}
+.tf-board-refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2cb492}
+.tf-board-choice{font-size:12px;color:#466c8e;text-align:center;font-weight:750;line-height:1.6;margin:8px 0 2px}
+@keyframes tf-pulse{0%,100%{box-shadow:0 0 0 2px rgba(255,188,79,.13)}50%{box-shadow:0 0 0 4px rgba(255,188,79,.35)}}
+@media (max-width:400px){.tf-board-section{padding:10px}.tf-board-station-name{font-size:12px}.tf-train-number{font-size:11px}.tf-board-columns{font-size:9px}.tf-board-row{min-height:73px}}
+@media (prefers-reduced-motion:reduce){.tf-train-pick{animation:none}}

@@ -4,6 +4,7 @@ import {officialStationMatches} from '../lib/officialStations';
 import {stationName,lineName} from '../lib/stationNameI18n';
 import {stationNeighbors,supportsStation,findLiveCandidates,followStops,futureStops,expectedLiveDirection} from '../lib/train-lost';
 import './train-lost.css';
+import TrainLiveDiagram from './TrainLiveDiagram';
 
 const labels={
  ko:{head:'열차 내 유실물 찾기',sub:'하차한 열차를 추정하고 실시간 위치를 확인합니다.',station:'하차역',change:'다른 역 선택',search:'역명 검색',line:'호선',toward:'열차가 향한 다음 역',towardHint:'하차한 열차가 어느 쪽으로 떠났나요?',time:'하차 시각',date:'하차 날짜',thing:'분실 물품',thingExample:'예: 검은색 가방',car:'탑승 칸·출입문',carExample:'예: 4-2',lookup:'열차 후보 찾기',looking:'시간표와 실시간 정보를 대조 중…',none:'조건에 맞는 열차 후보가 없습니다. 시간을 다시 확인해 주세요.',candidates:'가능한 열차',scheduled:'시간표',live:'실시간 열차번호 일치 · 위치 확인',onlySchedule:'시간표로 추정 · 실시간 미확인',directionUnknown:'실시간 방향 검증 불가: 두 방향의 후보가 함께 표시될 수 있습니다.',uncertain:'후보 열차가 여러 대면 정확히 확인한 후 선택하세요. 시간표만으로 열차를 확정할 수 없습니다.',choose:'이 열차 추적',selected:'선택한 열차',update:'위치 새로고침',position:'현재 확인 위치',absent:'실시간 위치를 확인할 수 없습니다.',forth:'연락 가능성을 확인할 후속 역',forthNote:'일반열차·분기 없는 구간 기준입니다. 실제 정차 및 통화 가능 여부를 확인하세요.',noForth:'급행 정차역 또는 지선 경로가 확인되지 않아 특정 역을 추천하지 않습니다.',sms:'콜센터 문자 작성',copy:'문구 복사',call:'1577-1234 전화',smsNote:'문자 앱에서 내용을 확인하고 직접 발송하세요. 기기별로 본문이 채워지지 않을 수 있습니다.',openSms:'1577-1234 문자 앱 열기',again:'다시 검색',guide:'열차번호는 추정값이며, 조회된 위치가 해당 승객의 실제 탑승열차를 보장하지 않습니다.',failure:'정보를 불러오지 못했습니다. 기존 전화 상담을 이용하세요.',emptyQuery:'하차역을 먼저 선택하세요.',dateNote:'공휴일·운행 변경·막차 시간표는 실제와 다를 수 있습니다.',branch:'분기역에서는 같은 방향이라도 경로가 나뉠 수 있습니다.',noApi:'실시간 위치가 없을 경우 시간표 후보만 보여줍니다.',pick:'선택',arrivalGap:'시각 차이'},
@@ -19,11 +20,23 @@ zh:{looking:'正在核对实时列车位置…',none:'没有匹配的实时列�
 };
 
 const korea=(minutesAgo=0)=>{
+
  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(Date.now()-minutesAgo*60000));
  const m=Object.fromEntries(p.map(x=>[x.type,x.value]));return {date:m.year+'-'+m.month+'-'+m.day,time:m.hour+':'+m.minute};
 };
 const fmt=(name,lang)=>stationName(name,lang)||name;
 const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
+function kstAlightDateForTime(time){
+ const today=korea().date;
+ const todayMs=Date.parse(today+'T'+time+':00+09:00');
+ const now=Date.now();
+ if(todayMs>now+60000){
+  const yesterday=korea(1440).date;
+  const yesterdayMs=Date.parse(yesterday+'T'+time+':00+09:00');
+  if(now-yesterdayMs>=-120000&&now-yesterdayMs<=30*60000)return yesterday;
+ }
+ return today;
+}
 function validLocation(candidate,p,selection,next,when){
  if(!candidate||!p||compareNo(p.trainNo)!==compareNo(candidate.number))return false;
  const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
@@ -47,7 +60,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    if(/^[1-9]$/.test(line)&&supportsStation(line,station))setSelection({name:station,line});
  },[]);
  const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState('');
- const [when,setWhen]=useState(korea);
+ const [when,setWhen]=useState(()=>korea(5));
+ const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
@@ -57,25 +71,12 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const lines=useMemo(()=>Array.from({length:9},(_,i)=>String(i+1)).filter(line=>supportsStation(line,selection.name)),[selection.name]);
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
  useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
- useEffect(()=>{
-   if(!active||!chosen)return;
-   let disposed=false;const ac=new AbortController();
-   async function update(){
-     try{
-       const res=await fetch('/api/v2/train-lost/position?line='+selection.line,{cache:'no-store',signal:ac.signal});
-       const data=await res.json();if(disposed)return;
-       const found=data.ok?(data.positions||[]).find(p=>validLocation(chosen,p,selection,next,when)):null;
-       setCurrent(found||null);setLiveInfo(data.ok?'':t.absent);
-     }catch{if(!disposed){setCurrent(null);setLiveInfo(t.absent);}}
-   }
-   void update();const timer=setInterval(update,30000);
-   return()=>{disposed=true;clearInterval(timer);ac.abort();};
- },[chosen,active,selection.name,selection.line,next,when.date,when.time,refresh]);
- function resetMatches(){setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);}
+
+ function resetMatches(){setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);}
  function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
  async function lookup(e){
    e.preventDefault();
-   if(!supportsStation(selection.line,selection.name)||!next||!when.date||!when.time){setError(t.emptyQuery);return;}
+   if(!supportsStation(selection.line,selection.name)||!next||!when.time){setError(t.emptyQuery);return;}
    const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
    if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000){
      setError('하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.');
@@ -91,7 +92,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
        ...stations.map(st=>getJSON('/api/v2/train-lost/arrival?line='+selection.line+'&station='+encodeURIComponent(st)))
      ]);
      if(!position?.ok)throw Error(t.failure+' (LIVE API)');
-    setLookupStats(position.diagnostics||{usableRows:position.positions?.length||0});
+     setLivePositions(position.positions||[]);setLiveFetchedAt(position.fetchedAt);
+     setLookupStats(position.diagnostics||{usableRows:position.positions?.length||0});
      const evidence=arrivals.flatMap((result,i)=>(result?.evidence||[]).map(x=>({
        ...x,routeIndex:stations[i]===selection.name?0:route.indexOf(stations[i])+1
      })));
@@ -102,7 +104,19 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      setDirectionWarning(result.candidates.some(x=>!x.corroborated));
    }catch(ex){setError(ex.message||t.failure);}finally{setBusy(false);}
  }
- function pick(candidate){setChosen(candidate);setCurrent(candidate.live||null);setRefresh(x=>x+1);}
+ function pick(candidate){
+   setChosen(candidate);
+   const found=livePositions.find(p=>compareNo(p.trainNo)===compareNo(candidate.number)&&String(p.direction)===String(requiredDirection));
+   setCurrent(found||candidate.live||null);
+ }
+ function onLiveSnapshot(nextPositions,at){
+   setLivePositions(nextPositions);
+   setLiveFetchedAt(at);
+   if(chosen){
+     const matched=nextPositions.find(p=>compareNo(p.trainNo)===compareNo(chosen.number)&&String(p.direction)===String(requiredDirection));
+     setCurrent(matched||null);
+   }
+ }
  const where=current?.station||'';
  const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express&&chosen.corroborated&&String(current.direction)===requiredDirection);
  const recommended=canRecommend?futureStops(selection.line,selection.name,next,where):{stations:[],reason:'NO_POSITION'};
@@ -112,7 +126,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  return <div className="tf-root">
    <div className="tf-eyebrow">SUBWAY AI GUIDE · TRAIN FINDER</div>
    <h2>{t.head}</h2><p className="tf-sub">{t.sub}</p>
-   <form onSubmit={lookup} className="tf-form">
+   {(!searched||busy||error)&&<form onSubmit={lookup} className="tf-form">
      <div className="tf-field"><label>{t.station}</label>
        <div className="tf-selected"><strong>{fmt(selection.name,lang)}</strong><span>{lineName(selection.line+'호선',lang)}</span><button type="button" onClick={()=>setEditing(!editing)}>{t.change}</button></div>
        {editing&&<div className="tf-station-picker">
@@ -127,35 +141,29 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
        {next&&requiredDirection!==null&&<p className="tf-hint">{lang==='ko'?'선택 진행 방향: ':lang==='en'?'Selected direction: ':lang==='ja'?'選択方向: ':'所选方向：'}{lang==='ko'?(requiredDirection==='0'?(selection.line==='2'?'내선':'상행'):(selection.line==='2'?'외선':'하행'))+' · ':''}{fmt(next,lang)} →</p>}
        {next&&requiredDirection===null&&<p className="tf-warning">{lang==='ko'?'이 구간의 상·하행 코드는 아직 확인되지 않아 반대 방향 열차 오인을 막기 위해 검색이 제한됩니다.':lang==='en'?'No verified direction mapping for this segment. Search unavailable.':lang==='ja'?'この区間は進行方向が未確認のため検索できません。':'此区间方向未经核实，暂无法搜索。'}</p>}
      </div>
-     <div className="tf-two">
-       <div className="tf-field"><label>{t.date}</label><input type="date" value={when.date} max={korea().date} onChange={e=>{setWhen(s=>({...s,date:e.target.value}));resetMatches();}}/></div>
-       <div className="tf-field"><label>{t.time}</label><input type="time" value={when.time} onChange={e=>{setWhen(s=>({...s,time:e.target.value}));resetMatches();}}/></div>
-     </div>
+     <div className="tf-field"><label>{t.time}</label><input type="time" value={when.time} onChange={e=>{setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></div>
      <div className="tf-quick-times"><small>{t.fastTime}</small><div>{[3,5,10,15].map(min=><button key={min} type="button" onClick={()=>{setWhen(korea(min));resetMatches();}}>{min}{t.fastMin}</button>)}</div></div><p className="tf-hint">{t.dateNote}</p>
      <div className="tf-two">
        <div className="tf-field"><label>{t.thing}</label><input value={thing} maxLength={80} placeholder={t.thingExample} onChange={e=>setThing(e.target.value)}/></div>
        <div className="tf-field"><label>{t.car}</label><input value={car} maxLength={30} placeholder={t.carExample} onChange={e=>setCar(e.target.value)}/></div>
      </div>
      <button type="submit" className="tf-submit" disabled={busy||!next||requiredDirection===null}>{busy?t.looking:t.lookup} →</button>
-   </form>
+   </form>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
-   {candidates.length>0&&!chosen&&<section className="tf-results" aria-label={t.candidates}>
-     <h3>{t.candidates} · {candidates.length}</h3>
-     <p className="tf-warning">{t.uncertain}</p>
-     {directionWarning&&<p className="tf-warning">{lang==='ko'?'일부 후보는 실시간 도착정보와 교차 확인되지 않았습니다.':t.directionUnknown}</p>}
-     {candidates.map((r,i)=><div className="tf-candidate" key={r.number+'-'+r.receivedAt+'-'+i}>
-        <div><strong>#{r.number}</strong>
-          <span>{t.scheduled}: {fmt(r.station,lang)} · {t.arrivalGap} {r.stopsFromAlight}{lang==='ko'?'정거장':' stops'}</span>
-          <small>{lang==='ko'?(r.expectedDirection==='0'?(selection.line==='2'?'내선':'상행'):(selection.line==='2'?'외선':'하행'))+' · ':''}{r.corroborated?t.live:t.onlySchedule}{r.express?' · '+t.expressText:''}</small>
-        </div><button type="button" onClick={()=>pick(r)}>{t.choose}</button></div>)}
-   </section>}
-   {!busy&&!chosen&&!error&&candidates.length===0&&<p className="tf-hint">{searched?t.none:t.noApi}{lookupStats&&lang==='ko'?` · 실시간 API 원본 ${lookupStats.providerRows??'-'}건 / 유효 ${lookupStats.usableRows??'-'}건`:''}</p>}
+   {searched&&!busy&&!error&&<TrainLiveDiagram
+      line={selection.line} station={selection.name} next={next} lang={lang}
+      positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates}
+      selected={chosen} active={active} onSnapshot={onLiveSnapshot}
+      onPick={pick} onRestart={resetMatches}
+    />}
+   {searched&&!busy&&!error&&candidates.length===0&&<p className="tf-warning">{t.none}{lookupStats&&lang==='ko'?(' · 실시간 API '+(lookupStats.usableRows??'-')+'건'):''}</p>}
+
    {chosen&&<section className="tf-results">
      <div className="tf-summary-head"><h3>{t.selected} · #{chosen.number}</h3><button type="button" onClick={()=>{setChosen(null);setCurrent(null);}}>{t.again}</button></div>
      <div className="tf-location">
        <small>{t.position}</small><strong>{current?fmt(current.station,lang):t.absent}</strong>
        <span>{current?new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(current.receivedAt))+' KST':''}</span>
-       <button type="button" onClick={()=>setRefresh(x=>x+1)}>{t.update} ↻</button>
+       <span className="tf-hint">{lang==='ko'?'노선도에서 약 20초마다 위치가 갱신돼요.':t.refresh||'Refreshes every 20s'}</span>
      </div>
      {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
      <p className="tf-warning">{t.guide}</p>
@@ -166,6 +174,6 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      <div className="tf-actions"><button type="button" className="tf-submit" onClick={sms}>{t.openSms} ↗</button><button type="button" onClick={copyMessage}>{copyStatus?'✓ '+t.copy:t.copy}</button><a href="tel:15771234">{t.call}</a></div>
      <p className="tf-hint">{t.smsNote}</p>
    </section>}
-   {!candidates.length&&!chosen&&<p className="tf-footer">SOURCE · 서울시 실시간 열차 위치·도착정보</p>}
+   <p className="tf-footer">SOURCE · 서울시 실시간 열차 위치·도착정보 (역 단위)</p>
  </div>;
 }
