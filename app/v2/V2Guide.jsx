@@ -12,6 +12,7 @@ import TrainTimetable from './TrainTimetable';
 import CompactLostFound from './lost-found-demo/CompactLostFound';
 import FacilityDemo from './facilities-demo/FacilityDemo';
 import TrainLostFinder from './TrainLostFinder';
+import { CURRENT_STATION } from '../lib/train-arrivals';
 function Icon({name}) { return <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:iconPaths[name] || iconPaths.train}}/>; }
 const languages=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']];
 const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
@@ -70,7 +71,7 @@ export default function V2Guide() {
       {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable lang={lang} active={view==='timetable'}/></div>}
       {mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound embedded /></div>}
       {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo embedded /></div>}
-      {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder lang={lang} active={view==='lost'} defaultStation="종로5가" defaultLine="1"/></div>}
+      {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
       {view==='live'&&<ArrivalDetails state={arrivals} lang={lang} t={t}/>}
       {!['home','chat','live','tour','timetable','found','facility','lost',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>

@@ -40,6 +40,13 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const t=labels[lang]||labels.ko;
  const initial=()=>supportsStation(defaultLine,defaultStation)?{name:defaultStation,line:defaultLine}:{name:'종로5가',line:'1'};
  const [selection,setSelection]=useState(initial);
+ useEffect(()=>{
+   // A separate installation may link directly to its station; validate against the line graph.
+   const p=new URLSearchParams(window.location.search);
+   const station=(p.get('station')||'').trim().replace(/역$/,'');
+   const line=p.get('line')||'';
+   if(/^[1-9]$/.test(line)&&supportsStation(line,station))setSelection({name:station,line});
+ },[]);
  const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState('');
  const [when,setWhen]=useState(korea);
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
