@@ -201,3 +201,139 @@
   .tf-train-inner{padding-right:21px;padding-left:10px}
 }
 @media(prefers-reduced-motion:reduce){.tf-h-stop .tf-train-pick{animation:none}}
+
+
+/* Compact station-level train diagram: keep four or more stops visible on
+   typical phone widths while preserving two-line destination/train labels. */
+.tf-board-section{
+  padding:8px;
+  margin-top:9px;
+  border-radius:12px;
+}
+.tf-board-heading{
+  gap:6px;
+  align-items:center;
+}
+.tf-board-heading h3{
+  margin:2px 0 1px;
+  font-size:14px;
+}
+.tf-board-heading p{
+  font-size:10px;
+  line-height:1.35;
+  margin:0 0 6px;
+}
+.tf-board-back{
+  padding:6px 8px;
+  font-size:10px;
+}
+.tf-board-summary{
+  padding:6px 8px;
+  margin-bottom:6px;
+  gap:6px;
+  font-size:10px;
+  border-radius:8px;
+}
+.tf-board-summary button{
+  padding:5px 6px;
+  font-size:10px;
+}
+.tf-board{border-radius:9px}
+.tf-h-topline{
+  padding:7px 9px;
+  gap:5px;
+  font-size:10px;
+}
+.tf-h-swipe{font-size:9px}
+.tf-h-flow{
+  padding:3px 3px 5px;
+}
+.tf-h-stop{
+  width:92px;
+  min-width:92px;
+  flex:0 0 92px;
+  border-radius:6px;
+}
+.tf-h-trains{
+  height:95px;
+  min-height:95px;
+  padding:3px 2px;
+  gap:3px;
+}
+.tf-h-rail{
+  height:20px;
+  min-height:20px;
+}
+.tf-h-rail::before{height:3px}
+.tf-h-node{
+  width:10px;
+  height:10px;
+  border-width:2px;
+}
+.tf-h-origin .tf-h-node{
+  width:15px;
+  height:15px;
+  border-width:3px;
+}
+.tf-h-name{
+  min-height:23px;
+  padding:5px 2px 0;
+  font-size:11px;
+  line-height:1.25;
+}
+.tf-h-detail{
+  padding:0 2px 4px;
+  font-size:9px;
+  line-height:1.2;
+}
+.tf-h-stop .tf-train{
+  width:86px;
+  max-width:86px;
+  height:43px;
+  min-height:43px;
+  border-radius:0;
+  clip-path:polygon(6px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,6px 100%,0 calc(100% - 6px),0 6px);
+  -webkit-clip-path:polygon(6px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,6px 100%,0 calc(100% - 6px),0 6px);
+}
+.tf-h-stop .tf-train::before{
+  inset:1.5px;
+  clip-path:polygon(5px 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,5px 100%,0 calc(100% - 5px),0 5px);
+  -webkit-clip-path:polygon(5px 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,5px 100%,0 calc(100% - 5px),0 5px);
+}
+.tf-train-inner{
+  padding:4px 13px 4px 7px;
+  gap:2px;
+}
+.tf-train-topline{gap:2px}
+.tf-h-stop .tf-train-destination{
+  font-size:9px;
+  line-height:1.15;
+}
+.tf-h-stop .tf-train-number{
+  font-size:13px;
+  line-height:1.05;
+  letter-spacing:0;
+}
+.tf-h-stop .tf-train-candidate{
+  font-size:7px;
+  padding:1px 2px;
+}
+.tf-h-foot{padding:6px}
+.tf-h-foot button{
+  font-size:10px;
+  padding:7px 10px;
+}
+.tf-board-caption{
+  padding:6px 1px 0;
+  font-size:9px;
+  line-height:1.45;
+}
+.tf-board-choice{
+  margin:4px 0 0;
+  font-size:10px;
+}
+@media(max-width:380px){
+  .tf-h-stop{width:88px;min-width:88px;flex:0 0 88px}
+  .tf-h-stop .tf-train{width:82px;max-width:82px}
+  .tf-train-inner{padding:4px 12px 4px 6px}
+}
