@@ -13,7 +13,7 @@ export function positionReceipt(row){
 export async function GET(request){
   const line=new URL(request.url).searchParams.get('line');
   if(!/^[1-9]$/.test(line))return Response.json({ok:false,error:'INVALID_LINE'},{status:400});
-  const key=process.env.SEOUL_SUBWAY_ARRIVAL_API_KEY?.trim();
+  const key=process.env.SEOUL_SUBWAY_POSITION_API_KEY?.trim();
   if(!key)return Response.json({ok:false,error:'NOT_CONFIGURED',positions:[]},{status:503});
   const now=Date.now(),cached=cache.get(line);
   if(cached&&now-cached.at<15000)return Response.json(cached.data,{headers:{'Cache-Control':'no-store'}});
