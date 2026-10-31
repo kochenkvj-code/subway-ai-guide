@@ -50,7 +50,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const [thing,setThing]=useState(''),[car,setCar]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
- const [refresh,setRefresh]=useState(0),[copyStatus,setCopyStatus]=useState(false),[searched,setSearched]=useState(false);
+ const [refresh,setRefresh]=useState(0),[copyStatus,setCopyStatus]=useState(false),[searched,setSearched]=useState(false),[lookupStats,setLookupStats]=useState(null);
  const neighbors=useMemo(()=>stationNeighbors(selection.line,selection.name),[selection.name,selection.line]);
  const lines=useMemo(()=>Array.from({length:9},(_,i)=>String(i+1)).filter(line=>supportsStation(line,selection.name)),[selection.name]);
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
@@ -79,7 +79,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      setError('하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.');
      setCandidates([]);setChosen(null);setSearched(true);return;
    }
-   setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);
+   setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);setLookupStats(null);
    const getJSON=async url=>{try{const r=await fetch(url,{cache:'no-store'});return r.ok?await r.json():null;}catch{return null;}};
    try{
      const route=followStops(selection.line,selection.name,next,8).stops;
@@ -88,7 +88,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
        getJSON('/api/v2/train-lost/position?line='+selection.line),
        ...stations.map(st=>getJSON('/api/v2/train-lost/arrival?line='+selection.line+'&station='+encodeURIComponent(st)))
      ]);
-     if(!position?.ok)throw Error(t.failure);
+     if(!position?.ok)throw Error(t.failure+' (LIVE API)');
+    setLookupStats(position.diagnostics||{usableRows:position.positions?.length||0});
      const evidence=arrivals.flatMap((result,i)=>(result?.evidence||[]).map(x=>({
        ...x,routeIndex:stations[i]===selection.name?0:route.indexOf(stations[i])+1
      })));
@@ -144,7 +145,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
           <small>{r.corroborated?t.live:t.onlySchedule}{r.express?' · '+t.expressText:''}</small>
         </div><button type="button" onClick={()=>pick(r)}>{t.choose}</button></div>)}
    </section>}
-   {!busy&&!chosen&&!error&&candidates.length===0&&<p className="tf-hint">{searched?t.none:t.noApi}</p>}
+   {!busy&&!chosen&&!error&&candidates.length===0&&<p className="tf-hint">{searched?t.none:t.noApi}{lookupStats&&lang==='ko'?` · 실시간 API 원본 ${lookupStats.providerRows??'-'}건 / 유효 ${lookupStats.usableRows??'-'}건`:''}</p>}
    {chosen&&<section className="tf-results">
      <div className="tf-summary-head"><h3>{t.selected} · #{chosen.number}</h3><button type="button" onClick={()=>{setChosen(null);setCurrent(null);}}>{t.again}</button></div>
      <div className="tf-location">
