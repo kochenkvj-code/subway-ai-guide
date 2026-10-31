@@ -20,6 +20,7 @@ export async function GET(request){
      .map(row=>({trainNo:String(row.btrainNo||'').trim(),line,station,
        directionCode:row.updnLine==='상행'||row.updnLine==='내선'?'0':row.updnLine==='하행'||row.updnLine==='외선'?'1':null,
        arrivalCode:String(row.arvlCd||''),receivedAt:row.recptnDt,
+       destination:String(row.bstatnNm||'').trim().slice(0,80),
        label:String(row.trainLineNm||'').slice(0,100)}));
    return Response.json({ok:true,evidence},{headers:{'Cache-Control':'no-store'}});
  }catch{return Response.json({ok:false,error:'ARRIVAL_UNAVAILABLE'},{status:502,headers:{'Cache-Control':'no-store'}});}
