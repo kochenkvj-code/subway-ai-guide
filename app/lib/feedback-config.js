@@ -4,7 +4,7 @@ export const FEEDBACK_STATIONS = {
   'jongno5ga-1': { id:'jongno5ga-1', line:'1', names:{ko:'종로5가역',en:'Jongno 5-ga',ja:'鍾路5街駅',zh:'钟路5街站'} },
 };
 export const DEFAULT_FEEDBACK_STATION = FEEDBACK_STATIONS['jongno5ga-1'];
-export const FEEDBACK_TYPES = ['equipment','signage','cleanliness','convenience','idea','other'];
+export const FEEDBACK_TYPES = ['equipment','signage','cleanliness','convenience','idea','other','praise'];
 export const FEEDBACK_LOCATIONS = ['gate','platform','restroom','exit','other'];
 export function validateFeedback(data) {
   const station = data && Object.hasOwn(FEEDBACK_STATIONS,data.station) ? FEEDBACK_STATIONS[data.station] : null;

@@ -12,7 +12,8 @@ const server=http.createServer(async(req,res)=>{
  }else if(path==='/rest/v1/rpc/feedback_rate_limit'){res.end('true');}
  else if(path==='/rest/v1/station_feedback'){
   assert.ok(url.searchParams.get('station_id')?.startsWith('eq.'));
-  let found=rows.filter(x=>x.station_id===url.searchParams.get('station_id').slice(3)&&!x.hidden);
+  let found=rows.filter(x=>x.station_id===url.searchParams.get('station_id').slice(3));
+  if(url.searchParams.get('hidden'))found=found.filter(x=>x.hidden===(url.searchParams.get('hidden')==='eq.true'));
   for(const key of ['id','type']){const v=url.searchParams.get(key);if(v)found=found.filter(x=>x[key]===v.slice(3));}
   if(url.searchParams.get('starred'))found=found.filter(x=>x.starred);
   if(req.method==='PATCH'){found.forEach(x=>Object.assign(x,body));res.end(JSON.stringify(found.map(x=>({id:x.id}))));return;}
@@ -33,7 +34,7 @@ const server=http.createServer(async(req,res)=>{
   await p.goto(origin+'/v2?view=feedback');await p.locator('.sf-choice').first().click();
   assert.equal(await p.locator('.sf-chips [aria-pressed=true]').count(),0);
   await p.locator('#sf-content').fill('출구 안내 표지판을 더 잘 보이게 해주세요. '.repeat(8));await p.locator('.sf-chips button').nth(1).click();assert.ok((await p.locator('#sf-content').inputValue()).startsWith('출구'));
-  await p.locator('#sf-location').selectOption('exit');await p.locator('#sf-detail').fill('3번 출구');await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
+  await p.locator('.sf-locations button').nth(3).click();await p.locator('#sf-detail').fill('3번 출구');await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
   assert.equal(rows.filter(x=>x.station_id===station).length,1);assert.equal(rows[0].location_detail,'3번 출구');
   await p.locator('.v2-view-header > button').first().click();await p.locator('.sf-choice').first().waitFor();await p.locator('.v2-view-header > button').first().click();await p.locator('.v2-home:not([hidden])').waitFor();await p.locator('.sf-badge').waitFor();assert.equal(await p.locator('.sf-badge').innerText(),'1');
   await p.locator('.v2-grid > button').last().click();await p.locator('.sf-choice').nth(1).click();await p.locator('#sf-pin').waitFor();
@@ -49,11 +50,15 @@ const server=http.createServer(async(req,res)=>{
   const list=await ctx.request.get(origin+'/api/stats/feedback?station='+station,{headers:{Authorization:'Bearer '+token}});const listData=await list.json();assert.equal(listData.total,2);assert.equal(listData.recent,1);
   const admin=await browser.newContext();assert.equal((await admin.request.post(origin+'/api/stats/auth',{data:{password:'test-only-password'}})).status(),200);
   assert.equal((await admin.request.patch(origin+'/api/stats/feedback',{data:{station,id:rows[0].id,field:'hidden',value:true}})).status(),200);assert.equal(rows[0].hidden,true);
+  const hidden=await admin.request.get(origin+'/api/stats/feedback?station='+station+'&visibility=hidden');assert.equal((await hidden.json()).total,1);
+  assert.equal((await ctx.request.get(origin+'/api/stats/feedback?station='+station+'&visibility=all',{headers:{Authorization:'Bearer '+token}})).status(),403);
+  assert.equal((await admin.request.patch(origin+'/api/stats/feedback',{data:{station,id:rows[0].id,field:'hidden',value:false}})).status(),200);assert.equal(rows[0].hidden,false);
+
   // Every language and width remains within the screen. No production mutations.
   const labels={ko:'한국어',en:'English',ja:'日本語',zh:'中文'};
   for(const width of [320,390,768]){await p.setViewportSize({width,height:844});for(const lang of ['ko','en','ja','zh']){
    await p.locator('.v2-view-header .v2-language select').selectOption(lang);
-   await p.locator('.sf-back').click();await p.locator('.sf-choice').first().click();await p.locator('#sf-content').waitFor();assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   await p.locator('.v2-view-header > button').first().click();await p.locator('.sf-choice').first().click();await p.locator('#sf-content').waitFor();assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    assert.equal(await p.locator('#sf-content').getAttribute('maxlength'),'500');
   }}
   console.log('PASS browser → APIs → storage: draft, unset category, detail, submit, back/home, live badge, PIN, tab session, star, admin-only hide, station scope, 30-day/all-time, four languages at 320/390/768px');

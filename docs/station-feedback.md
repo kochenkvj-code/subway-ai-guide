@@ -29,3 +29,9 @@ Counts use a rolling 30×24 hours and exclude hidden opinions. The inbox list in
 `npm run test:feedback`: validation and token isolation/rotation/expiry. After `npm run build`, `npm run test:feedback-flow` starts isolated Next and PostgREST test servers on 3015/4315, then exercises browser→real API→test storage. Covers draft preservation, category, detail, submit/complete/back/home, badge, PIN, tab reload, star, admin-only hide, station filtering, thirty-day versus all-time, and four languages at 320/390/768px. Requires Playwright and Chromium in the development environment. Live Supabase tests use transactions and roll back all test opinions.
 
 To revert UI/API release, restore the preceding Git commit; the additive DB tables can remain intact so opinions are preserved. Do not drop collected feedback to roll back the UI.
+
+## Button filters, praise, hidden-item recovery
+
+Apply `database/feedback-praise.sql` after the original migration. Category and location inputs are direct-tap button groups; optional location can be deselected. Praise is supported in all four languages. Only the existing top-left workspace back button remains. Administrators can choose visible/all/hidden records and restore a hidden record. Staff tokens cannot request hidden records or restore them. Hidden rows continue to be excluded from the public count.
+
+Ten explicitly labeled test ideas were added on 2026-11-01 for Jongno 5-ga. Their request IDs have prefix `f00d0000-0000-4000-8000-`, and their content begins `[테스트 의견 n]`. They count toward the badge until hidden or removed. They are test content, not passenger feedback.

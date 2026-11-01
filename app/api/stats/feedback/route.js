@@ -21,7 +21,11 @@ export async function GET(request){
   const access=feedbackAccess(request,station);if(!access.allowed)return json({error:'unauthorized',pinConfigured:!!stationPin(station)},401);
   const page=Number(q.get('page')||0),type=q.get('type'),stars=q.get('stars');
   if(!Number.isInteger(page)||page<0||page>10000||(type&&!FEEDBACK_TYPES.includes(type)))return json({error:'invalid'},400);
-  const params=new URLSearchParams({select:'id,type,location,location_detail,content,created_at,starred,language',station_id:'eq.'+station,hidden:'eq.false',order:'created_at.desc,id.desc',limit:'10',offset:String(page*10)});
+  const params=new URLSearchParams({select:'id,type,location,location_detail,content,created_at,starred,language,hidden',station_id:'eq.'+station,hidden:'eq.false',order:'created_at.desc,id.desc',limit:'10',offset:String(page*10)});
+  const visibility=q.get('visibility')||'visible';
+  if(!['visible','all','hidden'].includes(visibility))return json({error:'invalid'},400);
+  if(visibility!=='visible'&&!access.admin)return json({error:'forbidden'},403);
+  if(visibility==='all')params.delete('hidden');else if(visibility==='hidden')params.set('hidden','eq.true');
   if(type)params.set('type','eq.'+type);if(stars==='1')params.set('starred','eq.true');
   const [r,count]=await Promise.all([supabase('station_feedback?'+params,{headers:{Prefer:'count=exact'}}),feedbackCount(station)]);
   return json({rows:await r.json(),total:Number(r.headers.get('content-range')?.split('/')[1]||0),recent:count,admin:access.admin});
@@ -35,6 +39,7 @@ export async function PATCH(request){
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.id||'') || !['starred','hidden'].includes(data.field) || typeof data.value!=='boolean')return json({error:'invalid'},400);
   if(data.field==='hidden'&&!access.admin)return json({error:'forbidden'},403);
   const params=new URLSearchParams({id:'eq.'+data.id,station_id:'eq.'+station,hidden:'eq.false',select:'id'});
+  if(data.field==='hidden'&&access.admin)params.delete('hidden');
   const r=await supabase('station_feedback?'+params,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({[data.field]:data.value})});
   if(!(await r.json()).length)return json({error:'not_found'},404);
   return json({ok:true});
