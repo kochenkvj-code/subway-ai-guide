@@ -10,23 +10,40 @@ function Photo({src,t}){const [failed,setFailed]=useState(false);useEffect(()=>s
 export default function CompactLostFound({embedded=false,lang='ko',station=DEFAULT_FEEDBACK_STATION,active=true,onNavigationStep=null,navigationSnapshot=null}){
  const t=lostCopy[lang]||lostCopy.ko;
  const [scope,setScope]=useState('station'),[place,setPlace]=useState(''),[item,setItem]=useState(''),[period,setPeriod]=useState('30'),[from,setFrom]=useState(()=>koreaDate(29)),[to,setTo]=useState(()=>koreaDate());
- const [items,setItems]=useState([]),[category,setCategory]=useState(''),[page,setPage]=useState(0),[applied,setApplied]=useState(null),[nextPages,setNextPages]=useState(null),[hasMore,setHasMore]=useState(false),[limited,setLimited]=useState(false),[partial,setPartial]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState('');
+ const [items,setItems]=useState([]),[category,setCategory]=useState(''),[page,setPage]=useState(0),[applied,setApplied]=useState(null),[nextPages,setNextPages]=useState(null),[hasMore,setHasMore]=useState(false),[limited,setLimited]=useState(false),[partial,setPartial]=useState(false),[loading,setLoading]=useState(false),[checking,setChecking]=useState(false),[error,setError]=useState('');
  const [selected,setSelected]=useState(null),[detail,setDetail]=useState(null),[detailLoading,setDetailLoading]=useState(false),[detailError,setDetailError]=useState(false);
+ const knownClosed=useRef(new Set());
  const requestRef=useRef(null),detailRequest=useRef(null),sequence=useRef(0),scroll=useRef(0),container=useRef(null),filtersRef=useRef(null),limitedRef=useRef(false);
  const pageSize=4;
  const scroller=()=>container.current?.closest('.v2-feature-pane')||document.scrollingElement;
  function setPreset(value){setPeriod(value);if(value!=='custom'){setFrom(koreaDate(Number(value)-1));setTo(koreaDate());}}
  async function search(filters,append=false){
   requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;const seq=++sequence.current;setLoading(true);setError('');
-  if(!append){setApplied(null);setItems([]);setPage(0);setCategory('');setSelected(null);setLimited(false);limitedRef.current=false;setPartial(false);setNextPages(null);setHasMore(false);}
+  if(!append){knownClosed.current.clear();setApplied(null);setItems([]);setPage(0);setCategory('');setSelected(null);setLimited(false);limitedRef.current=false;setPartial(false);setNextPages(null);setHasMore(false);}
   try{
-   const params=new URLSearchParams({...filters,source:'both'});if(append&&nextPages)params.set('cursors',JSON.stringify(nextPages));if(append&&limitedRef.current)params.set('capped','1');
-   const r=await fetch('/api/v2/lost-found?'+params,{signal:controller.signal,cache:'no-store'});const data=await r.json();if(!r.ok||!data.ok)throw Error('error');
-   if(seq!==sequence.current||controller.signal.aborted)return;
-   setItems(previous=>{const map=new Map((append?previous:[]).map(x=>[keyOf(x),x]));for(const x of data.items)map.set(keyOf(x),x);return [...map.values()];});
-   setApplied(filters);setNextPages(data.nextPages);setHasMore(data.hasMore);limitedRef.current=limitedRef.current||data.limited;setLimited(limitedRef.current);setPartial(!!data.partial);
+   const results=new Map(),failures=new Map();
+   const publish=()=>{
+    if(seq!==sequence.current||controller.signal.aborted||!results.size)return;
+    const batches=[...results.values()];
+    setItems(previous=>{const map=new Map((append?previous:[]).map(x=>[keyOf(x),x]));for(const data of batches)for(const x of data.items)if(!knownClosed.current.has(keyOf(x)))map.set(keyOf(x),x);return [...map.values()];});
+    const cursors=Object.assign({},...batches.map(x=>x.nextPages),Object.fromEntries(failures));
+    setApplied(filters);setNextPages(cursors);setHasMore(batches.some(x=>x.hasMore)||[...failures.values()].some(n=>n<=20));
+    limitedRef.current=limitedRef.current||batches.some(x=>x.limited);setLimited(limitedRef.current);setPartial(failures.size>0||batches.some(x=>x.partial));setLoading(false);
+   };
+   const progressive=filters.scope==='station'&&!append;
+   setChecking(progressive);
+   await Promise.allSettled((progressive?['portal','police']:['both']).map(async source=>{
+    try{
+     const params=new URLSearchParams({...filters,source});if(progressive)params.set('scan','first');
+     if(append&&nextPages)params.set('cursors',JSON.stringify(nextPages));if(append&&limitedRef.current)params.set('capped','1');
+     const r=await fetch('/api/v2/lost-found?'+params,{signal:controller.signal,cache:'no-store'});const data=await r.json();
+     if(!r.ok||!data.ok)throw Error(data.error||'error');results.set(source,data);publish();
+    }catch(e){if(source!=='both')failures.set(source,e.message==='API_KEY_MISSING'?21:1);publish();}
+   }));
+   if(!results.size)throw Error('error');
   }catch(e){if(!controller.signal.aborted&&seq===sequence.current)setError('error');}
-  finally{if(seq===sequence.current&&!controller.signal.aborted)setLoading(false);}
+  finally{if(seq===sequence.current&&!controller.signal.aborted){setLoading(false);setChecking(false);}}
+
  }
  useEffect(()=>{
   const filters={scope:'station',station:station.id,item:'',start:koreaDate(29),end:koreaDate()};filtersRef.current=filters;void search(filters);
@@ -49,7 +66,7 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
   detailRequest.current?.abort();const controller=new AbortController();detailRequest.current=controller;setDetail(null);setDetailLoading(true);setDetailError(false);
   const params=new URLSearchParams({source:selected.source,id:selected.id,sequence:selected.sequence});
   fetch('/api/v2/lost-found/detail?'+params,{signal:controller.signal,cache:'no-store'}).then(async r=>{const data=await r.json();if(!r.ok||!data.ok)throw Error();return data.detail;}).then(data=>{
-   if(controller.signal.aborted)return;setDetail(data);if(closedCustody(data.custody))setItems(previous=>previous.filter(x=>keyOf(x)!==keyOf(selected)));
+   if(controller.signal.aborted)return;setDetail(data);if(closedCustody(data.custody)){knownClosed.current.add(keyOf(selected));setItems(previous=>previous.filter(x=>keyOf(x)!==keyOf(selected)));}
   }).catch(()=>{if(!controller.signal.aborted)setDetailError(true);}).finally(()=>{if(!controller.signal.aborted)setDetailLoading(false);});
   return()=>controller.abort();
  },[selected]);
@@ -68,13 +85,14 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
   <div className="lf-results-head"><h2 className="lf-results-title">{t.results}</h2><span className="lf-results-count">{items.length} {t.count}</span></div>
   {applied&&<div className="lf-applied">{applied.scope==='station'?label:applied.scope==='all'?t.all:applied.place} · {date(applied.start)} – {date(applied.end)}</div>}
   {!!items.length&&<div className="lf-chips" role="group" aria-label={t.category}>{['',...categories].map(cat=><button type="button" key={cat} className={'lf-chip '+(category===cat?'selected':'')} aria-pressed={category===cat} onClick={()=>{setCategory(cat);setPage(0);}}>{cat||t.allCategory}</button>)}</div>}
+  {checking&&items.length>0&&<p className="lf-background" role="status">{t.background}</p>}
   {partial&&<p className="lf-warning" role="status">{t.partial}</p>}
   {error&&<p className="lf-warning" role="alert">{t[error]} {error!=='invalid'&&<button type="button" onClick={()=>search(filtersRef.current)}>{t.retry}</button>}</p>}
-  {!error&&!items.length&&<div className="lf-state" role="status">{loading?t.loading:t.empty}{!loading&&hasMore&&<p>{t.moreHint}</p>}</div>}
+  {!error&&!items.length&&<div className="lf-state" role="status">{loading||checking?t.loading:t.empty}{!loading&&!checking&&hasMore&&<p>{t.moreHint}</p>}</div>}
   <div className="lf-list">{pageItems.map(row=><button type="button" key={keyOf(row)} className="lf-item" onClick={()=>pick(row)}><Photo src={row.image} t={t}/><span className="lf-item-main"><strong className="lf-item-title">{row.title}</strong><span className="lf-item-meta">{date(row.date)}</span><span className="lf-item-meta">{t.stored}: {row.place||t.unknown}</span></span><span className="lf-item-chevron">›</span></button>)}</div>
   {!!items.length&&<div className="lf-pager"><button disabled={!safePage||loading} onClick={()=>setPage(v=>Math.max(0,v-1))}>{t.previous}</button><span>{safePage+1} / {pages}</span><button disabled={(safePage+1)*pageSize>=visible.length||loading} onClick={()=>setPage(v=>v+1)}>{t.next}</button></div>}
   {!error&&items.length>0&&!visible.length&&<p className="lf-bottom">{t.noMatches}</p>}
-  {hasMore&&!error&&<button type="button" className="lf-load-more" disabled={loading} onClick={()=>search(filtersRef.current,true)}>{loading?t.loading:t.loadMore}</button>}
+  {hasMore&&!checking&&!error&&<button type="button" className="lf-load-more" disabled={loading} onClick={()=>search(filtersRef.current,true)}>{loading?t.loading:t.loadMore}</button>}
   {limited&&<p className="lf-warning">{t.limit}</p>}
  </section><p className="lf-bottom lf-transfer">{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p><p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
   <div className="lf-detail-head"><button className="lf-list-back" onClick={back}>‹ {t.back}</button><strong>{t.detail}</strong></div><div className="lf-detail-content"><div className="lf-detail-summary"><Photo src={detail?.image||selected.image} t={t}/><div><h3>{detail?.title||selected.title}</h3><p>{date(detail?.date||selected.date)}</p></div></div>

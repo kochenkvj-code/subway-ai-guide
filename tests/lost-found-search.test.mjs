@@ -34,3 +34,8 @@ test('page twenty is bounded, malformed cursors rejected and no misleading compl
 test('partial missing key does not create an endless next-page loop',async()=>{
  const f=await load(async()=>new Response(xml([row('X')],1)),{LOST112_PORTAL_API_KEY:'test-only'});const body=await (await f.get({scope:'station'})).json();assert.equal(body.hasMore,false);assert.equal(body.partial,true);assert.equal(body.exhaustive,false);
 });
+
+test('first scan stops after one source page and keeps the next cursor for explicit loading',async()=>{
+ const pages=[];const f=await load(async url=>{pages.push(Number(url.searchParams.get('pageNo')));return new Response(xml([row('A')],1000));});
+ const body=await (await f.get({scope:'station',source:'portal',scan:'first'})).json();assert.deepEqual(pages,[1]);assert.equal(body.nextPages.portal,2);assert.equal(body.hasMore,true);assert.equal(body.items.length,1);
+});

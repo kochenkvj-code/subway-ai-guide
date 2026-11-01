@@ -120,11 +120,12 @@ export async function GET(request) {
  if(!filters||!['both','portal','police'].includes(source)||!Number.isInteger(page)||page<1||page>MAX_LOST_PAGES)return reply({ok:false,error:'INVALID_FILTER'},400);
  let cursors;try{cursors=query.has('cursors')?JSON.parse(query.get('cursors')):{};}catch{return reply({ok:false,error:'INVALID_CURSOR'},400);}
  if(!cursors||typeof cursors!=='object'||Array.isArray(cursors)||Object.keys(cursors).some(k=>!['portal','police'].includes(k))||Object.values(cursors).some(v=>!Number.isInteger(v)||v<1||v>MAX_LOST_PAGES+1))return reply({ok:false,error:'INVALID_CURSOR'},400);
+ const scan=query.get('scan')||'normal';if(!['first','normal'].includes(scan))return reply({ok:false,error:'INVALID_FILTER'},400);
  const ids=source==='both'?['portal','police']:[source];
  const outcomes=await Promise.all(ids.map(async id=>{
   let next=cursors[id]||page,items=[],scanned=0,limited=false,error=null,success=false;
   // Bounded scanning avoids false empty pages while keeping API latency/quotas finite.
-  for(let batch=0;batch<3&&next<=MAX_LOST_PAGES;batch++){
+  for(let batch=0;batch<(scan==='first'?1:3)&&next<=MAX_LOST_PAGES;batch++){
    try{
     const named=filters.scope==='station';
     const result=await loadOne(id,filters.start,filters.end,next,named?filters.item:'',named?filters.place:'');
