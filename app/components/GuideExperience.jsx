@@ -1484,7 +1484,9 @@ export default function GuideExperience({ embedded = false, initialAction = null
     setGateEntry(false);
     setMode(null);
     setInput("");
-    setMessages((prev) => prev.filter((m, i) => i !== prev.length - 1 || (!m.gateMenu && !m.gateResult)));
+    // Starting a chat leaves the gate view, but its guidance remains in the
+    // conversation alongside previous questions and answers (also for voice).
+    // askGoogle appends the new turn and makes it the active scroll target.
     gateReturnMessagesRef.current = null;
   }
 
