@@ -102,7 +102,7 @@ function ShortLineBadge({ name, lang }) {
   return <span className="srg-short-line" style={{ background: lineColor(name) }} title={lineName(name, lang)}>{label}</span>;
 }
 
-export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
+export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigationStep = null, navigationSnapshot = null }) {
   const t = COPY[lang] || COPY.ko;
   const [destination, setDestination] = useState("");
   const [selectedStation, setSelectedStation] = useState(null);
@@ -122,6 +122,14 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch }) {
     setFeedback(result);
     recordStat("feedback",result,lang);
   }
+  const appliedNavigation=useRef(null);
+  useEffect(()=>{
+    if(!navigationSnapshot?.data?.routeState||appliedNavigation.current===navigationSnapshot.serial)return;
+    appliedNavigation.current=navigationSnapshot.serial;
+    const saved=navigationSnapshot.data.routeState;setDestination(saved.destination);setSelectedStation(saved.selectedStation);setMode(saved.mode);setRoute(saved.route);setError('');
+  },[navigationSnapshot]);
+  const navRef=useRef(onNavigationStep);navRef.current=onNavigationStep;
+  useEffect(()=>{navRef.current?.(route?'route-result':'root',{destination,selectedStation,mode,route});},[route,destination,selectedStation,mode]);
   const stationLines = routeStationLines(route?.itinerary);
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);

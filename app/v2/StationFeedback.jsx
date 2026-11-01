@@ -28,7 +28,7 @@ function OpinionBody({content,t}){
  useEffect(()=>{if(expanded)dialog.current?.showModal();else dialog.current?.close();},[expanded]);
  return <><button className="sf-expand sf-read-content" aria-label={t.more} aria-expanded={expanded} onClick={()=>setExpanded(true)}><p className="sf-clamp">{content}</p><span aria-hidden="true">↗</span></button><dialog className="sf-detail-dialog" ref={dialog} onClose={()=>setExpanded(false)} aria-label={t.content}><button onClick={()=>setExpanded(false)}>{t.less} ×</button><p>{content}</p></dialog></>;
 }
-export default function StationFeedback({station,lang,active,onInternalScreen}){
+export default function StationFeedback({station,lang,active,onInternalScreen,onNavigationStep=null,navigationSnapshot=null}){
  const t=feedbackCopy[lang]||feedbackCopy.ko;
  const [screen,setScreen]=useState('entry'),[type,setType]=useState(''),[location,setLocation]=useState(''),[detail,setDetail]=useState(''),[content,setContent]=useState('');
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[rows,setRows]=useState([]),[page,setPage]=useState(0),[total,setTotal]=useState(0),[recent,setRecent]=useState(0),[filter,setFilter]=useState(''),[stars,setStars]=useState(false),[visibility,setVisibility]=useState('visible'),[admin,setAdmin]=useState(false),[pin,setPin]=useState(''),[pinConfigured,setPinConfigured]=useState(true);
@@ -55,6 +55,8 @@ export default function StationFeedback({station,lang,active,onInternalScreen}){
  // Each instance is keyed by station ID by the parent. Language changes only relabel content.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[active,screen,page,filter,stars,visibility,revision,pageSize,station.id]);
+ useEffect(()=>{if(navigationSnapshot?.data?.feedbackScreen)setScreen(navigationSnapshot.data.feedbackScreen);},[navigationSnapshot]);
+ useEffect(()=>{if(active&&screen!=='auth')onNavigationStep?.(screen==='entry'?'root':'feedback:'+screen,{feedbackScreen:screen});},[screen,active,onNavigationStep]);
  async function submit(e){
   e.preventDefault();if(inflight.current)return;
   if(!type||!content.trim()){setError('required');return;}

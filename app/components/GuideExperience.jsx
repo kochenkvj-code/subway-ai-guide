@@ -913,7 +913,7 @@ function renderBoldMarkdown(text) {
   });
 }
 
-export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null }) {
+export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null }) {
   const [lang, setLang] = useState(language);
   const visitRecordedRef = useRef(false);
   useEffect(() => {
@@ -961,13 +961,35 @@ export default function GuideExperience({ embedded = false, initialAction = null
   // restoring a stale offset after content of very different heights is swapped.
   const chatViewKey = `history-${menuViewSerial}-${lastMessage?.gateMessageId ?? ""}-${lastMessage?.fareMessageId ?? ""}`;
 
+  const messageHistoryRef=useRef(messages);messageHistoryRef.current=messages;
+  const skipNavigationMessages=useRef(null);
+  const rootNavigationKey=useRef(null),appliedNavigation=useRef(null),currentLanguage=useRef(lang);currentLanguage.current=lang;
+  useEffect(()=>{
+    if(!embedded||!initialAction)return;
+    rootNavigationKey.current=null;skipNavigationMessages.current=messages;setMessages([]);lastQuickActionAtRef.current=0;
+    quickAction(initialAction,TEXT[language][initialAction]||initialAction);
+  },[resetToken]);
+  useEffect(()=>{
+    if(!navigationSnapshot?.data||appliedNavigation.current===navigationSnapshot.serial)return;
+    appliedNavigation.current=navigationSnapshot.serial;
+    const saved=navigationSnapshot.data;
+    if(saved.messages)setMessages(saved.messages.map(m=>m.fareProduct?{...m,text:`**${SUBMENU_TEXT[currentLanguage.current].labels[m.fareProduct]}**`}:m.menuName?{...m,...makeSubmenu(currentLanguage.current,m.menuName)}:m));
+  },[navigationSnapshot]);
+  useEffect(()=>{
+    if(!onNavigationStep||!messages.length||messages===skipNavigationMessages.current)return;
+    const m=messages[messages.length-1];if(m.routeCard)return;
+    if(!m.gateMenu&&!m.gateResult&&!m.menuName&&!m.fareProduct)return;
+    const signature=m.gateResult?'gate:'+m.gateResult:m.gateMenu?'gate':m.fareProduct?'fare:'+m.fareProduct:'menu:'+m.menuName+':'+m.optionsKind;
+    if(rootNavigationKey.current===null)rootNavigationKey.current=signature;
+    onNavigationStep(signature===rootNavigationKey.current?'root':signature,{messages});
+  },[messages,onNavigationStep]);
   const initializedEmbedded = useRef(false);
   const processedRequest = useRef(null);
   const savedScroll = useRef(0);
   useEffect(() => {
     if (!embedded || initializedEmbedded.current) return;
     initializedEmbedded.current = true;
-    if (initialAction) quickAction(initialAction, TEXT[language][initialAction] || initialAction);
+    // The reset-token effect opens the initial guide.
   }, [embedded, initialAction]);
   useEffect(() => {
     if (embedded && language !== lang) changeLanguage(language);
@@ -1564,7 +1586,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
-                {message.routeCard && <SubwayRouteCard lang={lang} onNewSearch={openAnotherRouteSearch} />}
+                {message.routeCard && <SubwayRouteCard key={resetToken} navigationSnapshot={index===messages.length-1?navigationSnapshot:null} onNavigationStep={onNavigationStep&&index===messages.length-1?((key,routeState)=>onNavigationStep(key,{messages:messageHistoryRef.current,routeState})):null} lang={lang} onNewSearch={openAnotherRouteSearch} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}

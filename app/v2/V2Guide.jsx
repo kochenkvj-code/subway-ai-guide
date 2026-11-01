@@ -24,6 +24,17 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
   const [lang,setLang]=useState('ko'),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
+  const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
+  const viewRef=useRef(view);viewRef.current=view;
+  const publishStep=useCallback((key,data)=>{
+    const current=window.history.state||{};const root=key==='root';
+    const state={...current,sagKey:key,sagData:data,sagDetail:!root};
+    if(!current.sagKey&&!root&&viewRef.current==='feedback'){window.history.replaceState({...current,sagKey:'root',sagData:{feedbackScreen:'entry'},sagDetail:false},'');state.sagV2Depth=(current.sagV2Depth||0)+1;window.history.pushState(state,'');setDetail(true);return;}
+    if(root&&current.sagDetail){window.history.back();return;}
+    if(current.sagKey&&current.sagKey!==key&&key!=='feedback:done'){state.sagV2Depth=(current.sagV2Depth||0)+1;window.history.pushState(state,'');}
+    else window.history.replaceState(state,'');
+    setDetail(!root);
+  },[]);
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
   const feedbackCount=useFeedbackCount(station.id,view==='home');
   const t=copy[lang];
@@ -35,7 +46,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
     const initial=readView();activate(initial);window.history.replaceState({...(window.history.state||{}),sagV2:true,sagV2Depth:0},'',window.location.href);
     recordStat('page_view','visit','ko');
   },[]);
-  useEffect(()=>{const onPop=()=>activate(readView());window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
+  useEffect(()=>{const onPop=()=>{const next=readView();activate(next);setDetail(!!window.history.state?.sagDetail);setRestoration({view:next,data:window.history.state?.sagData,serial:Date.now()+Math.random()});};window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
   useEffect(()=>startActivityTracking(),[]);
   useEffect(()=>{
     const frame=requestAnimationFrame(()=>{if(view==='home')window.scrollTo(0,homeScroll.current);else{window.scrollTo(0,0);titleRef.current?.focus({preventScroll:true});}});
@@ -44,13 +55,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
   function navigate(next){
     if(next===view)return;
     if(view==='home')homeScroll.current=window.scrollY;
+    if(next!=='home'&&next!=='chat'&&next!=='feedback')setVisits(prev=>({...prev,[next]:(prev[next]||0)+1}));
+    setRestoration(null);setDetail(false);
     const item=menuItems.find(x=>x.id===next);
     if(['timetable','tour','found','facility','lost'].includes(next))recordStat('quick_menu',next,lang);
     if(item?.action && mounted[next])recordStat('quick_menu',item.action,lang);
     const url=new URL(window.location.href);url.searchParams.delete('place');if(next==='home')url.searchParams.delete('view');else url.searchParams.set('view',next);
-    window.history.pushState({...(window.history.state||{}),sagV2:true,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
+    window.history.pushState({...(window.history.state||{}),sagV2:true,sagKey:null,sagData:null,sagDetail:false,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
   }
-  function back(){if(view==='feedback'&&feedbackBack.current){feedbackBack.current();return;}if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
+  function back(){if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
 
   function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);}}
 
@@ -71,14 +84,14 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
       <footer className="v2-footer"><span>{t.footer}</span><span>SUBWAY AI GUIDE</span></footer><p className="v2-notice">{t.notice}<br/>{t.privacy}</p>
     </div>
     <div className="v2-workspace" hidden={view==='home'}>
-      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button><Language/></header>
-      {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
-      {mounted.tour&&<NearbyTour lang={lang} active={view==='tour'}/>}
-      {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable lang={lang} active={view==='timetable'}/></div>}
-      {mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound embedded /></div>}
-      {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo embedded /></div>}
-      {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
-      {mounted.feedback&&<StationFeedback key={station.id} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
+      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{detail&&<button onClick={()=>navigate('home')}>{t.home}</button>}<Language/></header>
+      {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
+      {mounted.tour&&<NearbyTour key={visits.tour||0} lang={lang} active={view==='tour'}/>}
+      {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
+      {mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={visits.found||0} embedded /></div>}
+      {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
+      {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={visits.lost||0} lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
+      {mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
       {view==='live'&&<ArrivalDetails state={arrivals} lang={lang} t={t}/>}
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>
