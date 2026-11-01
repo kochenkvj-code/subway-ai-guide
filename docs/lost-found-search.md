@@ -39,3 +39,7 @@ The UI fixture deliberately blocks the police response and verifies portal resul
 ## Station provider policy
 
 Per the operator's clarification, station-held property is registered only in the portal feed. Station-scope requests now use portal only, enforced server-side even if the caller sends `source=both` or `source=police`. This applies to all configured stations, not just Jongno 5-ga. The client also requests portal only for the initial station page and additional station pages. All-Seoul searches continue to query both portal and police; other custody-location searches retain both providers for locations that may be police agencies. This supersedes the earlier two-provider background initial-station behavior. First-page rendering and explicit load-more remain; no unused police request or police waiting notice is created for station searches. API and UI tests assert this policy.
+
+## Manual search entry
+
+Entering the menu renders only the search conditions and explanatory notes. No provider lookup runs on mount; results appear only after pressing Search. Current station and thirty-day dates remain selected as defaults. The UI flow test asserts zero search requests and no results section before pressing Search. Validation errors on the first attempt remain visible without sending a provider request. This policy combines with portal-only station lookups.

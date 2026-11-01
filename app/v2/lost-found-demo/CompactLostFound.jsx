@@ -10,6 +10,7 @@ function Photo({src,t}){const [failed,setFailed]=useState(false);useEffect(()=>s
 export default function CompactLostFound({embedded=false,lang='ko',station=DEFAULT_FEEDBACK_STATION,active=true,onNavigationStep=null,navigationSnapshot=null}){
  const t=lostCopy[lang]||lostCopy.ko;
  const [scope,setScope]=useState('station'),[place,setPlace]=useState(''),[item,setItem]=useState(''),[period,setPeriod]=useState('30'),[from,setFrom]=useState(()=>koreaDate(29)),[to,setTo]=useState(()=>koreaDate());
+ const [searched,setSearched]=useState(false);
  const [items,setItems]=useState([]),[category,setCategory]=useState(''),[page,setPage]=useState(0),[applied,setApplied]=useState(null),[nextPages,setNextPages]=useState(null),[hasMore,setHasMore]=useState(false),[limited,setLimited]=useState(false),[partial,setPartial]=useState(false),[loading,setLoading]=useState(false),[checking,setChecking]=useState(false),[error,setError]=useState('');
  const [selected,setSelected]=useState(null),[detail,setDetail]=useState(null),[detailLoading,setDetailLoading]=useState(false),[detailError,setDetailError]=useState(false);
  const knownClosed=useRef(new Set());
@@ -18,6 +19,7 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
  const scroller=()=>container.current?.closest('.v2-feature-pane')||document.scrollingElement;
  function setPreset(value){setPeriod(value);if(value!=='custom'){setFrom(koreaDate(Number(value)-1));setTo(koreaDate());}}
  async function search(filters,append=false){
+  setSearched(true);
   requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;const seq=++sequence.current;setLoading(true);setError('');
   if(!append){knownClosed.current.clear();setApplied(null);setItems([]);setPage(0);setCategory('');setSelected(null);setLimited(false);limitedRef.current=false;setPartial(false);setNextPages(null);setHasMore(false);}
   try{
@@ -46,12 +48,12 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
 
  }
  useEffect(()=>{
-  const filters={scope:'station',station:station.id,item:'',start:koreaDate(29),end:koreaDate()};filtersRef.current=filters;void search(filters);
+  const filters={scope:'station',station:station.id,item:'',start:koreaDate(29),end:koreaDate()};filtersRef.current=filters;
   return()=>{sequence.current++;requestRef.current?.abort();detailRequest.current?.abort();};
  // Each instance is keyed by station in the parent; do not reset on language change.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[station.id]);
- function submit(e){e.preventDefault();if(!validLostRange(from,to)||item.trim().length===1||(scope==='other'&&place.trim().length<2)){setError('invalid');return;}
+ function submit(e){e.preventDefault();setSearched(true);if(!validLostRange(from,to)||item.trim().length===1||(scope==='other'&&place.trim().length<2)){setError('invalid');return;}
   const filters={scope,station:station.id,item:item.trim(),start:from,end:to};if(scope==='other')filters.place=place.trim();filtersRef.current=filters;void search(filters);
  }
  const categories=useMemo(()=>[...new Set(items.map(groupOf))],[items]);
@@ -81,7 +83,7 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
   <fieldset disabled={loading}><legend>{t.period}</legend><div className="lf-segments lf-period">{['7','30','90','custom'].map((id,i)=><button type="button" key={id} aria-pressed={period===id} onClick={()=>setPreset(id)}>{t.days[i]}</button>)}</div></fieldset>
   {period==='custom'&&<div className="lf-date-row"><label className="lf-field"><span>{t.from}</span><input type="date" value={from} min={koreaDate(89)} max={to||koreaDate()} onChange={e=>setFrom(e.target.value)}/></label><label className="lf-field"><span>{t.to}</span><input type="date" value={to} min={from||koreaDate(89)} max={koreaDate()} onChange={e=>setTo(e.target.value)}/></label></div>}
   <div className="lf-actions"><small>{from.replaceAll('-','.')} – {to.replaceAll('-','.')}</small><button type="submit" className="lf-submit" disabled={loading}>{loading?t.loading:t.search} →</button></div>
- </form><section className="lf-results" aria-label={t.results}>
+ </form>{searched&&<section className="lf-results" aria-label={t.results}>
   <div className="lf-results-head"><h2 className="lf-results-title">{t.results}</h2><span className="lf-results-count">{items.length} {t.count}</span></div>
   {applied&&<div className="lf-applied">{applied.scope==='station'?label:applied.scope==='all'?t.all:applied.place} · {date(applied.start)} – {date(applied.end)}</div>}
   {!!items.length&&<div className="lf-chips" role="group" aria-label={t.category}>{['',...categories].map(cat=><button type="button" key={cat} className={'lf-chip '+(category===cat?'selected':'')} aria-pressed={category===cat} onClick={()=>{setCategory(cat);setPage(0);}}>{cat||t.allCategory}</button>)}</div>}
@@ -94,7 +96,7 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
   {!error&&items.length>0&&!visible.length&&<p className="lf-bottom">{t.noMatches}</p>}
   {hasMore&&!checking&&!error&&<button type="button" className="lf-load-more" disabled={loading} onClick={()=>search(filtersRef.current,true)}>{loading?t.loading:t.loadMore}</button>}
   {limited&&<p className="lf-warning">{t.limit}</p>}
- </section><p className="lf-bottom lf-transfer">{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p><p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
+ </section>}<p className="lf-bottom lf-transfer">{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p><p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
   <div className="lf-detail-head"><button className="lf-list-back" onClick={back}>‹ {t.back}</button><strong>{t.detail}</strong></div><div className="lf-detail-content"><div className="lf-detail-summary"><Photo src={detail?.image||selected.image} t={t}/><div><h3>{detail?.title||selected.title}</h3><p>{date(detail?.date||selected.date)}</p></div></div>
   {detailLoading&&<p role="status">{t.loading}</p>}{detailError&&<p className="lf-warning">{t.detailError}</p>}{closedCustody(detail?.custody)&&<p className="lf-warning">{t.closed}</p>}
   <dl className="lf-detail-fields"><dt>{t.stored}</dt><dd>{detail?.place||selected.place||t.unknown}</dd>{detail?.organization&&<><dt>{t.organization}</dt><dd>{detail.organization}</dd></>}<dt>{t.status}</dt><dd>{detail?.custody||t.unknown}</dd>{detail?.phone&&<><dt>{t.phone}</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}<dt>{t.type}</dt><dd>{detail?.category||selected.category||t.unknown}</dd>{selected.color&&<><dt>{t.color}</dt><dd>{selected.color}</dd></>}<dt>{t.date}</dt><dd>{date(detail?.date||selected.date)}</dd>{detail?.foundPlace&&<><dt>{t.found}</dt><dd>{detail.foundPlace}</dd></>}{detail?.foundHour&&<><dt>{t.foundHour}</dt><dd>{detail.foundHour}</dd></>}<dt>{t.id}</dt><dd>{selected.id} / {selected.sequence}</dd>{(detail?.note||selected.subject)&&<><dt>{t.note}</dt><dd>{detail?.note||selected.subject}</dd></>}</dl><p className="lf-bottom">{t.original}</p><a href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer" className="lf-detail-link">{t.official} ↗</a><p className="lf-bottom">{t.officialNote}<br/>{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p>
