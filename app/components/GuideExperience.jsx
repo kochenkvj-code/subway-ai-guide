@@ -434,7 +434,6 @@ const V2_GATE_FLOW = {
     photo: "넓은 게이트 위치 보기",
     regular: "일반 게이트", wide: "넓은 게이트",
     photoCaption: "게이트 위치를 설명하는 예시 그림입니다.",
-    processedPassBeep: "**삐 소리가 나더라도 멈추거나 되돌아가지 말고 그대로 통과하세요.**",
   },
   en: {
     locate: "Go to the **wide gate with the wheelchair symbol** at the end of the fare gates.",
@@ -448,7 +447,6 @@ const V2_GATE_FLOW = {
     photo: "Find the wide gate",
     regular: "Regular gates", wide: "Wide gate",
     photoCaption: "Example diagram showing the gate location.",
-    processedPassBeep: "**Even if it beeps, keep going through the wide gate. Do not stop or turn back.**",
   },
   ja: {
     locate: "改札口の端にある**車いすマークの幅広い改札**へ移動してください。",
@@ -462,7 +460,6 @@ const V2_GATE_FLOW = {
     photo: "幅広い改札の場所を見る",
     regular: "通常の改札", wide: "幅広い改札",
     photoCaption: "改札の場所を説明する参考図です。",
-    processedPassBeep: "**音が鳴っても、立ち止まったり引き返したりせず、そのまま通過してください。**",
   },
   zh: {
     locate: "请前往闸机通道一端、带有**轮椅标志的宽闸机**。",
@@ -476,7 +473,6 @@ const V2_GATE_FLOW = {
     photo: "查看宽闸机位置",
     regular: "普通闸机", wide: "宽闸机",
     photoCaption: "用于说明闸机位置的示意图。",
-    processedPassBeep: "**即使听到提示音，也请继续通过宽闸机，不要停下或返回。**",
   },
 };
 
@@ -485,7 +481,7 @@ function v2GateSteps(lang, id) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
   if (id === "e03" || id === "e04" || id === "e05") return [l.locate, l.passBeep];
   if (id === "e14") return [l.e14First, l.e14Last];
-  if (id === "e33" || id === "e44") return [l.locate, l.processedPassBeep];
+  if (id === "e33" || id === "e44") return [l.locate, l.passBeep];
   if (id === "opposite") return [l.locate, l.oppositeLast];
   // E-06 등 변경하지 않기로 한 항목은 기존 GATE_UI 안내를 그대로 사용합니다.
   return null;
