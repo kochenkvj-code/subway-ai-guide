@@ -14,3 +14,16 @@
 .sf-inbox .sf-opinion{padding:4px 8px}.sf-inbox .sf-meta{height:20px}.sf-inbox .sf-star{min-height:22px;min-width:28px}.sf-inbox .sf-read-content p{line-height:16px;margin:2px 0}.sf-inbox .sf-bottom{height:16px;min-height:16px}.sf-inbox .sf-bottom button{min-height:18px}.sf-inbox .sf-heading h2{min-width:0}.sf-inbox .sf-type-filter button{line-height:1.25}
 
 .sf-inbox .sf-heading h2{display:flex;align-items:center;gap:5px}.sf-line-badge{display:inline-grid;place-items:center;flex-shrink:0;width:17px;height:17px;border-radius:50%;background:#24559b;color:white;font-size:10px;font-weight:650;letter-spacing:0}
+
+/* Separate category choices from shared-star and visibility controls without adding a row. */
+.sf-inbox .sf-filter-row{position:relative;padding-top:5px;margin-top:7px;border-top:1px solid #dbe3ed}
+
+/* One title system on entry, writing and inbox screens. */
+.sf-pane .sf-heading{display:flex;justify-content:flex-start;align-items:center;gap:9px;min-height:27px;margin-bottom:12px}
+.sf-pane .sf-heading h2{display:block;flex:0 1 auto;margin:0;min-width:0;font-size:17px;font-weight:700;line-height:1.45;letter-spacing:-.5px;white-space:normal}
+.sf-pane .sf-heading .sf-station{display:flex;align-items:center;gap:5px;margin:0;flex:0 0 auto;font-size:12px;font-weight:500;line-height:18px;color:#7186a0;white-space:nowrap}
+.sf-pane .sf-heading .sf-station>span{display:inline-grid;place-items:center;width:18px;height:18px;font-size:11px;line-height:1;font-weight:700;letter-spacing:0}
+.sf-pane .sf-heading .sf-inline-count{margin-left:auto;flex:0 1 auto;max-width:95px;text-align:right;white-space:normal;font-size:10px;line-height:1.35}
+.sf-pane .sf-heading .sf-inline-count strong{font-size:14px;white-space:nowrap}
+@media(max-width:350px){.sf-pane .sf-heading{gap:6px}.sf-pane .sf-heading .sf-station{font-size:11px;gap:4px}}
+.sf-inbox .sf-inner{padding-bottom:6px}.sf-inbox .sf-heading{margin-bottom:8px}

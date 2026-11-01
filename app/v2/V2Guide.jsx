@@ -84,7 +84,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
       <footer className="v2-footer"><span>{t.footer}</span><span>SUBWAY AI GUIDE</span></footer><p className="v2-notice">{t.notice}<br/>{t.privacy}</p>
     </div>
     <div className="v2-workspace" hidden={view==='home'}>
-      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{detail&&<button onClick={()=>navigate('home')}>{t.home}</button>}<Language/></header>
+      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button><Language/></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={visits.tour||0} lang={lang} active={view==='tour'}/>}
       {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
