@@ -1810,7 +1810,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                         </details>
                       )}
                       {embedded && (V2_GATE_WITH_LOCATION.has(message.gateResult) || message.gateResult === "e33" || message.gateResult === "e44") && <p className="sag-gate-safe-note">{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).fallback}</p>}
-                      {message.gateResult !== "unknown" && !(embedded && V2_GATE_WITH_DIAGRAM.has(message.gateResult)) && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
+                      {!embedded && message.gateResult !== "unknown" && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
