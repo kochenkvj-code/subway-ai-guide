@@ -357,6 +357,110 @@ const GATE_UI = {
   },
 };
 
+// V2 전용 게이트 안내: 기존 운영 버전(/)의 문구는 변경하지 않습니다.
+const V2_GATE_FLOW = {
+  ko: {
+    locate: "개찰구의 **왼쪽 또는 오른쪽 맨 끝**에 있는 **휠체어 게이트(넓은 게이트)**를 찾으세요.",
+    e03: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 교통카드를 확인하고 요금을 정산**받으세요.",
+    e04: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 교통카드를 확인하고 요금을 정산**받으세요.",
+    e05: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 요금을 정산**받으세요.",
+    e06First: "사용 가능한 **다른 교통카드**가 있다면 먼저 태그해 보세요.",
+    e06Last: "계속 오류가 발생하면 **고객안전실을 방문하여 교통카드를 확인**받으세요.",
+    e33First: "이미 **승차 처리된 카드**이므로 별도의 정산은 필요하지 않습니다.",
+    e44First: "이미 **하차 처리된 카드**이므로 별도의 정산은 필요하지 않습니다.",
+    processedLast: "비프음(삐 소리)이 나더라도 **휠체어 게이트(넓은 게이트)**를 통과하세요.",
+    oppositeLast: "비프음(삐 소리)이 나더라도 해당 게이트를 **통과하여 반대편 승강장으로 이동하세요.**",
+    fallback: "게이트가 닫혀 통과할 수 없다면 무리하게 밀지 말고 고객안전실에 문의하세요.",
+    photo: "휠체어 게이트 위치 그림으로 확인하기",
+    regular: "일반 게이트", wide: "넓은 게이트",
+    photoCaption: "위치 이해를 위한 예시 그림입니다. 실제 역사 설비 사진은 추후 추가할 예정입니다.",
+  },
+  en: {
+    locate: "Find the **Accessible (wide) gate** at either end of the row of fare gates.",
+    e03: "If the gate can be used, pass through even if it beeps, then visit the **station office** to check your card and settle any fare.",
+    e04: "If the gate can be used, pass through even if it beeps, then visit the **station office** to check your card and settle any fare.",
+    e05: "If the gate can be used, pass through even if it beeps, then visit the **station office** for fare adjustment.",
+    e06First: "If you have **another usable transit card**, try tapping it first.",
+    e06Last: "If the error continues, visit the **station office** to have your card checked.",
+    e33First: "Your card has **already been processed for entry**. No further fare adjustment is needed.",
+    e44First: "Your card has **already been processed for exit**. No further fare adjustment is needed.",
+    processedLast: "Pass through the **Accessible (wide) gate**, even if you hear a beep.",
+    oppositeLast: "Pass through that gate to reach the **opposite platform**, even if it beeps.",
+    fallback: "If the gate is closed and cannot be used, do not force it open. Ask at the station office.",
+    photo: "View a diagram of the Accessible (wide) gate",
+    regular: "Regular gates", wide: "Wide gate",
+    photoCaption: "Illustration for locating the gate, not a photo of this station. A verified station photo can be added later.",
+  },
+  ja: {
+    locate: "改札口の**左右いずれかの端**にある**車いす対応の幅広い改札**を探してください。",
+    e03: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
+    e04: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
+    e05: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室で運賃を精算**してください。",
+    e06First: "利用可能な**別の交通カード**があれば、先にお試しください。",
+    e06Last: "エラーが続く場合は、**駅事務室で交通カードを確認**してもらってください。",
+    e33First: "**入場処理済み**のカードです。追加の精算は必要ありません。",
+    e44First: "**出場処理済み**のカードです。追加の精算は必要ありません。",
+    processedLast: "警告音が鳴っても、**車いす対応の幅広い改札**を通ってください。",
+    oppositeLast: "警告音が鳴っても、その改札を**通過して反対側のホームへ移動**してください。",
+    fallback: "改札が閉じて通れない場合は、無理に押さず駅事務室にお問い合わせください。",
+    photo: "車いす対応改札の位置を図で確認",
+    regular: "通常の改札", wide: "幅広い改札",
+    photoCaption: "位置を示す参考図です。実際の駅の写真ではありません。",
+  },
+  zh: {
+    locate: "请寻找闸机通道**最左侧或最右侧**的**无障碍宽闸机（轮椅闸机）**。",
+    e03: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
+    e04: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
+    e05: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室办理费用结算**。",
+    e06First: "如果有**其他可用的交通卡**，请先尝试刷卡。",
+    e06Last: "如果仍然报错，请前往**车站服务室检查交通卡**。",
+    e33First: "您的交通卡**已经完成进站处理**，无需额外结算。",
+    e44First: "您的交通卡**已经完成出站处理**，无需额外结算。",
+    processedLast: "即使听到提示音，也请通过**无障碍宽闸机（轮椅闸机）**。",
+    oppositeLast: "即使听到提示音，也请**通过该闸机前往对面站台**。",
+    fallback: "如果闸机关闭无法通行，请勿强行推开，向车站服务室咨询。",
+    photo: "查看无障碍宽闸机位置示意图",
+    regular: "普通闸机", wide: "宽闸机",
+    photoCaption: "仅用于说明闸机位置，并非本站实景照片。",
+  },
+};
+
+const V2_GATE_WITH_LOCATION = new Set(["e03", "e04", "e05", "opposite"]);
+const V2_GATE_WITH_DIAGRAM = new Set(["e03", "e04", "e05", "e06", "e33", "e44", "opposite", "unknown"]);
+function v2GateSteps(lang, id) {
+  const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
+  if (V2_GATE_WITH_LOCATION.has(id)) return [l.locate, id === "opposite" ? l.oppositeLast : l[id]];
+  if (id === "e06") return [l.e06First, l.e06Last];
+  if (id === "e33" || id === "e44") return [l[id + "First"], l.processedLast];
+  return null;
+}
+
+function GateLocationDiagram({ lang }) {
+  const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
+  return (
+    <div className="sag-gate-diagram-content">
+      <svg viewBox="0 0 640 225" role="img" aria-label={l.photo} xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="225" rx="15" fill="#eef4f8" />
+        <path d="M26 165 H614" stroke="#b7c6d0" strokeWidth="2" strokeDasharray="5 5" />
+        {[75,185,295].map(x=><g key={x}>
+          <rect x={x} y="60" width="24" height="100" rx="6" fill="#a9bac9" stroke="#758ca0" strokeWidth="2"/>
+          <rect x={x+65} y="60" width="24" height="100" rx="6" fill="#a9bac9" stroke="#758ca0" strokeWidth="2"/>
+          <rect x={x+5} y="74" width="14" height="21" rx="3" fill="#1687ad"/>
+          <path d={`M ${x+20} 118 L ${x+40} 118`} stroke="#397494" strokeWidth="9" strokeLinecap="round"/>
+        </g>)}
+        <rect x="420" y="50" width="190" height="114" rx="12" fill="#d3f0e5" stroke="#25866e" strokeWidth="4" />
+        <rect x="429" y="61" width="23" height="95" rx="5" fill="#79a8aa"/>
+        <rect x="578" y="61" width="23" height="95" rx="5" fill="#79a8aa"/>
+        <rect x="460" y="90" width="109" height="55" rx="7" fill="#f5fbf7" stroke="#78b2a1" strokeWidth="2"/>
+        <text x="516" y="127" textAnchor="middle" fontSize="30" fill="#197b66">♿</text>
+        <text x="221" y="191" textAnchor="middle" fontSize="19" fontWeight="600" fill="#526779">{l.regular}</text>
+        <text x="516" y="191" textAnchor="middle" fontSize="19" fontWeight="700" fill="#12785d">{l.wide}</text>
+      </svg>
+      <p>{l.photoCaption}</p>
+    </div>
+  );
+}
+
 // 구매/충전 하위 선택은 고정 안내로 동작합니다. 시설안내는 Gemini 검색 기반 응답을 사용합니다.
 // 실제 역사 내 발매기 위치와 결제수단 확인 후 안내 문구를 갱신하세요.
 const EXCHANGE_CARD = {
@@ -1631,7 +1735,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                   const selected = options.find((o) => o.id === message.gateResult);
                   const code = selected && !selected.wide ? selected.label.match(/^E-\d+/)?.[0] : "";
                   const name = selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
-                  const steps = ui.steps[message.gateResult] || ui.steps.unknown;
+                  const steps = embedded ? (v2GateSteps(lang, message.gateResult) || ui.steps[message.gateResult] || ui.steps.unknown) : (ui.steps[message.gateResult] || ui.steps.unknown);
                   const fullGuide = GATE_GUIDES[message.gateResult]?.[lang] || GATE_GUIDES[message.gateResult]?.ko;
                   return (
                     <div className="sag-gate-card sag-gate-resolution">
@@ -1653,7 +1757,14 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
                         </details>
                       )}
-                      {message.gateResult !== "unknown" && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
+                      {embedded && V2_GATE_WITH_DIAGRAM.has(message.gateResult) && (
+                        <details className="sag-gate-photo-details" onToggle={e=>{if(e.currentTarget.open)recordStat("gate_action","location_diagram_open",lang,message.feedbackKey);}}>
+                          <summary>{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).photo}<span aria-hidden="true">⌄</span></summary>
+                          <GateLocationDiagram lang={lang}/>
+                        </details>
+                      )}
+                      {embedded && V2_GATE_WITH_LOCATION.has(message.gateResult) && <p className="sag-gate-safe-note">{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).fallback}</p>}
+                      {message.gateResult !== "unknown" && !(embedded && V2_GATE_WITH_DIAGRAM.has(message.gateResult)) && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
@@ -2240,6 +2351,14 @@ export default function GuideExperience({ embedded = false, initialAction = null
         .sag-gate-details[open] summary span { transform: rotate(180deg); }
         .sag-gate-full-text { white-space: pre-wrap; padding: 9px 10px 12px;
           border-top: 1px solid #e4edf3; font-size: 12px; line-height: 1.65; }
+        .sag-gate-photo-details { margin-top: 10px; border: 1px solid #c5dfdf; background: #fff; border-radius: 10px; overflow: hidden; }
+        .sag-gate-photo-details summary { padding: 11px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: #176b75; font-size: 12px; font-weight: 750; list-style: none; }
+        .sag-gate-photo-details summary::-webkit-details-marker { display: none; }
+        .sag-gate-photo-details[open] summary span { transform: rotate(180deg); }
+        .sag-gate-diagram-content { padding: 0 10px 10px; }
+        .sag-gate-diagram-content svg { display: block; width: 100%; max-height: 230px; }
+        .sag-gate-diagram-content p { font-size: 10.5px; color: #58707a; line-height: 1.5; margin: 7px 0 0; }
+        .sag-gate-safe-note { font-size: 10.5px; color: #52687a; margin: 9px 2px 0; line-height: 1.45; }
         .sag-gate-result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
         .sag-gate-result-actions button { padding: 10px 5px; border: 1px solid #bfd8e9; color: #165c88;
           font-size: 11px; font-weight: 800; background: #fff; border-radius: 9px; cursor: pointer; }
