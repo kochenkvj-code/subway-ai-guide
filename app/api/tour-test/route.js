@@ -1,6 +1,8 @@
+import {collectTourPages,tourRows} from '../../lib/tour-pages';
 import { TOUR_SERVICES, canonicalTourType } from '../../lib/tour-services';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 const operations = {
   nearby: 'locationBasedList2', keyword: 'searchKeyword2', area: 'areaBasedList2',
   festival: 'searchFestival2', detail: 'detailCommon2', images: 'detailImage2',
@@ -18,7 +20,9 @@ export async function GET(request) {
   if (!Object.hasOwn(TOUR_SERVICES, language)) return reply({error:'지원하지 않는 관광정보 언어입니다.',code:'INVALID_LANGUAGE'},400);
   const config = TOUR_SERVICES[language];
   if (!Object.hasOwn(operations, mode)) return reply({ error: '지원하지 않는 조회 방식입니다.' }, 400);
-  const params = new URLSearchParams({ MobileOS: 'ETC', MobileApp: 'SubwayAIGuide', _type: 'json', numOfRows: '20', pageNo: '1' });
+  const all=input.get('all')==='1';
+  if(all&&mode!=='nearby')return reply({error:'전체 조회는 주변 검색에서만 가능합니다.',code:'INVALID_MODE'},400);
+  const params = new URLSearchParams({ MobileOS: 'ETC', MobileApp: 'SubwayAIGuide', _type: 'json', numOfRows: all?'100':'20', pageNo: '1' });
   const type = input.get('type') || '';
   if (type && !types.has(type)) return reply({ error: '잘못된 관광 분류입니다.' }, 400);
   if (type && ['nearby','keyword','area'].includes(mode)) {
@@ -62,29 +66,29 @@ export async function GET(request) {
   const key = process.env[config.keyName]?.trim();
   if (!key) return reply({ error: `서버 환경변수 ${config.keyName}에 해당 언어 일반 인증키(Decoding)를 설정해 주세요.`,code:'TOUR_NOT_CONFIGURED' }, 503);
   params.set('serviceKey',key);
-  const url = `https://apis.data.go.kr/B551011/${config.service}/${operations[mode]}?${params}`;
+  const root=`https://apis.data.go.kr/B551011/${config.service}/${operations[mode]}`;
+  const controller=new AbortController();
+  const timeout=AbortSignal.timeout(all?45000:15000);
+  const signals=[controller.signal,timeout,...(request.signal?[request.signal]:[])];
+  async function loadPage(page){
+    const query=new URLSearchParams(params);query.set('pageNo',String(page));
+    const response=await fetch(root+'?'+query,{cache:'no-store',signal:AbortSignal.any(signals)});
+    if(!response.ok)throw Object.assign(Error('TourAPI HTTP error'),{code:'TOUR_UPSTREAM'});
+    const data=await response.json();
+    const resultCode=String(data.response?.header?.resultCode??data.resultCode??'UNKNOWN');
+    if(!['0000','00'].includes(resultCode))throw Object.assign(Error('TourAPI result error'),{code:'TOUR_UPSTREAM'});
+    return data.response?.body||{};
+  }
   try {
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
-    if (!response.ok) return reply({ error: `관광 API HTTP 오류 (${response.status})` }, 502);
-    let data;
-    try { data = await response.json(); } catch { return reply({ error: 'API가 JSON 이외의 응답을 반환했습니다. 인증키·활용 승인·서비스 버전을 확인해 주세요.' }, 502); }
-    const resultCode = String(data.response?.header?.resultCode ?? data.resultCode ?? 'UNKNOWN');
-    if (!['0000', '00'].includes(resultCode)) {
-      // Expose a short sanitized provider message for diagnosing image API failures.
-      const upstreamMessage = String(data.response?.header?.resultMsg || data.resultMsg || '')
-        .replaceAll(key, '[redacted]')
-        .replaceAll(encodeURIComponent(key), '[redacted]')
-        .replace(/https?:\/\/\S+/g, '[url]').slice(0, 140);
-      return reply({
-        error: '관광 API 오류 (' + resultCode + ')' + (upstreamMessage ? ': ' + upstreamMessage : ''),
-        code: resultCode,
-        diagnostics: { rootFields: Object.keys(data || {}), responseFields: Object.keys(data.response || {}), headerFields: Object.keys(data.response?.header || {}) },
-      }, 502);
-    }
-    const raw = data.response?.body?.items?.item || [];
-    const list = Array.isArray(raw) ? raw : [raw];
-    if (mode === 'images') return reply({ operation: operations[mode], language, images: list.map(x => ({ title: plain(x.imgname), url: photo(x.originimgurl || x.smallimageurl), credit: plain(x.cpyrhtDivCd || x.copyrightdivcode) })).filter(x => x.url) });
-    const items = list.map(x => ({ id: x.contentid, type: canonicalTourType(language,x.contenttypeid), title: plain(x.title), address: plain([x.addr1,x.addr2].filter(Boolean).join(' ')), image: photo(x.firstimage), distance: x.dist, longitude: x.mapx, latitude: x.mapy, description: plain(x.overview), phone: plain(x.tel), homepage: safeLink(x.homepage), start: x.eventstartdate || '', end: x.eventenddate || '', credit: plain(x.cpyrhtDivCd) }));
-    return reply({ operation: operations[mode], language, items, total: data.response?.body?.totalCount || 0 });
-  } catch { return reply({ error: '관광 API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, 502); }
+    const first=await loadPage(1);
+    const complete=all?await collectTourPages(first,loadPage):{rows:tourRows(first),sourceTotal:Number(first.totalCount)||0};
+    const list=complete.rows;
+    if(mode==='images')return reply({operation:operations[mode],language,images:list.map(x=>({title:plain(x.imgname),url:photo(x.originimgurl||x.smallimageurl),credit:plain(x.cpyrhtDivCd||x.copyrightdivcode)})).filter(x=>x.url)});
+    const normalized=list.map(x=>({id:x.contentid,type:canonicalTourType(language,x.contenttypeid),title:plain(x.title),address:plain([x.addr1,x.addr2].filter(Boolean).join(' ')),image:photo(x.firstimage),distance:x.dist,longitude:x.mapx,latitude:x.mapy,description:plain(x.overview),phone:plain(x.tel),homepage:safeLink(x.homepage),start:x.eventstartdate||'',end:x.eventenddate||'',credit:plain(x.cpyrhtDivCd)}));
+    const seen=new Set();const items=all?normalized.filter(x=>{if(!x.id||seen.has(String(x.id)))return false;seen.add(String(x.id));return true;}):normalized;
+    return reply({operation:operations[mode],language,items,total:all?items.length:complete.sourceTotal,sourceTotal:complete.sourceTotal,complete:all});
+  }catch(error){
+    controller.abort();
+    return reply({error:'관광정보를 모두 불러오지 못했습니다. 잠시 후 다시 시도하거나 반경을 줄여 주세요.',code:['TOUR_TOO_MANY_RESULTS','TOUR_INCOMPLETE'].includes(error.code)?error.code:'TOUR_UPSTREAM'},502);
+  }
 }

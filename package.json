@@ -12,7 +12,9 @@
     "test:lost-found-ui": "node --experimental-vm-modules tests/lost-found-ui.cjs",
     "test:feedback": "node --experimental-vm-modules --test tests/feedback.test.mjs",
     "test:feedback-flow": "node tests/feedback-flow.cjs",
-    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs"
+    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs",
+    "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
+    "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",

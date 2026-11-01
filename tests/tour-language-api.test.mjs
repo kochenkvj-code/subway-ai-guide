@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 async function route(fetch,env={TOUR_API_KEY:'ko-fixture',TOUR_API_KEY_EN:'en-fixture',TOUR_API_KEY_JA:'ja-fixture',TOUR_API_KEY_ZH:'zh-fixture'}){
- const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,process:{env},fetch});
+ const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,AbortController,process:{env},fetch});
  const module=new vm.SourceTextModule(await fs.readFile('app/api/tour-test/route.js','utf8'),{context});
- await module.link(async name=>{assert.equal(name,'../../lib/tour-services');const config=new vm.SourceTextModule(await fs.readFile('app/lib/tour-services.js','utf8'),{context});await config.link(()=>{});return config;});await module.evaluate();return module.namespace.GET;
+ await module.link(async name=>{const file=name==='../../lib/tour-services'?'app/lib/tour-services.js':name==='../../lib/tour-pages'?'app/lib/tour-pages.js':null;assert.ok(file,name);const config=new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});await config.link(()=>{});return config;});await module.evaluate();return module.namespace.GET;
 }
 const payload=type=>({response:{header:{resultCode:'0000'},body:{totalCount:1,items:{item:[{contentid:'202',contenttypeid:type,title:'Localized place',firstimage:'https://example.com/photo.jpg',overview:'Description'}]}}}});
 const request=params=>new Request('https://test.local/api/tour-test?'+new URLSearchParams(params));
@@ -28,4 +28,15 @@ test('a missing foreign key never falls back to Korean; invalid languages are re
 test('existing requests without a language still use the Korean service',async()=>{
  const get=await route(async value=>{assert.ok(new URL(value).pathname.includes('/KorService2/'));return Response.json(payload('12'));});
  const r=await get(request({mode:'nearby',longitude:'127',latitude:'37'}));assert.equal(r.status,200);assert.equal((await r.json()).language,'ko');
+});
+
+test('nearby all retrieves every page before returning, deduplicates and keeps legacy single-page requests',async()=>{
+ const calls=[];let active=0,maxActive=0;
+ const get=await route(async value=>{const u=new URL(value),page=Number(u.searchParams.get('pageNo')),size=Number(u.searchParams.get('numOfRows'));calls.push(page);active++;maxActive=Math.max(maxActive,active);await new Promise(r=>setTimeout(r,5));active--;const total=465;const data=payload('12');data.response.body={totalCount:total,numOfRows:size,items:{item:Array.from({length:Math.min(size,total-(page-1)*size)},(_,i)=>({contentid:String((page-1)*size+i+1),contenttypeid:'12',title:'Place'}))}};return Response.json(data);});
+ const response=await get(request({mode:'nearby',lang:'ko',longitude:'127',latitude:'37',all:'1'}));const data=await response.json();assert.equal(response.status,200);assert.equal(data.items.length,465);assert.equal(data.complete,true);assert.deepEqual(calls,[1,2,3,4,5]);assert.ok(maxActive<=4);
+ calls.length=0;const old=await (await get(request({mode:'nearby',longitude:'127',latitude:'37'}))).json();assert.equal(old.items.length,20);assert.deepEqual(calls,[1]);
+});
+test('failed later pages never masquerade as a complete list',async()=>{
+ const get=await route(async value=>{const u=new URL(value);if(u.searchParams.get('pageNo')!=='1')return new Response('',{status:503});const d=payload('12');d.response.body.totalCount=101;d.response.body.numOfRows=100;d.response.body.items.item=Array.from({length:100},(_,i)=>({contentid:String(i+1)}));return Response.json(d);});
+ const res=await get(request({mode:'nearby',longitude:'127',latitude:'37',all:'1'}));assert.equal(res.status,502);const data=await res.json();assert.equal(data.complete,undefined);assert.equal(data.items,undefined);
 });
