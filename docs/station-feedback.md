@@ -35,3 +35,9 @@ To revert UI/API release, restore the preceding Git commit; the additive DB tabl
 Apply `database/feedback-praise.sql` after the original migration. Category and location inputs are direct-tap button groups; optional location can be deselected. Praise is supported in all four languages. Only the existing top-left workspace back button remains. Administrators can choose visible/all/hidden records and restore a hidden record. Staff tokens cannot request hidden records or restore them. Hidden rows continue to be excluded from the public count.
 
 Ten explicitly labeled test ideas were added on 2026-11-01 for Jongno 5-ga. Their request IDs have prefix `f00d0000-0000-4000-8000-`, and their content begins `[테스트 의견 n]`. They count toward the badge until hidden or removed. They are test content, not passenger feedback.
+
+## Compact mobile inbox
+
+The client requests one to three rows according to available viewport height, and reduces the page size if measured translated content would overflow. The API accepts only sizes 1/2/3, applies the same limit to offset calculation, and retains stable ordering. Resize and filter changes reset pagination. Opinion bodies show a two-line preview; tapping opens a native modal with the full content. The modal has an explicit close button, Escape support, and native focus handling. Station identity shares a heading row on the right throughout this feature. Staff controls share one horizontal row. No other feature's station display was changed.
+
+The flow test seeds more than ten local test records and checks that the pager is visible without scrolling at 640/740/844px heights, including four-language small-screen cases, and that the next page can be reached.
