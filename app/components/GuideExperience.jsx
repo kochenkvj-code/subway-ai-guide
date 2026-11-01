@@ -361,9 +361,9 @@ const GATE_UI = {
 const V2_GATE_FLOW = {
   ko: {
     locate: "개찰구의 **왼쪽 또는 오른쪽 맨 끝**에 있는 **휠체어 게이트(넓은 게이트)**를 찾으세요.",
-    e03: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 교통카드를 확인하고 요금을 정산**받으세요.",
-    e04: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 교통카드를 확인하고 요금을 정산**받으세요.",
-    e05: "비프음(삐 소리)이 나더라도 통과할 수 있는 해당 게이트를 이용한 뒤, **고객안전실에서 요금을 정산**받으세요.",
+    e03: "비프음(삐 소리)이 나더라도 **해당 게이트를 통과한 뒤 고객안전실을 방문하여 교통카드를 확인하고 요금을 정산**받으세요.",
+    e04: "비프음(삐 소리)이 나더라도 **해당 게이트를 통과한 뒤 고객안전실을 방문하여 교통카드를 확인하고 요금을 정산**받으세요.",
+    e05: "비프음(삐 소리)이 나더라도 **해당 게이트를 통과한 뒤 고객안전실에서 요금을 정산**받으세요.",
     e06First: "사용 가능한 **다른 교통카드**가 있다면 먼저 태그해 보세요.",
     e06Last: "계속 오류가 발생하면 **고객안전실을 방문하여 교통카드를 확인**받으세요.",
     e33First: "이미 **승차 처리된 카드**이므로 별도의 정산은 필요하지 않습니다.",
@@ -377,9 +377,9 @@ const V2_GATE_FLOW = {
   },
   en: {
     locate: "Find the **Accessible (wide) gate** at either end of the row of fare gates.",
-    e03: "If the gate can be used, pass through even if it beeps, then visit the **station office** to check your card and settle any fare.",
-    e04: "If the gate can be used, pass through even if it beeps, then visit the **station office** to check your card and settle any fare.",
-    e05: "If the gate can be used, pass through even if it beeps, then visit the **station office** for fare adjustment.",
+    e03: "Even if it beeps, **pass through that gate**, then visit the **station office** to check your card and settle any fare.",
+    e04: "Even if it beeps, **pass through that gate**, then visit the **station office** to check your card and settle any fare.",
+    e05: "Even if it beeps, **pass through that gate**, then visit the **station office** for fare adjustment.",
     e06First: "If you have **another usable transit card**, try tapping it first.",
     e06Last: "If the error continues, visit the **station office** to have your card checked.",
     e33First: "Your card has **already been processed for entry**. No further fare adjustment is needed.",
@@ -393,9 +393,9 @@ const V2_GATE_FLOW = {
   },
   ja: {
     locate: "改札口の**左右いずれかの端**にある**車いす対応の幅広い改札**を探してください。",
-    e03: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
-    e04: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
-    e05: "通行できる場合は警告音が鳴ってもその改札を通り、**駅事務室で運賃を精算**してください。",
+    e03: "警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
+    e04: "警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
+    e05: "警告音が鳴ってもその改札を通り、**駅事務室で運賃を精算**してください。",
     e06First: "利用可能な**別の交通カード**があれば、先にお試しください。",
     e06Last: "エラーが続く場合は、**駅事務室で交通カードを確認**してもらってください。",
     e33First: "**入場処理済み**のカードです。追加の精算は必要ありません。",
@@ -409,9 +409,9 @@ const V2_GATE_FLOW = {
   },
   zh: {
     locate: "请寻找闸机通道**最左侧或最右侧**的**无障碍宽闸机（轮椅闸机）**。",
-    e03: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
-    e04: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
-    e05: "如通道可正常通行，即使听到提示音，也可通过该闸机，然后前往**车站服务室办理费用结算**。",
+    e03: "即使听到提示音，也请通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
+    e04: "即使听到提示音，也请通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
+    e05: "即使听到提示音，也请通过该闸机，然后前往**车站服务室办理费用结算**。",
     e06First: "如果有**其他可用的交通卡**，请先尝试刷卡。",
     e06Last: "如果仍然报错，请前往**车站服务室检查交通卡**。",
     e33First: "您的交通卡**已经完成进站处理**，无需额外结算。",
@@ -431,7 +431,7 @@ function v2GateSteps(lang, id) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
   if (V2_GATE_WITH_LOCATION.has(id)) return [l.locate, id === "opposite" ? l.oppositeLast : l[id]];
   if (id === "e06") return [l.e06First, l.e06Last];
-  if (id === "e33" || id === "e44") return [l[id + "First"], l.processedLast];
+  if (id === "e33" || id === "e44") return [l[id + "First"], l.locate, l.processedLast];
   return null;
 }
 
@@ -1763,7 +1763,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           <GateLocationDiagram lang={lang}/>
                         </details>
                       )}
-                      {embedded && V2_GATE_WITH_LOCATION.has(message.gateResult) && <p className="sag-gate-safe-note">{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).fallback}</p>}
+                      {embedded && (V2_GATE_WITH_LOCATION.has(message.gateResult) || message.gateResult === "e33" || message.gateResult === "e44") && <p className="sag-gate-safe-note">{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).fallback}</p>}
                       {message.gateResult !== "unknown" && !(embedded && V2_GATE_WITH_DIAGRAM.has(message.gateResult)) && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
