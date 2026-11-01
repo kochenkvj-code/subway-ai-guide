@@ -363,7 +363,6 @@ const V2_GATE_FLOW = {
     locate: "개찰구의 **왼쪽 또는 오른쪽 맨 끝**에 있는 **휠체어 게이트(넓은 게이트)**로 이동하세요.",
     passBeep: "**비프음(삐 소리)이 나더라도 무시하고 해당 게이트를 통과하세요.**",
     optionalOffice: "교통카드 확인이나 요금 정산이 필요한 경우에는 **고객안전실을 방문해 주세요.**",
-    e04After: "통과 후 **고객안전실을 방문하여 교통카드를 확인받고**, 필요한 경우 요금을 정산하세요.",
     e14First: "발매기·키오스크 또는 정산기에서 **교통카드 잔액을 충전하세요.**",
     e14Last: "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**",
     e33First: "이미 승차 처리된 교통카드입니다. **다시 태그하거나 요금을 정산할 필요가 없습니다.**",
@@ -377,7 +376,6 @@ const V2_GATE_FLOW = {
     locate: "Go to the **Accessible (wide) gate** at the far left or right end of the fare gates.",
     passBeep: "**Even if you hear a beep, ignore it and pass through that gate.**",
     optionalOffice: "If your transit card needs checking or a fare adjustment, visit the **station office**.",
-    e04After: "After passing through, visit the **station office** to have your transit card checked. Pay any fare adjustment if needed.",
     e14First: "Top up your transit card at a compatible **ticket machine, kiosk, or fare adjustment machine**.",
     e14Last: "Tap your card again at a gate showing a **green arrow**.",
     e33First: "Your transit card has **already been processed for entry**. You do not need to tap again or pay an additional fare.",
@@ -391,7 +389,6 @@ const V2_GATE_FLOW = {
     locate: "改札口の**左右いずれかの端**にある**車いす対応の幅広い改札**へ移動してください。",
     passBeep: "**警告音（ピッという音）が鳴っても、気にせずそのまま改札を通過してください。**",
     optionalOffice: "交通カードの確認や運賃の精算が必要な場合は、**駅事務室へお越しください。**",
-    e04After: "通過後は**駅事務室で交通カードの確認**を受け、必要に応じて運賃を精算してください。",
     e14First: "券売機・キオスク、または精算機で**交通カードをチャージ**してください。",
     e14Last: "**緑の矢印**が表示された改札にもう一度タッチしてください。",
     e33First: "この交通カードは**すでに入場処理済み**です。再度タッチしたり、運賃を精算したりする必要はありません。",
@@ -405,7 +402,6 @@ const V2_GATE_FLOW = {
     locate: "请前往闸机通道**最左侧或最右侧**的**无障碍宽闸机（轮椅闸机）**。",
     passBeep: "**即使听到提示音，也请忽略提示音并通过该闸机。**",
     optionalOffice: "如需检查交通卡或结算车费，请前往**车站服务室**。",
-    e04After: "通过闸机后，请前往**车站服务室检查交通卡**，如有需要再结算车费。",
     e14First: "请在支持充值的**售票机、自助终端或补票机**为交通卡充值。",
     e14Last: "然后在有**绿色箭头**的闸机上重新刷卡。",
     e33First: "此交通卡**已经完成进站处理**，无需再次刷卡或结算车费。",
@@ -420,8 +416,7 @@ const V2_GATE_FLOW = {
 const V2_GATE_WITH_DIAGRAM = new Set(["e03", "e04", "e05", "e06", "e33", "e44", "opposite", "unknown"]);
 function v2GateSteps(lang, id) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
-  if (id === "e03" || id === "e05") return [l.locate, l.passBeep, l.optionalOffice];
-  if (id === "e04") return [l.locate, l.passBeep, l.e04After];
+  if (id === "e03" || id === "e04" || id === "e05") return [l.locate, l.passBeep, l.optionalOffice];
   if (id === "e14") return [l.e14First, l.e14Last];
   if (id === "e33" || id === "e44") return [l[id + "First"], l.locate, l.passBeep];
   if (id === "opposite") return [l.locate, l.oppositeLast];
