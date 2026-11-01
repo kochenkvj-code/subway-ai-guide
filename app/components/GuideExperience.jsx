@@ -292,8 +292,8 @@ const GATE_UI = {
       e05: ["**휠체어 게이트(넓은 게이트)** 쪽으로 이동하세요.", "통과 후 **고객안전실에서 요금을 정산**해 주세요."],
       e06: ["사용할 수 있는 **다른 교통카드**가 있다면 이용해 보세요.", "문제가 계속되면 **고객안전실**에 문의하세요."],
       e14: ["충전 가능한 발매기 또는 키오스크에서 **잔액을 충전하세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
-      e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통해 이동하세요."],
-      e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통해 이동하세요."],
+      e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통과해 **들어가세요.** (비프음은 **무시하세요.**)"],
+      e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통과해 **나오세요.** (비프음은 **무시하세요.**)"],
       opposite: ["반대편 승강장으로 이동해야 하는 상황인지 확인하세요.", "**휠체어 게이트(넓은 게이트)**를 통해 반대편 승강장으로 이동하세요."],
       unknown: ["오류 코드를 알 수 없거나 목록에 없는 경우, **휠체어 게이트(넓은 게이트)**로 이동하세요.", "해당 게이트를 통과해 **고객안전실**을 방문하여 **교통카드를 확인받으세요.**"],
     },
@@ -311,8 +311,8 @@ const GATE_UI = {
       e05: ["Go to the **Accessible (wide) gate**.", "After passing, visit the **station office for fare adjustment**."],
       e06: ["Try **another transit card**, if available.", "If it still fails, contact the **station office**."],
       e14: ["**Top up** your card at a compatible machine or kiosk.", "Tap again at a gate showing a **green arrow**."],
-      e33: ["The card has **already been tapped in**; no extra fare adjustment is needed.", "Use the **Accessible (wide) gate** to proceed."],
-      e44: ["The card has **already been tapped out**; no extra fare adjustment is needed.", "Use the **Accessible (wide) gate** to proceed."],
+      e33: ["The card has **already been tapped in**; no extra fare adjustment is needed.", "Pass through the **Accessible (wide) gate** to **enter.** (**Ignore the beep.**)"],
+      e44: ["The card has **already been tapped out**; no extra fare adjustment is needed.", "Pass through the **Accessible (wide) gate** to **exit.** (**Ignore the beep.**)"],
       opposite: ["Confirm you need to reach the **opposite platform**.", "Use the **Accessible (wide) gate** to move across."],
       unknown: ["If you cannot identify the error code or it is not listed, go to the **Accessible (wide) gate**.", "Pass through that gate, then visit the **station office** to have your **transit card checked**."],
     },
@@ -330,8 +330,8 @@ const GATE_UI = {
       e05: ["**幅の広い車いす用ゲート**へ移動してください。", "通過後、**駅務室で精算**してください。"],
       e06: ["別の**交通カード**があればお試しください。", "解決しない場合は**駅務室**へお越しください。"],
       e14: ["対応する券売機・キオスクで**チャージ**してください。", "**緑の矢印**が表示された改札にもう一度タッチしてください。"],
-      e33: ["**すでに入場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
-      e44: ["**すでに出場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
+      e33: ["**すでに入場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通って**入場してください。**（警告音は**気にしないでください。**）"],
+      e44: ["**すでに出場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通って**出場してください。**（警告音は**気にしないでください。**）"],
       opposite: ["**反対側のホーム**への移動が必要か確認してください。", "**車いす用ゲート**を通って反対側へ移動してください。"],
       unknown: ["エラーコードが分からない、または一覧にない場合は、**車いす用の幅広い改札**へ移動してください。", "その改札を通過して**駅務室**へ行き、**交通カードの確認**を受けてください。"],
     },
@@ -349,8 +349,8 @@ const GATE_UI = {
       e05: ["请前往**无障碍宽闸机**。", "通过后前往**站务室办理车费结算**。"],
       e06: ["如有其他**交通卡**，请尝试使用。", "如仍无法使用，请前往**站务室**。"],
       e14: ["请在支持的售票机或自助终端为交通卡**充值**。", "然后在有**绿色箭头**的闸机上重新刷卡。"],
-      e33: ["此卡**已完成进站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
-      e44: ["此卡**已完成出站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
+      e33: ["此卡**已完成进站**，无需额外结算。", "请通过**无障碍宽闸机** **进站。**（请**忽略提示音。**）"],
+      e44: ["此卡**已完成出站**，无需额外结算。", "请通过**无障碍宽闸机** **出站。**（请**忽略提示音。**）"],
       opposite: ["请确认需要前往**对面站台**。", "请使用**无障碍宽闸机**前往对面站台。"],
       unknown: ["如果无法确认错误代码，或列表中没有该代码，请前往**无障碍宽闸机（轮椅闸机）**。", "通过该闸机后，请前往**车站服务室**检查**交通卡**。"],
     },
@@ -427,11 +427,11 @@ function v2GateSteps(lang, id) {
 function GateLocationDiagram({ lang }) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
   const edgeHint = {
-    ko: "넓은 게이트는 개찰구의 왼쪽 또는 오른쪽 맨 끝에 있습니다.",
-    en: "Look for the wide gate at the far left or far right end.",
-    ja: "幅の広い改札は、改札口の左端または右端にあります。",
-    zh: "宽闸机位于闸机通道最左侧或最右侧。",
-  }[lang] || "넓은 게이트는 개찰구의 왼쪽 또는 오른쪽 맨 끝에 있습니다.";
+    ko: "넓은 게이트는 개찰구 한쪽 끝에 있습니다.",
+    en: "Look for the wide gate at one end of the row of fare gates.",
+    ja: "幅の広い改札は、改札口の端にあります。",
+    zh: "宽闸机位于闸机通道的一端。",
+  }[lang] || "넓은 게이트는 개찰구 한쪽 끝에 있습니다.";
   return (
     <div className="sag-gate-diagram-content">
       <div className="sag-gate-diagram-legend" aria-hidden="true">
