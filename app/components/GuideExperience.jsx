@@ -357,68 +357,135 @@ const GATE_UI = {
   },
 };
 
+const V2_GATE_WRITING = {
+  "ko": {
+    "prompt": "① **초록색 화살표가 있는 게이트**에 카드를 대세요.\n② **오류 코드를 확인하고 아래에서 선택하세요.**",
+    "unknown": "코드를 모르겠어요",
+    "stepTitle": "이렇게 해보세요",
+    "details": "오류 원인 보기",
+    "another": "오류 다시 선택",
+    "help": "안내대로 해도 통과할 수 없나요? 게이트의 **HELP 버튼**을 눌러 주세요.",
+    "labels": {
+      "e01": "카드 여러 장 인식",
+      "e03": "하차 기록 없음",
+      "e04": "승차 기록 없음",
+      "e33": "이미 승차 처리됨",
+      "e44": "이미 하차 처리됨"
+    }
+  },
+  "en": {
+    "prompt": "① **Tap your card at a green-arrow gate.**\n② **Check the error code and select it below.**",
+    "unknown": "I can’t find the code",
+    "stepTitle": "What to do",
+    "details": "Why this happened",
+    "another": "Choose another error",
+    "help": "Still unable to pass through? Press the **HELP button** on the gate.",
+    "labels": {
+      "e01": "Multiple cards detected",
+      "e03": "No exit record",
+      "e04": "No entry record",
+      "e33": "Already entered",
+      "e44": "Already exited"
+    }
+  },
+  "ja": {
+    "prompt": "① **緑の矢印がある改札**にカードをタッチしてください。\n② **エラーコードを確認し、下から選んでください。**",
+    "unknown": "コードが分かりません",
+    "stepTitle": "次の手順でお進みください",
+    "details": "エラーの原因を見る",
+    "another": "エラーを選び直す",
+    "help": "案内どおりにしても通過できませんか？改札の**HELPボタン**を押してください。",
+    "labels": {
+      "e01": "複数のカードを検出",
+      "e03": "出場記録なし",
+      "e04": "入場記録なし",
+      "e33": "入場処理済み",
+      "e44": "出場処理済み"
+    }
+  },
+  "zh": {
+    "prompt": "① 请在有**绿色箭头的闸机**上刷卡。\n② **查看错误代码，在下方选择。**",
+    "unknown": "找不到错误代码",
+    "stepTitle": "请按以下步骤操作",
+    "details": "查看错误原因",
+    "another": "重新选择错误",
+    "help": "按照指引仍无法通过？请按闸机上的**HELP按钮**。",
+    "labels": {
+      "e01": "检测到多张卡",
+      "e03": "无出站记录",
+      "e04": "无进站记录",
+      "e33": "已完成进站",
+      "e44": "已完成出站"
+    }
+  }
+};
+
 // V2 전용 게이트 안내: 기존 운영 버전(/)의 문구는 변경하지 않습니다.
 const V2_GATE_FLOW = {
   ko: {
-    locate: "개찰구 한쪽 끝에 있는 **휠체어 게이트(넓은 게이트)**로 이동하세요.",
-    passBeep: "비프음(삐 소리)이 나더라도 **무시하고** 해당 게이트를 **통과하세요.**",
+    locate: "개찰구 끝의 **넓은 게이트(휠체어 표시)**로 이동하세요.",
+    passBeep: "**삐 소리가 나더라도 넓은 게이트를 통과하세요.**",
     optionalOffice: "교통카드 확인이나 요금 정산이 필요한 경우에는 **고객안전실을 방문해 주세요.**",
-    e14First: "발매기·키오스크 또는 정산기에서 **교통카드 잔액을 충전하세요.**",
-    e14Last: "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**",
+    e14First: "발매기·키오스크 또는 정산기에서 **카드를 충전하세요.**",
+    e14Last: "초록색 화살표가 있는 게이트에 **카드를 다시 대세요.**",
     e33First: "이미 승차 처리된 교통카드입니다. **다시 태그하거나 요금을 정산할 필요가 없습니다.**",
     e44First: "이미 하차 처리된 교통카드입니다. **다시 태그하거나 요금을 정산할 필요가 없습니다.**",
-    oppositeLast: "비프음(삐 소리)이 나더라도 **무시하고** 해당 게이트를 통과하여 **반대편 승강장으로 이동하세요.**",
-    photo: "휠체어 게이트 위치 그림으로 확인하기",
+    oppositeLast: "삐 소리가 나더라도 통과해 **반대편 승강장으로 이동하세요.**",
+    photo: "넓은 게이트 위치 보기",
     regular: "일반 게이트", wide: "넓은 게이트",
-    photoCaption: "위치 이해를 위한 예시 그림입니다. 실제 역사 설비 사진은 추후 추가할 예정입니다.",
+    photoCaption: "게이트 위치를 설명하는 예시 그림입니다.",
+    processedPassBeep: "**삐 소리가 나더라도 멈추거나 되돌아가지 말고 그대로 통과하세요.**",
   },
   en: {
-    locate: "Go to the **Accessible (wide) gate** at one end of the row of fare gates.",
-    passBeep: "Even if you hear a beep, **ignore it** and **pass through that gate.**",
+    locate: "Go to the **wide gate with the wheelchair symbol** at the end of the fare gates.",
+    passBeep: "**Pass through the wide gate even if it beeps.**",
     optionalOffice: "If your transit card needs checking or a fare adjustment, visit the **station office**.",
-    e14First: "Top up your transit card at a compatible **ticket machine, kiosk, or fare adjustment machine**.",
-    e14Last: "Tap your card again at a gate showing a **green arrow**.",
+    e14First: "**Top up your card** at a compatible ticket machine, kiosk or fare adjustment machine.",
+    e14Last: "**Tap your card again** at a gate showing a green arrow.",
     e33First: "Your transit card has **already been processed for entry**. You do not need to tap again or pay an additional fare.",
     e44First: "Your transit card has **already been processed for exit**. You do not need to tap again or pay an additional fare.",
-    oppositeLast: "Even if it beeps, **ignore the sound** and pass through that gate to reach the **opposite platform**.",
-    photo: "View a diagram of the Accessible (wide) gate",
+    oppositeLast: "Even if it beeps, pass through to the **opposite platform**.",
+    photo: "Find the wide gate",
     regular: "Regular gates", wide: "Wide gate",
-    photoCaption: "Illustration for locating the gate, not a photo of this station. A verified station photo can be added later.",
+    photoCaption: "Example diagram showing the gate location.",
+    processedPassBeep: "**Even if it beeps, keep going through the wide gate. Do not stop or turn back.**",
   },
   ja: {
-    locate: "改札口の端にある**車いす対応の幅広い改札**へ移動してください。",
-    passBeep: "警告音（ピッという音）が鳴っても**気にせず**、そのまま改札を**通過してください。**",
+    locate: "改札口の端にある**車いすマークの幅広い改札**へ移動してください。",
+    passBeep: "**音が鳴っても、幅広い改札をそのまま通過してください。**",
     optionalOffice: "交通カードの確認や運賃の精算が必要な場合は、**駅事務室へお越しください。**",
-    e14First: "券売機・キオスク、または精算機で**交通カードをチャージ**してください。",
-    e14Last: "**緑の矢印**が表示された改札にもう一度タッチしてください。",
+    e14First: "対応する券売機・キオスク・精算機で**カードをチャージしてください。**",
+    e14Last: "緑の矢印がある改札に**もう一度カードをタッチしてください。**",
     e33First: "この交通カードは**すでに入場処理済み**です。再度タッチしたり、運賃を精算したりする必要はありません。",
     e44First: "この交通カードは**すでに出場処理済み**です。再度タッチしたり、運賃を精算したりする必要はありません。",
-    oppositeLast: "警告音（ピッという音）が鳴っても**気にせず**、そのまま改札を通過して**反対側のホームへ移動してください。**",
-    photo: "車いす対応改札の位置を図で確認",
+    oppositeLast: "音が鳴っても、そのまま通過して**反対側のホームへ移動してください。**",
+    photo: "幅広い改札の場所を見る",
     regular: "通常の改札", wide: "幅広い改札",
-    photoCaption: "位置を示す参考図です。実際の駅の写真ではありません。",
+    photoCaption: "改札の場所を説明する参考図です。",
+    processedPassBeep: "**音が鳴っても、立ち止まったり引き返したりせず、そのまま通過してください。**",
   },
   zh: {
-    locate: "请前往闸机通道一端的**无障碍宽闸机（轮椅闸机）**。",
-    passBeep: "即使听到提示音，也请**忽略提示音**并**通过该闸机**。",
+    locate: "请前往闸机通道一端、带有**轮椅标志的宽闸机**。",
+    passBeep: "**即使听到提示音，也请通过宽闸机。**",
     optionalOffice: "如需检查交通卡或结算车费，请前往**车站服务室**。",
-    e14First: "请在支持充值的**售票机、自助终端或补票机**为交通卡充值。",
-    e14Last: "然后在有**绿色箭头**的闸机上重新刷卡。",
+    e14First: "请在支持充值的售票机、自助终端或补票机为**交通卡充值**。",
+    e14Last: "在有绿色箭头的闸机上**再次刷卡**。",
     e33First: "此交通卡**已经完成进站处理**，无需再次刷卡或结算车费。",
     e44First: "此交通卡**已经完成出站处理**，无需再次刷卡或结算车费。",
-    oppositeLast: "即使听到提示音，也请**忽略提示音**并通过该闸机前往**对面站台**。",
-    photo: "查看无障碍宽闸机位置示意图",
+    oppositeLast: "即使听到提示音，也请通过闸机前往**对面站台**。",
+    photo: "查看宽闸机位置",
     regular: "普通闸机", wide: "宽闸机",
-    photoCaption: "仅用于说明闸机位置，并非本站实景照片。",
+    photoCaption: "用于说明闸机位置的示意图。",
+    processedPassBeep: "**即使听到提示音，也请继续通过宽闸机，不要停下或返回。**",
   },
 };
 
 const V2_GATE_WITH_DIAGRAM = new Set(["e03", "e04", "e05", "e06", "e33", "e44", "opposite", "unknown"]);
 function v2GateSteps(lang, id) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
-  if (id === "e03" || id === "e04" || id === "e05") return [l.locate, l.passBeep, l.optionalOffice];
+  if (id === "e03" || id === "e04" || id === "e05") return [l.locate, l.passBeep];
   if (id === "e14") return [l.e14First, l.e14Last];
-  if (id === "e33" || id === "e44") return [l[id + "First"], l.locate, l.passBeep];
+  if (id === "e33" || id === "e44") return [l.locate, l.processedPassBeep];
   if (id === "opposite") return [l.locate, l.oppositeLast];
   // E-06 등 변경하지 않기로 한 항목은 기존 GATE_UI 안내를 그대로 사용합니다.
   return null;
@@ -1732,8 +1799,10 @@ export default function GuideExperience({ embedded = false, initialAction = null
                 {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
 
                 {message.gateMenu && (() => {
-                  const ui = GATE_UI[lang] || GATE_UI.ko;
-                  const menu = GATE_MENU[lang] || GATE_MENU.ko;
+                  const writing = V2_GATE_WRITING[lang] || V2_GATE_WRITING.ko;
+                  const ui = {...(GATE_UI[lang] || GATE_UI.ko), ...(embedded ? writing : {})};
+                  const originalMenu = GATE_MENU[lang] || GATE_MENU.ko;
+                  const menu = embedded ? {...originalMenu,prompt:writing.prompt,options:originalMenu.options.map(option=>({...option,label:writing.labels[option.id]?`${option.label.match(/^E-\d+/)?.[0]} ${writing.labels[option.id]}`:option.label}))} : originalMenu;
                   return (
                     <div className="sag-gate-card">
                       <div className="sag-gate-card-heading">
@@ -1765,11 +1834,15 @@ export default function GuideExperience({ embedded = false, initialAction = null
                 })()}
 
                 {message.gateResult && (() => {
-                  const ui = GATE_UI[lang] || GATE_UI.ko;
+                  const writing = V2_GATE_WRITING[lang] || V2_GATE_WRITING.ko;
+                  const ui = {...(GATE_UI[lang] || GATE_UI.ko), ...(embedded ? writing : {})};
                   const options = (GATE_MENU[lang] || GATE_MENU.ko).options;
                   const selected = options.find((o) => o.id === message.gateResult);
                   const code = selected && !selected.wide ? selected.label.match(/^E-\d+/)?.[0] : "";
-                  const name = selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
+                  const name = embedded && writing.labels[message.gateResult] ? writing.labels[message.gateResult] : selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
+                  const flow = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
+                  const status = embedded && ["e33","e44"].includes(message.gateResult) ? flow[message.gateResult + "First"] : null;
+                  const note = embedded && ["e03","e04","e05"].includes(message.gateResult) ? flow.optionalOffice : null;
                   const steps = embedded ? (v2GateSteps(lang, message.gateResult) || ui.steps[message.gateResult] || ui.steps.unknown) : (ui.steps[message.gateResult] || ui.steps.unknown);
                   const fullGuide = GATE_GUIDES[message.gateResult]?.[lang] || GATE_GUIDES[message.gateResult]?.ko;
                   return (
@@ -1778,6 +1851,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                         {code && <span className="sag-gate-result-code">{code}</span>}
                         <h2>{name}</h2>
                       </div>
+                      {status && <p className="sag-gate-ux-status">{renderBoldMarkdown(status)}</p>}
                       <h3 className="sag-gate-step-title">{ui.stepTitle}</h3>
                       <ol className="sag-gate-steps">
                         {steps.map((step, i) => (
@@ -1786,6 +1860,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           </li>
                         ))}
                       </ol>
+                      {note && <p className="sag-gate-ux-note">{renderBoldMarkdown(note)}</p>}
                       {fullGuide && (
                         <details className="sag-gate-details" onToggle={e=>{if(e.currentTarget.open)recordStat("gate_action","details_open",lang,message.feedbackKey);}}>
                           <summary>{ui.details}<span aria-hidden="true">⌄</span></summary>
@@ -2372,6 +2447,8 @@ export default function GuideExperience({ embedded = false, initialAction = null
         .sag-gate-result-heading h2 { font-size: 16px; font-weight: 800; margin: 0; }
         .sag-gate-result-code { color: #1265a4; background: #e8f4fd; border-radius: 8px;
           padding: 6px 8px; font-size: 15px; font-weight: 850; flex-shrink: 0; }
+        .sag-gate-ux-status { margin: 8px 0 12px; font-size: 13px; line-height: 1.65; color: #526d80; }
+        .sag-gate-ux-note { margin: 10px 0; padding: 9px 10px; border-radius: 9px; background: #f1f6f9; font-size: 12px; line-height: 1.65; color: #526d80; }
         .sag-gate-step-title { font-size: 13px; margin: 12px 0 8px; }
         .sag-gate-steps { padding: 0; margin: 0; list-style: none; display: grid; gap: 7px; }
         .sag-gate-steps li { display: flex; align-items: flex-start; gap: 10px; background: #f3f8fc;
