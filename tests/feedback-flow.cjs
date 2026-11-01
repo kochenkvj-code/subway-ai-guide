@@ -34,8 +34,8 @@ const server=http.createServer(async(req,res)=>{
   await p.goto(origin+'/v2?view=feedback');await p.locator('.sf-choice').first().click();
   assert.equal(await p.locator('.sf-chips [aria-pressed=true]').count(),0);
   await p.locator('#sf-content').fill('출구 안내 표지판을 더 잘 보이게 해주세요. '.repeat(8));await p.locator('.sf-chips button').nth(1).click();assert.ok((await p.locator('#sf-content').inputValue()).startsWith('출구'));
-  await p.locator('.sf-locations button').nth(3).click();await p.locator('#sf-detail').fill('3번 출구');await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
-  assert.equal(rows.filter(x=>x.station_id===station).length,1);assert.equal(rows[0].location_detail,'3번 출구');
+  await p.locator('.sf-locations button').nth(3).click();assert.equal(await p.locator('#sf-detail').count(),0);await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
+  assert.equal(rows.filter(x=>x.station_id===station).length,1);assert.equal(rows[0].location_detail,'');
   await p.locator('.v2-view-header > button').first().click();await p.locator('.sf-choice').first().waitFor();await p.locator('.v2-view-header > button').first().click();await p.locator('.v2-home:not([hidden])').waitFor();await p.locator('.sf-badge').waitFor();assert.equal(await p.locator('.sf-badge').innerText(),'1');
   await p.locator('.v2-grid > button').last().click();await p.locator('.sf-choice').nth(1).click();await p.locator('#sf-pin').waitFor();
   assert.equal((await ctx.request.get(origin+'/api/stats/feedback?station='+station)).status(),401);
