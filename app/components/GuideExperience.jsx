@@ -222,25 +222,25 @@ const GATE_GUIDES = {
     zh: "可能同时识别到了钱包或手机壳中的两张以上交通卡。\n\n**请只取出要使用的一张卡，再次刷卡。**",
   },
   e03: {
-    ko: "**집표(하차) 처리가 되지 않은 카드입니다.**\n\n하차할 때 카드가 정상적으로 태그되지 않았거나 하차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**스피드(휠체어)게이트를 통과한 뒤 역무실로 방문하여 카드를 확인하고 정산해 주세요.**",
-    en: "**This card does not have a recorded exit.**\n\nThis may appear if the card was not tapped correctly when exiting or the exit record was not saved.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office to have the card checked and the fare adjusted.**",
+    ko: "**집표(하차) 처리가 되지 않은 카드입니다.**\n\n하차할 때 카드가 정상적으로 태그되지 않았거나 하차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**휠체어 게이트(넓은 게이트)를 통과한 뒤 고객안전실을 방문하여 카드를 확인하고 정산해 주세요.**",
+    en: "**This card does not have a recorded exit.**\n\nThis may appear if the card was not tapped correctly when exiting or the exit record was not saved.\n\n**Pass through the Accessible (wide) gate, then visit the station office to have the card checked and the fare adjusted.**",
     ja: "**出場（降車）処理が記録されていないカードです。**\n\n降車時にカードが正常にタッチされなかった、または出場記録が残っていない場合に表示されることがあります。\n\n**スピードゲート（車いす用ゲート）を通過した後、駅務室でカードの確認と精算をしてください。**",
     zh: "**此卡没有出站（下车）记录。**\n\n下车时未正确刷卡，或出站记录未保存时可能会显示此错误。\n\n**请先通过无障碍宽闸机（轮椅闸机），然后前往站务室检查交通卡并办理结算。**",
   },
   e04: {
-    ko: "**개표(승차) 처리가 되지 않은 카드입니다.**\n\n승차할 때 카드가 정상적으로 태그되지 않았거나 승차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**스피드(휠체어)게이트를 통과한 뒤 역무실로 방문하여 카드를 확인하고 정산해 주세요.**",
-    en: "**This card does not have a recorded entry.**\n\nThis may appear if the card was not tapped correctly when entering or the entry record was not saved.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office to have the card checked and the fare adjusted.**",
+    ko: "**개표(승차) 처리가 되지 않은 카드입니다.**\n\n승차할 때 카드가 정상적으로 태그되지 않았거나 승차 기록이 남지 않은 경우 표시될 수 있습니다.\n\n**휠체어 게이트(넓은 게이트)를 통과한 뒤 고객안전실을 방문하여 카드를 확인하고 정산해 주세요.**",
+    en: "**This card does not have a recorded entry.**\n\nThis may appear if the card was not tapped correctly when entering or the entry record was not saved.\n\n**Pass through the Accessible (wide) gate, then visit the station office to have the card checked and the fare adjusted.**",
     ja: "**入場（乗車）処理が記録されていないカードです。**\n\n乗車時にカードが正常にタッチされなかった、または入場記録が残っていない場合に表示されることがあります。\n\n**スピードゲート（車いす用ゲート）を通過した後、駅務室でカードの確認と精算をしてください。**",
     zh: "**此卡没有进站（乘车）记录。**\n\n乘车时未正确刷卡，或进站记录未保存时可能会显示此错误。\n\n**请先通过无障碍宽闸机（轮椅闸机），然后前往站务室检查交通卡并办理结算。**",
   },
   e05: {
-    ko: "지하철 이용 가능 시간이 초과되어 **정산이 필요한 상태**입니다.\n\n**스피드게이트(휠체어 게이트)를 통과한 뒤 역무실로 방문하여 정산해 주세요.**",
-    en: "The allowed subway travel time has been exceeded, so **fare adjustment is required**.\n\n**Pass through the speed gate (wheelchair gate), then visit the station office for fare adjustment.**",
+    ko: "지하철 이용 가능 시간이 초과되어 **정산이 필요한 상태**입니다.\n\n**휠체어 게이트(넓은 게이트)를 통과한 뒤 고객안전실을 방문하여 정산해 주세요.**",
+    en: "The allowed subway travel time has been exceeded, so **fare adjustment is required**.\n\n**Pass through the Accessible (wide) gate, then visit the station office for fare adjustment.**",
     ja: "地下鉄の利用可能時間を超えているため、**精算が必要な状態**です。\n\n**スピードゲート（車いす用ゲート）を通過し、駅務室で精算してください。**",
     zh: "已超过地铁允许的乘车时间，**需要进行补票/结算**。\n\n**请通过无障碍宽闸机（轮椅闸机），然后前往站务室办理结算。**",
   },
   e06: {
-    ko: "현재 카드가 정상적으로 사용할 수 없는 상태입니다.\n\n**다른 교통카드를 사용할 수 있다면 이용해 주세요. 계속 오류가 발생하면 역무실을 방문해 주세요.**",
+    ko: "현재 카드가 정상적으로 사용할 수 없는 상태입니다.\n\n**다른 교통카드를 사용할 수 있다면 이용해 주세요. 계속 오류가 발생하면 고객안전실을 방문해 주세요.**",
     en: "The card is currently not available for normal use.\n\n**Use another transit card if possible. If the error continues, visit the station office.**",
     ja: "現在、このカードは正常に利用できない状態です。\n\n**別の交通カードがあれば使用してください。エラーが続く場合は駅務室へお越しください。**",
     zh: "当前这张卡无法正常使用。\n\n**如有其他交通卡，请改用其他卡。若仍持续出现错误，请前往站务室。**",
@@ -252,20 +252,20 @@ const GATE_GUIDES = {
     zh: "交通卡**余额不足**。\n\n**请充值后再次刷卡。**",
   },
   e33: {
-    ko: "**이미 개표(승차) 처리된 카드입니다.**\n\n같은 역에서 이미 승차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 스피드게이트(휠체어 게이트)를 통해 통과해 주세요.**",
-    en: "**This card has already been processed for entry.**\n\nThis message appears when a card that has already been processed for entry at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the speed gate (wheelchair gate).**",
+    ko: "**이미 개표(승차) 처리된 카드입니다.**\n\n같은 역에서 이미 승차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 휠체어 게이트(넓은 게이트)를 통해 통과해 주세요.**",
+    en: "**This card has already been processed for entry.**\n\nThis message appears when a card that has already been processed for entry at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the Accessible (wide) gate.**",
     ja: "**すでに入場（乗車）処理済みのカードです。**\n\n同じ駅で入場処理済みのカードを再度タッチすると表示されます。\n\n**追加の精算や処理は不要です。ビープ音が鳴っても、スピードゲート（車いす用ゲート）を通ってください。**",
     zh: "**此卡已经完成进站（乘车）处理。**\n\n在同一车站再次刷已经完成进站处理的卡时会显示此提示。\n\n**无需另外结算或处理。即使发出提示音，也请通过无障碍宽闸机（轮椅闸机）。**",
   },
   e44: {
-    ko: "**이미 집표(하차) 처리된 카드입니다.**\n\n같은 역에서 이미 하차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 스피드게이트(휠체어 게이트)를 통해 통과해 주세요.**",
-    en: "**This card has already been processed for exit.**\n\nThis message appears when a card that has already been processed for exit at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the speed gate (wheelchair gate).**",
+    ko: "**이미 집표(하차) 처리된 카드입니다.**\n\n같은 역에서 이미 하차 처리된 카드를 다시 태그하면 표시됩니다.\n\n**별도의 정산이나 처리는 필요하지 않습니다. 비프음이 나더라도 휠체어 게이트(넓은 게이트)를 통해 통과해 주세요.**",
+    en: "**This card has already been processed for exit.**\n\nThis message appears when a card that has already been processed for exit at the same station is tapped again.\n\n**No additional fare adjustment is needed. Even if you hear a beep, pass through the Accessible (wide) gate.**",
     ja: "**すでに出場（降車）処理済みのカードです。**\n\n同じ駅で出場処理済みのカードを再度タッチすると表示されます。\n\n**追加の精算や処理は不要です。ビープ音が鳴っても、スピードゲート（車いす用ゲート）を通ってください。**",
     zh: "**此卡已经完成出站（下车）处理。**\n\n在同一车站再次刷已经完成出站处理的卡时会显示此提示。\n\n**无需另外结算或处理。即使发出提示音，也请通过无障碍宽闸机（轮椅闸机）。**",
   },
   opposite: {
-    ko: "방향을 잘못 탔거나 목적지역을 지나쳐 **반대편 승강장으로 이동하려는 경우**입니다.\n\n**스피드게이트(휠체어 게이트)를 통해 반대편 승강장으로 이동해 주세요.**",
-    en: "Use this option if you took the wrong direction or passed your destination and need to reach the **opposite platform**.\n\n**Use the speed gate (wheelchair gate) to move to the opposite platform.**",
+    ko: "방향을 잘못 탔거나 목적지역을 지나쳐 **반대편 승강장으로 이동하려는 경우**입니다.\n\n**휠체어 게이트(넓은 게이트)를 통해 반대편 승강장으로 이동해 주세요.**",
+    en: "Use this option if you took the wrong direction or passed your destination and need to reach the **opposite platform**.\n\n**Use the Accessible (wide) gate to move to the opposite platform.**",
     ja: "乗る方向を間違えた、または目的駅を通り過ぎて**反対側のホームへ移動したい場合**です。\n\n**スピードゲート（車いす用ゲート）を通って反対側のホームへ移動してください。**",
     zh: "如果您坐错方向，或坐过了目的站，需要前往**对面站台**，请选择此项。\n\n**请通过无障碍宽闸机（轮椅闸机）前往对面站台。**",
   },
@@ -284,18 +284,18 @@ const GATE_UI = {
     details: "오류 원인과 자세한 안내 보기",
     another: "다른 오류 선택",
     office: "고객안전실 위치",
-    help: "문제가 해결되지 않으면 **HELP 버튼**을 눌러 역무실에 문의해 주세요.",
+    help: "문제가 해결되지 않으면 **HELP 버튼**을 눌러 고객안전실에 문의해 주세요.",
     steps: {
       e01: ["지갑·휴대폰 케이스에서 사용할 카드 **한 장만 꺼내세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
-      e03: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
-      e04: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 카드 확인과 요금 정산**을 받으세요."],
-      e05: ["**스피드게이트(휠체어 게이트)** 쪽으로 이동하세요.", "통과 후 **역무실에서 요금을 정산**해 주세요."],
-      e06: ["사용할 수 있는 **다른 교통카드**가 있다면 이용해 보세요.", "문제가 계속되면 **역무실**에 문의하세요."],
+      e03: ["**휠체어 게이트(넓은 게이트)** 쪽으로 이동하세요.", "통과 후 **고객안전실에서 카드 확인과 요금 정산**을 받으세요."],
+      e04: ["**휠체어 게이트(넓은 게이트)** 쪽으로 이동하세요.", "통과 후 **고객안전실에서 카드 확인과 요금 정산**을 받으세요."],
+      e05: ["**휠체어 게이트(넓은 게이트)** 쪽으로 이동하세요.", "통과 후 **고객안전실에서 요금을 정산**해 주세요."],
+      e06: ["사용할 수 있는 **다른 교통카드**가 있다면 이용해 보세요.", "문제가 계속되면 **고객안전실**에 문의하세요."],
       e14: ["충전 가능한 발매기 또는 키오스크에서 **잔액을 충전하세요.**", "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**"],
-      e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
-      e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**스피드게이트(휠체어 게이트)**를 통해 이동하세요."],
-      opposite: ["반대편 승강장으로 이동해야 하는 상황인지 확인하세요.", "**스피드게이트(휠체어 게이트)**를 통해 반대편 승강장으로 이동하세요."],
-      unknown: ["**초록색 화살표 게이트**에 카드를 태그하고 표시된 오류를 다시 확인하세요.", "코드를 찾기 어렵거나 통과되지 않으면 **HELP 버튼**을 눌러 역무실에 문의해 주세요."],
+      e33: ["이미 승차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통해 이동하세요."],
+      e44: ["이미 하차 처리된 카드이므로 **추가 정산은 필요하지 않습니다.**", "**휠체어 게이트(넓은 게이트)**를 통해 이동하세요."],
+      opposite: ["반대편 승강장으로 이동해야 하는 상황인지 확인하세요.", "**휠체어 게이트(넓은 게이트)**를 통해 반대편 승강장으로 이동하세요."],
+      unknown: ["오류 코드를 알 수 없거나 목록에 없는 경우, **휠체어 게이트(넓은 게이트)**로 이동하세요.", "해당 게이트를 통과해 **고객안전실**을 방문하여 **교통카드를 확인받으세요.**"],
     },
   },
   en: {
@@ -306,15 +306,15 @@ const GATE_UI = {
     help: "If the problem is not resolved, press **HELP** to contact the station office.",
     steps: {
       e01: ["Take **one transit card** out of your wallet or phone case.", "Tap it again at a gate showing a **green arrow**."],
-      e03: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
-      e04: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
-      e05: ["Go to the **accessible (wide) gate**.", "After passing, visit the **station office for fare adjustment**."],
+      e03: ["Go to the **Accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
+      e04: ["Go to the **Accessible (wide) gate**.", "After passing, visit the **station office for a card check and fare adjustment**."],
+      e05: ["Go to the **Accessible (wide) gate**.", "After passing, visit the **station office for fare adjustment**."],
       e06: ["Try **another transit card**, if available.", "If it still fails, contact the **station office**."],
       e14: ["**Top up** your card at a compatible machine or kiosk.", "Tap again at a gate showing a **green arrow**."],
-      e33: ["The card has **already been tapped in**; no extra fare adjustment is needed.", "Use the **accessible (wide) gate** to proceed."],
-      e44: ["The card has **already been tapped out**; no extra fare adjustment is needed.", "Use the **accessible (wide) gate** to proceed."],
-      opposite: ["Confirm you need to reach the **opposite platform**.", "Use the **accessible (wide) gate** to move across."],
-      unknown: ["Tap at a gate showing a **green arrow** and check the displayed message.", "If you cannot identify the code or pass through, press **HELP** to contact staff."],
+      e33: ["The card has **already been tapped in**; no extra fare adjustment is needed.", "Use the **Accessible (wide) gate** to proceed."],
+      e44: ["The card has **already been tapped out**; no extra fare adjustment is needed.", "Use the **Accessible (wide) gate** to proceed."],
+      opposite: ["Confirm you need to reach the **opposite platform**.", "Use the **Accessible (wide) gate** to move across."],
+      unknown: ["If you cannot identify the error code or it is not listed, go to the **Accessible (wide) gate**.", "Pass through that gate, then visit the **station office** to have your **transit card checked**."],
     },
   },
   ja: {
@@ -333,7 +333,7 @@ const GATE_UI = {
       e33: ["**すでに入場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
       e44: ["**すでに出場済み**のため、追加精算は不要です。", "**車いす用ゲート**を通ってください。"],
       opposite: ["**反対側のホーム**への移動が必要か確認してください。", "**車いす用ゲート**を通って反対側へ移動してください。"],
-      unknown: ["**緑の矢印**がある改札にタッチし、表示を確認してください。", "コードが分からない、または通れない場合は**HELPボタン**を押して駅務室にお問い合わせください。"],
+      unknown: ["エラーコードが分からない、または一覧にない場合は、**車いす用の幅広い改札**へ移動してください。", "その改札を通過して**駅務室**へ行き、**交通カードの確認**を受けてください。"],
     },
   },
   zh: {
@@ -352,30 +352,9 @@ const GATE_UI = {
       e33: ["此卡**已完成进站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
       e44: ["此卡**已完成出站**，无需额外结算。", "请通过**无障碍宽闸机**。"],
       opposite: ["请确认需要前往**对面站台**。", "请使用**无障碍宽闸机**前往对面站台。"],
-      unknown: ["请在有**绿色箭头**的闸机上刷卡并查看错误信息。", "如无法识别代码或无法通行，请按**HELP按钮**联系站务员。"],
+      unknown: ["如果无法确认错误代码，或列表中没有该代码，请前往**无障碍宽闸机（轮椅闸机）**。", "通过该闸机后，请前往**车站服务室**检查**交通卡**。"],
     },
   },
-};
-
-// V2 전용: 오류 코드 확인이 어렵거나 목록에 없는 경우의 안내.
-// 기존 운영 화면(/)은 GATE_UI의 기존 안내를 그대로 사용합니다.
-const V2_UNKNOWN_GATE_STEPS = {
-  ko: [
-    "오류 코드를 알 수 없거나 목록에 없는 경우, **휠체어 게이트(넓은 게이트)**로 이동하세요.",
-    "해당 게이트를 통과해 **고객안전실**을 방문하여 **교통카드를 확인받으세요.**",
-  ],
-  en: [
-    "If you cannot identify the error code or it is not listed, go to the **accessible (wide) gate**.",
-    "Pass through that gate, then visit the **station office** to have your **transit card checked**.",
-  ],
-  ja: [
-    "エラーコードが分からない、または一覧にない場合は、**車いす用の幅広い改札**へ移動してください。",
-    "その改札を通過して**駅務室**へ行き、**交通カードの確認**を受けてください。",
-  ],
-  zh: [
-    "如果无法确认错误代码，或列表中没有该代码，请前往**无障碍宽闸机（轮椅闸机）**。",
-    "通过该闸机后，请前往**车站服务室**检查**交通卡**。",
-  ],
 };
 
 // 구매/충전 하위 선택은 고정 안내로 동작합니다. 시설안내는 Gemini 검색 기반 응답을 사용합니다.
@@ -440,9 +419,9 @@ const SUBMENU_TEXT = {
       topup: "**어떤 교통카드를 충전하시나요?**\n카드 종류에 따라 가능한 결제수단이 다를 수 있습니다.",
       payment: "**어떤 방법으로 충전하시나요?**\n결제수단을 선택해 주세요.",
     },
-    facilityPending: (name) => `**${name} 위치 안내**\n\n현재 정확한 시설 위치를 확인 중입니다. 확인된 안내를 등록하기 전까지는 역무실에 문의해 주세요.`,
+    facilityPending: (name) => `**${name} 위치 안내**\n\n현재 정확한 시설 위치를 확인 중입니다. 확인된 안내를 등록하기 전까지는 고객안전실에 문의해 주세요.`,
     exchange: "**💱 종로5가역 주변 환전소**\n\n**① 머니박스 광장시장점**\n• **위치:** 종로5가역 8번 출구에서 도보 약 1분 (종로 210, 하이뷰더광장 107호)\n• **영업시간:** 매일 09:30~20:30\n• **전화:** 02-2269-8898\n\n**② ABC Money Exchange 광장시장지점**\n• **위치:** 종로 198-2, 대동빌딩 1층 (광장시장 인근)\n• **영업시간:** 매일 09:00~19:00\n\n※ 매장 영업시간·운영 여부는 변경될 수 있으니 방문 전 확인해 주세요.",
-    nursingGuide: "**🍼 수유실 위치 안내**\n\n**위치:** 종로5가 지하도상가(종오지하쇼핑센터) **지하 1층**, **지하도상가 11번 출구 인근**\n\n여자화장실 옆에 있는 수유실을 찾아주세요.\n\n※ 안내된 **11번 출구는 지하도상가 출구 기준**입니다. 위치가 헷갈리면 가까운 안내소나 역무실에 문의해 주세요.",
+    nursingGuide: "**🍼 수유실 위치 안내**\n\n**위치:** 종로5가 지하도상가(종오지하쇼핑센터) **지하 1층**, **지하도상가 11번 출구 인근**\n\n여자화장실 옆에 있는 수유실을 찾아주세요.\n\n※ 안내된 **11번 출구는 지하도상가 출구 기준**입니다. 위치가 헷갈리면 가까운 안내소나 고객안전실에 문의해 주세요.",
     buyDescriptions: {
       single: "지하철 1회 이용",
       tmoney: "충전식 버스·지하철 교통카드",
@@ -749,19 +728,19 @@ const FACILITY_QUESTIONS = {
     zh: "钟路5街站的站务室在哪里？仅提供已核实的位置信息。",
   },
   restroom: {
-    ko: "종로5가역 화장실은 어느 층, 어느 개찰구 또는 출구 방향에 있나요? 검증된 정보를 바탕으로 승객이 따라갈 수 있는 경로를 간단히 안내해 주세요. 위치가 확인되지 않으면 추측하지 말고 역무실에 문의하라고 안내해 주세요.",
+    ko: "종로5가역 화장실은 어느 층, 어느 개찰구 또는 출구 방향에 있나요? 검증된 정보를 바탕으로 승객이 따라갈 수 있는 경로를 간단히 안내해 주세요. 위치가 확인되지 않으면 추측하지 말고 고객안전실에 문의하라고 안내해 주세요.",
     en: "Where is the restroom at Jongno 5-ga Station? Give verified floor, gate or exit-direction information and clear walking directions. If the location cannot be confirmed, do not guess; suggest asking the station office.",
     ja: "鍾路5街駅のトイレはどこですか？確認できる階・改札・出口方面を使ってわかりやすく案内してください。場所が確認できなければ推測せず駅務室への問い合わせを案内してください。",
     zh: "钟路5街站的洗手间在哪里？请根据可核实的信息说明楼层、闸机或出口方向以及步行路线。如果无法确认，不要猜测，请建议咨询站务室。",
   },
   elevator: {
-    ko: "종로5가역 엘리베이터 위치와 연결되는 층, 승강장 및 출구 동선을 안내해 주세요. 확인된 자료만 사용하고, 정보가 불확실하면 추측하지 말고 역무실에 문의하라고 안내해 주세요.",
+    ko: "종로5가역 엘리베이터 위치와 연결되는 층, 승강장 및 출구 동선을 안내해 주세요. 확인된 자료만 사용하고, 정보가 불확실하면 추측하지 말고 고객안전실에 문의하라고 안내해 주세요.",
     en: "Where are the elevators at Jongno 5-ga Station, and which levels, platforms and exits do they connect? Use confirmed information only; if uncertain, advise the station office rather than guessing.",
     ja: "鍾路5街駅のエレベーターの場所と、接続する階・ホーム・出口を案内してください。確実な情報だけを用い、不明な場合は推測せず駅務室への問い合わせを案内してください。",
     zh: "请介绍钟路5街站电梯的位置以及连接的楼层、站台和出口。只使用可确认的信息；如无法确认，请建议咨询站务室，不要猜测。",
   },
   lockers: {
-    ko: "종로5가역에 물품보관함이 실제 설치되어 있는지 먼저 확인하고, 확인된다면 위치와 찾아가는 경로를 안내해 주세요. 설치 여부나 위치가 확인되지 않으면 단정하지 말고 역무실 문의를 권해 주세요.",
+    ko: "종로5가역에 물품보관함이 실제 설치되어 있는지 먼저 확인하고, 확인된다면 위치와 찾아가는 경로를 안내해 주세요. 설치 여부나 위치가 확인되지 않으면 단정하지 말고 고객안전실 문의를 권해 주세요.",
     en: "First verify whether luggage lockers are installed at Jongno 5-ga Station. If confirmed, give their location and directions. If installation or location is unverified, do not invent details; suggest asking the station office.",
     ja: "鍾路5街駅にコインロッカーが実際に設置されているか確認し、確認できれば場所と行き方を案内してください。不明な場合は断定せず、駅務室への問い合わせを案内してください。",
     zh: "请先确认钟路5街站是否设有行李寄存柜。如已确认，请说明位置及前往路线。如无法确认，请不要编造信息，建议咨询站务室。",
@@ -911,7 +890,7 @@ function quickQuestion(type, lang) {
       zh: "电梯在哪里？",
     },
     staff: {
-      ko: "역무실은 어디에 있고 역무원에게 어떻게 문의하나요?",
+      ko: "고객안전실은 어디에 있고 역무원에게 어떻게 문의하나요?",
       en: "Where is the station office and how can I ask station staff for help?",
       ja: "駅務室はどこにあり、駅員にはどう相談できますか？",
       zh: "站务室在哪里，如何向站务员求助？",
@@ -1652,7 +1631,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                   const selected = options.find((o) => o.id === message.gateResult);
                   const code = selected && !selected.wide ? selected.label.match(/^E-\d+/)?.[0] : "";
                   const name = selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
-                  const steps = embedded && message.gateResult === "unknown" ? (V2_UNKNOWN_GATE_STEPS[lang] || V2_UNKNOWN_GATE_STEPS.ko) : (ui.steps[message.gateResult] || ui.steps.unknown);
+                  const steps = ui.steps[message.gateResult] || ui.steps.unknown;
                   const fullGuide = GATE_GUIDES[message.gateResult]?.[lang] || GATE_GUIDES[message.gateResult]?.ko;
                   return (
                     <div className="sag-gate-card sag-gate-resolution">
@@ -1674,7 +1653,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
                         </details>
                       )}
-                      {!(embedded && message.gateResult === "unknown") && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
+                      {message.gateResult !== "unknown" && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
