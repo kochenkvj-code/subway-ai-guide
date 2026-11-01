@@ -75,7 +75,7 @@ export default function StatsPage() {
       group.first=group.events[0];
       group.last=group.events[group.events.length-1];
       return group;
-    }).sort((a,b)=>new Date(eventTime(b.last))-new Date(eventTime(a.last)));
+    }).sort((a,b)=>new Date(eventTime(b.first))-new Date(eventTime(a.first)));
   },[rows]);
   const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
   const accessOnlySessions = sessionRows.length - activeSessions;
@@ -131,7 +131,7 @@ export default function StatsPage() {
         </section>
         <section style={{...card,marginTop:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
-            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 목록 {visibleSessions.length.toLocaleString()}개 · 최근 활동순 · {pageSize}개씩 표시</p></div>
+            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 목록 {visibleSessions.length.toLocaleString()}개 · 최근 접속순 · {pageSize}개씩 표시</p></div>
             <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
               <label>기록 <select aria-label="기록 필터" value={recordFilter} onChange={e=>{setRecordFilter(e.target.value);setRawPage(0);}} style={{padding:7,border:"1px solid #ccd9da",borderRadius:8,background:"#fff"}}><option value="functional">기능 이용만</option><option value="all">전체 기록</option><option value="accessOnly">접속·언어 변경만</option></select></label>
               <label>표시 <select aria-label="페이지당 기록 수" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setRawPage(0);}} style={{padding:7,border:"1px solid #ccd9da",borderRadius:8,background:"#fff"}}>{[10,25,50].map(n=><option key={n} value={n}>{n}개</option>)}</select></label>

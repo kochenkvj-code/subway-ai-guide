@@ -14,7 +14,9 @@
     "test:feedback-flow": "node tests/feedback-flow.cjs",
     "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs",
     "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
-    "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs"
+    "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs",
+    "test:stats": "node --experimental-vm-modules --test tests/stats-delivery.test.mjs tests/stats-event-api.test.mjs",
+    "test:stats-ui": "node tests/stats-recovery-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",
