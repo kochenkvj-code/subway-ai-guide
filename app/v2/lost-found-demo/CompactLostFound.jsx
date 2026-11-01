@@ -31,8 +31,8 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
     limitedRef.current=limitedRef.current||batches.some(x=>x.limited);setLimited(limitedRef.current);setPartial(failures.size>0||batches.some(x=>x.partial));setLoading(false);
    };
    const progressive=filters.scope==='station'&&!append;
-   setChecking(progressive);
-   await Promise.allSettled((progressive?['portal','police']:['both']).map(async source=>{
+   setChecking(false);
+   await Promise.allSettled((filters.scope==='station'?['portal']:['both']).map(async source=>{
     try{
      const params=new URLSearchParams({...filters,source});if(progressive)params.set('scan','first');
      if(append&&nextPages)params.set('cursors',JSON.stringify(nextPages));if(append&&limitedRef.current)params.set('capped','1');

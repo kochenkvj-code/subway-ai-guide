@@ -24,7 +24,7 @@ test('all and other-place searches always use the Seoul area/date endpoint, even
 });
 test('scans through empty filtered pages; cursors do not skip failed providers',async()=>{
  const f=await load(async url=>{const police=url.pathname.includes('/LosfundInfo');const page=Number(url.searchParams.get('pageNo'));if(police)return new Response('',{status:503});return new Response(xml(page===2?[row('MATCH')]:[row('OLD','종로5가駅','2019-01-01')],300));});
- const body=await (await f.get({scope:'station'})).json();assert.equal(body.items.length,1);assert.equal(body.nextPages.portal,4);assert.equal(body.nextPages.police,1);assert.equal(body.partial,true);assert.equal(body.hasMore,true);
+ const body=await (await f.get({scope:'all',item:'지갑'})).json();assert.equal(body.items.length,1);assert.equal(body.nextPages.portal,4);assert.equal(body.nextPages.police,1);assert.equal(body.partial,true);assert.equal(body.hasMore,true);
 });
 test('page twenty is bounded, malformed cursors rejected and no misleading complete flag after cap',async()=>{
  const pages=[];const f=await load(async url=>{pages.push(Number(url.searchParams.get('pageNo')));return new Response(xml([row('X')],10000));});
@@ -32,10 +32,16 @@ test('page twenty is bounded, malformed cursors rejected and no misleading compl
  assert.equal((await f.get({cursors:'{"portal":22}'})).status,400);assert.equal((await f.get({page:'21'})).status,400);
 });
 test('partial missing key does not create an endless next-page loop',async()=>{
- const f=await load(async()=>new Response(xml([row('X')],1)),{LOST112_PORTAL_API_KEY:'test-only'});const body=await (await f.get({scope:'station'})).json();assert.equal(body.hasMore,false);assert.equal(body.partial,true);assert.equal(body.exhaustive,false);
+ const f=await load(async()=>new Response(xml([row('X')],1)),{LOST112_PORTAL_API_KEY:'test-only'});const body=await (await f.get({scope:'all'})).json();assert.equal(body.hasMore,false);assert.equal(body.partial,true);assert.equal(body.exhaustive,false);
 });
 
 test('first scan stops after one source page and keeps the next cursor for explicit loading',async()=>{
  const pages=[];const f=await load(async url=>{pages.push(Number(url.searchParams.get('pageNo')));return new Response(xml([row('A')],1000));});
  const body=await (await f.get({scope:'station',source:'portal',scan:'first'})).json();assert.deepEqual(pages,[1]);assert.equal(body.nextPages.portal,2);assert.equal(body.hasMore,true);assert.equal(body.items.length,1);
+});
+
+test('station custody always uses only portal, even if a caller asks for both or police',async()=>{
+ const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([row('STATION')]));});
+ for(const source of ['both','police','portal']){const body=await (await f.get({scope:'station',source})).json();assert.equal(body.items.length,1);assert.deepEqual(Object.keys(body.nextPages),['portal']);}
+ assert.equal(urls.length,3);assert.ok(urls.every(x=>x.pathname.includes('LosPtfund')));
 });

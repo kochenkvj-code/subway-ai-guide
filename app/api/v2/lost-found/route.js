@@ -121,7 +121,7 @@ export async function GET(request) {
  let cursors;try{cursors=query.has('cursors')?JSON.parse(query.get('cursors')):{};}catch{return reply({ok:false,error:'INVALID_CURSOR'},400);}
  if(!cursors||typeof cursors!=='object'||Array.isArray(cursors)||Object.keys(cursors).some(k=>!['portal','police'].includes(k))||Object.values(cursors).some(v=>!Number.isInteger(v)||v<1||v>MAX_LOST_PAGES+1))return reply({ok:false,error:'INVALID_CURSOR'},400);
  const scan=query.get('scan')||'normal';if(!['first','normal'].includes(scan))return reply({ok:false,error:'INVALID_FILTER'},400);
- const ids=source==='both'?['portal','police']:[source];
+ const ids=filters.scope==='station'?['portal']:source==='both'?['portal','police']:[source];
  const outcomes=await Promise.all(ids.map(async id=>{
   let next=cursors[id]||page,items=[],scanned=0,limited=false,error=null,success=false;
   // Bounded scanning avoids false empty pages while keeping API latency/quotas finite.
