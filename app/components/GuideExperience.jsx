@@ -437,26 +437,70 @@ function v2GateSteps(lang, id) {
 
 function GateLocationDiagram({ lang }) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
+  const edgeHint = {
+    ko: "넓은 게이트는 개찰구의 왼쪽 또는 오른쪽 맨 끝에 있습니다.",
+    en: "Look for the wide gate at the far left or far right end.",
+    ja: "幅の広い改札は、改札口の左端または右端にあります。",
+    zh: "宽闸机位于闸机通道最左侧或最右侧。",
+  }[lang] || "넓은 게이트는 개찰구의 왼쪽 또는 오른쪽 맨 끝에 있습니다.";
   return (
     <div className="sag-gate-diagram-content">
-      <svg viewBox="0 0 640 225" role="img" aria-label={l.photo} xmlns="http://www.w3.org/2000/svg">
-        <rect width="640" height="225" rx="15" fill="#eef4f8" />
-        <path d="M26 165 H614" stroke="#b7c6d0" strokeWidth="2" strokeDasharray="5 5" />
-        {[75,185,295].map(x=><g key={x}>
-          <rect x={x} y="60" width="24" height="100" rx="6" fill="#a9bac9" stroke="#758ca0" strokeWidth="2"/>
-          <rect x={x+65} y="60" width="24" height="100" rx="6" fill="#a9bac9" stroke="#758ca0" strokeWidth="2"/>
-          <rect x={x+5} y="74" width="14" height="21" rx="3" fill="#1687ad"/>
-          <path d={`M ${x+20} 118 L ${x+40} 118`} stroke="#397494" strokeWidth="9" strokeLinecap="round"/>
-        </g>)}
-        <rect x="420" y="50" width="190" height="114" rx="12" fill="#d3f0e5" stroke="#25866e" strokeWidth="4" />
-        <rect x="429" y="61" width="23" height="95" rx="5" fill="#79a8aa"/>
-        <rect x="578" y="61" width="23" height="95" rx="5" fill="#79a8aa"/>
-        <rect x="460" y="90" width="109" height="55" rx="7" fill="#f5fbf7" stroke="#78b2a1" strokeWidth="2"/>
-        <text x="516" y="127" textAnchor="middle" fontSize="30" fill="#197b66">♿</text>
-        <text x="221" y="191" textAnchor="middle" fontSize="19" fontWeight="600" fill="#526779">{l.regular}</text>
-        <text x="516" y="191" textAnchor="middle" fontSize="19" fontWeight="700" fill="#12785d">{l.wide}</text>
+      <div className="sag-gate-diagram-legend" aria-hidden="true">
+        <span><i className="sag-gate-diagram-key sag-gate-diagram-key-regular"/>{l.regular}</span>
+        <span><i className="sag-gate-diagram-key sag-gate-diagram-key-wide"/>{l.wide}</span>
+      </div>
+      <svg viewBox="0 0 640 270" role="img" aria-label={l.photo} xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="638" height="268" rx="16" fill="#f3f7fa" stroke="#dce7ed" strokeWidth="2"/>
+        <path d="M14 200 H625 L618 254 H22Z" fill="#e6edf2" />
+        <path d="M23 240 H616" stroke="#d2dee6" strokeWidth="2"/>
+        {/* 일반 개찰구 세 개: 작은 통로, 카드 판독부와 푸른 차단판 */}
+        {[46,134,222,310].map(x=>(
+          <g key={x}>
+            <ellipse cx={x+17} cy="204" rx="22" ry="6" fill="#b9c9d4" opacity=".45"/>
+            <rect x={x} y="83" width="34" height="119" rx="8" fill="#8fa6b9" stroke="#6c879d" strokeWidth="2"/>
+            <path d={`M${x+5} 84 H${x+29} Q${x+33} 84 ${x+32} 90 V190 H${x+5}Z`} fill="#b9cbd7"/>
+            <rect x={x+5} y="91" width="24" height="39" rx="5" fill="#334d66"/>
+            <rect x={x+9} y="96" width="16" height="13" rx="3" fill="#dff4ee"/>
+            <path d={`M${x+12} 103 L${x+17} 107 L${x+23} 100`} fill="none" stroke="#159574" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <rect x={x+9} y="140" width="17" height="6" rx="3" fill="#e8f2f5" opacity=".95"/>
+          </g>
+        ))}
+        {[0,1,2].map(i=>(
+          <g key={i}>
+            <path d={`M${80+i*88} 135 L${108+i*88} 145 L${108+i*88} 178 L${80+i*88} 168 Z`} fill="#6aaec8" fillOpacity=".45" stroke="#438caa" strokeWidth="2"/>
+            <path d={`M${134+i*88} 135 L${114+i*88} 145 L${114+i*88} 178 L${134+i*88} 168 Z`} fill="#6aaec8" fillOpacity=".3" stroke="#438caa" strokeWidth="2"/>
+          </g>
+        ))}
+        {/* 한쪽 끝에 넓은 통로를 강조하되, 좌·우 위치는 역사마다 달라질 수 있음 */}
+        <rect x="391" y="54" width="237" height="185" rx="18" fill="#d9f3e9" stroke="#299778" strokeWidth="3" strokeDasharray="9 6"/>
+        <path d="M472 223 H550" stroke="#89c8b7" strokeWidth="2" strokeDasharray="6 5"/>
+        <ellipse cx="432" cy="209" rx="27" ry="7" fill="#8bbdab" opacity=".4"/>
+        <ellipse cx="603" cy="209" rx="27" ry="7" fill="#8bbdab" opacity=".4"/>
+        {[414,584].map(x=>(
+          <g key={x}>
+            <rect x={x} y="79" width="39" height="124" rx="9" fill="#71989c" stroke="#3e7d7a" strokeWidth="2.5"/>
+            <path d={`M${x+7} 83 H${x+34} V192 H${x+7}Z`} fill="#a7cbc8"/>
+            <rect x={x+7} y="89" width="25" height="40" rx="6" fill="#24545d"/>
+            <rect x={x+11} y="94" width="17" height="18" rx="4" fill="#def8ed"/>
+            <path d={`M${x+14} 103 L${x+19} 108 L${x+25} 100`} stroke="#129c75" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <rect x={x+11} y="143" width="17" height="6" rx="3" fill="#f0f9f4"/>
+          </g>
+        ))}
+        {/* 넓은 통로: 휠체어 픽토그램과 진행 방향 */}
+        <circle cx="518" cy="126" r="32" fill="#f5fffb" stroke="#82c8b2" strokeWidth="2"/>
+        <g transform="translate(518 126)" fill="none" stroke="#117b61" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="-6" cy="-17" r="4.5" fill="#117b61" stroke="none"/>
+          <path d="M-7 -7 L-4 8 H13 L22 20"/>
+          <path d="M-6 0 H9"/>
+          <path d="M-11 0 A15 15 0 1 0 1 23"/>
+        </g>
+        <path d="M517 222 V182" stroke="#168968" strokeWidth="9" strokeLinecap="round"/>
+        <path d="M498 196 L517 172 L536 196" fill="none" stroke="#168968" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="518" cy="47" r="7" fill="#1aa27e"/>
+        <circle cx="518" cy="47" r="15" stroke="#1aa27e" strokeOpacity=".3" strokeWidth="4" fill="none"/>
       </svg>
-      <p>{l.photoCaption}</p>
+      <p className="sag-gate-diagram-hint"><span aria-hidden="true">↔</span>{edgeHint}</p>
+      <p className="sag-gate-diagram-footnote">{l.photoCaption}</p>
     </div>
   );
 }
@@ -2355,9 +2399,16 @@ export default function GuideExperience({ embedded = false, initialAction = null
         .sag-gate-photo-details summary { padding: 11px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: #176b75; font-size: 12px; font-weight: 750; list-style: none; }
         .sag-gate-photo-details summary::-webkit-details-marker { display: none; }
         .sag-gate-photo-details[open] summary span { transform: rotate(180deg); }
-        .sag-gate-diagram-content { padding: 0 10px 10px; }
-        .sag-gate-diagram-content svg { display: block; width: 100%; max-height: 230px; }
-        .sag-gate-diagram-content p { font-size: 10.5px; color: #58707a; line-height: 1.5; margin: 7px 0 0; }
+        .sag-gate-diagram-content { padding: 0 10px 11px; }
+        .sag-gate-diagram-content svg { display: block; width: 100%; height: auto; border-radius: 9px; }
+        .sag-gate-diagram-legend { display: flex; justify-content: space-between; align-items: center; gap: 7px; padding: 8px 1px; }
+        .sag-gate-diagram-legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #435e72; }
+        .sag-gate-diagram-key { display: inline-block; flex: 0 0 9px; width: 9px; height: 9px; border-radius: 3px; }
+        .sag-gate-diagram-key-regular { background: #8fa6b9; }
+        .sag-gate-diagram-key-wide { background: #1b9975; }
+        .sag-gate-diagram-hint { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; font-weight: 750; color: #176c56; margin: 9px 2px 0; line-height: 1.5; }
+        .sag-gate-diagram-hint span { font-size: 16px; line-height: 1.1; flex-shrink: 0; }
+        .sag-gate-diagram-footnote { font-size: 10px; color: #647987; line-height: 1.5; margin: 5px 2px 0; }
         .sag-gate-safe-note { font-size: 10.5px; color: #52687a; margin: 9px 2px 0; line-height: 1.45; }
         .sag-gate-result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
         .sag-gate-result-actions button { padding: 10px 5px; border: 1px solid #bfd8e9; color: #165c88;
