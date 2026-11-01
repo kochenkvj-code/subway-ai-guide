@@ -27,7 +27,7 @@ export async function GET(request){
   if(!['visible','all','hidden'].includes(visibility))return json({error:'invalid'},400);
   if(visibility!=='visible'&&!access.admin)return json({error:'forbidden'},403);
   if(visibility==='all')params.delete('hidden');else if(visibility==='hidden')params.set('hidden','eq.true');
-  if(type)params.set('type','eq.'+type);if(stars==='1')params.set('starred','eq.true');
+  if(type)params.set('type',type==='other'?'in.(other,praise)':'eq.'+type);if(stars==='1')params.set('starred','eq.true');
   const [r,count]=await Promise.all([supabase('station_feedback?'+params,{headers:{Prefer:'count=exact'}}),feedbackCount(station)]);
   return json({rows:await r.json(),total:Number(r.headers.get('content-range')?.split('/')[1]||0),recent:count,admin:access.admin});
  }catch(e){return json({error:'unavailable'},e.status||503);}

@@ -14,7 +14,7 @@ const server=http.createServer(async(req,res)=>{
   assert.ok(url.searchParams.get('station_id')?.startsWith('eq.'));
   let found=rows.filter(x=>x.station_id===url.searchParams.get('station_id').slice(3));
   if(url.searchParams.get('hidden'))found=found.filter(x=>x.hidden===(url.searchParams.get('hidden')==='eq.true'));
-  for(const key of ['id','type']){const v=url.searchParams.get(key);if(v)found=found.filter(x=>x[key]===v.slice(3));}
+  for(const key of ['id','type']){const v=url.searchParams.get(key);if(v)found=found.filter(x=>v.startsWith('in.(')?v.slice(4,-1).split(',').includes(x[key]):x[key]===v.slice(3));}
   if(url.searchParams.get('starred'))found=found.filter(x=>x.starred);
   if(req.method==='PATCH'){found.forEach(x=>Object.assign(x,body));res.end(JSON.stringify(found.map(x=>({id:x.id}))));return;}
   const since=url.searchParams.get('created_at');if(since)found=found.filter(x=>x.created_at>=since.slice(4));
@@ -34,8 +34,8 @@ const server=http.createServer(async(req,res)=>{
   await p.goto(origin+'/v2?view=feedback');await p.locator('.sf-choice').first().click();
   assert.equal(await p.locator('.sf-chips [aria-pressed=true]').count(),0);
   await p.locator('#sf-content').fill('출구 안내 표지판을 더 잘 보이게 해주세요. '.repeat(8));await p.locator('.sf-chips button').nth(1).click();assert.ok((await p.locator('#sf-content').inputValue()).startsWith('출구'));
-  await p.locator('.sf-locations button').nth(3).click();assert.equal(await p.locator('#sf-detail').count(),0);await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
-  assert.equal(rows.filter(x=>x.station_id===station).length,1);assert.equal(rows[0].location_detail,'');
+  await p.locator('.sf-locations button').nth(3).click();await p.locator('#sf-detail').fill('3번 출구');await p.locator('.sf-primary').click();await p.locator('.sf-success').waitFor();
+  assert.equal(rows.filter(x=>x.station_id===station).length,1);assert.equal(rows[0].location_detail,'3번 출구');
   await p.locator('.v2-view-header > button').first().click();await p.locator('.sf-choice').first().waitFor();await p.locator('.v2-view-header > button').first().click();await p.locator('.v2-home:not([hidden])').waitFor();await p.locator('.sf-badge').waitFor();assert.equal(await p.locator('.sf-badge').innerText(),'1');
   await p.locator('.v2-grid > button').last().click();await p.locator('.sf-choice').nth(1).click();await p.locator('#sf-pin').waitFor();
   assert.equal((await ctx.request.get(origin+'/api/stats/feedback?station='+station)).status(),401);
@@ -55,7 +55,8 @@ const server=http.createServer(async(req,res)=>{
   assert.equal((await admin.request.patch(origin+'/api/stats/feedback',{data:{station,id:rows[0].id,field:'hidden',value:false}})).status(),200);assert.equal(rows[0].hidden,false);
 
   // The inbox adapts its server page size to the viewport, rather than stacking ten cards.
-  for(let i=0;i<10;i++)rows.push({...rows[0],id:crypto.randomUUID(),request_id:crypto.randomUUID(),content:'긴 테스트 의견입니다. '.repeat(30),starred:false});
+  for(let i=0;i<10;i++)rows.push({...rows[0],id:crypto.randomUUID(),request_id:crypto.randomUUID(),content:'긴 테스트 의견입니다. '.repeat(30),type:i===0?'praise':rows[0].type,starred:false});
+  const merged=await admin.request.get(origin+'/api/stats/feedback?station='+station+'&type=other');assert.equal((await merged.json()).total,1);
   const ap=await admin.newPage({viewport:{width:390,height:844}});await ap.goto(origin+'/v2?view=feedback');await ap.locator('.sf-choice').nth(1).click();await ap.locator('.sf-opinion').first().waitFor();
   for(const [width,height,language] of [[390,640,'ko'],[390,740,'ko'],[390,844,'ko'],[320,640,'en'],[320,640,'ja'],[320,640,'zh'],[390,844,'en'],[390,844,'ja'],[390,844,'zh']]){await ap.setViewportSize({width,height});await ap.locator('.v2-view-header .v2-language select').selectOption(language);await wait(350);const count=await ap.locator('.sf-opinion').count();assert.ok(count>=4&&count<=5);const bounds=await ap.evaluate(()=>{const pane=document.querySelector('.sf-inbox'),pager=document.querySelector('.sf-pager');return {bottom:pager.getBoundingClientRect().bottom,end:pane.getBoundingClientRect().bottom,overflow:pane.scrollHeight-pane.clientHeight}});assert.ok(bounds.bottom<=bounds.end,JSON.stringify({height,...bounds}));assert.ok(bounds.overflow<=2,JSON.stringify({height,...bounds}));}
   await ap.locator('.sf-pager button').last().click();await wait(250);assert.ok((await ap.locator('.sf-pager span').innerText()).startsWith('2 /'));
