@@ -8,6 +8,8 @@
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs",
+    "test:lost-found": "node --experimental-vm-modules --test tests/lost-found-search.test.mjs",
+    "test:lost-found-ui": "node --experimental-vm-modules tests/lost-found-ui.cjs",
     "test:feedback": "node --experimental-vm-modules --test tests/feedback.test.mjs",
     "test:feedback-flow": "node tests/feedback-flow.cjs",
     "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs"

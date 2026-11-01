@@ -1,6 +1,8 @@
+import {resolveLostSearch,matchesLostItem,MAX_LOST_PAGES} from '../../../lib/lost-found-filter';
 // Read-only LOST112 search proxy. Never send service keys or upstream URLs to the browser.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const PAGE_SIZE = 30;
 const PROVIDERS = {
@@ -66,6 +68,7 @@ function normalized(row, source) {
     date: String(row.fdYmd || '').slice(0, 20),
     place: String(row.depPlace || '').slice(0, 160),
     image: safeImage(row.fdFilePathImg),
+    custody: String(row.csteSteNm || '').slice(0,80),
   };
 }
 async function loadOne(id, start, end, page, item, place) {
@@ -111,61 +114,36 @@ async function loadOne(id, start, end, page, item, place) {
   };
 }
 export async function GET(request) {
-  const query = new URL(request.url).searchParams;
-  const start = query.get('start') || '', end = query.get('end') || '';
-  const source = query.get('source') || 'both';
-  const item = (query.get('item') || '').trim();
-  const place = (query.get('place') || '').trim();
-  const namedSearch = Boolean(item || place);
-  const rawPage = query.get('page') || '1';
-  const page = Number(rawPage);
-  if ((!namedSearch && (!validDate(start) || !validDate(end) || start > end ||
-      (Date.parse(end) - Date.parse(start)) / 86400000 > 90)) ||
-      item.length > 80 || place.length > 80 ||
-      (item && item.length < 2) || (place && place.length < 2) ||
-      !['both','portal','police'].includes(source) ||
-      !/^\d+$/.test(rawPage) || !Number.isInteger(page) || page < 1 || page > 20) {
-    return reply({ ok:false, error:'INVALID_FILTER', message:'검색 기간(최대 90일) 또는 조회 조건을 확인해 주세요.' }, 400);
+ const query=new URL(request.url).searchParams,filters=resolveLostSearch(query);
+ const source=query.get('source')||'both';
+ const page=Number(query.get('page')||1);
+ if(!filters||!['both','portal','police'].includes(source)||!Number.isInteger(page)||page<1||page>MAX_LOST_PAGES)return reply({ok:false,error:'INVALID_FILTER'},400);
+ let cursors;try{cursors=query.has('cursors')?JSON.parse(query.get('cursors')):{};}catch{return reply({ok:false,error:'INVALID_CURSOR'},400);}
+ if(!cursors||typeof cursors!=='object'||Array.isArray(cursors)||Object.keys(cursors).some(k=>!['portal','police'].includes(k))||Object.values(cursors).some(v=>!Number.isInteger(v)||v<1||v>MAX_LOST_PAGES+1))return reply({ok:false,error:'INVALID_CURSOR'},400);
+ const ids=source==='both'?['portal','police']:[source];
+ const outcomes=await Promise.all(ids.map(async id=>{
+  let next=cursors[id]||page,items=[],scanned=0,limited=false,error=null,success=false;
+  // Bounded scanning avoids false empty pages while keeping API latency/quotas finite.
+  for(let batch=0;batch<3&&next<=MAX_LOST_PAGES;batch++){
+   try{
+    const named=filters.scope==='station';
+    const result=await loadOne(id,filters.start,filters.end,next,named?filters.item:'',named?filters.place:'');
+    success=true;scanned+=result.items.length;items.push(...result.items.filter(row=>matchesLostItem(row,filters)));
+    if(!result.hasMore){next=MAX_LOST_PAGES+1;break;}
+    if(next===MAX_LOST_PAGES){limited=true;next++;break;}
+    next++;if(items.length>=10)break;
+   }catch(e){error=e?.message==='KEY_NOT_CONFIGURED'?'KEY_NOT_CONFIGURED':'LOOKUP_FAILED';if(error==='KEY_NOT_CONFIGURED')next=MAX_LOST_PAGES+1;break;}
   }
-  const ids = source === 'both' ? ['portal','police'] : [source];
-  const resolved = await Promise.allSettled(ids.map(id => loadOne(id, start, end, page, item, place)));
-  const status = {}, items = [], errors = [];
-  resolved.forEach((result, i) => {
-    const id = ids[i];
-    if (result.status === 'fulfilled') {
-      status[id] = { ok:true, label:PROVIDERS[id].label, count:result.value.items.length, total:result.value.total, hasMore:result.value.hasMore };
-      items.push(...result.value.items);
-    } else {
-      // Only expose safe internal codes, never upstream text, URLs, or credentials.
-      const reason = String(result.reason?.message || '');
-      const error = reason === 'KEY_NOT_CONFIGURED' ? 'KEY_NOT_CONFIGURED' :
-        reason.includes('TIMEOUT') || result.reason?.name === 'TimeoutError' ? 'TIMEOUT' :
-        reason.startsWith('UPSTREAM_HTTP') ? 'UPSTREAM_HTTP' :
-        reason.startsWith('UPSTREAM_RESULT') ? 'UPSTREAM_RESULT' : 'LOOKUP_FAILED';
-      errors.push({ source:id, label:PROVIDERS[id].label, error });
-      status[id] = { ok:false, label:PROVIDERS[id].label, error };
-    }
-  });
-  if (errors.length === ids.length) {
-    const missing = errors.every(x => x.error === 'KEY_NOT_CONFIGURED');
-    return reply({ ok:false, error:missing ? 'API_KEY_MISSING' : 'ALL_SOURCES_FAILED', errors, status }, missing ? 503 : 502);
-  }
-  const seen = new Set();
-  const unique = items.filter(item => {
-    const key = item.id && item.sequence ? item.id + '|' + item.sequence : item.source + '|' + item.title + '|' + item.date;
-    if (seen.has(key)) return false;
-    seen.add(key); return true;
-  }).sort((a,b) => b.date.localeCompare(a.date));
-  return reply({
-    ok:true, items:unique, status, errors, partial:errors.length > 0,
-    hasMore:ids.some(id => status[id]?.hasMore),
-    page, pageSize:PAGE_SIZE, start, end,
-    searchMode: namedSearch ? 'name-place' : 'area-date',
-    region: namedSearch ? null : '서울특별시',
-    regionCode: namedSearch ? null : 'LCA000',
-    itemQuery:item, placeQuery:place,
-    note:namedSearch
-      ? 'LOST112 보관장소·물품명 직접검색 API입니다. 이 API는 서울 지역·기간 필터를 지원하지 않으므로 검색 결과가 전국·전체 기간일 수 있습니다. 보관장소와 습득장소는 다를 수 있습니다.'
-      : 'LOST112 서울 지역·기간 직접검색 API입니다. 물품명과 보관장소를 서버에서 검색하려면 전용 검색칸을 사용하세요.',
-  });
+  return {id,next,items,scanned,limited,error,success};
+ }));
+ if(outcomes.every(x=>!x.success&&x.error))return reply({ok:false,error:outcomes.every(x=>x.error==='KEY_NOT_CONFIGURED')?'API_KEY_MISSING':'ALL_SOURCES_FAILED'},502);
+ const seen=new Set(),items=[];
+ for(const part of outcomes)for(const row of part.items){const key=row.id&&row.sequence?row.id+'|'+row.sequence:[row.source,row.title,row.date,row.place].join('|');if(!seen.has(key)){seen.add(key);items.push(row);}}
+ items.sort((a,b)=>b.date.replace(/[^0-9]/g,'').localeCompare(a.date.replace(/[^0-9]/g,'')));
+ const errors=outcomes.filter(x=>x.error).map(x=>({source:x.id,error:x.error}));
+ return reply({ok:true,items,errors,partial:errors.length>0,nextPages:Object.fromEntries(outcomes.map(x=>[x.id,x.next])),
+  hasMore:outcomes.some(x=>x.next<=MAX_LOST_PAGES),limited:outcomes.some(x=>x.limited)||query.get('capped')==='1',scanned:outcomes.reduce((sum,x)=>sum+x.scanned,0),
+  start:filters.start,end:filters.end,scope:filters.scope,searchMode:filters.scope==='station'?'name-place':'area-date',region:'서울특별시',
+  // No assertion that all records in the requested period have been scanned.
+  exhaustive:query.get('capped')!=='1'&&!outcomes.some(x=>x.error||x.limited||x.next<=MAX_LOST_PAGES)});
 }

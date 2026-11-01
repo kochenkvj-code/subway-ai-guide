@@ -1,280 +1,85 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
+import {DEFAULT_FEEDBACK_STATION} from '../../lib/feedback-config';
+import {closedCustody,koreaDate,lostDate,validLostRange} from '../../lib/lost-found-filter';
+import {lostCopy} from './copy';
 import './compact.css';
-
-const sourceLabel={portal:'공공기관',police:'경찰관서'};
-function localDate(daysBack=0){
-  const now=new Date(Date.now()+9*3600000-daysBack*86400000);
-  return now.toISOString().slice(0,10);
-}
-function dateISO(raw){
-  const value=String(raw||'').replace(/[^\d]/g,'');
-  return value.length===8?value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6,8):'';
-}
-function displayDate(raw){return dateISO(raw).replace(/-/g,'.')||'미등록';}
-function recordKey(item){return [item.source,item.id,item.sequence,item.date,item.title].join('|');}
-function categoryName(item){return String(item.category||'기타').split(/[>＞]/)[0].trim()||'기타';}
-function dedupe(items){
-  const seen=new Set();
-  return items.filter(item=>{const k=recordKey(item);if(seen.has(k))return false;seen.add(k);return true;})
-    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-}
-function Photo({src,title}){
-  const [error,setError]=useState(false);
-  useEffect(()=>setError(false),[src]);
-  return <div className="lf-thumb">{src&&!error?
-    <img src={src} alt={title+' 습득물 사진'} loading="lazy" referrerPolicy="no-referrer" onError={()=>setError(true)}/>:
-    <div className="lf-no-image"><span>▧</span>사진 없음</div>}</div>;
-}
-
-export default function CompactLostFound({embedded=false}){
-  const [place,setPlace]=useState('');
-  const [itemName,setItemName]=useState('');
-  const [from,setFrom]=useState('');
-  const [to,setTo]=useState('');
-  const [items,setItems]=useState([]);
-  const [category,setCategory]=useState('전체');
-  const [mode,setMode]=useState('area-date');
-  const [appliedDates,setAppliedDates]=useState(null);
-  const [pageSize,setPageSize]=useState(5);
-  const [screenPage,setScreenPage]=useState(0);
-  const [remotePage,setRemotePage]=useState(0);
-  const [hasMore,setHasMore]=useState(false);
-  const [errors,setErrors]=useState([]);
-  const [loading,setLoading]=useState(false);
-  const [loadingMore,setLoadingMore]=useState(false);
-  const [warning,setWarning]=useState('');
-  const [message,setMessage]=useState('');
-  const [selected,setSelected]=useState(null);
-  const [detail,setDetail]=useState(null);
-  const [detailLoading,setDetailLoading]=useState(false);
-  const [detailError,setDetailError]=useState(false);
-  const searchRef=useRef(null);
-  const counter=useRef(0);
-  const detailRef=useRef(null);
-
-  async function queryRecords(remote=1,replace=true,filters=null,signal=null){
-    const active=filters||searchRef.current;
-    if(!active)return null;
-    const ticket=++counter.current;
-    if(replace){setLoading(true);setWarning('');setMessage('');setItems([]);setSelected(null);setScreenPage(0);setCategory('전체');setRemotePage(0);}
-    else {setLoadingMore(true);setWarning('');setMessage('');}
-    try{
-      const p=new URLSearchParams({
-        source:'both',page:String(remote),
-        start:active.start||localDate(90),end:active.end||localDate(),
-      });
-      if(active.item)p.set('item',active.item);
-      if(active.place)p.set('place',active.place);
-      const response=await fetch('/api/v2/lost-found?'+p.toString(),{cache:'no-store',signal});
-      const data=await response.json();
-      if(!response.ok||!data.ok)throw new Error(data.error||'SEARCH_FAILED');
-      if(signal?.aborted||counter.current!==ticket)return null;
-      const incoming=data.items||[];
-      setItems(prev=>dedupe(replace?incoming:[...prev,...incoming]));
-      setMode(data.searchMode||'area-date');
-      setAppliedDates({from:active.displayFrom,to:active.displayTo});
-      setErrors(data.errors||[]);
-      setRemotePage(remote);
-      setHasMore(Boolean(data.hasMore));
-      return {data,incoming};
-    }catch(e){
-      if(signal?.aborted||counter.current!==ticket)return null;
-      setWarning(e?.message==='API_KEY_MISSING'
-        ?'경찰청 API 환경변수가 설정되지 않았습니다.'
-        :'습득물 정보를 불러오지 못했습니다. API 연결 또는 활용승인을 확인해 주세요.');
-      return null;
-    }finally{
-      if(counter.current===ticket&&!signal?.aborted){setLoading(false);setLoadingMore(false);}
-    }
-  }
-  useEffect(()=>{
-    const controller=new AbortController();
-    const f={place:'',item:'',start:localDate(90),end:localDate(),displayFrom:'',displayTo:''};
-    searchRef.current=f;
-    queryRecords(1,true,f,controller.signal);
-    return ()=>controller.abort();
-  },[]);
-
-  function submit(e){
-    e?.preventDefault();
-    const p=place.trim(),it=itemName.trim();
-    if((p&&p.length<2)||(it&&it.length<2)){setWarning('보관장소와 물품명은 두 글자 이상 입력해 주세요.');return;}
-    if((from&&!to)||(!from&&to)){setWarning('기간을 지정하려면 시작일과 종료일을 모두 입력해 주세요.');return;}
-    if(from&&to&&from>to){setWarning('시작일은 종료일보다 늦을 수 없습니다.');return;}
-    if(from&&to&&!p&&!it&&(Date.parse(to)-Date.parse(from))/86400000>90){
-      setWarning('서울 지역·기간 조회 API는 최대 90일까지 조회할 수 있습니다.');return;
-    }
-    const named=Boolean(p||it);
-    // The official name/place endpoint has no date params. Range is an optional local filter.
-    const f={place:p,item:it,start:from||(named?'':localDate(90)),
-      end:to||(named?'':localDate()),displayFrom:from,displayTo:to};
-    searchRef.current=f;
-    queryRecords(1,true,f);
-  }
-
-  const categories=useMemo(()=>{
-    const names=Array.from(new Set(items.map(categoryName))).sort((a,b)=>a.localeCompare(b,'ko'));
-    return ['전체',...names];
-  },[items]);
-
-  function match(item){
-    if(category!=='전체'&&categoryName(item)!==category)return false;
-    if(mode==='name-place'&&appliedDates?.from&&appliedDates?.to){
-      const found=dateISO(item.date);
-      if(!found||found<appliedDates.from||found>appliedDates.to)return false;
-    }
-    return true;
-  }
-  const visible=useMemo(()=>items.filter(match),[items,category,mode,appliedDates]);
-  const maxPage=Math.max(1,Math.ceil(visible.length/pageSize));
-  const safePage=Math.min(screenPage,maxPage-1);
-  const pageItems=visible.slice(safePage*pageSize,(safePage+1)*pageSize);
-
-  function pick(item){setSelected(item);}
-  useEffect(()=>{
-    if(!selected)return;
-    detailRef.current?.scrollIntoView({block:'nearest',behavior:'smooth'});
-    setDetail(null);setDetailError(false);setDetailLoading(false);
-    if(!selected.id||!/^\d{1,5}$/.test(String(selected.sequence||''))){
-      setDetailError(true);return;
-    }
-    const controller=new AbortController();
-    setDetailLoading(true);
-    const p=new URLSearchParams({source:selected.source,id:selected.id,sequence:String(selected.sequence)});
-    fetch('/api/v2/lost-found/detail?'+p.toString(),{signal:controller.signal,cache:'no-store'})
-      .then(async r=>{const data=await r.json();if(!r.ok||!data.ok)throw Error('DETAIL_FAILED');return data.detail;})
-      .then(data=>{if(!controller.signal.aborted)setDetail(data);})
-      .catch(()=>{if(!controller.signal.aborted)setDetailError(true);})
-      .finally(()=>{if(!controller.signal.aborted)setDetailLoading(false);});
-    return ()=>controller.abort();
-  },[selected]);
-
-  async function next(){
-    if(loading||loadingMore)return;
-    if((safePage+1)*pageSize<visible.length){
-      setScreenPage(safePage+1);setSelected(null);return;
-    }
-    if(!hasMore)return;
-    const before=visible.length;
-    const currentPageWasFull=before>=(safePage+1)*pageSize;
-    const result=await queryRecords(remotePage+1,false);
-    if(!result)return;
-    const merged=dedupe([...items,...result.incoming]);
-    const moreVisible=merged.filter(match).length;
-    if(currentPageWasFull&&moreVisible>(safePage+1)*pageSize){
-      setScreenPage(safePage+1);
-    }else if(moreVisible===before){
-      setMessage('다음 목록에서 조건에 맞는 물품이 추가되지 않았습니다. 다시 다음을 누르면 그 이후 기록을 조회합니다.');
-    }else{
-      setMessage('현재 페이지에 새 검색 결과가 추가되었습니다.');
-    }
-    setSelected(null);
-  }
-  const nextAllowed=(safePage+1)*pageSize<visible.length||hasMore;
-  return <main className={embedded?"lf-page lf-embedded":"lf-page"}><div className="lf-shell">
-    {!embedded&&<header className="lf-top">
-      <button className="lf-back" aria-label="챗봇으로 돌아가기" onClick={()=>window.location.assign('/v2')}>‹</button>
-      <div className="lf-top-title">습득물 검색</div>
-      <div className="lf-top-note">LOST112 · 서울 중심</div>
-    </header>}
-    <form className="lf-search" onSubmit={submit}>
-      <div className="lf-search-grid">
-        <label className="lf-field">보관장소
-          <input type="search" value={place} maxLength={80} placeholder="예: 종로5가역, 유실물센터" onChange={e=>setPlace(e.target.value)}/>
-        </label>
-        <label className="lf-field">물품명
-          <input type="search" value={itemName} maxLength={80} placeholder="예: 지갑, 휴대폰, 가방" onChange={e=>setItemName(e.target.value)}/>
-        </label>
-        <div className="lf-date-head">기간 설정 <button className="lf-clear-date" type="button" onClick={()=>{setFrom('');setTo('');}}>기간 초기화</button></div>
-        <div className="lf-date-row">
-          <label className="lf-field">시작일<input type="date" value={from} max={to||localDate()} onChange={e=>setFrom(e.target.value)}/></label>
-          <label className="lf-field">종료일<input type="date" value={to} min={from||undefined} max={localDate()} onChange={e=>setTo(e.target.value)}/></label>
-        </div>
-      </div>
-      <div className="lf-actions">
-        <span className="lf-hint">입력 없이 조회하면 서울 최근 90일을 검색합니다.</span>
-        <button className="lf-submit" type="submit" disabled={loading||loadingMore}>{loading?'조회 중…':'조회하기 →'}</button>
-      </div>
-    </form>
-
-    <section className="lf-results" aria-label="습득물 검색 결과">
-      <div className="lf-results-head">
-        <h2 className="lf-results-title">조회 결과</h2>
-        <span className="lf-results-count">{loading?'불러오는 중…':visible.length+'건 표시 / '+items.length+'건 불러옴'}</span>
-      </div>
-      {items.length>0&&<div className="lf-chips" aria-label="물품 분류">
-        {categories.map(cat=><button className={'lf-chip'+(category===cat?' selected':'')} aria-pressed={category===cat} key={cat} onClick={()=>{setCategory(cat);setScreenPage(0);setSelected(null);}} type="button">{cat}</button>)}
-      </div>}
-      {errors.length>0&&<div className="lf-warning" role="status">{errors.map(x=>sourceLabel[x.source]||x.source).join(' · ')} 조회에 실패했습니다. 해당 기관의 검색 결과는 확인되지 않았습니다.</div>}
-      {warning&&<div className="lf-warning" role="alert">{warning} <button type="button" onClick={()=>submit()}>다시 조회</button></div>}
-      {message&&<div className="lf-warning" role="status">{message}</div>}
-      {loading?<div className="lf-state">서울 습득물 정보를 조회 중입니다…</div>:
-       pageItems.length?<div className="lf-list">{pageItems.map(item=>
-        <button className={'lf-item'+(selected&&recordKey(selected)===recordKey(item)?' selected':'')} type="button"
-          key={recordKey(item)} onClick={()=>pick(item)} aria-label={item.title+' 자세히 보기'}>
-          <Photo src={item.image} title={item.title}/>
-          <div className="lf-item-main">
-            <span className="lf-item-title">{item.title}</span>
-            <span className="lf-item-meta">{displayDate(item.date)} · {sourceLabel[item.source]||'기관'}</span>
-            <span className="lf-item-meta">보관: {item.place||'확인 필요'}</span>
-          </div><span className="lf-item-chevron">›</span>
-        </button>
-       )}</div>:
-       <div className="lf-state">{items.length?'현재 분류·기간 조건에 해당하는 목록이 없습니다.':
-         mode==='name-place'?'입력한 물품명 또는 보관장소의 검색 결과가 없습니다. 습득장소와 보관장소는 서로 다를 수 있어요.':
-         '조회된 습득물이 없습니다. 조건을 변경해 다시 검색해 보세요.'}</div>}
-      {!loading&&<div className="lf-pager">
-        <button type="button" disabled={safePage===0||loadingMore} onClick={()=>{setScreenPage(n=>Math.max(0,n-1));setSelected(null);}}>‹ 이전</button>
-        <div className="lf-pager-center">
-          <span>{safePage+1} / {maxPage}{hasMore?'+':''} 페이지</span>
-          <select className="lf-size-select" aria-label="페이지당 표시 건수" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setScreenPage(0);setSelected(null);}}>
-            <option value={5}>5개씩</option><option value={10}>10개씩</option>
-          </select>
-        </div>
-        <button type="button" disabled={!nextAllowed||loadingMore} onClick={next}>{loadingMore?'불러오는 중…':'다음 ›'}</button>
-      </div>}
-      <p className="lf-bottom">
-        {mode==='name-place'?'장소·물품명 직접 검색은 기관 API 특성상 서울·기간 조건을 함께 지정할 수 없습니다.':''}
-        {mode==='name-place'&&appliedDates?.from&&appliedDates?.to?' 기간 필터는 현재 불러온 검색 결과에만 적용됩니다.':''}
-        {mode==='area-date'?'서울 습득지역의 최근 90일 또는 지정 기간 목록입니다.':''}
-        {' '}습득장소와 보관장소는 다를 수 있습니다.
-      </p>
-    </section>
-
-    {selected&&<section className="lf-detail" ref={detailRef} aria-label="선택한 습득물 상세정보">
-      <div className="lf-detail-head"><strong>습득물 상세정보</strong>
-        <button type="button" className="lf-detail-close" onClick={()=>setSelected(null)} aria-label="상세 닫기">×</button>
-      </div>
-      <div className="lf-detail-content">
-        <div className="lf-detail-summary">
-          <Photo src={detail?.image||selected.image} title={detail?.title||selected.title}/>
-          <div><h3>{detail?.title||selected.title}</h3>
-            <p>{sourceLabel[selected.source]||'공식기관'} · {categoryName(selected)}</p>
-            <p>{displayDate(detail?.date||selected.date)}</p>
-          </div>
-        </div>
-        {detailLoading&&<p className="lf-detail-more">공식 API에서 상세정보를 불러오는 중입니다…</p>}
-        {detailError&&<p className="lf-detail-more">추가 상세정보를 가져오지 못했습니다. 아래는 목록에서 확인된 정보입니다.</p>}
-        <dl className="lf-detail-fields">
-          <dt>물품명</dt><dd>{detail?.title||selected.title}</dd>
-          <dt>분류</dt><dd>{detail?.category||selected.category||'미등록'}</dd>
-          <dt>색상</dt><dd>{selected.color||'미등록'}</dd>
-          <dt>습득일</dt><dd>{displayDate(detail?.date||selected.date)}</dd>
-          {detail?.foundPlace&&<><dt>습득장소</dt><dd>{detail.foundPlace}</dd></>}
-          {detail?.foundHour&&<><dt>습득시각</dt><dd>{detail.foundHour}</dd></>}
-          <dt>보관장소</dt><dd>{detail?.place||selected.place||'미등록'}</dd>
-          {detail?.custody&&<><dt>보관상태</dt><dd>{detail.custody}</dd></>}
-          {detail?.organization&&<><dt>보관기관</dt><dd>{detail.organization}</dd></>}
-          {detail?.phone&&<><dt>문의전화</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}
-          <dt>관리번호</dt><dd>{selected.id||'미등록'}{selected.sequence?' / '+selected.sequence:''}</dd>
-          {detail?.note&&<><dt>특이사항</dt><dd>{detail.note}</dd></>}
-          {!detail?.note&&selected.subject&&<><dt>게시내용</dt><dd>{selected.subject}</dd></>}
-        </dl>
-        <a className="lf-detail-link" href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer">LOST112 공식 홈페이지에서 확인 ↗</a>
-        <p className="lf-bottom">방문 전 해당 기관에 보관 여부를 문의해 주세요. 위 링크는 개별 물품이 아닌 공식 홈페이지로 연결됩니다.</p>
-      </div>
-    </section>}
-    {!embedded&&<footer className="lf-footer">SUBWAY AI GUIDE · LOST112 PUBLIC DATA</footer>}
-  </div></main>;
+const keyOf=x=>x.id&&x.sequence?x.id+'|'+x.sequence:[x.source,x.title,x.date,x.place].join('|');
+const groupOf=x=>String(x.category||'—').split(/[>＞]/)[0].trim();
+function Photo({src,t}){const [failed,setFailed]=useState(false);useEffect(()=>setFailed(false),[src]);return <div className="lf-thumb">{src&&!failed?<img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={()=>setFailed(true)}/>:<div className="lf-no-image"><span>▧</span>{t.noImage}</div>}</div>;}
+export default function CompactLostFound({embedded=false,lang='ko',station=DEFAULT_FEEDBACK_STATION,active=true,onNavigationStep=null,navigationSnapshot=null}){
+ const t=lostCopy[lang]||lostCopy.ko;
+ const [scope,setScope]=useState('station'),[place,setPlace]=useState(''),[item,setItem]=useState(''),[period,setPeriod]=useState('30'),[from,setFrom]=useState(()=>koreaDate(29)),[to,setTo]=useState(()=>koreaDate());
+ const [items,setItems]=useState([]),[category,setCategory]=useState(''),[page,setPage]=useState(0),[applied,setApplied]=useState(null),[nextPages,setNextPages]=useState(null),[hasMore,setHasMore]=useState(false),[limited,setLimited]=useState(false),[partial,setPartial]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState('');
+ const [selected,setSelected]=useState(null),[detail,setDetail]=useState(null),[detailLoading,setDetailLoading]=useState(false),[detailError,setDetailError]=useState(false);
+ const requestRef=useRef(null),detailRequest=useRef(null),sequence=useRef(0),scroll=useRef(0),container=useRef(null),filtersRef=useRef(null),limitedRef=useRef(false);
+ const pageSize=4;
+ const scroller=()=>container.current?.closest('.v2-feature-pane')||document.scrollingElement;
+ function setPreset(value){setPeriod(value);if(value!=='custom'){setFrom(koreaDate(Number(value)-1));setTo(koreaDate());}}
+ async function search(filters,append=false){
+  requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;const seq=++sequence.current;setLoading(true);setError('');
+  if(!append){setApplied(null);setItems([]);setPage(0);setCategory('');setSelected(null);setLimited(false);limitedRef.current=false;setPartial(false);setNextPages(null);setHasMore(false);}
+  try{
+   const params=new URLSearchParams({...filters,source:'both'});if(append&&nextPages)params.set('cursors',JSON.stringify(nextPages));if(append&&limitedRef.current)params.set('capped','1');
+   const r=await fetch('/api/v2/lost-found?'+params,{signal:controller.signal,cache:'no-store'});const data=await r.json();if(!r.ok||!data.ok)throw Error('error');
+   if(seq!==sequence.current||controller.signal.aborted)return;
+   setItems(previous=>{const map=new Map((append?previous:[]).map(x=>[keyOf(x),x]));for(const x of data.items)map.set(keyOf(x),x);return [...map.values()];});
+   setApplied(filters);setNextPages(data.nextPages);setHasMore(data.hasMore);limitedRef.current=limitedRef.current||data.limited;setLimited(limitedRef.current);setPartial(!!data.partial);
+  }catch(e){if(!controller.signal.aborted&&seq===sequence.current)setError('error');}
+  finally{if(seq===sequence.current&&!controller.signal.aborted)setLoading(false);}
+ }
+ useEffect(()=>{
+  const filters={scope:'station',station:station.id,item:'',start:koreaDate(29),end:koreaDate()};filtersRef.current=filters;void search(filters);
+  return()=>{sequence.current++;requestRef.current?.abort();detailRequest.current?.abort();};
+ // Each instance is keyed by station in the parent; do not reset on language change.
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[station.id]);
+ function submit(e){e.preventDefault();if(!validLostRange(from,to)||item.trim().length===1||(scope==='other'&&place.trim().length<2)){setError('invalid');return;}
+  const filters={scope,station:station.id,item:item.trim(),start:from,end:to};if(scope==='other')filters.place=place.trim();filtersRef.current=filters;void search(filters);
+ }
+ const categories=useMemo(()=>[...new Set(items.map(groupOf))],[items]);
+ const visible=useMemo(()=>items.filter(x=>!category||groupOf(x)===category),[items,category]);
+ const pages=Math.max(1,Math.ceil(visible.length/pageSize)),safePage=Math.min(page,pages-1),pageItems=visible.slice(safePage*pageSize,(safePage+1)*pageSize);
+ function pick(row){scroll.current=scroller()?.scrollTop||0;setSelected(row);}
+ function back(){setSelected(null);requestAnimationFrame(()=>{const node=scroller();if(node)node.scrollTop=scroll.current;});}
+ useEffect(()=>{if(!active||!onNavigationStep)return;onNavigationStep(selected?'found:'+keyOf(selected):'root',{foundItem:selected});},[selected,active,onNavigationStep]);
+ useEffect(()=>{if(navigationSnapshot?.data&&Object.hasOwn(navigationSnapshot.data,'foundItem')){setSelected(navigationSnapshot.data.foundItem);if(!navigationSnapshot.data.foundItem)requestAnimationFrame(()=>{const node=scroller();if(node)node.scrollTop=scroll.current;});}},[navigationSnapshot]);
+ useEffect(()=>{
+  if(!selected)return;const node=scroller();if(node)node.scrollTop=0;
+  detailRequest.current?.abort();const controller=new AbortController();detailRequest.current=controller;setDetail(null);setDetailLoading(true);setDetailError(false);
+  const params=new URLSearchParams({source:selected.source,id:selected.id,sequence:selected.sequence});
+  fetch('/api/v2/lost-found/detail?'+params,{signal:controller.signal,cache:'no-store'}).then(async r=>{const data=await r.json();if(!r.ok||!data.ok)throw Error();return data.detail;}).then(data=>{
+   if(controller.signal.aborted)return;setDetail(data);if(closedCustody(data.custody))setItems(previous=>previous.filter(x=>keyOf(x)!==keyOf(selected)));
+  }).catch(()=>{if(!controller.signal.aborted)setDetailError(true);}).finally(()=>{if(!controller.signal.aborted)setDetailLoading(false);});
+  return()=>controller.abort();
+ },[selected]);
+ const date=x=>lostDate(x)?.replaceAll('-','.')||t.unknown;
+ const label=station.names[lang]||station.names.ko;
+ return <div className={'lf-page lf-redesign '+(embedded?'lf-embedded':'')} ref={container}><div className="lf-shell">
+ {!embedded&&<header className="lf-top"><a href="/v2" aria-label={t.back}>‹</a><strong>{t.title}</strong></header>}
+ {!selected?<><form className="lf-search" onSubmit={submit}>
+  <fieldset disabled={loading}><legend>{t.place}</legend><div className="lf-segments">{[['station',label],['all',t.all],['other',t.other]].map(([id,title])=><button type="button" key={id} aria-pressed={scope===id} onClick={()=>setScope(id)}>{title}</button>)}</div></fieldset>
+  {scope==='other'&&<label className="lf-field lf-custom-place"><span>{t.other}</span><input type="search" value={place} maxLength={80} placeholder={t.placeHint} onChange={e=>setPlace(e.target.value)}/></label>}
+  <label className="lf-field lf-item-query"><span>{t.item}</span><input type="search" value={item} maxLength={80} placeholder={t.itemHint} onChange={e=>setItem(e.target.value)}/></label>
+  <fieldset disabled={loading}><legend>{t.period}</legend><div className="lf-segments lf-period">{['7','30','90','custom'].map((id,i)=><button type="button" key={id} aria-pressed={period===id} onClick={()=>setPreset(id)}>{t.days[i]}</button>)}</div></fieldset>
+  {period==='custom'&&<div className="lf-date-row"><label className="lf-field"><span>{t.from}</span><input type="date" value={from} min={koreaDate(89)} max={to||koreaDate()} onChange={e=>setFrom(e.target.value)}/></label><label className="lf-field"><span>{t.to}</span><input type="date" value={to} min={from||koreaDate(89)} max={koreaDate()} onChange={e=>setTo(e.target.value)}/></label></div>}
+  <div className="lf-actions"><small>{from.replaceAll('-','.')} – {to.replaceAll('-','.')}</small><button type="submit" className="lf-submit" disabled={loading}>{loading?t.loading:t.search} →</button></div>
+ </form><section className="lf-results" aria-label={t.results}>
+  <div className="lf-results-head"><h2 className="lf-results-title">{t.results}</h2><span className="lf-results-count">{items.length} {t.count}</span></div>
+  {applied&&<div className="lf-applied">{applied.scope==='station'?label:applied.scope==='all'?t.all:applied.place} · {date(applied.start)} – {date(applied.end)}</div>}
+  {!!items.length&&<div className="lf-chips" role="group" aria-label={t.category}>{['',...categories].map(cat=><button type="button" key={cat} className={'lf-chip '+(category===cat?'selected':'')} aria-pressed={category===cat} onClick={()=>{setCategory(cat);setPage(0);}}>{cat||t.allCategory}</button>)}</div>}
+  {partial&&<p className="lf-warning" role="status">{t.partial}</p>}
+  {error&&<p className="lf-warning" role="alert">{t[error]} {error!=='invalid'&&<button type="button" onClick={()=>search(filtersRef.current)}>{t.retry}</button>}</p>}
+  {!error&&!items.length&&<div className="lf-state" role="status">{loading?t.loading:t.empty}{!loading&&hasMore&&<p>{t.moreHint}</p>}</div>}
+  <div className="lf-list">{pageItems.map(row=><button type="button" key={keyOf(row)} className="lf-item" onClick={()=>pick(row)}><Photo src={row.image} t={t}/><span className="lf-item-main"><strong className="lf-item-title">{row.title}</strong><span className="lf-item-meta">{date(row.date)}</span><span className="lf-item-meta">{t.stored}: {row.place||t.unknown}</span></span><span className="lf-item-chevron">›</span></button>)}</div>
+  {!!items.length&&<div className="lf-pager"><button disabled={!safePage||loading} onClick={()=>setPage(v=>Math.max(0,v-1))}>{t.previous}</button><span>{safePage+1} / {pages}</span><button disabled={(safePage+1)*pageSize>=visible.length||loading} onClick={()=>setPage(v=>v+1)}>{t.next}</button></div>}
+  {!error&&items.length>0&&!visible.length&&<p className="lf-bottom">{t.noMatches}</p>}
+  {hasMore&&!error&&<button type="button" className="lf-load-more" disabled={loading} onClick={()=>search(filtersRef.current,true)}>{loading?t.loading:t.loadMore}</button>}
+  {limited&&<p className="lf-warning">{t.limit}</p>}
+ </section><p className="lf-bottom lf-transfer">{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p><p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
+  <div className="lf-detail-head"><button className="lf-list-back" onClick={back}>‹ {t.back}</button><strong>{t.detail}</strong></div><div className="lf-detail-content"><div className="lf-detail-summary"><Photo src={detail?.image||selected.image} t={t}/><div><h3>{detail?.title||selected.title}</h3><p>{date(detail?.date||selected.date)}</p></div></div>
+  {detailLoading&&<p role="status">{t.loading}</p>}{detailError&&<p className="lf-warning">{t.detailError}</p>}{closedCustody(detail?.custody)&&<p className="lf-warning">{t.closed}</p>}
+  <dl className="lf-detail-fields"><dt>{t.stored}</dt><dd>{detail?.place||selected.place||t.unknown}</dd><dt>{t.status}</dt><dd>{detail?.custody||t.unknown}</dd>{detail?.phone&&<><dt>{t.phone}</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}<dt>{t.type}</dt><dd>{detail?.category||selected.category||t.unknown}</dd><dt>{t.date}</dt><dd>{date(detail?.date||selected.date)}</dd>{detail?.foundPlace&&<><dt>{t.found}</dt><dd>{detail.foundPlace}</dd></>}<dt>{t.id}</dt><dd>{selected.id} / {selected.sequence}</dd>{detail?.note&&<><dt>{t.note}</dt><dd>{detail.note}</dd></>}</dl><p className="lf-bottom">{t.original}</p><a href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer" className="lf-detail-link">{t.official} ↗</a><p className="lf-bottom">{t.officialNote}<br/>{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p>
+ </div></section>}
+ </div></div>;
 }
