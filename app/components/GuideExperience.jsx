@@ -357,6 +357,27 @@ const GATE_UI = {
   },
 };
 
+// V2 전용: 오류 코드 확인이 어렵거나 목록에 없는 경우의 안내.
+// 기존 운영 화면(/)은 GATE_UI의 기존 안내를 그대로 사용합니다.
+const V2_UNKNOWN_GATE_STEPS = {
+  ko: [
+    "오류 코드를 알 수 없거나 목록에 없는 경우, **휠체어 게이트(넓은 게이트)**로 이동하세요.",
+    "해당 게이트를 통과해 **고객안전실**을 방문하여 **교통카드를 확인받으세요.**",
+  ],
+  en: [
+    "If you cannot identify the error code or it is not listed, go to the **accessible (wide) gate**.",
+    "Pass through that gate, then visit the **station office** to have your **transit card checked**.",
+  ],
+  ja: [
+    "エラーコードが分からない、または一覧にない場合は、**車いす用の幅広い改札**へ移動してください。",
+    "その改札を通過して**駅務室**へ行き、**交通カードの確認**を受けてください。",
+  ],
+  zh: [
+    "如果无法确认错误代码，或列表中没有该代码，请前往**无障碍宽闸机（轮椅闸机）**。",
+    "通过该闸机后，请前往**车站服务室**检查**交通卡**。",
+  ],
+};
+
 // 구매/충전 하위 선택은 고정 안내로 동작합니다. 시설안내는 Gemini 검색 기반 응답을 사용합니다.
 // 실제 역사 내 발매기 위치와 결제수단 확인 후 안내 문구를 갱신하세요.
 const EXCHANGE_CARD = {
@@ -1631,7 +1652,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                   const selected = options.find((o) => o.id === message.gateResult);
                   const code = selected && !selected.wide ? selected.label.match(/^E-\d+/)?.[0] : "";
                   const name = selected ? selected.label.replace(/^E-\d+\s*/, "").replace(/^↔\s*/, "") : ui.unknown;
-                  const steps = ui.steps[message.gateResult] || ui.steps.unknown;
+                  const steps = embedded && message.gateResult === "unknown" ? (V2_UNKNOWN_GATE_STEPS[lang] || V2_UNKNOWN_GATE_STEPS.ko) : (ui.steps[message.gateResult] || ui.steps.unknown);
                   const fullGuide = GATE_GUIDES[message.gateResult]?.[lang] || GATE_GUIDES[message.gateResult]?.ko;
                   return (
                     <div className="sag-gate-card sag-gate-resolution">
@@ -1653,7 +1674,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           <div className="sag-gate-full-text">{renderBoldMarkdown(fullGuide)}</div>
                         </details>
                       )}
-                      <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>
+                      {!(embedded && message.gateResult === "unknown") && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
