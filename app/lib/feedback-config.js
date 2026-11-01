@@ -5,7 +5,7 @@ export const FEEDBACK_STATIONS = {
 };
 export const DEFAULT_FEEDBACK_STATION = FEEDBACK_STATIONS['jongno5ga-1'];
 export const FEEDBACK_TYPES = ['equipment','signage','cleanliness','convenience','idea','other','praise'];
-export const FEEDBACK_LOCATIONS = ['gate','platform','restroom','exit','other'];
+export const FEEDBACK_LOCATIONS = ['gate','platform','restroom','exit','other','concourse'];
 export function validateFeedback(data) {
   const station = data && Object.hasOwn(FEEDBACK_STATIONS,data.station) ? FEEDBACK_STATIONS[data.station] : null;
   if (!station || !FEEDBACK_TYPES.includes(data.type) || !['ko','en','ja','zh'].includes(data.language)) return null;

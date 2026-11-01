@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {validateFeedback,DEFAULT_FEEDBACK_STATION} from '../app/lib/feedback-config.js';
 const base={station:DEFAULT_FEEDBACK_STATION.id,type:'idea',location:'exit',detail:'3번',content:'더 편리한 역',language:'ko',request_id:'11111111-1111-4111-8111-111111111111'};
 test('feedback validation rejects empty type, oversized text, unknown station and inconsistent location',()=>{
- assert.equal(validateFeedback(base).station_id,base.station);
+ assert.equal(validateFeedback(base).station_id,base.station);assert.equal(validateFeedback({...base,location:'concourse'}).location,'concourse');
  for(const change of [{type:''},{content:' '},{content:'a'.repeat(501)},{station:'other-station'},{detail:'a'.repeat(61)},{location:'invalid'},{location:'',detail:'stale'},{language:'xx'},{request_id:'invalid'}])assert.equal(validateFeedback({...base,...change}),null);
 });
 test('station tokens are isolated, expire, reject tampering and rotate with PIN configuration',async()=>{

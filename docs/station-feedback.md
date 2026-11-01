@@ -41,3 +41,9 @@ Ten explicitly labeled test ideas were added on 2026-11-01 for Jongno 5-ga. Thei
 The client requests one to three rows according to available viewport height, and reduces the page size if measured translated content would overflow. The API accepts only sizes 1/2/3, applies the same limit to offset calculation, and retains stable ordering. Resize and filter changes reset pagination. Opinion bodies show a two-line preview; tapping opens a native modal with the full content. The modal has an explicit close button, Escape support, and native focus handling. Station identity shares a heading row on the right throughout this feature. Staff controls share one horizontal row. No other feature's station display was changed.
 
 The flow test seeds more than ten local test records and checks that the pager is visible without scrolling at 640/740/844px heights, including four-language small-screen cases, and that the next page can be reached.
+
+## Four-to-five-record layout
+
+Supersedes the earlier shrinking page-size heuristic: ordinary mobile panes request four items, taller panes five, without decrementing to a single item after a layout measurement. The inbox combines station/title and thirty-day count in one heading; removes the all-time explanatory row; and uses compact two-line cards with full content available in the dialog. Tests assert four or five records plus a visible pager across the supported mobile viewports and translations.
+
+Apply `database/feedback-concourse.sql` before releasing this revision. It adds the `concourse` location to the existing constraint without rewriting records. Korean and Chinese location buttons fit on a single row of six; English/Japanese use two rows for readable labels. The write form places the 500-character counter beside its label and uses a short privacy/reference notice; the no-individual-response explanation remains at entry and completion.

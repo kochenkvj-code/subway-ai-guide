@@ -19,7 +19,7 @@ export async function GET(request){
  try{
   const q=new URL(request.url).searchParams,station=q.get('station');if(!Object.hasOwn(FEEDBACK_STATIONS,station))return json({error:'station'},400);
   const access=feedbackAccess(request,station);if(!access.allowed)return json({error:'unauthorized',pinConfigured:!!stationPin(station)},401);
-  const size=Number(q.get('size')||3);if(![1,2,3].includes(size))return json({error:'invalid'},400);
+  const size=Number(q.get('size')||4);if(![1,2,3,4,5].includes(size))return json({error:'invalid'},400);
   const page=Number(q.get('page')||0),type=q.get('type'),stars=q.get('stars');
   if(!Number.isInteger(page)||page<0||page>10000||(type&&!FEEDBACK_TYPES.includes(type)))return json({error:'invalid'},400);
   const params=new URLSearchParams({select:'id,type,location,location_detail,content,created_at,starred,language,hidden',station_id:'eq.'+station,hidden:'eq.false',order:'created_at.desc,id.desc',limit:String(size),offset:String(page*size)});

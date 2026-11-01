@@ -57,7 +57,7 @@ const server=http.createServer(async(req,res)=>{
   // The inbox adapts its server page size to the viewport, rather than stacking ten cards.
   for(let i=0;i<10;i++)rows.push({...rows[0],id:crypto.randomUUID(),request_id:crypto.randomUUID(),content:'긴 테스트 의견입니다. '.repeat(30),starred:false});
   const ap=await admin.newPage({viewport:{width:390,height:844}});await ap.goto(origin+'/v2?view=feedback');await ap.locator('.sf-choice').nth(1).click();await ap.locator('.sf-opinion').first().waitFor();
-  for(const [width,height,language] of [[390,640,'ko'],[390,740,'ko'],[390,844,'ko'],[320,640,'en'],[320,640,'ja'],[320,640,'zh'],[390,844,'en'],[390,844,'ja'],[390,844,'zh']]){await ap.setViewportSize({width,height});await ap.locator('.v2-view-header .v2-language select').selectOption(language);await wait(350);const count=await ap.locator('.sf-opinion').count();assert.ok(count>=1&&count<=3);const bounds=await ap.evaluate(()=>{const pane=document.querySelector('.sf-inbox'),pager=document.querySelector('.sf-pager');return {bottom:pager.getBoundingClientRect().bottom,end:pane.getBoundingClientRect().bottom,overflow:pane.scrollHeight-pane.clientHeight}});assert.ok(bounds.bottom<=bounds.end,JSON.stringify({height,...bounds}));assert.ok(bounds.overflow<=2,JSON.stringify({height,...bounds}));}
+  for(const [width,height,language] of [[390,640,'ko'],[390,740,'ko'],[390,844,'ko'],[320,640,'en'],[320,640,'ja'],[320,640,'zh'],[390,844,'en'],[390,844,'ja'],[390,844,'zh']]){await ap.setViewportSize({width,height});await ap.locator('.v2-view-header .v2-language select').selectOption(language);await wait(350);const count=await ap.locator('.sf-opinion').count();assert.ok(count>=4&&count<=5);const bounds=await ap.evaluate(()=>{const pane=document.querySelector('.sf-inbox'),pager=document.querySelector('.sf-pager');return {bottom:pager.getBoundingClientRect().bottom,end:pane.getBoundingClientRect().bottom,overflow:pane.scrollHeight-pane.clientHeight}});assert.ok(bounds.bottom<=bounds.end,JSON.stringify({height,...bounds}));assert.ok(bounds.overflow<=2,JSON.stringify({height,...bounds}));}
   await ap.locator('.sf-pager button').last().click();await wait(250);assert.ok((await ap.locator('.sf-pager span').innerText()).startsWith('2 /'));
   await ap.locator('.v2-view-header .v2-language select').selectOption('ko');await wait(200);await ap.screenshot({path:'work/feedback-compact.png'});await ap.locator('.v2-view-header > button').first().click();await ap.screenshot({path:'work/feedback-entry-compact.png'});await ap.close();
   // Every language and width remains within the screen. No production mutations.
@@ -65,8 +65,9 @@ const server=http.createServer(async(req,res)=>{
   for(const width of [320,390,768]){await p.setViewportSize({width,height:844});for(const lang of ['ko','en','ja','zh']){
    await p.locator('.v2-view-header .v2-language select').selectOption(lang);
    await p.locator('.v2-view-header > button').first().click();await p.locator('.sf-choice').first().click();await p.locator('#sf-content').waitFor();assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-   assert.equal(await p.locator('#sf-content').getAttribute('maxlength'),'500');
+   assert.equal(await p.locator('#sf-content').getAttribute('maxlength'),'500');assert.equal(await p.locator('.sf-locations button').count(),6);
   }}
+  await p.setViewportSize({width:390,height:844});await p.locator('.v2-view-header .v2-language select').selectOption('ko');await p.locator('.sf-locations button').last().click();await p.screenshot({path:'work/feedback-write-compact.png'});
   console.log('PASS browser → APIs → storage: draft, unset category, detail, submit, back/home, live badge, PIN, tab session, star, admin-only hide, station scope, 30-day/all-time, four languages at 320/390/768px');
  }finally{await browser?.close();child.kill();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});
