@@ -360,83 +360,72 @@ const GATE_UI = {
 // V2 전용 게이트 안내: 기존 운영 버전(/)의 문구는 변경하지 않습니다.
 const V2_GATE_FLOW = {
   ko: {
-    locate: "개찰구의 **왼쪽 또는 오른쪽 맨 끝**에 있는 **휠체어 게이트(넓은 게이트)**를 찾으세요.",
-    e03: "**비프음(삐 소리)이 나더라도 무시하고 해당 게이트를 통과하세요.**",
-    e03After: "교통카드 확인이나 요금 정산이 필요한 경우에는 **고객안전실을 방문해 주세요.**",
-    e04: "비프음(삐 소리)이 나더라도 **해당 게이트를 통과한 뒤 고객안전실을 방문하여 교통카드를 확인하고 요금을 정산**받으세요.",
-    e05: "비프음(삐 소리)이 나더라도 **해당 게이트를 통과한 뒤 고객안전실에서 요금을 정산**받으세요.",
-    e06First: "사용 가능한 **다른 교통카드**가 있다면 먼저 태그해 보세요.",
-    e06Last: "계속 오류가 발생하면 **고객안전실을 방문하여 교통카드를 확인**받으세요.",
-    e33First: "이미 **승차 처리된 카드**이므로 별도의 정산은 필요하지 않습니다.",
-    e44First: "이미 **하차 처리된 카드**이므로 별도의 정산은 필요하지 않습니다.",
-    processedLast: "비프음(삐 소리)이 나더라도 **휠체어 게이트(넓은 게이트)**를 통과하세요.",
-    oppositeLast: "비프음(삐 소리)이 나더라도 해당 게이트를 **통과하여 반대편 승강장으로 이동하세요.**",
-    fallback: "게이트가 닫혀 통과할 수 없다면 무리하게 밀지 말고 고객안전실에 문의하세요.",
+    locate: "개찰구의 **왼쪽 또는 오른쪽 맨 끝**에 있는 **휠체어 게이트(넓은 게이트)**로 이동하세요.",
+    passBeep: "**비프음(삐 소리)이 나더라도 무시하고 해당 게이트를 통과하세요.**",
+    optionalOffice: "교통카드 확인이나 요금 정산이 필요한 경우에는 **고객안전실을 방문해 주세요.**",
+    e04After: "통과 후 **고객안전실을 방문하여 교통카드를 확인받고**, 필요한 경우 요금을 정산하세요.",
+    e14First: "발매기·키오스크 또는 정산기에서 **교통카드 잔액을 충전하세요.**",
+    e14Last: "초록색 화살표가 표시된 게이트에 **다시 태그하세요.**",
+    e33First: "이미 승차 처리된 교통카드입니다. **다시 태그하거나 요금을 정산할 필요가 없습니다.**",
+    e44First: "이미 하차 처리된 교통카드입니다. **다시 태그하거나 요금을 정산할 필요가 없습니다.**",
+    oppositeLast: "**비프음(삐 소리)이 나더라도 무시하고 해당 게이트를 통과하여 반대편 승강장으로 이동하세요.**",
     photo: "휠체어 게이트 위치 그림으로 확인하기",
     regular: "일반 게이트", wide: "넓은 게이트",
     photoCaption: "위치 이해를 위한 예시 그림입니다. 실제 역사 설비 사진은 추후 추가할 예정입니다.",
   },
   en: {
-    locate: "Find the **Accessible (wide) gate** at either end of the row of fare gates.",
-    e03: "**Ignore the beep and pass through that gate.**",
-    e03After: "If you need your transit card checked or a fare adjustment, visit the **station office**.",
-    e04: "Even if it beeps, **pass through that gate**, then visit the **station office** to check your card and settle any fare.",
-    e05: "Even if it beeps, **pass through that gate**, then visit the **station office** for fare adjustment.",
-    e06First: "If you have **another usable transit card**, try tapping it first.",
-    e06Last: "If the error continues, visit the **station office** to have your card checked.",
-    e33First: "Your card has **already been processed for entry**. No further fare adjustment is needed.",
-    e44First: "Your card has **already been processed for exit**. No further fare adjustment is needed.",
-    processedLast: "Pass through the **Accessible (wide) gate**, even if you hear a beep.",
-    oppositeLast: "Pass through that gate to reach the **opposite platform**, even if it beeps.",
-    fallback: "If the gate is closed and cannot be used, do not force it open. Ask at the station office.",
+    locate: "Go to the **Accessible (wide) gate** at the far left or right end of the fare gates.",
+    passBeep: "**Even if you hear a beep, ignore it and pass through that gate.**",
+    optionalOffice: "If your transit card needs checking or a fare adjustment, visit the **station office**.",
+    e04After: "After passing through, visit the **station office** to have your transit card checked. Pay any fare adjustment if needed.",
+    e14First: "Top up your transit card at a compatible **ticket machine, kiosk, or fare adjustment machine**.",
+    e14Last: "Tap your card again at a gate showing a **green arrow**.",
+    e33First: "Your transit card has **already been processed for entry**. You do not need to tap again or pay an additional fare.",
+    e44First: "Your transit card has **already been processed for exit**. You do not need to tap again or pay an additional fare.",
+    oppositeLast: "**Even if it beeps, ignore the sound and pass through that gate to reach the opposite platform.**",
     photo: "View a diagram of the Accessible (wide) gate",
     regular: "Regular gates", wide: "Wide gate",
     photoCaption: "Illustration for locating the gate, not a photo of this station. A verified station photo can be added later.",
   },
   ja: {
-    locate: "改札口の**左右いずれかの端**にある**車いす対応の幅広い改札**を探してください。",
-    e03: "**警告音（ピッという音）が鳴っても、気にせずそのまま改札を通過してください。**",
-    e03After: "交通カードの確認や運賃の精算が必要な場合は、**駅事務室へお越しください。**",
-    e04: "警告音が鳴ってもその改札を通り、**駅事務室でカードの確認と運賃の精算**を受けてください。",
-    e05: "警告音が鳴ってもその改札を通り、**駅事務室で運賃を精算**してください。",
-    e06First: "利用可能な**別の交通カード**があれば、先にお試しください。",
-    e06Last: "エラーが続く場合は、**駅事務室で交通カードを確認**してもらってください。",
-    e33First: "**入場処理済み**のカードです。追加の精算は必要ありません。",
-    e44First: "**出場処理済み**のカードです。追加の精算は必要ありません。",
-    processedLast: "警告音が鳴っても、**車いす対応の幅広い改札**を通ってください。",
-    oppositeLast: "警告音が鳴っても、その改札を**通過して反対側のホームへ移動**してください。",
-    fallback: "改札が閉じて通れない場合は、無理に押さず駅事務室にお問い合わせください。",
+    locate: "改札口の**左右いずれかの端**にある**車いす対応の幅広い改札**へ移動してください。",
+    passBeep: "**警告音（ピッという音）が鳴っても、気にせずそのまま改札を通過してください。**",
+    optionalOffice: "交通カードの確認や運賃の精算が必要な場合は、**駅事務室へお越しください。**",
+    e04After: "通過後は**駅事務室で交通カードの確認**を受け、必要に応じて運賃を精算してください。",
+    e14First: "券売機・キオスク、または精算機で**交通カードをチャージ**してください。",
+    e14Last: "**緑の矢印**が表示された改札にもう一度タッチしてください。",
+    e33First: "この交通カードは**すでに入場処理済み**です。再度タッチしたり、運賃を精算したりする必要はありません。",
+    e44First: "この交通カードは**すでに出場処理済み**です。再度タッチしたり、運賃を精算したりする必要はありません。",
+    oppositeLast: "**警告音（ピッという音）が鳴っても気にせず、そのまま改札を通過して反対側のホームへ移動してください。**",
     photo: "車いす対応改札の位置を図で確認",
     regular: "通常の改札", wide: "幅広い改札",
     photoCaption: "位置を示す参考図です。実際の駅の写真ではありません。",
   },
   zh: {
-    locate: "请寻找闸机通道**最左侧或最右侧**的**无障碍宽闸机（轮椅闸机）**。",
-    e03: "**即使听到提示音，也请忽略提示音，通过该闸机。**",
-    e03After: "如需检查交通卡或结算车费，请前往**车站服务室**。",
-    e04: "即使听到提示音，也请通过该闸机，然后前往**车站服务室检查交通卡并办理费用结算**。",
-    e05: "即使听到提示音，也请通过该闸机，然后前往**车站服务室办理费用结算**。",
-    e06First: "如果有**其他可用的交通卡**，请先尝试刷卡。",
-    e06Last: "如果仍然报错，请前往**车站服务室检查交通卡**。",
-    e33First: "您的交通卡**已经完成进站处理**，无需额外结算。",
-    e44First: "您的交通卡**已经完成出站处理**，无需额外结算。",
-    processedLast: "即使听到提示音，也请通过**无障碍宽闸机（轮椅闸机）**。",
-    oppositeLast: "即使听到提示音，也请**通过该闸机前往对面站台**。",
-    fallback: "如果闸机关闭无法通行，请勿强行推开，向车站服务室咨询。",
+    locate: "请前往闸机通道**最左侧或最右侧**的**无障碍宽闸机（轮椅闸机）**。",
+    passBeep: "**即使听到提示音，也请忽略提示音并通过该闸机。**",
+    optionalOffice: "如需检查交通卡或结算车费，请前往**车站服务室**。",
+    e04After: "通过闸机后，请前往**车站服务室检查交通卡**，如有需要再结算车费。",
+    e14First: "请在支持充值的**售票机、自助终端或补票机**为交通卡充值。",
+    e14Last: "然后在有**绿色箭头**的闸机上重新刷卡。",
+    e33First: "此交通卡**已经完成进站处理**，无需再次刷卡或结算车费。",
+    e44First: "此交通卡**已经完成出站处理**，无需再次刷卡或结算车费。",
+    oppositeLast: "**即使听到提示音，也请忽略提示音并通过该闸机前往对面站台。**",
     photo: "查看无障碍宽闸机位置示意图",
     regular: "普通闸机", wide: "宽闸机",
     photoCaption: "仅用于说明闸机位置，并非本站实景照片。",
   },
 };
 
-const V2_GATE_WITH_LOCATION = new Set(["e03", "e04", "e05", "opposite"]);
 const V2_GATE_WITH_DIAGRAM = new Set(["e03", "e04", "e05", "e06", "e33", "e44", "opposite", "unknown"]);
 function v2GateSteps(lang, id) {
   const l = V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko;
-  if (id === "e03") return [l.locate, l.e03, l.e03After];
-  if (V2_GATE_WITH_LOCATION.has(id)) return [l.locate, id === "opposite" ? l.oppositeLast : l[id]];
-  if (id === "e06") return [l.e06First, l.e06Last];
-  if (id === "e33" || id === "e44") return [l[id + "First"], l.locate, l.processedLast];
+  if (id === "e03" || id === "e05") return [l.locate, l.passBeep, l.optionalOffice];
+  if (id === "e04") return [l.locate, l.passBeep, l.e04After];
+  if (id === "e14") return [l.e14First, l.e14Last];
+  if (id === "e33" || id === "e44") return [l[id + "First"], l.locate, l.passBeep];
+  if (id === "opposite") return [l.locate, l.oppositeLast];
+  // E-06 등 변경하지 않기로 한 항목은 기존 GATE_UI 안내를 그대로 사용합니다.
   return null;
 }
 
@@ -1814,7 +1803,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                           <GateLocationDiagram lang={lang}/>
                         </details>
                       )}
-                      {embedded && (V2_GATE_WITH_LOCATION.has(message.gateResult) || message.gateResult === "e33" || message.gateResult === "e44") && <p className="sag-gate-safe-note">{(V2_GATE_FLOW[lang] || V2_GATE_FLOW.ko).fallback}</p>}
+                      
                       {!embedded && message.gateResult !== "unknown" && <div className="sag-gate-help">{renderBoldMarkdown(ui.help)}</div>}
                       <div className="sag-gate-result-actions">
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
@@ -2416,7 +2405,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
         .sag-gate-diagram-hint { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; font-weight: 750; color: #176c56; margin: 9px 2px 0; line-height: 1.5; }
         .sag-gate-diagram-hint span { font-size: 16px; line-height: 1.1; flex-shrink: 0; }
         .sag-gate-diagram-footnote { font-size: 10px; color: #647987; line-height: 1.5; margin: 5px 2px 0; }
-        .sag-gate-safe-note { font-size: 10.5px; color: #52687a; margin: 9px 2px 0; line-height: 1.45; }
+
         .sag-gate-result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
         .sag-gate-result-actions button { padding: 10px 5px; border: 1px solid #bfd8e9; color: #165c88;
           font-size: 11px; font-weight: 800; background: #fff; border-radius: 9px; cursor: pointer; }
