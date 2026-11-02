@@ -1,5 +1,8 @@
 # Phase 3a: station-scoped live arrivals
 
+Next phase implemented: station-scoped directions, documented in
+`docs/station-route-phase3b.md`. The boundaries below describe phase 3a itself.
+
 V2 home and live-arrival details now query `/api/train-arrivals?station=<stationCode>` from the common master. The station name, line ID and allowed station aliases are resolved server-side. The API rejects unknown/shortened/supplementary codes before requesting the provider. It filters both station name and line so transfer-station feeds do not mix platforms.
 
 Direction groups are formed from the provider's 상행/하행/내선/외선 values, including mixed loop/branch feeds. `trainLineNm` 방면 names are accepted only if recognized in the existing station-name registry (plus explicit service aliases). They are **provider direction labels**, not an inferred adjacency graph or the train's final destination. Blank/unrecognized direction names remain blank; a missing feed is never given Jongno 5-ga neighbors. Branch direction groups can contain multiple reported names. No graph edges or coordinates are invented for missing stations. Current accepted aliases include 서울역→서울 and 총신대입구→총신대입구(이수); renamed 불암산 responses can also match 당고개.

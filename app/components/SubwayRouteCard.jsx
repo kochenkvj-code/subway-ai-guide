@@ -102,8 +102,12 @@ function ShortLineBadge({ name, lang }) {
   return <span className="srg-short-line" style={{ background: lineColor(name) }} title={lineName(name, lang)}>{label}</span>;
 }
 
-export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigationStep = null, navigationSnapshot = null }) {
+export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigationStep = null, navigationSnapshot = null, stationContext = null }) {
   const t = COPY[lang] || COPY.ko;
+  const originName = stationContext?.names[lang] || stationContext?.names.ko;
+  const originTag = stationContext ? ({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang] : t.originTag;
+  const requestRef = useRef(null);
+  useEffect(()=>()=>{requestRef.current?.abort();requestRef.current=null;},[]);
   const [destination, setDestination] = useState("");
   const [selectedStation, setSelectedStation] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -125,11 +129,13 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
   const appliedNavigation=useRef(null);
   useEffect(()=>{
     if(!navigationSnapshot?.data?.routeState||appliedNavigation.current===navigationSnapshot.serial)return;
+    const sourceCode=navigationSnapshot.data.routeState.stationCode || navigationSnapshot.data.routeState.route?.originCode || '0154';
+    if(sourceCode !== (stationContext?.stationCode || '0154'))return;
     appliedNavigation.current=navigationSnapshot.serial;
     const saved=navigationSnapshot.data.routeState;setDestination(saved.destination);setSelectedStation(saved.selectedStation);setMode(saved.mode);setRoute(saved.route);setError('');
-  },[navigationSnapshot]);
+  },[navigationSnapshot,stationContext?.stationCode]);
   const navRef=useRef(onNavigationStep);navRef.current=onNavigationStep;
-  useEffect(()=>{navRef.current?.(route?'route-result':'root',{destination,selectedStation,mode,route});},[route,destination,selectedStation,mode]);
+  useEffect(()=>{navRef.current?.(route?'route-result':'root',{destination,selectedStation,mode,route,stationCode:stationContext?.stationCode||'0154'});},[route,destination,selectedStation,mode,stationContext?.stationCode]);
   const stationLines = routeStationLines(route?.itinerary);
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
@@ -199,6 +205,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
 
   async function search(event) {
     event.preventDefault();
+    if(requestRef.current)return;
     const to = selectedStation?.ko || stationQuery(destination);
     const code = selectedStation?.code || "";
     if (!destination.trim()) { setError(t.empty); return; }
@@ -209,28 +216,33 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
     setRoute(null);
     setFeedback(null);
     feedbackRef.current=false;
+    const controller=new AbortController();requestRef.current=controller;
     recordStat("route_search", "request", lang);
     try {
       const params = new URLSearchParams({ to, mode });
       if (code) params.set("toCode", code);
-      const response = await fetch(`/api/subway-route?${params}`, { cache: "no-store" });
+      if(stationContext)params.set('station',stationContext.stationCode);
+      const response = await fetch(`/api/subway-route?${params}`, { cache: "no-store",signal:controller.signal });
       const data = await response.json();
       if (!response.ok || !data?.ok || !data.route) {
         throw new Error(data?.error || t.searchFailed);
       }
+      if(controller.signal.aborted || requestRef.current !== controller)return;
+      if(stationContext && data.route.originCode !== stationContext.stationCode)throw new Error(t.searchFailed);
       setRoute(data.route);
       recordStat("route_search", "success", lang);
     } catch (e) {
+      if(controller.signal.aborted)return;
       recordStat("route_search", "failure", lang);
       setError(e?.message || t.searchFailed);
     } finally {
-      setBusy(false);
+      if(requestRef.current===controller){requestRef.current=null;setBusy(false);}
     }
   }
 
   return (
     <section ref={cardRef} className="srg-card" aria-label={t.heading}>
-      <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin">{t.originTag}</span></header>
+      <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin" title={originTag}>{stationContext&&<span className="srg-origin-line" style={{background:stationContext.color}}>{stationContext.line}</span>}{originTag}</span></header>
       <form onSubmit={search}>
         <div ref={searchRef} className="srg-search-wrap">
           <span className="srg-search-icon" aria-hidden="true">⌕</span>
@@ -309,6 +321,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
         .srg-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
         .srg-title{display:flex;align-items:center;gap:8px;font-size:17px}.srg-train{font-size:19px}
         .srg-origin{flex-shrink:0;max-width:53%;border-radius:100px;padding:5px 9px;background:#203c36;color:#a7e4d3;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .srg-origin-line{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;color:white;font-size:10px;font-weight:700;margin-right:5px;vertical-align:middle}
         .srg-question{display:block;font-size:17px;font-weight:750;margin-bottom:11px}
         .srg-search-wrap{position:relative;display:flex;align-items:center;gap:8px;background:#252d32;border:1px solid #38474b;border-radius:14px;padding:0 12px}
         .srg-search-wrap:focus-within{border-color:#61cbb1;box-shadow:0 0 0 2px #2c5b4e}

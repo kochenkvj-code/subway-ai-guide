@@ -1,4 +1,5 @@
 import officialStations from "../../data/seoulMetroOfficialStations.json";
+import { getStationByCode } from '../../lib/station-master';
 // Seoul Metro shortest-route API: independent of app/api/google-search/route.js.
 // Only the server reads SEOUL_METRO_API_KEY. The key is never returned to clients.
 export const runtime = "nodejs";
@@ -28,7 +29,7 @@ function cleanStationName(value) {
   return String(value || "").normalize("NFC").trim().replace(/\s+/g, " ");
 }
 
-function summarizeRoute(body, destination, searchedAt) {
+function summarizeRoute(body, destination, searchedAt, origin = null) {
   const raw = Array.isArray(body.paths) ? body.paths : [];
   if (raw.length === 0) throw new Error("경로 데이터가 비어 있습니다.");
   const first = raw[0];
@@ -36,7 +37,12 @@ function summarizeRoute(body, destination, searchedAt) {
   // Do not display routes to similarly named stations (강남구청 instead of 강남).
   const actualOrigin = cleanStationName(first?.dptreStn?.stnNm);
   const actualDestination = cleanStationName(last?.arvlStn?.stnNm);
-  if (actualOrigin !== ORIGIN || actualDestination !== destination) {
+  const originNames = origin ? [origin.names.ko, ...origin.aliases] : [ORIGIN];
+  const originCode = first?.dptreStn?.stnCd;
+  const firstLine = cleanStationName(first?.dptreStn?.lineNm).replace(/^0([1-9])호선$/, '$1호선');
+  if (!originNames.includes(actualOrigin) || actualDestination !== destination ||
+      (origin && firstLine !== origin.line+'호선') ||
+      (origin && originCode != null && String(originCode).padStart(4,'0') !== origin.stationCode)) {
     throw new Error(`정확한 역명에 해당하는 경로를 찾지 못했습니다. (${actualOrigin} → ${actualDestination})`);
   }
 
@@ -90,7 +96,8 @@ function summarizeRoute(body, destination, searchedAt) {
   const reportedTransferCount = Number(body.trsitNmtm);
 
   return {
-    origin: ORIGIN,
+    origin: origin?.names.ko || ORIGIN,
+    ...(origin ? {originCode:origin.stationCode,originLine:origin.line+'호선'} : {}),
     destination,
     searchedAt,
     searchType: body.searchType || "duration",
@@ -115,21 +122,33 @@ export async function GET(request) {
   try { params = new URL(request.url).searchParams; }
   catch { return errorResponse("잘못된 요청입니다.", 400, "BAD_URL"); }
 
+  // A V2 entry station is resolved from the same exact-code master as its QR
+  // URL. Legacy requests without this parameter retain their existing origin.
+  const originCode = params.get('station');
+  const origin = originCode === null ? null : getStationByCode(originCode);
+  if (originCode !== null && !origin) return errorResponse('지원하지 않는 출발역 코드입니다.',400,'BAD_ORIGIN_CODE');
+
   const destinationCode = String(params.get("toCode") || "").trim();
-  const selectedStation = destinationCode ? BY_CODE.get(destinationCode) : null;
+  let selectedStation = destinationCode ? BY_CODE.get(destinationCode) : null;
   if (destinationCode && !selectedStation) return errorResponse("지원하지 않는 역코드입니다.", 400, "BAD_STATION_CODE");
   const destination = selectedStation ? cleanStationName(selectedStation.ko) : cleanStationName(params.get("to"));
   const mode = params.get("mode") || "duration";
   if (!destination || destination.length > 30 || /[<>\r\n\u0000-\u001f]/.test(destination)) {
     return errorResponse("도착역 이름을 1~30자로 입력해 주세요.", 400, "BAD_DESTINATION");
   }
-  if (destination === ORIGIN) return errorResponse("도착역은 종로5가역 이외의 역을 선택해 주세요.", 400, "SAME_STATION");
+  if (origin && !selectedStation) {
+    const candidates = officialStations.filter(s=>cleanStationName(s.ko)===destination);
+    selectedStation = candidates.find(s=>/^0[1-9]호선$/.test(s.line)) || candidates[0];
+    if (!selectedStation) return errorResponse('도착역을 검색 결과에서 선택해 주세요.',400,'BAD_DESTINATION');
+  }
+  if (origin ? [origin.names.ko,...origin.aliases].includes(destination) : destination === ORIGIN)
+    return errorResponse("출발역과 다른 도착역을 선택해 주세요.", 400, "SAME_STATION");
   if (!MODES.has(mode)) return errorResponse("지원하지 않는 검색 유형입니다.", 400, "BAD_MODE");
 
   const searchedAt = seoulTimestamp();
   const qs = new URLSearchParams({
-    serviceKey: key, dataType: "JSON", dptreStn: selectedStation ? "0154" : ORIGIN,
-    arvlStn: selectedStation ? destinationCode : destination, searchDt: searchedAt,
+    serviceKey: key, dataType: "JSON", dptreStn: origin ? origin.stationCode : selectedStation ? "0154" : ORIGIN,
+    arvlStn: selectedStation ? selectedStation.code : destination, searchDt: searchedAt,
     searchType: mode, schInclYn: "Y", stationValueType: selectedStation ? "code" : "name",
   });
 
@@ -169,7 +188,7 @@ export async function GET(request) {
   }
 
   try {
-    const route = summarizeRoute(data.body || {}, destination, searchedAt);
+    const route = summarizeRoute(data.body || {}, destination, searchedAt, origin);
     return Response.json({ ok: true, route }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return errorResponse(e?.message || "경로를 해석하는 중 문제가 발생했습니다.", 422, "PARSE_ROUTE");

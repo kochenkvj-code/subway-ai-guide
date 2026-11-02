@@ -1113,7 +1113,7 @@ function renderBoldMarkdown(text) {
   });
 }
 
-export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null }) {
+export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null, routeStation = null }) {
   const [lang, setLang] = useState(language);
   const visitRecordedRef = useRef(false);
   useEffect(() => {
@@ -1788,7 +1788,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
               <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
-                {message.routeCard && <SubwayRouteCard key={resetToken} navigationSnapshot={index===messages.length-1?navigationSnapshot:null} onNavigationStep={onNavigationStep&&index===messages.length-1?((key,routeState)=>onNavigationStep(key,{messages:messageHistoryRef.current,routeState})):null} lang={lang} onNewSearch={openAnotherRouteSearch} />}
+                {message.routeCard && <SubwayRouteCard key={resetToken} stationContext={routeStation} navigationSnapshot={index===messages.length-1?navigationSnapshot:null} onNavigationStep={onNavigationStep&&index===messages.length-1?((key,routeState)=>onNavigationStep(key,{messages:messageHistoryRef.current,routeState})):null} lang={lang} onNewSearch={openAnotherRouteSearch} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
