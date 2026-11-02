@@ -1,9 +1,10 @@
+import {providerStation,stationRowMatches} from '../../../lib/station-provider';
 // Seoul Metro published train timetable (not real-time arrival predictions).
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const ENDPOINT='https://apis.data.go.kr/B553766/schedule/getTrainSch';
 const ROW_LIMIT=1000;
-const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'public, max-age=60, s-maxage=300, stale-while-revalidate=900','X-Content-Type-Options':'nosniff'}});
+const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':status===200?'public, max-age=60, s-maxage=300, stale-while-revalidate=900':'no-store','X-Content-Type-Options':'nosniff'}});
 function dateTime(txt){
   const t=String(txt??'').trim();
   const m=t.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/)||t.match(/^(\d{2})(\d{2})(?:\d{2})?$/);
@@ -44,8 +45,10 @@ function row(a){
 }
 export async function GET(request){
   const q=new URL(request.url).searchParams;
-  const station=(q.get('station')||'종로5가').replace(/역$/,'').trim();
-  const line=q.get('line')||'1';
+  const identity=q.has('stationCode')?providerStation(q.get('stationCode')):null;
+  if(q.has('stationCode')&&!identity)return reply({ok:false,error:'INVALID_STATION'},400);
+  const station=identity?.queryName||(q.get('station')||'종로5가').replace(/역$/,'').trim();
+  const line=identity?.line||q.get('line')||'1';
   const day=q.get('day')||'평일';
   const direction=q.get('direction')||'상행';
   if(!/^[가-힣0-9A-Za-z·.()\s-]{2,48}$/.test(station)|| !/^[1-9]$/.test(line) ||
@@ -66,16 +69,16 @@ export async function GET(request){
     if(!text.trim().startsWith('{'))return reply({ok:false,error:'INVALID_FORMAT',message:'시간표 API가 JSON을 반환하지 않았습니다. 인증키 및 신청 상태를 확인해 주세요.'},502);
     const data=unwrap(JSON.parse(text));
     if(data.error){
-      if(data.error==='NO_DATA')return reply({ok:true,rows:[],total:0,station,line,day,direction,truncated:false});
+      if(data.error==='NO_DATA')return reply({ok:true,stationCode:identity?.stationCode||null,rows:[],total:0,station,line,day,direction,truncated:false});
       return reply({ok:false,error:data.error,message:'시간표 API 응답을 확인할 수 없습니다.'},502);
     }
-    let rows=(data.rows||[]).map(row).filter(Boolean)
-      .filter(a=>!a.station||a.station.replace(/역$/,'').trim()===station)
+    let rows=(data.rows||[]).filter(a=>!identity||stationRowMatches(a,identity)).map(row).filter(Boolean)
+      .filter(a=>identity||!a.station||a.station.replace(/역$/,'').trim()===station)
       .sort((a,b)=>a.time.localeCompare(b.time)||a.number.localeCompare(b.number));
     const unique=new Set();
     rows=rows.filter(a=>{const sig=[a.time,a.number,a.direction,a.destination].join('|');if(unique.has(sig))return false;unique.add(sig);return true;});
     const total=Number.isFinite(data.total)?data.total:rows.length;
-    return reply({ok:true,rows,station,line,day,direction,total,truncated:total>ROW_LIMIT});
+    return reply({ok:true,stationCode:identity?.stationCode||null,rows,station,line,day,direction,total,truncated:total>ROW_LIMIT});
   }catch(e){
     return reply({ok:false,error:e?.name==='TimeoutError'?'TIMEOUT':'FETCH_FAILED',
       message:'시간표 조회가 지연되거나 응답을 처리하지 못했습니다.'},502);

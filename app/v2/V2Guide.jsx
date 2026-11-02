@@ -13,7 +13,7 @@ import CompactLostFound from './lost-found-demo/CompactLostFound';
 import FacilityDemo from './facilities-demo/FacilityDemo';
 import TrainLostFinder from './TrainLostFinder';
 import StationFeedback, {useFeedbackCount} from './StationFeedback';
-import {DEFAULT_FEEDBACK_STATION} from '../lib/feedback-config';
+import {DEFAULT_FEEDBACK_STATION,FEEDBACK_STATIONS} from '../lib/feedback-config';
 import {feedbackCopy} from './feedback-copy';
 import { CURRENT_STATION } from '../lib/train-arrivals';
 import {lostFoundStation} from '../lib/lost-found-stations';
@@ -23,6 +23,7 @@ const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
 function readView(){const v=new URLSearchParams(window.location.search).get('view');return views.has(v)?v:'home';}
 export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext=null,stationTools=null,initialLanguage='ko',onLanguageChange=null,basePath='/v2'}) {
   const operational=!stationContext || stationContext.stationCode==='0154';
+  const feedbackStation=stationContext?FEEDBACK_STATIONS[stationContext.stationCode]:station;
   const tourStation=stationContext||station;
   const foundStation=stationContext?lostFoundStation(stationContext.stationCode):station;
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
@@ -40,7 +41,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     setDetail(!root);
   },[]);
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
-  const feedbackCount=useFeedbackCount(station.id,view==='home'&&operational);
+  const feedbackCount=useFeedbackCount(feedbackStation.id,view==='home');
   const t=copy[lang];
   const arrivals=useTrainArrivals(view==='home'||view==='live',stationContext?.stationCode||null);
   const title=view==='chat'?t.chat:view==='live'?t.liveTitle:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
@@ -77,7 +78,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   return <main className="v2-app" lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <TrainSummary stationControl={stationTools} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
-      {!operational&&<p className="se-stage">{({ko:"이 역의 열차·길찾기·관광·습득물·열차 내 유실물 찾기를 연결했습니다. 다른 메뉴와 AI는 다음 단계에서 연결합니다.",en:"Arrivals, directions, attractions, found items and train-lost search are connected. Other menus and AI will be connected later.",ja:"到着情報・経路検索・観光・拾得物・車内の忘れ物検索を接続しました。他のメニューとAIは今後接続します。",zh:"到站信息、路线、景点、拾得物及车内遗失物查询已接入，其他菜单和AI将在后续阶段接入。"})[lang]}</p>}
+      {!operational&&<p className="se-stage">{({ko:"이 역의 열차·길찾기·관광·습득물·열차 내 유실물 찾기를 연결했습니다. 시간표·시설·역 개선 의견도 연결했습니다. AI는 다음 단계에서 연결합니다.",en:"Station-based menus are connected. AI will be connected in the next phase.",ja:"駅ごとのメニューを接続しました。AIは次の段階で接続します。",zh:"本站菜单已接入，AI将在下一阶段接入。"})[lang]}</p>}
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><Language/></div>
         <h1>{t.title}</h1><p>{t.description}</p>
@@ -93,13 +94,13 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button><Language/></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>(operational||id==='route')&&mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
-      {operational&&mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
+      {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'} stationContext={stationContext}/></div>}
       {mounted.found&&foundStation&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+foundStation.id} embedded station={foundStation} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}
-      {operational&&mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
+      {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded stationContext={stationContext} lang={lang} active={view==='facility'}/></div>}
       {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={(visits.lost||0)+'-'+(stationContext?.stationCode||'0154')} lang={lang} active={view==='lost'} defaultStation={stationContext?.names.ko||CURRENT_STATION.name} defaultLine={stationContext?.line||String(Number(CURRENT_STATION.lineId)-1000)} defaultNames={stationContext?.names}/></div>}
-      {operational&&mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
+      {mounted.feedback&&<StationFeedback key={feedbackStation.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={feedbackStation} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
       {view==='live'&&<ArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
-      {!operational&&!['live','route','tour','found','lost'].includes(view)&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
+      {!operational&&!['live','route','tour','found','lost','timetable','facility','feedback'].includes(view)&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>
   </main>;

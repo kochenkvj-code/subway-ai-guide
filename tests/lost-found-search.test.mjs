@@ -14,7 +14,7 @@ const xml=(rows,total=rows.length)=>'<response><header><resultCode>00</resultCod
 const row=(id,place='종로5가역',date='2026-10-30',status='')=>({atcId:id,fdSn:'1',fdPrdtNm:'검은 지갑',depPlace:place,fdYmd:date,csteSteNm:status});
 test('station rejects police/substation, stale, invalid dates and closed records; accepts explicit custody aliases',async()=>{
  const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([row('STATION'),row('POLICE','종로5가파출소'),row('OTHER','종로3가역'),row('OLD','종로5가역','2019-05-01'),row('INVALID','종로5가역','2026-02-30'),row('DONE','종로5가역','2026-10-30','반환완료'),row('ALIAS','서울교통공사 1호선 종로5가역 고객안전실')]))});
- const body=await (await f.get({scope:'station'})).json();assert.deepEqual(body.items.map(x=>x.id),['STATION','ALIAS']);assert.equal(body.start,'2026-10-03');assert.equal(body.end,'2026-11-01');assert.ok(urls.every(x=>x.searchParams.get('DEP_PLACE')==='종로5가'));
+ const body=await (await f.get({scope:'station'})).json();assert.deepEqual(body.items.map(x=>x.id),['STATION','ALIAS']);assert.equal(body.start,'2026-10-03');assert.equal(body.end,'2026-11-01');assert.ok(urls.every(x=>x.searchParams.get('DEP_PLACE')==='종로5가역'));
  assert.equal((await f.get({scope:'station',start:'2019-01-01',end:'2019-02-01'})).status,400);
 });
 test('all and other-place searches always use the Seoul area/date endpoint, even with item keywords',async()=>{
@@ -57,10 +57,9 @@ test('Jonggak never searches Jongno 5-ga, and an explicit station scope ignores 
  const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([row('RIGHT','종각역'),row('OLD_STATION'),row('POLICE','종각파출소')]));});
  const body=await (await f.get({station:'0152',scope:'station',place:'종로5가역',scan:'first'})).json();assert.deepEqual(body.items.map(x=>x.id),['RIGHT']);assert.equal(urls[0].searchParams.get('DEP_PLACE'),'종각역');assert.equal(body.stationCode,'0152');
 });
-test('invalid station codes never fall back; legacy IDs and Seoul area queries stay supported',async()=>{
+test('invalid station codes never fall back; obsolete IDs rejected and Seoul area queries stay supported',async()=>{
  let calls=0;const f=await load(async()=>{calls++;return new Response(xml([row('LEGACY')]));});
- for(const station of ['','152','9999','0200'])assert.equal((await f.get({station,scope:'station'})).status,400);assert.equal(calls,0);
- const legacy=await (await f.get({station:'jongno5ga-1',scope:'station'})).json();assert.deepEqual(legacy.items.map(x=>x.id),['LEGACY']);
+ for(const station of ['','152','9999','0200','jongno5ga-1'])assert.equal((await f.get({station,scope:'station'})).status,400);assert.equal(calls,0);
  const city=await (await f.get({station:'0152',scope:'all'})).json();assert.equal(city.region,'서울특별시');assert.equal(city.scope,'all');assert.equal(city.stationCode,'0152');assert.equal(city.items.length,1);
 });
 test('verified Dongmyo agency identities remain independent and ambiguous bare transfer names are rejected',async()=>{

@@ -1,9 +1,7 @@
-// Shared station identity. Future home station selection passes one of these IDs.
-// Do not derive identity from translated labels or accept arbitrary stations from a client.
-export const FEEDBACK_STATIONS = {
-  'jongno5ga-1': { id:'jongno5ga-1', line:'1', coordinateId:'0154', color:'#24559b', names:{ko:'종로5가역',en:'Jongno 5-ga',ja:'鍾路5街駅',zh:'钟路5街站'} },
-};
-export const DEFAULT_FEEDBACK_STATION = FEEDBACK_STATIONS['jongno5ga-1'];
+import {stationMaster} from './station-master';
+// All station-scoped features share the canonical station code, including transfer lines.
+export const FEEDBACK_STATIONS=Object.fromEntries(stationMaster.map(s=>[s.stationCode,{id:s.stationCode,line:s.line,coordinateId:s.coordinateId,color:s.color,names:{...s.names,ko:s.names.ko.endsWith('역')?s.names.ko:s.names.ko+'역'}}]));
+export const DEFAULT_FEEDBACK_STATION=FEEDBACK_STATIONS['0154'];
 export const FEEDBACK_TYPES = ['equipment','signage','cleanliness','convenience','idea','other','praise'];
 export const FEEDBACK_LOCATIONS = ['gate','platform','restroom','exit','other','concourse'];
 export function validateFeedback(data) {

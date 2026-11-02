@@ -22,9 +22,9 @@ function labelForDirection(dir,t){
 function minuteOf(time){
  const m=String(time||'').match(/^(\d\d):(\d\d)/);return m?Number(m[1])*60+Number(m[2]):-1;
 }
-export default function TrainTimetable({lang='ko',active=true}){
+export default function TrainTimetable({lang='ko',active=true,stationContext=null}){
  const t=words[lang]||words.ko;
- const [selection,setSelection]=useState({name:'종로5가',line:'1'});
+ const [selection,setSelection]=useState({name:stationContext?.names.ko||'종로5가',line:stationContext?.line||'1'});
  const [query,setQuery]=useState('');
  const [editing,setEditing]=useState(false);
  const [selectedDay,setSelectedDay]=useState(()=>['Sat','Sun'].includes(seoulNow().weekday)?'주말':'평일');
@@ -49,8 +49,10 @@ export default function TrainTimetable({lang='ko',active=true}){
    const requested=dir==='전체' ? (selection.line==='2'?['내선','외선']:['상행','하행']) : [dir];
    async function loadOne(direction){
      const params=new URLSearchParams({station:selection.name,line:selection.line,day:selectedDay,direction});
+     if(stationContext)params.set('stationCode',stationContext.stationCode);
      const response=await fetch('/api/v2/timetable?'+params.toString(),{cache:'no-store',signal:controller.signal});
      const result=await response.json();
+     if(stationContext&&result.stationCode!==stationContext.stationCode)throw Error(t.notReady);
      if(!response.ok||!result.ok)throw Error(result.message||t.notReady);
      return {...result,rows:(result.rows||[]).map(train=>({...train,direction}))};
    }
@@ -97,16 +99,16 @@ export default function TrainTimetable({lang='ko',active=true}){
  }).sort((a,b)=>a.time.localeCompare(b.time)||a.direction.localeCompare(b.direction,'ko'));
  const visible=scope==='firstLast'?firstLast:scope==='upcoming'&&todayMatches?nearNow:matching;
  const displayed=scope==='firstLast'?visible:visible.slice(0,listLimit);
- const applyLabel=stationName(selection.name,lang,false)||selection.name;
+ const applyLabel=stationContext?.names[lang]||stationName(selection.name,lang,false)||selection.name;
  const lineLabel=lineName(selection.line+'호선',lang);
  return <section className="tt-root" aria-label={t.subtitle}>
   <div className="tt-title"><div><span className="tt-eyebrow">TRAIN TIMETABLE</span>
     <h2>{t.subtitle}</h2><p>{t.note}</p></div><span className="tt-train-symbol">▤</span></div>
   <div className="tt-station-card">
-    <div className="tt-current"><span className="tt-line-no">{selection.line}</span>
+    <div className="tt-current"><span className="tt-line-no" style={stationContext?{background:stationContext.color}:undefined}>{selection.line}</span>
       <div><strong>{applyLabel}</strong><small>{lineLabel}</small></div>
-      <button onClick={()=>{setEditing(x=>!x);setQuery('');}}>{t.change} ⌄</button></div>
-    {editing&&<div className="tt-station-picker">
+      {!stationContext&&<button onClick={()=>{setEditing(x=>!x);setQuery('');}}>{t.change} ⌄</button>}</div>
+    {!stationContext&&editing&&<div className="tt-station-picker">
       <label htmlFor="tt-station-search">{t.station}</label>
       <input id="tt-station-search" autoFocus placeholder={t.placeholder} value={query} onChange={e=>setQuery(e.target.value)}/>
       {matches.length>0&&<div className="tt-station-matches">{matches.map((s,i)=>

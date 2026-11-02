@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-import {validateFeedback,DEFAULT_FEEDBACK_STATION} from '../app/lib/feedback-config.js';
+import {loadModule} from './station-menu-loader.mjs';
+const {validateFeedback,DEFAULT_FEEDBACK_STATION,FEEDBACK_STATIONS}=await loadModule('app/lib/feedback-config.js');
 const base={station:DEFAULT_FEEDBACK_STATION.id,type:'idea',location:'exit',detail:'3번',content:'더 편리한 역',language:'ko',request_id:'11111111-1111-4111-8111-111111111111'};
 test('feedback validation rejects empty type, oversized text, unknown station and inconsistent location',()=>{
  assert.equal(validateFeedback(base).station_id,base.station);assert.equal(validateFeedback({...base,location:'concourse'}).location,'concourse');
@@ -19,3 +20,5 @@ test('station tokens are isolated, expire, reject tampering and rotate with PIN 
  context.process.env.FEEDBACK_STATION_PINS=JSON.stringify({a:'9999'});assert.equal(api.feedbackAccess(req(token),'a').allowed,false);
  context.process.env.FEEDBACK_STATION_PINS=JSON.stringify({a:'1234'});const [id,,sig]=token.split('.');assert.equal(api.feedbackAccess(req([id,'1000000000000',sig].join('.')),'a').allowed,false);
 });
+
+test('feedback uses exact station codes and transfer lines stay separate',()=>{assert.equal(DEFAULT_FEEDBACK_STATION.id,'0154');assert.equal(Object.keys(FEEDBACK_STATIONS).length,289);for(const [station,line]of [['0159','1'],['2637','6']]){const data=validateFeedback({...base,station});assert.equal(data.station_id,station);assert.equal(data.line,line);}for(const station of ['jongno5ga-1','154','9999'])assert.equal(validateFeedback({...base,station}),null);});

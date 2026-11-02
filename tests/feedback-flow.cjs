@@ -2,8 +2,8 @@
 const {chromium}=require('playwright');
 const http=require('node:http'),{spawn}=require('node:child_process'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const origin='http://localhost:3015',station='jongno5ga-1';
-let rows=[{id:crypto.randomUUID(),station_id:'other-station',type:'idea',content:'OTHER STATION PRIVATE',created_at:new Date().toISOString(),starred:false,hidden:false}];
+const origin='http://localhost:3015',station='0154';
+let rows=[{id:crypto.randomUUID(),station_id:'2637',type:'idea',content:'OTHER STATION PRIVATE',created_at:new Date().toISOString(),starred:false,hidden:false}];
 const calls=[];
 const server=http.createServer(async(req,res)=>{
  try{let raw='';for await(const c of req)raw+=c;const body=raw?JSON.parse(raw):{},url=new URL(req.url,'http://localhost');const path=url.pathname;calls.push({path,method:req.method,params:[...url.searchParams]});res.setHeader('Content-Type','application/json');

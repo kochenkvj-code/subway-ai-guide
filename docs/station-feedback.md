@@ -4,7 +4,7 @@ V2 only: `/v2?view=feedback`. The existing production home and guide behavior ar
 
 ## Station boundary
 
-`app/lib/feedback-config.js` contains a shared allowlisted registry and stable station ID (`jongno5ga-1`). The current V2 has no working global station selector, so it uses its existing Jongno 5-ga station configuration. `V2Guide({station})` passes that identity to the feedback UI and badge. A future global selector must select from the same registry and pass its station object. Add the corresponding registered station before enabling it; do not derive IDs from localized names. The feedback pane is keyed by station, clearing drafts, list, filters, and auth UI on station change. APIs reject unregistered IDs. Every read, count, star, and hide includes the station ID. A single shared opinions table is used for all stations.
+`app/lib/feedback-config.js` derives its allowlist from the common station master. The four-character station code (for example `0154`) is the station ID for submission, counts, inbox, authentication, starring and hiding. Names are display labels only; transfer lines retain independent codes. V2 passes the URL-selected station and remounts the pane when its code changes. Staff PIN configuration must likewise use station codes (`{"0154":"<4-digit PIN>"}`). There is no legacy ID fallback. On 2026-11-02 the 13 existing Jongno 5-ga test rows were moved from the old identifier to `0154`, without changing their contents or visibility. The single shared table and existing service-role-only access remain in place.
 
 ## Database and access
 

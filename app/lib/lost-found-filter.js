@@ -1,4 +1,4 @@
-import {DEFAULT_FEEDBACK_STATION,FEEDBACK_STATIONS} from './feedback-config';
+import {DEFAULT_FEEDBACK_STATION} from './feedback-config';
 import {lostFoundStation} from './lost-found-stations';
 export const MAX_LOST_PAGES=20;
 export function koreaDate(daysBack=0,now=Date.now()){return new Date(now+9*3600000-daysBack*86400000).toISOString().slice(0,10);}
@@ -37,7 +37,7 @@ export function matchesLostItem(row,{start,end,scope,station,item,place}){
 export function resolveLostSearch(query,now=Date.now()){
  const place=(query.get('place')||'').trim(),item=(query.get('item')||'').trim();
  const stationId=query.get('station')??DEFAULT_FEEDBACK_STATION.id;
- const station=Object.hasOwn(FEEDBACK_STATIONS,stationId)?FEEDBACK_STATIONS[stationId]:lostFoundStation(stationId);
+ const station=lostFoundStation(stationId);
  if(!station)return null;
  const isStation=[station.placeName,station.names.ko,...(station.lostFoundAliases||[])].filter(Boolean).some(name=>place===name||place===name.replace(/역$/,''));
  const scope=query.get('scope')||(isStation?'station':place?'other':'all');
