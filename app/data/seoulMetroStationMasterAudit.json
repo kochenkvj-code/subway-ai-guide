@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "scopeVerification": "pending-current-official-source",
+  "fieldSources": {
+    "stationCodeAndNames": "app/data/seoulMetroOfficialStations.json — 기존 역 검색용 799건이 기준",
+    "coordinates": "app/data/stationCoordinates.json — 업로드한 역코드별 좌표 784건",
+    "scope": "자치구별 CSV는 운영 대상 후보를 추리는 참고용이며 이름·코드 원본으로 사용하지 않음"
+  },
+  "source": {
+    "file": "data/sources/seoul-metro-district-20250804.csv",
+    "originalFileName": "서울교통공사_자치구별 지하철역 정보_20250804.CSV",
+    "date": "2025-08-04",
+    "encoding": "CP949",
+    "sha256": "79f68174aa911d4b086c02b287e0c55287866e9ffefd9419b544e140938fe870"
+  },
+  "counts": {
+    "districtRows": 30,
+    "sourceEntries": 289,
+    "matched": 289,
+    "withCoordinates": 289,
+    "originalRouteRegistry": 799,
+    "originalCoordinates": 784
+  },
+  "corrections": [
+    {
+      "district": "강동구",
+      "sourceName": "암사",
+      "sourceLine": "5",
+      "name": "암사",
+      "line": "8",
+      "reason": "호선 오기: 기존 역코드 자료의 8호선과 대조. 원문은 보존."
+    },
+    {
+      "district": "강동구",
+      "sourceName": "암사역사공원",
+      "sourceLine": "5",
+      "name": "암사역사공원",
+      "line": "8",
+      "reason": "호선 오기: 기존 역코드 자료의 8호선과 대조. 원문은 보존."
+    },
+    {
+      "district": "동작구",
+      "sourceName": "이수",
+      "sourceLine": "4",
+      "name": "총신대입구",
+      "line": "4",
+      "reason": "동일 호선의 역명 별칭을 기존 역코드 자료의 표기로 연결."
+    },
+    {
+      "district": "용산구",
+      "sourceName": "서울",
+      "sourceLine": "4",
+      "name": "서울역",
+      "line": "4",
+      "reason": "동일 호선의 역명 별칭을 기존 역코드 자료의 표기로 연결."
+    },
+    {
+      "district": "중구",
+      "sourceName": "서울",
+      "sourceLine": "1",
+      "name": "서울역",
+      "line": "1",
+      "reason": "동일 호선의 역명 별칭을 기존 역코드 자료의 표기로 연결."
+    }
+  ],
+  "unmatched": [],
+  "missingCoordinates": [],
+  "supplementalCandidates": [
+    {
+      "stationCode": "0200",
+      "line": "2",
+      "names": {
+        "ko": "까치산",
+        "en": "Kkachisan",
+        "ja": "カチサン",
+        "zh": "喜鹊山"
+      },
+      "coordinates": null,
+      "status": "review-required",
+      "reason": "역코드 자료에는 있으나 첨부 관할 CSV에는 없는 2호선 까치산. 좌표 파일에도 0200 없음. 최신 관할 및 좌표를 확인하기 전 본 목록에 자동 추가하지 않음."
+    }
+  ],
+  "limitations": [
+    "첨부한 2025-08-04 자치구별 자료를 기반으로 한 운영 대상 후보 목록입니다. 최신 관할역 전체를 별도 공식 원문으로 확인하지 못했습니다.",
+    "기존 자료의 다국어 표기를 연결했으며, 번역과 API별 역명은 메뉴 연결 단계에서 검증합니다.",
+    "기존 799개 길찾기 목록과 784개 좌표 원본은 수정하지 않았습니다.",
+    "기존 피드백 ID는 전환 참고값일 뿐, 1단계에서 DB·인증·기존 메뉴는 변경하지 않습니다."
+  ]
+}
