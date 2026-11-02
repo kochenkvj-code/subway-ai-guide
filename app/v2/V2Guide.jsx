@@ -20,8 +20,9 @@ function Icon({name}) { return <svg viewBox="0 0 24 24" aria-hidden="true" dange
 const languages=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']];
 const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
 function readView(){const v=new URLSearchParams(window.location.search).get('view');return views.has(v)?v:'home';}
-export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
-  const [lang,setLang]=useState('ko'),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
+export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext=null,stationTools=null,initialLanguage='ko',onLanguageChange=null,basePath='/v2'}) {
+  const operational=!stationContext || stationContext.stationCode==='0154';
+  const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
@@ -36,9 +37,9 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
     setDetail(!root);
   },[]);
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
-  const feedbackCount=useFeedbackCount(station.id,view==='home');
+  const feedbackCount=useFeedbackCount(station.id,view==='home'&&operational);
   const t=copy[lang];
-  const arrivals=useTrainArrivals(view==='home'||view==='live');
+  const arrivals=useTrainArrivals(operational&&(view==='home'||view==='live'));
   const title=view==='chat'?t.chat:view==='live'?t.liveTitle:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
   function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
@@ -65,13 +66,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
   }
   function back(){if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
 
-  function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);}}
+  useEffect(()=>setLang(initialLanguage),[initialLanguage]);
+  function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
 
   function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
   function Language(){return <label className="v2-language"><Icon name="globe"/><select aria-label={t.language} value={lang} onChange={e=>changeLanguage(e.target.value)}>{languages.map(([code,label])=><option key={code} value={code}>{label}</option>)}</select></label>;}
   return <main className="v2-app" lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
-      <TrainSummary state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
+      {operational?<TrainSummary stationControl={stationTools} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>:<section className="v2-trains se-summary-pending">{stationTools}<p>{({ko:'이 역의 실시간 열차 연결은 다음 단계에서 진행합니다.',en:'Live arrivals for this station will be connected in the next stage.',ja:'この駅のリアルタイム到着情報は次の段階で接続します。',zh:'本站实时列车信息将在下一阶段接入。'})[lang]}</p></section>}
+      {!operational&&<p className="se-stage">{({ko:"역 선택·접속 주소를 확인하는 개발 단계입니다. 이 역의 메뉴와 AI 연결은 아직 진행하지 않았습니다.",en:"Station selection and links are being tested. Menus and AI are not connected to this station yet.",ja:"駅選択とアクセス先を確認する開発段階です。この駅のメニューとAIはまだ接続していません。",zh:"当前为车站选择与访问链接测试阶段，本站菜单和AI尚未接入。"})[lang]}</p>}
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><Language/></div>
         <h1>{t.title}</h1><p>{t.description}</p>
@@ -85,14 +88,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION}) {
     </div>
     <div className="v2-workspace" hidden={view==='home'}>
       <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button><Language/></header>
-      {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
-      {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+station.id} station={station} lang={lang} active={view==='tour'}/>}
-      {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
-      {mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+station.id} embedded station={station} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}
-      {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
-      {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={visits.lost||0} lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
-      {mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
-      {view==='live'&&<ArrivalDetails state={arrivals} lang={lang} t={t}/>}
+      {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>operational&&mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
+      {operational&&mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+station.id} station={station} lang={lang} active={view==='tour'}/>}
+      {operational&&mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
+      {operational&&mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+station.id} embedded station={station} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}
+      {operational&&mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
+      {operational&&mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={visits.lost||0} lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
+      {operational&&mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
+      {operational&&view==='live'&&<ArrivalDetails state={arrivals} lang={lang} t={t}/>}
+      {!operational&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>
   </main>;

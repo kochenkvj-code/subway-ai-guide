@@ -20,10 +20,10 @@ function summaryText(status,t,lang){
 function time(value,lang){return new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(value));}
 function usable(group,now){return (group?.trains||[]).map(train=>({train,status:arrivalStatus(train,now)})).filter(x=>x.status);}
 function infoMessage(state,t,now){if(state.error)return t.error;if(!state.data)return t.loading;if(state.data.status==='stale'||now-Date.parse(state.data.fetchedAt)>180000)return t.stale;if(!state.data.groups.some(group=>usable(group,now).length))return state.data.status==='empty'?t.empty:t.stale;return null;}
-export function TrainSummary({state,lang,t,onDetails,active}) {
+export function TrainSummary({state,lang,t,onDetails,active,stationControl=null}) {
   const labels=COPY[lang],now=useNow(active),message=infoMessage(state,labels,now);
   return <section className="v2-trains" aria-label={t.next}>
-    <div className="v2-train-head"><div><span className="v2-line">1</span><strong>{t.station}</strong><span className="v2-separator">·</span><span>{t.next}</span></div><button onClick={onDetails}>{t.detail} ↗</button></div>
+    <div className="v2-train-head"><div>{stationControl||<><span className="v2-line">1</span><strong>{t.station}</strong></>}<span className="v2-separator">·</span><span>{t.next}</span></div><button onClick={onDetails}>{t.detail} ↗</button></div>
     <div className="v2-directions">{t.direction.map((direction,index)=>{
       const [selected,following]=message?[]:usable(state.data?.groups?.[index],now);
       return <div key={direction}><div className="v2-arrival-primary"><span>{lang==='en'?stationName(ARRIVAL_DIRECTIONS[index].nextStation,lang)+' →':direction}</span><b className={selected?'v2-arrival-available':''}>{selected?summaryText(selected.status,labels,lang):'—'}</b></div><small className="v2-arrival-following">{FOLLOWING[lang]} · {following?summaryText(following.status,labels,lang):'—'}</small></div>;
