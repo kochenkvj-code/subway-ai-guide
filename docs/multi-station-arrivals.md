@@ -1,0 +1,13 @@
+# Phase 3a: station-scoped live arrivals
+
+V2 home and live-arrival details now query `/api/train-arrivals?station=<stationCode>` from the common master. The station name, line ID and allowed station aliases are resolved server-side. The API rejects unknown/shortened/supplementary codes before requesting the provider. It filters both station name and line so transfer-station feeds do not mix platforms.
+
+Direction groups are formed from the provider's 상행/하행/내선/외선 values, including mixed loop/branch feeds. `trainLineNm` 방면 names are accepted only if recognized in the existing station-name registry (plus explicit service aliases). They are **provider direction labels**, not an inferred adjacency graph or the train's final destination. Blank/unrecognized direction names remain blank; a missing feed is never given Jongno 5-ga neighbors. Branch direction groups can contain multiple reported names. No graph edges or coordinates are invented for missing stations. Current accepted aliases include 서울역→서울 and 총신대입구→총신대입구(이수); renamed 불암산 responses can also match 당고개.
+
+The 15-second server cache and in-flight coalescing are keyed by exact station code (legacy calls have a separate key), with at most 300 completed entries. Concurrent station requests cannot share the wrong result. Browser polling remains every 30 seconds while visible. Changing station aborts/discards the old request; the hook checks response station identity. Home and details reuse the same feed. No other station is prefetched.
+
+Calls without a station parameter keep the original Jongno 5-ga request/normalization behavior for legacy consumers. V1 UI and gate instructions are unchanged. Other non-default V2 menus and AI remain explicitly unconnected until their later stages. No analytics schema, feedback DB/auth, route origin, tourism, timetable or facility adapters are changed in this phase.
+
+Verification: `npm run test:arrivals` covers the legacy behavior, timestamp expiry, exact line/station filtering, independent concurrent caches, invalid codes, renamed responses, branches, inner/outer loops and absent provider directions. `npm run test:arrivals-ui` runs a browser against the actual route handler with isolated provider fixtures for Jonggak (0152), Dongmyo line 6 (2637), Jongno 3-ga line 3 (0319) and Gangdong (2549); four languages at 320x640 and 390x844, home/details cache reuse and no DB writes. Build includes arrivals tests. Station-entry UI regression also remains passing.
+
+Real provider responses must be checked after deployment; fixture results do not prove current provider coverage at every source-listed station. In no-data/error cases the UI displays that state, rather than promising that every station has a current train feed.

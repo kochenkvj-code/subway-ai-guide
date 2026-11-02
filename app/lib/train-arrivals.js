@@ -20,13 +20,20 @@ function destinationOf(row) {
   // reported live examples disagree with the actual destination.
   return { destination: '', destinationSource: null };
 }
-export function normalizeArrivals(payload, now = Date.now()) {
+export function normalizeArrivals(payload, now = Date.now(), config = null) {
   const rows = Array.isArray(payload.realtimeArrivalList) ? payload.realtimeArrivalList : [];
   let staleCount = 0;
-  const groups = ARRIVAL_DIRECTIONS.map(direction => {
-    const trains = new Map();
+  const station=config?.station||CURRENT_STATION;
+  const matchesStation=config?.matchesStation||((name)=>name===station.name);
+  const lineRows=rows.filter(row=>String(row.subwayId)===station.lineId&&matchesStation(row.statnNm));
+  const observed=new Set(lineRows.map(row=>row.updnLine));
+  const providers=['상행','하행','내선','외선'];
+  const chosen=config?providers.filter(name=>['상행','하행'].includes(name)?(observed.has('상행')||observed.has('하행')):(observed.has('내선')||observed.has('외선'))):[];
+  const directions=config?(chosen.length?chosen.map(provider=>({id:provider,provider,nextStation:''})):[]):ARRIVAL_DIRECTIONS;
+  const groups = directions.map(direction => {
+    const trains = new Map(), nextStations = new Set();
     for (const row of rows) {
-      if (String(row.subwayId) !== CURRENT_STATION.lineId || row.statnNm !== CURRENT_STATION.name || row.updnLine !== direction.provider) continue;
+      if (String(row.subwayId) !== station.lineId || !matchesStation(row.statnNm) || row.updnLine !== direction.provider) continue;
       if (String(row.arvlCd) === '2') continue; // Already departed this station.
       const received = receiptTime(row.recptnDt), age = now - received;
       if (!Number.isFinite(received) || age > ARRIVAL_STALE_MS || age < -60000) { staleCount++; continue; }
@@ -34,6 +41,7 @@ export function normalizeArrivals(payload, now = Date.now()) {
       if (['0','1'].includes(arrivalCode) && age > 60000) { staleCount++; continue; }
       const rawSeconds = Number(row.barvlDt);
       const estimatedAt = /^\d+$/.test(String(row.barvlDt)) && rawSeconds > 0 && rawSeconds <= 86400 ? new Date(received + rawSeconds * 1000).toISOString() : null;
+      if(config){const next=String(row.trainLineNm||'').match(/[-–—]\s*(.+?)\s*방면\s*$/)?.[1]?.trim();if(next&&config.validDirectionName(next))nextStations.add(clean(next,40));}
       const rank = /^[01][12]/.test(String(row.ordkey)) ? Number(String(row.ordkey)[1]) : 9;
       const train = {
         trainNo: clean(row.btrainNo, 16), ...destinationOf(row),
@@ -46,11 +54,11 @@ export function normalizeArrivals(payload, now = Date.now()) {
       if (!previous || received > Date.parse(previous.receivedAt)) trains.set(key, train);
     }
     const sorted = [...trains.values()].sort((a,b) => a.rank-b.rank || (Date.parse(a.estimatedAt)||Infinity)-(Date.parse(b.estimatedAt)||Infinity));
-    return { id: direction.id, nextStation: direction.nextStation, trains: sorted.slice(0, 4) };
+    return { id: direction.id, provider:direction.provider, nextStation: config?(nextStations.size===1?[...nextStations][0]:''):direction.nextStation, nextStations:config?[...nextStations]:[direction.nextStation], trains: sorted.slice(0, 4) };
   });
   const received = groups.flatMap(x=>x.trains).map(x=>Date.parse(x.receivedAt));
   return {
-    station: CURRENT_STATION, fetchedAt: new Date(now).toISOString(),
+    station, fetchedAt: new Date(now).toISOString(),
     updatedAt: received.length ? new Date(Math.max(...received)).toISOString() : null,
     status: received.length ? 'ok' : staleCount ? 'stale' : 'empty', groups,
   };

@@ -39,7 +39,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
   const feedbackCount=useFeedbackCount(station.id,view==='home'&&operational);
   const t=copy[lang];
-  const arrivals=useTrainArrivals(operational&&(view==='home'||view==='live'));
+  const arrivals=useTrainArrivals(view==='home'||view==='live',stationContext?.stationCode||null);
   const title=view==='chat'?t.chat:view==='live'?t.liveTitle:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
   function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
@@ -73,8 +73,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function Language(){return <label className="v2-language"><Icon name="globe"/><select aria-label={t.language} value={lang} onChange={e=>changeLanguage(e.target.value)}>{languages.map(([code,label])=><option key={code} value={code}>{label}</option>)}</select></label>;}
   return <main className="v2-app" lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
-      {operational?<TrainSummary stationControl={stationTools} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>:<section className="v2-trains se-summary-pending">{stationTools}<p>{({ko:'이 역의 실시간 열차 연결은 다음 단계에서 진행합니다.',en:'Live arrivals for this station will be connected in the next stage.',ja:'この駅のリアルタイム到着情報は次の段階で接続します。',zh:'本站实时列车信息将在下一阶段接入。'})[lang]}</p></section>}
-      {!operational&&<p className="se-stage">{({ko:"역 선택·접속 주소를 확인하는 개발 단계입니다. 이 역의 메뉴와 AI 연결은 아직 진행하지 않았습니다.",en:"Station selection and links are being tested. Menus and AI are not connected to this station yet.",ja:"駅選択とアクセス先を確認する開発段階です。この駅のメニューとAIはまだ接続していません。",zh:"当前为车站选择与访问链接测试阶段，本站菜单和AI尚未接入。"})[lang]}</p>}
+      <TrainSummary stationControl={stationTools} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
+      {!operational&&<p className="se-stage">{({ko:"이 역의 실시간 열차를 연결했습니다. 다른 메뉴와 AI는 다음 단계에서 연결합니다.",en:"Live arrivals are connected. Other menus and AI will be connected in later stages.",ja:"リアルタイム到着情報を接続しました。他のメニューとAIは今後接続します。",zh:"实时到站信息已接入，其他菜单和AI将在后续阶段接入。"})[lang]}</p>}
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><Language/></div>
         <h1>{t.title}</h1><p>{t.description}</p>
@@ -95,8 +95,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {operational&&mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
       {operational&&mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={visits.lost||0} lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
       {operational&&mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
-      {operational&&view==='live'&&<ArrivalDetails state={arrivals} lang={lang} t={t}/>}
-      {!operational&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
+      {view==='live'&&<ArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
+      {!operational&&view!=='live'&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>
   </main>;

@@ -14,6 +14,8 @@ Existing V2 `from=gate` links resolve to `view=gate` and default English unless 
 
 ## Deliberate stage boundary
 
+Update: phase 3a now connects live arrivals/home/details for selected stations; see `docs/multi-station-arrivals.md`. The paragraph below records the original phase-2 boundary. Other menus and AI remain unconnected for non-default stations.
+
 This phase does **not** claim that menu providers support every selected station. Only the original `0154` V2 behavior is connected. Other station homepages display their selected line/name and a development notice, without Jongno 5-ga live directions or arrival requests. Their menus and AI open a clear not-yet-connected panel, rather than query or display Jongno 5-ga data. This includes feedback counts/access and route, timetable, tourism, facilities, found items and train-lost requests. The existing station prop/legacy ID remains for the original menus until their individual migration steps. Even common gate/card guidance is held on non-default stations until station-specific escape paths (e.g. station-office location) are safe. Later menu stages should replace this temporary all-or-nothing gate with verified per-feature connections.
 
 AI prompts, analytics schema/logic, feedback DB/auth and provider adapters have not been changed. Existing V2 page/quick-menu analytics continue as before; the new browser tests stub all analytics and provider calls. No new statistics fields or station-specific DB rows are created.

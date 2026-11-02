@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run test:train-lost && npm run test:station-master && npm run test:station-entry && next build",
+    "build": "npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:arrivals && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs",
@@ -21,7 +21,8 @@
     "test:station-master": "node --experimental-vm-modules --test tests/station-master.test.mjs",
     "test:station-master-ui": "node tests/station-master-ui.cjs",
     "test:station-entry": "node --experimental-vm-modules --test tests/station-entry.test.mjs",
-    "test:station-entry-ui": "node tests/station-entry-ui.cjs"
+    "test:station-entry-ui": "node tests/station-entry-ui.cjs",
+    "test:arrivals-ui": "node --experimental-vm-modules tests/multi-arrivals-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",
