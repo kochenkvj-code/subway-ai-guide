@@ -69,9 +69,10 @@ function normalized(row, source) {
     place: String(row.depPlace || '').slice(0, 160),
     image: safeImage(row.fdFilePathImg),
     custody: String(row.csteSteNm || '').slice(0,80),
+    organizationId: String(row.orgId || '').slice(0,40),
   };
 }
-async function loadOne(id, start, end, page, item, place) {
+async function loadOne(id, start, end, page, item, place, preservePlace=false) {
   const provider = PROVIDERS[id];
   const key = process.env[provider.env]?.trim();
   if (!key) throw new Error('KEY_NOT_CONFIGURED');
@@ -84,7 +85,7 @@ async function loadOne(id, start, end, page, item, place) {
     if (item) url.searchParams.set('PRDT_NM', item);
     if (place) {
       // Handles both "종로5가" and "종로5가역" in storage-agency names.
-      const term = place.endsWith('역') && place.length > 2 ? place.slice(0,-1) : place;
+      const term = !preservePlace && place.endsWith('역') && place.length > 2 ? place.slice(0,-1) : place;
       url.searchParams.set('DEP_PLACE', term);
     }
   } else {
@@ -128,7 +129,7 @@ export async function GET(request) {
   for(let batch=0;batch<(scan==='first'?1:3)&&next<=MAX_LOST_PAGES;batch++){
    try{
     const named=filters.scope==='station';
-    const result=await loadOne(id,filters.start,filters.end,next,named?filters.item:'',named?filters.place:'');
+    const result=await loadOne(id,filters.start,filters.end,next,named?filters.item:'',named?filters.place:'',Boolean(filters.station.stationCode));
     success=true;scanned+=result.items.length;items.push(...result.items.filter(row=>matchesLostItem(row,filters)));
     if(!result.hasMore){next=MAX_LOST_PAGES+1;break;}
     if(next===MAX_LOST_PAGES){limited=true;next++;break;}
@@ -143,6 +144,7 @@ export async function GET(request) {
  items.sort((a,b)=>b.date.replace(/[^0-9]/g,'').localeCompare(a.date.replace(/[^0-9]/g,'')));
  const errors=outcomes.filter(x=>x.error).map(x=>({source:x.id,error:x.error}));
  return reply({ok:true,items,errors,partial:errors.length>0,nextPages:Object.fromEntries(outcomes.map(x=>[x.id,x.next])),
+  ...(filters.station.stationCode?{stationCode:filters.station.stationCode,stationLine:filters.station.line}:{}),
   hasMore:outcomes.some(x=>x.next<=MAX_LOST_PAGES),limited:outcomes.some(x=>x.limited)||query.get('capped')==='1',scanned:outcomes.reduce((sum,x)=>sum+x.scanned,0),
   start:filters.start,end:filters.end,scope:filters.scope,searchMode:filters.scope==='station'?'name-place':'area-date',region:'서울특별시',
   // No assertion that all records in the requested period have been scanned.

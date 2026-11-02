@@ -39,7 +39,9 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
      const params=new URLSearchParams({...filters,source});if(progressive)params.set('scan','first');
      if(append&&nextPages)params.set('cursors',JSON.stringify(nextPages));if(append&&limitedRef.current)params.set('capped','1');
      const r=await fetch('/api/v2/lost-found?'+params,{signal:controller.signal,cache:'no-store'});const data=await r.json();
-     if(!r.ok||!data.ok)throw Error(data.error||'error');results.set(source,data);publish();
+     if(!r.ok||!data.ok)throw Error(data.error||'error');
+     if(station.stationCode&&data.stationCode!==station.stationCode)throw Error('STATION_MISMATCH');
+     results.set(source,data);publish();
     }catch(e){if(source!=='both')failures.set(source,e.message==='API_KEY_MISSING'?21:1);publish();}
    }));
    if(!results.size)throw Error('error');
@@ -61,8 +63,8 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
  const pages=Math.max(1,Math.ceil(visible.length/pageSize)),safePage=Math.min(page,pages-1),pageItems=visible.slice(safePage*pageSize,(safePage+1)*pageSize);
  function pick(row){scroll.current=scroller()?.scrollTop||0;setSelected(row);}
  function back(){setSelected(null);requestAnimationFrame(()=>{const node=scroller();if(node)node.scrollTop=scroll.current;});}
- useEffect(()=>{if(!active||!onNavigationStep)return;onNavigationStep(selected?'found:'+keyOf(selected):'root',{foundItem:selected});},[selected,active,onNavigationStep]);
- useEffect(()=>{if(navigationSnapshot?.data&&Object.hasOwn(navigationSnapshot.data,'foundItem')){setSelected(navigationSnapshot.data.foundItem);if(!navigationSnapshot.data.foundItem)requestAnimationFrame(()=>{const node=scroller();if(node)node.scrollTop=scroll.current;});}},[navigationSnapshot]);
+ useEffect(()=>{if(!active||!onNavigationStep)return;onNavigationStep(selected?'found:'+keyOf(selected):'root',{foundItem:selected,foundStationId:station.id});},[selected,active,onNavigationStep,station.id]);
+ useEffect(()=>{if(navigationSnapshot?.data?.foundStationId&&navigationSnapshot.data.foundStationId!==station.id)return;if(navigationSnapshot?.data&&Object.hasOwn(navigationSnapshot.data,'foundItem')){setSelected(navigationSnapshot.data.foundItem);if(!navigationSnapshot.data.foundItem)requestAnimationFrame(()=>{const node=scroller();if(node)node.scrollTop=scroll.current;});}},[navigationSnapshot,station.id]);
  useEffect(()=>{
   if(!selected)return;const node=scroller();if(node)node.scrollTop=0;
   detailRequest.current?.abort();const controller=new AbortController();detailRequest.current=controller;setDetail(null);setDetailLoading(true);setDetailError(false);
@@ -74,10 +76,11 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
  },[selected]);
  const date=x=>lostDate(x)?.replaceAll('-','.')||t.unknown;
  const label=station.names[lang]||station.names.ko;
+ const stationNote=(applied?.scope||scope)==='station'&&(station.stationCode==='0154'||station.id===DEFAULT_FEEDBACK_STATION.id)?t.transfer:'';
  return <div className={'lf-page lf-redesign '+(embedded?'lf-embedded':'')} ref={container}><div className="lf-shell">
  {!embedded&&<header className="lf-top"><a href="/v2" aria-label={t.back}>‹</a><strong>{t.title}</strong></header>}
  {!selected?<><form className="lf-search" onSubmit={submit}>
-  <fieldset disabled={loading}><legend>{t.place}</legend><div className="lf-segments">{[['station',label],['all',t.all],['other',t.other]].map(([id,title])=><button type="button" key={id} aria-pressed={scope===id} onClick={()=>setScope(id)}>{title}</button>)}</div></fieldset>
+  <fieldset disabled={loading}><legend>{t.place}</legend><div className="lf-segments">{[['station',label],['all',t.all],['other',t.other]].map(([id,title])=><button type="button" key={id} aria-pressed={scope===id} onClick={()=>setScope(id)}>{id==='station'&&station.stationCode&&<span className="lf-station-line" style={{background:station.color}}>{station.line}</span>}{title}</button>)}</div></fieldset>
   {scope==='other'&&<label className="lf-field lf-custom-place"><span>{t.other}</span><input type="search" value={place} maxLength={80} placeholder={t.placeHint} onChange={e=>setPlace(e.target.value)}/></label>}
   <label className="lf-field lf-item-query"><span>{t.item}</span><input type="search" value={item} maxLength={80} placeholder={t.itemHint} onChange={e=>setItem(e.target.value)}/></label>
   <fieldset disabled={loading}><legend>{t.period}</legend><div className="lf-segments lf-period">{['7','30','90','custom'].map((id,i)=><button type="button" key={id} aria-pressed={period===id} onClick={()=>setPreset(id)}>{t.days[i]}</button>)}</div></fieldset>
@@ -96,10 +99,10 @@ export default function CompactLostFound({embedded=false,lang='ko',station=DEFAU
   {!error&&items.length>0&&!visible.length&&<p className="lf-bottom">{t.noMatches}</p>}
   {hasMore&&!checking&&!error&&<button type="button" className="lf-load-more" disabled={loading} onClick={()=>search(filtersRef.current,true)}>{loading?t.loading:t.loadMore}</button>}
   {limited&&<p className="lf-warning">{t.limit}</p>}
- </section>}<p className="lf-bottom lf-transfer">{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p><p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
+ </section>}{stationNote&&<p className="lf-bottom lf-transfer">{stationNote}</p>}<p className="lf-bottom">{t.scopeHint}</p></>:<section className="lf-detail" aria-label={t.detail}>
   <div className="lf-detail-head"><button className="lf-list-back" onClick={back}>‹ {t.back}</button><strong>{t.detail}</strong></div><div className="lf-detail-content"><div className="lf-detail-summary"><Photo src={detail?.image||selected.image} t={t}/><div><h3>{detail?.title||selected.title}</h3><p>{date(detail?.date||selected.date)}</p></div></div>
   {detailLoading&&<p role="status">{t.loading}</p>}{detailError&&<p className="lf-warning">{t.detailError}</p>}{closedCustody(detail?.custody)&&<p className="lf-warning">{t.closed}</p>}
-  <dl className="lf-detail-fields"><dt>{t.stored}</dt><dd>{detail?.place||selected.place||t.unknown}</dd>{detail?.organization&&<><dt>{t.organization}</dt><dd>{detail.organization}</dd></>}<dt>{t.status}</dt><dd>{detail?.custody||t.unknown}</dd>{detail?.phone&&<><dt>{t.phone}</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}<dt>{t.type}</dt><dd>{detail?.category||selected.category||t.unknown}</dd>{selected.color&&<><dt>{t.color}</dt><dd>{selected.color}</dd></>}<dt>{t.date}</dt><dd>{date(detail?.date||selected.date)}</dd>{detail?.foundPlace&&<><dt>{t.found}</dt><dd>{detail.foundPlace}</dd></>}{detail?.foundHour&&<><dt>{t.foundHour}</dt><dd>{detail.foundHour}</dd></>}<dt>{t.id}</dt><dd>{selected.id} / {selected.sequence}</dd>{(detail?.note||selected.subject)&&<><dt>{t.note}</dt><dd>{detail?.note||selected.subject}</dd></>}</dl><p className="lf-bottom">{t.original}</p><a href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer" className="lf-detail-link">{t.official} ↗</a><p className="lf-bottom">{t.officialNote}<br/>{station.id===DEFAULT_FEEDBACK_STATION.id?t.transfer:t.scopeHint}</p>
+  <dl className="lf-detail-fields"><dt>{t.stored}</dt><dd>{detail?.place||selected.place||t.unknown}</dd>{detail?.organization&&<><dt>{t.organization}</dt><dd>{detail.organization}</dd></>}<dt>{t.status}</dt><dd>{detail?.custody||t.unknown}</dd>{detail?.phone&&<><dt>{t.phone}</dt><dd><a href={'tel:'+detail.phone.replace(/[^\d+]/g,'')}>{detail.phone}</a></dd></>}<dt>{t.type}</dt><dd>{detail?.category||selected.category||t.unknown}</dd>{selected.color&&<><dt>{t.color}</dt><dd>{selected.color}</dd></>}<dt>{t.date}</dt><dd>{date(detail?.date||selected.date)}</dd>{detail?.foundPlace&&<><dt>{t.found}</dt><dd>{detail.foundPlace}</dd></>}{detail?.foundHour&&<><dt>{t.foundHour}</dt><dd>{detail.foundHour}</dd></>}<dt>{t.id}</dt><dd>{selected.id} / {selected.sequence}</dd>{(detail?.note||selected.subject)&&<><dt>{t.note}</dt><dd>{detail?.note||selected.subject}</dd></>}</dl><p className="lf-bottom">{t.original}</p><a href="https://www.lost112.go.kr/" target="_blank" rel="noopener noreferrer" className="lf-detail-link">{t.official} ↗</a><p className="lf-bottom">{t.officialNote}<br/>{stationNote||t.scopeHint}</p>
  </div></section>}
  </div></div>;
 }

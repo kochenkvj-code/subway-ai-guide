@@ -64,6 +64,7 @@
 .lf-detail-more{margin:10px 0;font-size:11px;color:#6a85a3;line-height:1.6}
 .lf-detail-link{display:inline-block;font-size:11px;margin-top:13px;font-weight:800;color:#2e6fac;text-decoration:none}
 .lf-bottom{color:#9aa9b8;font-size:10px;line-height:1.75;margin:11px 3px 0}
+.lf-station-line{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;color:white;font-size:10px;font-weight:700;margin-right:4px;vertical-align:middle}
 .lf-footer{font-size:9px;text-align:center;color:#a8b5c3;margin-top:25px}
 @media(max-width:530px){.lf-page{padding:0 0 28px}.lf-top{border-radius:0;margin:0 0 9px;border-left:0;border-right:0}.lf-search,.lf-results,.lf-detail{margin-left:9px;margin-right:9px;border-radius:12px}.lf-search{padding:12px}.lf-results{padding:11px 12px 12px}.lf-detail-content{padding:12px}.lf-bottom{margin:12px 14px}.lf-item-title{font-size:12px}.lf-top-note{font-size:9px}}
 @media(max-width:370px){.lf-search-grid{grid-template-columns:1fr}.lf-actions{align-items:stretch}.lf-submit{padding:11px}.lf-top-note{display:none}}

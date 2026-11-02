@@ -7,7 +7,7 @@ const fixed=Date.parse('2026-11-01T03:00:00Z');
 class Clock extends Date {constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
 async function load(fetch,env={LOST112_PORTAL_API_KEY:'test-only',LOST112_POLICE_API_KEY:'test-only'}){
  const context=vm.createContext({Date:Clock,URL,Response,AbortSignal,Map,Set,Promise,JSON,Number,String,process:{env},fetch});const cache=new Map();
- async function module(file){file=path.resolve(file);if(cache.has(file))return cache.get(file);const m=new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context,identifier:file});cache.set(file,m);await m.link(ref=>module(path.resolve(path.dirname(file),ref+'.js')));return m;}
+ async function module(file){file=path.resolve(file);if(cache.has(file))return cache.get(file);const text=await fs.readFile(file,'utf8');const m=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(text));},{context}):new vm.SourceTextModule(text,{context,identifier:file});cache.set(file,m);await m.link(ref=>module(path.resolve(path.dirname(file),ref.endsWith('.json')?ref:ref+'.js')));return m;}
  const api=await module('app/api/v2/lost-found/route.js');await api.evaluate();return {get:query=>api.namespace.GET({url:'http://localhost/api/v2/lost-found?'+new URLSearchParams(query)}),filter:cache.get(path.resolve('app/lib/lost-found-filter.js')).namespace};
 }
 const xml=(rows,total=rows.length)=>'<response><header><resultCode>00</resultCode></header><body><items>'+rows.map(x=>'<item>'+Object.entries(x).map(([k,v])=>'<'+k+'>'+v+'</'+k+'>').join('')+'</item>').join('')+'</items><totalCount>'+total+'</totalCount></body></response>';
@@ -44,4 +44,32 @@ test('station custody always uses only portal, even if a caller asks for both or
  const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([row('STATION')]));});
  for(const source of ['both','police','portal']){const body=await (await f.get({scope:'station',source})).json();assert.equal(body.items.length,1);assert.deepEqual(Object.keys(body.nextPages),['portal']);}
  assert.equal(urls.length,3);assert.ok(urls.every(x=>x.pathname.includes('LosPtfund')));
+});
+test('entry station codes resolve server-side to station custody, with explicit other lines excluded',async()=>{
+ const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([
+  row('SIX','서울교통공사 6호선 동묘앞역 고객안전실'),row('ONE','1호선 동묘앞역'),row('SHARED','동묘앞역'),row('POLICE','동묘앞파출소'),row('NEIGHBORHOOD','동묘앞'),row('JONGNO'),{...row('CODED','동묘앞역'),orgId:'V0000325'}
+ ]));});
+ const body=await (await f.get({station:'2637',scope:'station',source:'both',scan:'first'})).json();
+ assert.deepEqual(body.items.map(x=>x.id),['SIX','CODED']);assert.equal(body.stationCode,'2637');assert.equal(body.stationLine,'6');assert.equal(urls.length,1);assert.equal(urls[0].searchParams.get('DEP_PLACE'),'동묘앞역(6호선)');assert.ok(urls[0].pathname.includes('/LosPtfund'));
+ const one=await (await f.get({station:'0159',scope:'station',scan:'first'})).json();assert.deepEqual(one.items.map(x=>x.id),['ONE']);assert.equal(urls.at(-1).searchParams.get('DEP_PLACE'),'동묘앞역(1호선)');
+});
+test('Jonggak never searches Jongno 5-ga, and an explicit station scope ignores a conflicting place field',async()=>{
+ const urls=[];const f=await load(async url=>{urls.push(url);return new Response(xml([row('RIGHT','종각역'),row('OLD_STATION'),row('POLICE','종각파출소')]));});
+ const body=await (await f.get({station:'0152',scope:'station',place:'종로5가역',scan:'first'})).json();assert.deepEqual(body.items.map(x=>x.id),['RIGHT']);assert.equal(urls[0].searchParams.get('DEP_PLACE'),'종각역');assert.equal(body.stationCode,'0152');
+});
+test('invalid station codes never fall back; legacy IDs and Seoul area queries stay supported',async()=>{
+ let calls=0;const f=await load(async()=>{calls++;return new Response(xml([row('LEGACY')]));});
+ for(const station of ['','152','9999','0200'])assert.equal((await f.get({station,scope:'station'})).status,400);assert.equal(calls,0);
+ const legacy=await (await f.get({station:'jongno5ga-1',scope:'station'})).json();assert.deepEqual(legacy.items.map(x=>x.id),['LEGACY']);
+ const city=await (await f.get({station:'0152',scope:'all'})).json();assert.equal(city.region,'서울특별시');assert.equal(city.scope,'all');assert.equal(city.stationCode,'0152');assert.equal(city.items.length,1);
+});
+test('verified Dongmyo agency identities remain independent and ambiguous bare transfer names are rejected',async()=>{
+ const f=await load(async()=>new Response(xml([])));
+ const one=f.filter.resolveLostSearch(new URLSearchParams({station:'0159',scope:'station'})).station;
+ const six=f.filter.resolveLostSearch(new URLSearchParams({station:'2637',scope:'station'})).station;
+ assert.equal(one.providerOrganizationId,'V0001918');assert.equal(six.providerOrganizationId,'V0000325');
+ assert.equal(f.filter.stationCustody('동묘앞역(1호선)',one),true);assert.equal(f.filter.stationCustody('동묘앞역(1호선)',six),false);
+ assert.equal(f.filter.stationCustody('동묘앞역(6호선)',six),true);assert.equal(f.filter.stationCustody('동묘앞역(6호선)',one),false);
+ assert.equal(f.filter.stationCustody('동묘앞역',one),false);assert.equal(f.filter.stationCustody('동묘앞역',six),false);
+ assert.equal(f.filter.stationCustody('동묘앞역(6호선)',six,'V0001918'),false);
 });

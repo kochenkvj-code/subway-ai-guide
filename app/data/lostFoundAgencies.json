@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "stations": {
+    "0159": {
+      "organizationId": "V0001918",
+      "name": "동묘앞역(1호선)",
+      "verifiedAt": "2026-11-02",
+      "source": "LOST112 portal list and getPtLosfundDetailInfo"
+    },
+    "2637": {
+      "organizationId": "V0000325",
+      "name": "동묘앞역(6호선)",
+      "verifiedAt": "2026-11-02",
+      "source": "LOST112 portal list and getPtLosfundDetailInfo"
+    }
+  }
+}
