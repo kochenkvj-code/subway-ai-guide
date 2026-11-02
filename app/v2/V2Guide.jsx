@@ -22,6 +22,7 @@ const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
 function readView(){const v=new URLSearchParams(window.location.search).get('view');return views.has(v)?v:'home';}
 export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext=null,stationTools=null,initialLanguage='ko',onLanguageChange=null,basePath='/v2'}) {
   const operational=!stationContext || stationContext.stationCode==='0154';
+  const tourStation=stationContext||station;
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
@@ -74,7 +75,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   return <main className="v2-app" lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <TrainSummary stationControl={stationTools} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
-      {!operational&&<p className="se-stage">{({ko:"이 역의 실시간 열차와 길찾기를 연결했습니다. 다른 메뉴와 AI는 다음 단계에서 연결합니다.",en:"Live arrivals and directions are connected. Other menus and AI will be connected in later stages.",ja:"リアルタイム到着情報と経路検索を接続しました。他のメニューとAIは今後接続します。",zh:"实时到站信息和路线查询已接入，其他菜单和AI将在后续阶段接入。"})[lang]}</p>}
+      {!operational&&<p className="se-stage">{({ko:"이 역의 실시간 열차·길찾기·관광지 안내를 연결했습니다. 다른 메뉴와 AI는 다음 단계에서 연결합니다.",en:"Live arrivals, directions and nearby attractions are connected. Other menus and AI will be connected in later stages.",ja:"リアルタイム到着情報・経路検索・周辺観光案内を接続しました。他のメニューとAIは今後接続します。",zh:"实时到站信息、路线查询和周边景点已接入，其他菜单和AI将在后续阶段接入。"})[lang]}</p>}
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><Language/></div>
         <h1>{t.title}</h1><p>{t.description}</p>
@@ -89,14 +90,14 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     <div className="v2-workspace" hidden={view==='home'}>
       <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button><Language/></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>(operational||id==='route')&&mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
-      {operational&&mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+station.id} station={station} lang={lang} active={view==='tour'}/>}
+      {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
       {operational&&mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'}/></div>}
       {operational&&mounted.found&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+station.id} embedded station={station} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}
       {operational&&mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded /></div>}
       {operational&&mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={visits.lost||0} lang={lang} active={view==='lost'} defaultStation={CURRENT_STATION.name} defaultLine={String(Number(CURRENT_STATION.lineId)-1000)}/></div>}
       {operational&&mounted.feedback&&<StationFeedback key={station.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={station} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
       {view==='live'&&<ArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
-      {!operational&&!['live','route'].includes(view)&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
+      {!operational&&!['live','route','tour'].includes(view)&&<section className="se-blocked"><small>{stationContext?.line} · {stationContext?.names[lang]} · {stationContext?.stationCode}</small><h2>{title}</h2><p>{({ko:'이 역의 기능 연결은 다음 단계에서 진행합니다. 종로5가역 정보를 대신 보여주지 않습니다.',en:'This station is not connected yet. Information for another station is not shown.',ja:'この駅の機能は次の段階で接続します。他駅の情報は表示しません。',zh:'本站功能将在下一阶段接入，不会显示其他车站的信息。'})[lang]}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
     </div>
   </main>;

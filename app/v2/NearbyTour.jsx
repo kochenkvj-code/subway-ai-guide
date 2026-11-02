@@ -12,7 +12,8 @@ function distance(value){const n=Number(value);return value!==''&&value!=null&&N
 function Picture({src,label}){const[failed,setFailed]=useState(false);useEffect(()=>setFailed(false),[src]);return src&&!failed?<img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={()=>setFailed(true)}/>:<div className="tour-image-fallback"><Icon name="tour"/><span>{label}</span></div>;}
 export default function NearbyTour({lang='ko',active=false,station=DEFAULT_FEEDBACK_STATION}) {
   const t=tourCopy[lang]||tourCopy.ko;
-  const center=useMemo(()=>stationCoordinates(station),[station.id,station.coordinateId,station.line,station.names?.ko]);
+  const stationKey=station.stationCode||station.id||station.coordinateId;
+  const center=useMemo(()=>stationCoordinates(station),[station.stationCode,station.id,station.coordinateId,station.line,station.names?.ko]);
   const stationName=station.names?.[lang]||station.names?.ko||station.name;
   const [basis,setBasis]=useState('station'),[page,setPage]=useState(0);
   const cache=useRef(new Map()),lastAttempt=useRef(null);
@@ -25,6 +26,7 @@ export default function NearbyTour({lang='ko',active=false,station=DEFAULT_FEEDB
   function selectedFromUrl(){
     const id=new URLSearchParams(window.location.search).get('place');
     if(window.history.state?.tourLanguage && window.history.state.tourLanguage!==lang)return null;
+    if(window.history.state?.tourStationKey && window.history.state.tourStationKey!==stationKey)return null;
     return id&&/^\d{1,15}$/.test(id)?catalog.current.get(id)||{id,title:'',language:lang}:null;
   }
   useEffect(()=>{const sync=()=>setSelected(selectedFromUrl());sync();window.addEventListener('popstate',sync);return()=>window.removeEventListener('popstate',sync);},[lang]);
@@ -51,8 +53,8 @@ export default function NearbyTour({lang='ko',active=false,station=DEFAULT_FEEDB
     const requestLanguage=lang;
     lastAttempt.current={location,radius:newRadius,type:newType,kind};
     request.current?.abort();const controller=new AbortController();request.current=controller;setLoading(true);setError(null);
-    const cacheKey=JSON.stringify([requestLanguage,location.longitude,location.latitude,newRadius,newType]);
-    const allKey=JSON.stringify([requestLanguage,location.longitude,location.latitude,newRadius,'']);
+    const cacheKey=JSON.stringify([stationKey,requestLanguage,location.longitude,location.latitude,newRadius,newType]);
+    const allKey=JSON.stringify([stationKey,requestLanguage,location.longitude,location.latitude,newRadius,'']);
     try{
       const cached=cache.current.get(cacheKey),all=cache.current.get(allKey);
       let result=cached&&Date.now()-cached.time<120000?cached.data:null;
@@ -78,7 +80,7 @@ export default function NearbyTour({lang='ko',active=false,station=DEFAULT_FEEDB
   function retry(){if(error?.kind==='location'){void locate();return;}const attempt=lastAttempt.current;if(attempt)void search(attempt.location,attempt.radius,attempt.type,attempt.kind);else void search(center,radius,type,'station');}
   function open(place){
     if(!place.id)return;photoAbort.current?.abort();setPhotoBusy(false);listScroll.current=scroller.current?.scrollTop||0;setDetailError(false);setPhotoError(false);
-    const url=new URL(window.location.href);url.searchParams.set('place',place.id);window.history.pushState({...(window.history.state||{}),sagV2Depth:(window.history.state?.sagV2Depth||0)+1,tourDetail:true,tourLanguage:lang},'',url.pathname+url.search);setSelected({...place,language:lang});
+    const url=new URL(window.location.href);url.searchParams.set('place',place.id);window.history.pushState({...(window.history.state||{}),sagV2Depth:(window.history.state?.sagV2Depth||0)+1,tourDetail:true,tourLanguage:lang,tourStationKey:stationKey},'',url.pathname+url.search);setSelected({...place,language:lang});
   }
   function close(){photoAbort.current?.abort();setPhotoBusy(false);if(window.history.state?.tourDetail)window.history.back();else{const url=new URL(window.location.href);url.searchParams.delete('place');window.history.replaceState(window.history.state,'',url.pathname+url.search);setSelected(null);}}
   async function loadPhotos(){if(!selected||photos[selected.id])return;photoAbort.current?.abort();const controller=new AbortController();photoAbort.current=controller;setPhotoBusy(true);setPhotoError(false);try{const result=await requestTour({mode:'images',id:selected.id,lang},{signal:controller.signal});if(!controller.signal.aborted)setPhotos(previous=>({...previous,[selected.id]:result.images||[]}));}catch{if(!controller.signal.aborted)setPhotoError(true);}finally{if(!controller.signal.aborted)setPhotoBusy(false);}}

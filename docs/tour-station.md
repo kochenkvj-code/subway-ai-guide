@@ -1,5 +1,9 @@
 # Station-centered tourism in V2
 
+Station-entry integration: phase 3c now uses the common URL-selected station
+context, including station identity in cache and detail history keys. See
+`docs/station-tour-phase3c.md` for integration and verification.
+
 Opening the tourism menu automatically requests nearby places around the station passed by V2Guide. Default filters are 1.5 km and all categories. GPS is requested only after the passenger selects My location. A denied permission or failed lookup keeps the previously successful result and origin. The existing detail view and browser-back navigation remain available.
 
 ## Coordinates
