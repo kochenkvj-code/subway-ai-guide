@@ -4,19 +4,23 @@ import graph from '../data/trainLostGraph.json';
 import directions from '../data/trainLostDirection.json';
 
 const clean=value=>String(value||'').trim().replace(/역$/,'');
-export const stationNeighbors=(line,station)=>graph[Number(line)+'호선']?.[clean(station)]||[];
+// Keep the existing graph/direction data intact; these verified line-4 names
+// refer to the same stations in its older station-name vocabulary.
+export const trainStationKey=(line,value)=>Number(line)===4?({'불암산':'당고개','총신대입구':'이수','총신대입구(이수)':'이수'}[clean(value)]||clean(value)):clean(value);
+export const trainStationDisplay=(line,value)=>Number(line)===4?({'당고개':'불암산','이수':'총신대입구'}[clean(value)]||clean(value)):clean(value);
+export const stationNeighbors=(line,station)=>graph[Number(line)+'호선']?.[trainStationKey(line,station)]||[];
 export const supportsStation=(line,station)=>stationNeighbors(line,station).length>0;
 // Determine the actual 0(up/inner) or 1(down/outer) live API direction for
 // the passenger-selected immediate adjacent station. Missing means unsupported,
 // not "include both directions".
 export function expectedLiveDirection(line,station,next){
-  const from=clean(station),to=clean(next);
+  const from=trainStationKey(line,station),to=trainStationKey(line,next);
   if(!stationNeighbors(line,from).includes(to))return null;
   const value=directions[Number(line)+'호선']?.[from]?.[to];
   return value==='0'||value==='1'?value:null;
 }
 export function followStops(line,origin,first,limit=35){
-  let previous=clean(origin),current=clean(first);
+  let previous=trainStationKey(line,origin),current=trainStationKey(line,first);
   if(!stationNeighbors(line,previous).includes(current))return {stops:[],ambiguous:true};
   const visited=new Set([previous]),stops=[];
   for(let i=0;i<Math.min(limit,40);i++){
@@ -31,8 +35,8 @@ export function followStops(line,origin,first,limit=35){
 }
 export function futureStops(line,origin,first,where){
   const route=followStops(line,origin,first,38);
-  const i=clean(where)===clean(origin)?-1:route.stops.indexOf(clean(where));
-  if(i===-1&&clean(where)!==clean(origin))return {stations:[],reason:'POSITION_OFF_ROUTE'};
+  const i=trainStationKey(line,where)===trainStationKey(line,origin)?-1:route.stops.indexOf(trainStationKey(line,where));
+  if(i===-1&&trainStationKey(line,where)!==trainStationKey(line,origin))return {stations:[],reason:'POSITION_OFF_ROUTE'};
   const ahead=route.stops.slice(i+1,i+5);
   if(route.ambiguous&&ahead.length<4)return {stations:[],reason:'BRANCH_UNVERIFIED'};
   return ahead.length===4?{stations:ahead.slice(2,4),reason:null}:{stations:[],reason:'NOT_ENOUGH_STOPS'};
@@ -49,7 +53,7 @@ const minuteDate=(date,time)=>{
 // instead of discarding every candidate once followStops() reaches a fork.
 // A branch is a possibility, NOT proof the passenger's train took that route.
 export function reachableTrainStations(line,origin,next,limit=38){
-  const start=clean(origin),first=clean(next);
+  const start=trainStationKey(line,origin),first=trainStationKey(line,next);
   const requiredDirection=expectedLiveDirection(line,start,first);
   const distances=new Map();
   if(requiredDirection===null)return {distances,ambiguous:true};
@@ -84,7 +88,7 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
   const elapsed=now-alightedAt;
   if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000)
     return {candidates:[],reason:'OUTSIDE_LIVE_WINDOW'};
-  if(!stationNeighbors(line,station).includes(clean(next)))
+  if(!stationNeighbors(line,station).includes(trainStationKey(line,next)))
     return {candidates:[],reason:'INVALID_DIRECTION'};
   const requiredDirection=expectedLiveDirection(line,station,next);
   if(requiredDirection===null)return {candidates:[],reason:'DIRECTION_UNVERIFIED'};
@@ -96,7 +100,7 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
     if(!number||Number(p.line)!==Number(line)||String(p.direction)!==requiredDirection)continue;
     const received=Date.parse(p.receivedAt),age=now-received;
     if(!Number.isFinite(received)||age< -60000||age>120000)continue;
-    const found=reach.distances.get(clean(p.station));
+    const found=reach.distances.get(trainStationKey(line,p.station));
     if(!found)continue;
     // A train position reported well before the passenger left is not
     // evidence of its location AFTER alighting.
@@ -131,7 +135,7 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
     const arrivals=evidence.filter(row=>{
       const evidenceAt=Date.parse(String(row.receivedAt||'').replace(' ','T')+
         (/Z|[+-]\d\d:\d\d$/.test(String(row.receivedAt||''))?'':'+09:00'));
-      const target=reach.distances.get(clean(row.station));
+      const target=reach.distances.get(trainStationKey(line,row.station));
       return trainKey(row.trainNo)===number&&Number(row.line)===Number(line)&&
         String(row.directionCode)===requiredDirection&&target&&
         target.distance>=distance&&target.distance<=distance+5&&

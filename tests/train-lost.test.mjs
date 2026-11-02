@@ -18,7 +18,7 @@ await moduleUnderTest.link(specifier=>{
   return new SyntheticModule(['default'],function(){this.setExport('default',fixture);});
 });
 await moduleUnderTest.evaluate();
-const {findLiveCandidates,reachableTrainStations,expectedLiveDirection}=moduleUnderTest.namespace;
+const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey}=moduleUnderTest.namespace;
 
 const now=Date.parse('2026-10-31T18:20:00+09:00');
 const date='2026-10-31',time='18:10',line='1',station='종로5가',next='동대문';
@@ -91,4 +91,21 @@ test('express trains have a separate explicitly approximate travel-time model',(
   const r=search([make('FAST','회기',{express:true}),make('LOCAL','청량리')]);
   assert.ok(r.candidates.find(c=>c.number==='FAST')?.minutesPerStop===1.5);
   assert.equal(r.candidates.find(c=>c.number==='LOCAL')?.minutesPerStop,2);
+});
+test('current line-4 names resolve the same topology and directions without changing line-7 Isu',()=>{
+ assert.deepEqual(stationNeighbors('4','불암산'),stationNeighbors('4','당고개'));
+ assert.deepEqual(stationNeighbors('4','총신대입구'),stationNeighbors('4','이수'));
+ assert.equal(expectedLiveDirection('4','총신대입구','사당'),expectedLiveDirection('4','이수','사당'));
+ assert.equal(trainStationKey('7','이수'),'이수');assert.equal(supportsStation('7','총신대입구'),false);
+});
+test('all master entries keep their own graph identity; missing topology is never replaced by Jongno',async()=>{
+ const master=JSON.parse(await readFile(new URL('../app/data/seoulMetroStationMaster.json',import.meta.url),'utf8'));
+ const missing=master.stations.filter(s=>!supportsStation(s.line,s.names.ko));
+ assert.deepEqual(missing.map(s=>s.stationCode),['2810']);
+ assert.equal(stationNeighbors('8','암사역사공원').length,0);
+});
+test('renamed provider positions are matched under their actual line and train number',()=>{
+ const dir=expectedLiveDirection('4','상계','당고개');
+ const result=findLiveCandidates([{trainNo:'0123',line:'4',station:'불암산',direction:dir,receivedAt:new Date(now).toISOString(),express:false}],{now,date,time:'18:18',line:'4',station:'상계',next:'당고개'});
+ assert.equal(result.candidates.length,1);assert.equal(result.candidates[0].number,'0123');
 });

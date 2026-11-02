@@ -1,9 +1,8 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {followStops,stationNeighbors,expectedLiveDirection} from '../lib/train-lost';
+import {followStops,stationNeighbors,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import {stationName} from '../lib/stationNameI18n';
 
-const clean=value=>String(value||'').trim().replace(/역$/,'');
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
 const getTime=(iso,lang)=>iso?new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(iso)):'—';
 const words={
@@ -19,7 +18,7 @@ function mapStations(line,station,next){
  // Candidate search can return trains >16 stations from the origin (up to
  // 30 minutes ago). The map must cover the same 38-stop route as the matcher.
  const forward=followStops(line,station,next,38);
- return {stops:[clean(station),...forward.stops],ambiguous:forward.ambiguous};
+ return {stops:[trainStationKey(line,station),...forward.stops],ambiguous:forward.ambiguous};
 }
 function latestTrains(positions,line){
  const map=new Map();
@@ -32,6 +31,8 @@ function latestTrains(positions,line){
  return [...map.values()];
 }
 export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart}){
+ const clean=value=>trainStationKey(line,value);
+ const display=value=>stationName(trainStationDisplay(line,value),lang)||value;
  const t=words[lang]||words.ko;
  const [refreshing,setRefreshing]=useState(false),[error,setError]=useState(false);
  const [jumpStatus,setJumpStatus]=useState('');
@@ -147,7 +148,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const number=trainKey(p.trainNo),cand=candidateByNumber.get(number);
   const isSelected=selectedNo===number;
   const rawDestination=clean(p.destination||'').replace(/(?:방면|행)$/,'').trim();
-  const translatedDestination=stationName(rawDestination,lang)||rawDestination;
+  const translatedDestination=display(rawDestination);
   const destinationLabel=translatedDestination?
     (lang==='ko'?translatedDestination+'행':lang==='ja'?translatedDestination+'行':lang==='zh'?translatedDestination+'方向':'To '+translatedDestination):
     (lang==='ko'?'행선 미확인':lang==='ja'?'行先不明':lang==='zh'?'终点未知':'Destination unknown');
@@ -232,7 +233,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
            className={'tf-h-stop'+(s===clean(station)?' tf-h-origin':'')} role="listitem">
            <div className="tf-h-trains">{here.map(renderTrain)}</div>
            <div className="tf-h-rail"><span className="tf-h-node"/></div>
-           <div className="tf-h-name">{stationName(s,lang)||s}</div>
+           <div className="tf-h-name">{display(s)}</div>
            <div className="tf-h-detail">{index===0?t.alighted:(lang==='ko'?index+'정거장':index+' stop'+(index===1?'':'s'))}</div>
           </div>;
         })}

@@ -1,4 +1,4 @@
-import {supportsStation} from '../../../../lib/train-lost';
+import {supportsStation,trainStationKey} from '../../../../lib/train-lost';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const receipt=x=>{const s=String(x||'').trim();return /^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/.test(s)?Date.parse(s.replace(' ','T')+'+09:00'):NaN;};
@@ -9,13 +9,14 @@ export async function GET(request){
  const key=process.env.SEOUL_SUBWAY_ARRIVAL_API_KEY?.trim();
  if(!key)return Response.json({ok:false,error:'NOT_CONFIGURED'},{status:503});
  try{
-   const url='http://swopenapi.seoul.go.kr/api/subway/'+encodeURIComponent(key)+'/json/realtimeStationArrival/0/80/'+encodeURIComponent(station);
+   const apiName=line==='4'?({'당고개':'불암산','이수':'총신대입구(이수)','총신대입구':'총신대입구(이수)'}[station]||station):station;
+   const url='http://swopenapi.seoul.go.kr/api/subway/'+encodeURIComponent(key)+'/json/realtimeStationArrival/0/80/'+encodeURIComponent(apiName);
    const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)});
    if(!response.ok)throw Error('HTTP');
    const json=await response.json(),code=json.errorMessage?.code||json.RESULT?.CODE||'';
    if(code&&!['INFO-000','INFO-200'].includes(code))throw Error('PROVIDER');
    if(!Array.isArray(json.realtimeArrivalList)&&code!=='INFO-200')throw Error('FORMAT');
-   const evidence=(json.realtimeArrivalList||[]).filter(row=>String(row.subwayId)===String(1000+Number(line))&&row.statnNm===station)
+   const evidence=(json.realtimeArrivalList||[]).filter(row=>String(row.subwayId)===String(1000+Number(line))&&trainStationKey(line,row.statnNm)===trainStationKey(line,station))
      .filter(row=>{const t=receipt(row.recptnDt);return Number.isFinite(t)&&Date.now()-t>=-60000&&Date.now()-t<=120000;})
      .map(row=>({trainNo:String(row.btrainNo||'').trim(),line,station,
        directionCode:row.updnLine==='상행'||row.updnLine==='내선'?'0':row.updnLine==='하행'||row.updnLine==='외선'?'1':null,
