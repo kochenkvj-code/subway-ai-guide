@@ -38,14 +38,13 @@ export function normalizeArrivals(payload, now = Date.now(), config = null) {
       const received = receiptTime(row.recptnDt), age = now - received;
       if (!Number.isFinite(received) || age > ARRIVAL_STALE_MS || age < -60000) { staleCount++; continue; }
       const arrivalCode = String(row.arvlCd || '');
-      if (!config && ['0','1'].includes(arrivalCode) && age > 60000) { staleCount++; continue; }
+      if (['0','1'].includes(arrivalCode) && age > 60000) { staleCount++; continue; }
       const rawSeconds = Number(row.barvlDt);
       const estimatedAt = /^\d+$/.test(String(row.barvlDt)) && rawSeconds > 0 && rawSeconds <= 86400 ? new Date(received + rawSeconds * 1000).toISOString() : null;
       if(config){const next=String(row.trainLineNm||'').match(/[-–—]\s*(.+?)\s*방면\s*$/)?.[1]?.trim();if(next&&config.validDirectionName(next))nextStations.add(clean(next,40));}
       const rank = /^[01][12]/.test(String(row.ordkey)) ? Number(String(row.ordkey)[1]) : 9;
       const train = {
-        trainNo: clean(row.btrainNo, 16),
-        ...(config?{locationOnlyAllowed:true}:{}), ...destinationOf(row),
+        trainNo: clean(row.btrainNo, 16), ...destinationOf(row),
         kind: clean(row.btrainSttus, 16), arrivalCode, receivedAt: new Date(received).toISOString(),
         estimatedAt, message: clean(row.arvlMsg2), location: clean(row.arvlMsg3, 40),
         lastTrain: String(row.lstcarAt) === '1', rank,
@@ -67,14 +66,11 @@ export function normalizeArrivals(payload, now = Date.now(), config = null) {
 // Return null instead of continuing to display old arrival states.
 export function arrivalStatus(train, now = Date.now()) {
   const received = Date.parse(train.receivedAt), age = now - received;
-  if (!Number.isFinite(received) || age < -60000) return null;
-  if(age>ARRIVAL_STALE_MS){const position=Date.parse(train.positionReceivedAt);return train.locationOnlyAllowed&&train.location&&Number.isFinite(position)&&now-position<=90000&&position-now<=60000?{state:'locationOnly'}:null;}
-  const locationTime=Date.parse(train.positionReceivedAt||train.receivedAt);
-  const locationFallback=()=>train.locationOnlyAllowed&&train.location&&Number.isFinite(locationTime)&&now-locationTime<=ARRIVAL_STALE_MS&&locationTime-now<=60000?{state:'locationOnly'}:null;
-  if (['0','1'].includes(train.arrivalCode)) return age<=60000?{state:train.arrivalCode==='0'?'approaching':'arrived'}:locationFallback();
+  if (!Number.isFinite(received) || age > ARRIVAL_STALE_MS || age < -60000) return null;
+  if (['0','1'].includes(train.arrivalCode)) return age <= 60000 ? { state: train.arrivalCode === '0' ? 'approaching' : 'arrived' } : null;
   const remaining = Date.parse(train.estimatedAt) - now;
-  if (Number.isFinite(remaining) && remaining > 0) return { state:'minutes',minutes:Math.ceil(remaining/60000) };
-  if (train.estimatedAt) return locationFallback();
-  const states = {'3':'previousDeparted','4':'previousApproaching','5':'previousArrived'};
-  return age<=60000&&states[train.arrivalCode]?{state:states[train.arrivalCode]}:locationFallback();
+  if (Number.isFinite(remaining) && remaining > 0) return { state: 'minutes', minutes: Math.ceil(remaining/60000) };
+  if (train.estimatedAt) return null;
+  const states = { '3':'previousDeparted', '4':'previousApproaching', '5':'previousArrived' };
+  return age <= 60000 && states[train.arrivalCode] ? { state: states[train.arrivalCode] } : null;
 }

@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-async function handler(fetch,key='fixture-key',positionKey=null){
- const context=vm.createContext({Response,AbortSignal,URL,Date,Map,Set,process:{env:key?{SEOUL_SUBWAY_ARRIVAL_API_KEY:key,...(positionKey?{SEOUL_SUBWAY_POSITION_API_KEY:positionKey}:{})}:{}},fetch});
+async function handler(fetch,key='fixture-key'){
+ const context=vm.createContext({Response,AbortSignal,URL,Date,Map,Set,process:{env:key?{SEOUL_SUBWAY_ARRIVAL_API_KEY:key}:{}},fetch});
  const route=new vm.SourceTextModule(await fs.readFile('app/api/train-arrivals/route.js','utf8'),{context});
  const cache=new Map();
  async function load(file){if(cache.has(file))return cache.get(file);const mod=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(requireText.get(file)));},{context}):new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});cache.set(file,mod);await mod.link(async name=>{const {resolve,dirname}=await import('node:path');const target=resolve(dirname(file),name.endsWith('.json')?name:name+'.js');if(target.endsWith('.json'))requireText.set(target,await fs.readFile(target,'utf8'));return load(target);});return mod;}
@@ -37,21 +37,4 @@ test('branches, loop providers and renamed station aliases use only provider dir
  const loop=await (await get(req('0222'))).json();assert.deepEqual(loop.groups.map(g=>g.provider),['내선','외선']);assert.equal(loop.groups[0].nextStation,'역삼');
  const renamed=await (await get(req('0409'))).json();assert.equal(renamed.groups.flatMap(g=>g.trains).length,1);
  const unknown=await (await get(req('2810'))).json();assert.equal(unknown.groups[1].nextStation,'');assert.equal(unknown.groups[1].trains.length,1);
-});
-
-test('Seoul and City Hall supplement current upstream positions without invented ETAs or duplicate trains',async()=>{
- let positionCalls=0;
- const get=await handler(async value=>{const url=new URL(value);if(url.pathname.includes('/realtimePosition/')){positionCalls++;return Response.json({realtimePositionList:[{subwayId:'1001',trainNo:'0462',statnNm:'서울',updnLine:'0',statnTnm:'청량리',trainSttus:'1',recptnDt:fresh()},{subwayId:'1001',trainNo:'0116',statnNm:'남영',updnLine:'0',statnTnm:'의정부',trainSttus:'1',recptnDt:fresh()},{subwayId:'1001',trainNo:'passed',statnNm:'종각',updnLine:'0',statnTnm:'청량리',trainSttus:'1',recptnDt:fresh()},{subwayId:'1002',trainNo:'other-line',statnNm:'서울',updnLine:'0',statnTnm:'청량리',trainSttus:'1',recptnDt:fresh()}]});}return Response.json({realtimeArrivalList:[]});},'fixture-key','position-fixture');
- const [a,b]=await Promise.all([get(req('0150')),get(req('0151'))]);const seoul=await a.json(),city=await b.json();assert.equal(positionCalls,1);assert.equal(seoul.status,'ok');const up=seoul.groups.find(g=>g.provider==='상행');assert.deepEqual(up.trains.map(t=>t.trainNo),['0462','0116']);assert.ok(up.trains.every(t=>t.estimatedAt===null&&t.arrivalCode==='position'));assert.equal(city.groups[0].trains[0].trainNo,'0462');assert.ok(!up.trains.some(t=>['passed','other-line'].includes(t.trainNo)));
-});
-test('position failure does not break genuine station arrivals',async()=>{
- const get=await handler(async value=>new URL(value).pathname.includes('/realtimePosition/')?new Response(null,{status:503}):Response.json({realtimeArrivalList:[train('서울','1001','상행','시청')]}),'fixture-key','position-fixture');const r=await get(req('0150'));assert.equal(r.status,200);assert.equal((await r.json()).groups[0].trains[0].trainNo,'1234');
-});
-test('provider train identifiers remain untouched, including main-line 3xxx and branch identifiers',async()=>{
- const get=await handler(async()=>Response.json({realtimeArrivalList:[train('건대입구','1002','내선','구의','3266'),train('건대입구','1002','외선','성수','2289')]}));const data=await (await get(req('0212'))).json();assert.equal(data.groups[0].trains[0].trainNo,'3266');assert.equal(data.groups[0].trains[0].displayTrainNo,undefined);assert.equal(data.groups[1].trains[0].trainNo,'2289');
-});
-test('older positions cannot erase newer arrivals; stale and terminating-before-target positions cannot add ghosts',async()=>{
- const ago=seconds=>new Date(Date.now()-seconds*1000+9*3600000).toISOString().slice(0,19).replace('T',' ');
- const get=await handler(async value=>new URL(value).pathname.includes('/realtimePosition/')?Response.json({realtimePositionList:[{subwayId:'1001',trainNo:'1234',statnNm:'시청',updnLine:'0',statnTnm:'청량리',trainSttus:'1',recptnDt:ago(30)},{subwayId:'1001',trainNo:'stale',statnNm:'서울',updnLine:'0',statnTnm:'청량리',trainSttus:'1',recptnDt:ago(180)},{subwayId:'1001',trainNo:'terminates',statnNm:'남영',updnLine:'0',statnTnm:'남영',trainSttus:'1',recptnDt:fresh()}]}):Response.json({realtimeArrivalList:[train('서울','1001','상행','시청')]}),'fixture-key','position-fixture');
- const data=await (await get(req('0150'))).json();const rows=data.groups.flatMap(g=>g.trains);assert.deepEqual(rows.map(t=>t.trainNo),['1234']);assert.ok(rows[0].estimatedAt);
 });

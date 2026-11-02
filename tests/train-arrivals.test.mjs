@@ -49,9 +49,3 @@ test('0472 at City Hall remains Gwangun Univ.-bound; raw arrival/location messag
  const train=data.groups[0].trains[0];assert.equal(train.destination,'광운대');assert.equal(train.location,'시청');assert.equal(train.trainNo,'0472');assert.equal(train.estimatedAt,new Date(now+390000).toISOString());assert.equal(data.groups[1].trains.length,0);
  const missing=normalize([row({trainLineNm:'',bstatnNm:'동묘앞',arvlMsg3:'시청'})]).groups[0].trains[0];assert.equal(missing.destination,'');
 });
-
-test('fresh locations remain available when V2 lacks an ETA, while stale locations and old arrival labels expire',()=>{
- const t={arrivalCode:'99',receivedAt:new Date(now-20000).toISOString(),estimatedAt:null,location:'남영',locationOnlyAllowed:true};assert.deepEqual(arrivalStatus(t,now),{state:'locationOnly'});assert.equal(arrivalStatus({...t,receivedAt:new Date(now-181000).toISOString()},now),null);
- const arrived={...t,arrivalCode:'1',receivedAt:new Date(now-70000).toISOString()};assert.deepEqual(arrivalStatus(arrived,now),{state:'locationOnly'});assert.notEqual(arrivalStatus(arrived,now).state,'arrived');assert.equal(arrivalStatus({...t,location:''},now),null);
- const newerPosition={...t,receivedAt:new Date(now-181000).toISOString(),positionReceivedAt:new Date(now-10000).toISOString()};assert.deepEqual(arrivalStatus(newerPosition,now),{state:'locationOnly'});assert.equal(arrivalStatus({...newerPosition,positionReceivedAt:new Date(now-91000).toISOString()},now),null);
-});
