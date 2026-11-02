@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
-async function handler(fetch,key='fixture-key'){
- const context=vm.createContext({Response,AbortSignal,URL,Date,Map,Set,process:{env:key?{SEOUL_SUBWAY_ARRIVAL_API_KEY:key}:{}},fetch});
+async function handler(fetch,key='fixture-key',positionKey=null){
+ const context=vm.createContext({Response,AbortSignal,URL,Date,Map,Set,process:{env:key?{SEOUL_SUBWAY_ARRIVAL_API_KEY:key,...(positionKey?{SEOUL_SUBWAY_POSITION_API_KEY:positionKey}:{})}:{}},fetch});
  const route=new vm.SourceTextModule(await fs.readFile('app/api/train-arrivals/route.js','utf8'),{context});
  const cache=new Map();
  async function load(file){if(cache.has(file))return cache.get(file);const mod=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(requireText.get(file)));},{context}):new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});cache.set(file,mod);await mod.link(async name=>{const {resolve,dirname}=await import('node:path');const target=resolve(dirname(file),name.endsWith('.json')?name:name+'.js');if(target.endsWith('.json'))requireText.set(target,await fs.readFile(target,'utf8'));return load(target);});return mod;}
@@ -37,4 +37,28 @@ test('branches, loop providers and renamed station aliases use only provider dir
  const loop=await (await get(req('0222'))).json();assert.deepEqual(loop.groups.map(g=>g.provider),['내선','외선']);assert.equal(loop.groups[0].nextStation,'역삼');
  const renamed=await (await get(req('0409'))).json();assert.equal(renamed.groups.flatMap(g=>g.trains).length,1);
  const unknown=await (await get(req('2810'))).json();assert.equal(unknown.groups[1].nextStation,'');assert.equal(unknown.groups[1].trains.length,1);
+});
+test('line 1 corroborates destinations independently while preserving a valid ETA from a duplicate',async()=>{
+ let positionCalls=0;
+ const get=await handler(async value=>{
+   if(value.includes('/realtimePosition/')){positionCalls++;return Response.json({realtimePositionList:[{trainNo:'0466',updnLine:'0',statnTnm:'광운대',recptnDt:fresh()}]});}
+   const stamp=fresh();return Response.json({realtimeArrivalList:[
+     {...train('종로5가','1001','상행','동대문','0466'),trainLineNm:'광운대행 - 동대문방면',recptnDt:stamp,barvlDt:'180'},
+     {...train('종로5가','1001','상행','동대문','0466'),trainLineNm:'동묘앞행 - 동대문방면',recptnDt:stamp,barvlDt:'0'}
+   ]});
+ },'fixture-arrival','fixture-position');
+ const body=await (await get(req('0154'))).json(),t=body.groups[0].trains[0];
+ assert.equal(t.destination,'광운대');assert.equal(t.destinationSource,'realtimePosition');assert.ok(t.estimatedAt);assert.equal(t.trainNo,'0466');assert.equal(positionCalls,1);
+ await get(req('0154'));assert.equal(positionCalls,1);
+});
+test('position lookup failure does not fail arrivals or guess conflicting destinations',async()=>{
+ const get=await handler(async value=>{
+   if(value.includes('/realtimePosition/'))throw Error('unavailable');
+   return Response.json({realtimeArrivalList:[
+     {...train('종로5가','1001','상행','동대문','0466'),trainLineNm:'광운대행 - 동대문방면'},
+     {...train('종로5가','1001','상행','동대문','0466'),trainLineNm:'동묘앞행 - 동대문방면'}
+   ]});
+ },'fixture-arrival','fixture-position');
+ const response=await get(req('0154'));assert.equal(response.status,200);
+ assert.equal((await response.json()).groups[0].trains[0].destination,'');
 });

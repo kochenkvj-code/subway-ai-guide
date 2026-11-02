@@ -1,5 +1,6 @@
 import {arrivalStationConfig} from '../../lib/station-arrivals';
 import { normalizeArrivals, CURRENT_STATION } from '../../lib/train-arrivals';
+import { loadArrivalDestinations } from '../../lib/train-arrival-destinations';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const cached=new Map(), pending=new Map();
@@ -10,6 +11,7 @@ async function load(key,config,cacheKey) {
   // The browser only calls our HTTPS route; the key never reaches client code.
   // Reference: https://data.seoul.go.kr/dataList/OA-12764/A/1/datasetView.do
   const url = `http://swopenapi.seoul.go.kr/api/subway/${encodeURIComponent(key)}/json/realtimeStationArrival/0/${config?80:40}/${encodeURIComponent(station.name)}`;
+  const destinationsPromise = config ? loadArrivalDestinations(process.env.SEOUL_SUBWAY_POSITION_API_KEY?.trim(), config.line) : Promise.resolve({});
   let response;
   try { response = await fetch(url, { cache:'no-store', signal:AbortSignal.timeout(10000) }); }
   catch { throw { code:'UPSTREAM_NETWORK', status:502 }; }
@@ -19,7 +21,8 @@ async function load(key,config,cacheKey) {
   const code = String(payload.errorMessage?.code || payload.RESULT?.CODE || payload.code || '');
   if (code && !['INFO-000','INFO-200'].includes(code)) throw { code:'UPSTREAM_API', providerCode:/^[A-Z]+-\d+$/.test(code)?code:undefined, status:502 };
   if (!code && !Array.isArray(payload.realtimeArrivalList)) throw { code:'UPSTREAM_FORMAT', status:502 };
-  const data = normalizeArrivals(payload,Date.now(),config);
+  const destinations = await destinationsPromise;
+  const data = normalizeArrivals(payload,Date.now(),config,{previousData:cached.get(cacheKey)?.data,destinations});
   cached.set(cacheKey,{at:Date.now(),data});if(cached.size>300)cached.delete(cached.keys().next().value);
   return data;
 }

@@ -20,7 +20,16 @@ function destinationOf(row) {
   // reported live examples disagree with the actual destination.
   return { destination: '', destinationSource: null };
 }
-export function normalizeArrivals(payload, now = Date.now(), config = null) {
+// A provider can report the same train twice: a position-only row and an ETA
+// row. Their clocks are independent. A newer position must not erase an ETA.
+function liveEstimate(row, now) {
+  const received = receiptTime(row.recptnDt), seconds = Number(row.barvlDt);
+  if (!/^\d+$/.test(String(row.barvlDt)) || seconds <= 0 || seconds > 86400 ||
+      !Number.isFinite(received) || now - received > ARRIVAL_STALE_MS || received - now > 60000) return null;
+  const at = received + seconds * 1000;
+  return at > now ? { at, received } : null;
+}
+export function normalizeArrivals(payload, now = Date.now(), config = null, evidence = {}) {
   const rows = Array.isArray(payload.realtimeArrivalList) ? payload.realtimeArrivalList : [];
   let staleCount = 0;
   const station=config?.station||CURRENT_STATION;
@@ -31,27 +40,69 @@ export function normalizeArrivals(payload, now = Date.now(), config = null) {
   const chosen=config?providers.filter(name=>['상행','하행'].includes(name)?(observed.has('상행')||observed.has('하행')):(observed.has('내선')||observed.has('외선'))):[];
   const directions=config?(chosen.length?chosen.map(provider=>({id:provider,provider,nextStation:''})):[]):ARRIVAL_DIRECTIONS;
   const groups = directions.map(direction => {
-    const trains = new Map(), nextStations = new Set();
+    const trains = new Map(), candidates = new Map(), nextStations = new Set();
+    const departed = new Map();
+    for (const row of lineRows) {
+      const at = receiptTime(row.recptnDt);
+      if (row.updnLine === direction.provider && String(row.arvlCd) === '2' &&
+          Number.isFinite(at) && now-at <= ARRIVAL_STALE_MS && at-now <= 60000) {
+        const no = clean(row.btrainNo, 16);
+        departed.set(no, Math.max(departed.get(no) || 0, at));
+      }
+    }
     for (const row of rows) {
       if (String(row.subwayId) !== station.lineId || !matchesStation(row.statnNm) || row.updnLine !== direction.provider) continue;
       if (String(row.arvlCd) === '2') continue; // Already departed this station.
       const received = receiptTime(row.recptnDt), age = now - received;
       if (!Number.isFinite(received) || age > ARRIVAL_STALE_MS || age < -60000) { staleCount++; continue; }
+      if ((departed.get(clean(row.btrainNo, 16)) || 0) >= received) continue;
       const arrivalCode = String(row.arvlCd || '');
       if (['0','1'].includes(arrivalCode) && age > 60000) { staleCount++; continue; }
-      const rawSeconds = Number(row.barvlDt);
-      const estimatedAt = /^\d+$/.test(String(row.barvlDt)) && rawSeconds > 0 && rawSeconds <= 86400 ? new Date(received + rawSeconds * 1000).toISOString() : null;
+      const estimate = liveEstimate(row, now);
+      const estimatedAt = estimate ? new Date(estimate.at).toISOString() : null;
       if(config){const next=String(row.trainLineNm||'').match(/[-–—]\s*(.+?)\s*방면\s*$/)?.[1]?.trim();if(next&&config.validDirectionName(next))nextStations.add(clean(next,40));}
       const rank = /^[01][12]/.test(String(row.ordkey)) ? Number(String(row.ordkey)[1]) : 9;
       const train = {
         trainNo: clean(row.btrainNo, 16), ...destinationOf(row),
         kind: clean(row.btrainSttus, 16), arrivalCode, receivedAt: new Date(received).toISOString(),
-        estimatedAt, message: clean(row.arvlMsg2), location: clean(row.arvlMsg3, 40),
+        estimatedAt, estimateReceivedAt: estimate ? new Date(estimate.received).toISOString() : null,
+        message: clean(row.arvlMsg2), location: clean(row.arvlMsg3, 40),
         lastTrain: String(row.lstcarAt) === '1', rank,
       };
       const key = train.trainNo || `${rank}-${train.destination}`;
+      if (!candidates.has(key)) candidates.set(key, []);
+      candidates.get(key).push(train);
       const previous = trains.get(key);
       if (!previous || received > Date.parse(previous.receivedAt)) trains.set(key, train);
+    }
+    for (const [key, train] of trains) {
+      const rows = candidates.get(key);
+      // Use only a still-future, fresh prediction from this train and direction.
+      // Keep its original timestamp even when later polls contain only zeros.
+      const prior = evidence.previousData?.station?.stationCode === station.stationCode &&
+        evidence.previousData?.station?.name === station.name
+        ? evidence.previousData.groups?.find(g => g.provider === direction.provider)?.trains?.find(t => t.trainNo === train.trainNo)
+        : null;
+      const estimates = [...rows, ...(prior ? [prior] : [])].filter(t =>
+        Date.parse(t.estimatedAt) > now &&
+        Number.isFinite(Date.parse(t.estimateReceivedAt || t.receivedAt)) &&
+        now - Date.parse(t.estimateReceivedAt || t.receivedAt) <= ARRIVAL_STALE_MS);
+      estimates.sort((a,b) => Date.parse(b.estimateReceivedAt || b.receivedAt) - Date.parse(a.estimateReceivedAt || a.receivedAt));
+      if (!['0','1'].includes(train.arrivalCode) && estimates.length) {
+        train.estimatedAt = estimates[0].estimatedAt;
+        train.estimateReceivedAt = estimates[0].estimateReceivedAt || estimates[0].receivedAt;
+      }
+      const destinations = new Set(rows.map(t => t.destination).filter(Boolean));
+      const corroborated = evidence.destinations?.[direction.provider + '/' + train.trainNo];
+      if (corroborated) {
+        train.destination = clean(corroborated, 40);
+        train.destinationSource = 'realtimePosition';
+      } else if (destinations.size > 1) {
+        // Do not guess the terminus from the newer of two contradictory feeds.
+        train.destination = '';
+        train.destinationSource = null;
+        train.destinationConflict = true;
+      }
     }
     const sorted = [...trains.values()].sort((a,b) => a.rank-b.rank || (Date.parse(a.estimatedAt)||Infinity)-(Date.parse(b.estimatedAt)||Infinity));
     return { id: direction.id, provider:direction.provider, nextStation: config?(nextStations.size===1?[...nextStations][0]:''):direction.nextStation, nextStations:config?[...nextStations]:[direction.nextStation], trains: sorted.slice(0, 4) };
