@@ -170,7 +170,9 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    setSearchRun(n=>n+1);
  }
  function returnToForm(){setStage('input');resetMatches();}
- function chooseUnknown(){trackedTrainRef.current='';setChosen(null);setCurrent(null);setHandoffUnknown(true);setCopyStatus(false);}
+ function returnToResults(){setStage('results');setCopyStatus(false);}
+ function confirmCandidate(){if(!chosen)return;setStage('handoff');setCopyStatus(false);}
+ function chooseUnknown(){trackedTrainRef.current='';setChosen(null);setCurrent(null);setHandoffUnknown(true);setCopyStatus(false);setStage('handoff');}
  function pick(candidate){
    setHandoffUnknown(false);setCopyStatus(false);
    trackedTrainRef.current=compareNo(candidate.number);
@@ -246,7 +248,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    busy={busy} error={error} candidates={candidates} chosen={chosen} current={current} searched={searched}
    lookupStats={lookupStats} directionWarning={directionWarning} pick={pick} livePositions={livePositions}
    liveFetchedAt={liveFetchedAt} onLiveSnapshot={onLiveSnapshot} onSearch={startSearch} onBack={returnToForm}
-   onNone={chooseUnknown} carMode={carMode} setCarMode={setCarMode} carNumber={carNumber}
+   onNone={chooseUnknown} onContinue={confirmCandidate} onBackToResults={returnToResults} carMode={carMode} setCarMode={setCarMode} carNumber={carNumber}
    setCarNumber={setCarNumber} relativeSide={relativeSide} setRelativeSide={setRelativeSide}
    thing={thing} setThing={setThing} door={door} setDoor={setDoor} place={place} setPlace={setPlace}
    stage={stage} handoffUnknown={handoffUnknown} message={message} sms={sms}
