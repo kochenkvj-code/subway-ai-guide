@@ -117,7 +117,7 @@ export default function LiveRailDemo(){
   if(!viewport||!target)return;
   const v=viewport.getBoundingClientRect(),n=target.getBoundingClientRect();
   viewport.scrollTop=Math.max(0,viewport.scrollTop+(n.top-v.top)-(viewport.clientHeight-n.height)/2);
- },[line,routeIndex,mode,focusStation,snapshot.fetchedAt]);
+ },[line,routeIndex,mode,focusStation]);
  useEffect(()=>{
   let stopped=false,inflight=null,last=0;
   async function load(force=false){
