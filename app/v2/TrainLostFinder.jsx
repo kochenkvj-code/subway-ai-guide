@@ -240,7 +240,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    place?z.place+': '+(placeNames[lang]||placeNames.ko)[place]:null,
    '',
    z.closing
- ].filter(line=>line!==null).join('\\n'):'';
+ ].filter(line=>line!==null).join('\n'):'';
  function sms(){
    if(!message)return;
    // Opens a user-controlled SMS draft only. No SMS is sent by this site.
