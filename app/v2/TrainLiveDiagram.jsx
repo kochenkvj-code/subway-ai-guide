@@ -93,11 +93,15 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   viewport.scrollLeft+=Math.max(0,delta-20);
  },[line,station,next]);
  useEffect(()=>{
-  if(!trackedStation)return;
+  if(!trackedStation||!selectedNo)return;
   const viewport=viewportRef.current;
-  const target=[...(viewport?.querySelectorAll('[data-tf-station]')||[])].find(node=>node.dataset.tfStation===clean(trackedStation));
+  // Focus the exact selected train, not just the station: multiple trains
+  // can be stacked in the same narrow bay on mobile.
+  const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
+   .find(node=>node.dataset.tfTrainNo===selectedNo);
   if(!viewport||!target)return;
   centerTarget(target);
+  setFocusedTrain(selectedNo);
  },[trackedStation,selectedNo,line,station,next]);
  // On entering the live-train screen, focus the top-ranked candidate once.
  // Merely centering it must NOT confirm that the passenger rode that train.
