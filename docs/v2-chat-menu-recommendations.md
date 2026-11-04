@@ -12,7 +12,7 @@ One final standalone `<menu_recommendation>ID</menu_recommendation>` line, with 
 
 The parser strips standalone protocol records (including malformed/truncated records), rejects unknown IDs, duplicate records, non-terminal records and inline malformed trailers. Quoted and fenced examples are preserved as answer content rather than executable recommendations. Missing or failed recommendation never retries or suppresses usable answer text. This soft text protocol is intentionally best-effort, not a schema guarantee.
 
-Targets include nine quick-guide entries plus `live`. Existing non-0154 gate/fare flows are still unavailable and excluded from those stations' target lists rather than advertising a blocked screen. Button labels come from app translations. Search sources/suggestions remain separate. Offset-based grounding supports are retained only where they still address the unchanged answer prefix. Navigation goes through V2's normal history handling, without prefilling or auto-executing anything. Returning to chat preserves its message history.
+Targets include nine quick-guide entries plus `live`. Gate/fare static guidance is common to all stations and is now available/recommendable for every entry station. Embedded AI follow-up requests use the selected station through the V2 endpoint; V1 is unchanged. Button labels come from app translations. Search sources/suggestions remain separate. Offset-based grounding supports are retained only where they still address the unchanged answer prefix. Navigation goes through V2's normal history handling, without prefilling or auto-executing anything. Returning to chat preserves its message history.
 
 ## Editable route origin
 

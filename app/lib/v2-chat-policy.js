@@ -13,8 +13,7 @@ export const V2_RECOMMENDATIONS = [
  ['live','Live approaching trains at this station; not a published timetable.'],
 ];
 export function recommendationTargets(station){
- // The existing gate/fare flows still contain Jongno-specific escape paths.
- return V2_RECOMMENDATIONS.filter(([id])=>station.stationCode==='0154'||!['gate','fares'].includes(id));
+ return V2_RECOMMENDATIONS;
 }
 export function parseMenuRecommendation(value,allowed,complete=true){
  const text=String(value||'');const lines=text.split('\n');let fence=null,records=[];

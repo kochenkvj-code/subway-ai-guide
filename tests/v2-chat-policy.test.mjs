@@ -26,7 +26,7 @@ test('prompt preserves station, language, accuracy and independent-answer polici
  const text=buildV2Prompt('서울역 화장실?', 'ja',station,'Japanese output rule');
  for(const expected of ['동묘앞','2637','Line 6','Japanese output rule','Google Search','NOT nonexistent','Independently answer','different subject station','Route allows a different origin','not restaurant','first/last'])assert.ok(text.includes(expected),expected);
  for(const forbidden of ['종로5가','광장시장','종오지하'])assert.ok(!text.includes(forbidden));
- assert.ok(!recommendationTargets(station).some(([id])=>id==='gate'));assert.ok(recommendationTargets({...station,stationCode:'0154'}).some(([id])=>id==='gate'));
+ assert.ok(recommendationTargets(station).some(([id])=>id==='gate'));assert.ok(recommendationTargets({...station,stationCode:'0154'}).some(([id])=>id==='gate'));
 });
 test('transfer-line identity is mandatory for answers, searches and recommendations',()=>{
  for(const [code,line]of [['0159','1'],['2637','6']]){
