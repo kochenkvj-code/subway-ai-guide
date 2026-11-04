@@ -34,3 +34,10 @@ test('transfer-line identity is mandatory for answers, searches and recommendati
  for(const rule of [line+'호선 동묘앞역','LINE-SPECIFIC STATION IDENTITY','separate staff','separate station entities',line+'호선 동묘앞 수유실','bare shared station name','useful alternative','transfer access only if verified','button would open the entry line'])assert.ok(text.includes(rule),rule);
  }
 });
+test('broader search leads preserve ownership without narrowing alternative discovery',()=>{
+ const make=(code,line,name)=>buildV2Prompt('수유실 어디예요?','ko',{stationCode:code,line,names:{ko:name}},'한국어');
+ const j=make('0154','1','종로5가'),d=make('0159','1','동묘앞'),other=make('0152','1','종각');
+ for(const rule of ['NOT search-radius boundaries','NOT four mandatory serial searches','from the outset','actively consider connected/nearby','Do not require an external mall','NOT proof','when this is unknown, omit','connected mall, outside venue'])assert.ok(j.includes(rule),rule);
+ for(const hint of ['종오지하쇼핑센터','종로5가지하도상가']){assert.ok(j.includes(hint));assert.ok(!d.includes(hint));assert.ok(!other.includes(hint));}
+ assert.ok(d.includes('6호선 동묘앞역'));assert.ok(!j.includes('여자화장실 왼편'));
+});
