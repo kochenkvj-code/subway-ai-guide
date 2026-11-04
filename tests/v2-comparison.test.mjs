@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {v2ChatFixture as api} from './v2-chat-api.test.mjs';
+const file='app/api/search-lab/v2-comparison/route.js';
+test('comparison current payload equals production and variants change only allowed settings',async()=>{
+ const body={question:'수유실 어디에 있나요?',lang:'ko',stationCode:'2637'};const prod=await api(),lab=await api(undefined,file);await prod.run(body);await lab.run(body);assert.deepEqual(lab.calls[0].body,prod.calls[0].body);const base=lab.calls[0].body;
+ for(const [variant,model,cap,level]of [['a','gemini-3.5-flash-lite',1200,undefined],['b','gemini-3.5-flash-lite',1200,'LOW'],['c','gemini-3.5-flash',1200,'LOW']]){
+ const r=await lab.run({...body,variant});const d=await r.json();assert.equal(r.status,200);assert.equal(d.diagnostics.variant,variant);assert.equal(d.diagnostics.thoughtsTokens,null);assert.equal(d.diagnostics.finishReason,'STOP');const c=lab.calls.at(-1);assert.ok(c.url.includes('/'+model+':generateContent'));assert.equal(c.body.generationConfig.maxOutputTokens,cap);assert.equal(c.body.generationConfig.thinkingConfig?.thinkingLevel,level);assert.deepEqual(c.body.contents,base.contents);assert.deepEqual(c.body.tools,base.tools);assert.deepEqual(c.body.systemInstruction,base.systemInstruction);
+ }
+ const n=lab.calls.length;assert.equal((await lab.run({...body,variant:'arbitrary-model'})).status,400);assert.equal(lab.calls.length,n);
+});
+test('comparison retains diagnostics for empty outputs instead of hiding token-limit evidence',async()=>{const lab=await api('',file);const r=await lab.run({question:'test',stationCode:'0154'});const d=await r.json();assert.equal(r.status,200);assert.equal(d.answer,'');assert.equal(d.diagnostics.outputTokens,null);assert.equal(lab.calls.length,1);});

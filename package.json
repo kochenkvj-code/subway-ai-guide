@@ -26,8 +26,9 @@
     "test:station-route": "node --experimental-vm-modules --test tests/station-route.test.mjs",
     "test:station-route-ui": "node --experimental-vm-modules tests/station-route-ui.cjs",
     "test:arrivals-ui": "node --experimental-vm-modules tests/multi-arrivals-ui.cjs",
-    "test:v2-chat": "node --experimental-vm-modules --test tests/v2-chat-policy.test.mjs tests/v2-chat-api.test.mjs tests/chat-history.test.mjs tests/chat-provider.test.mjs",
-    "test:v2-chat-ui": "node tests/v2-chat-ui.cjs"
+    "test:v2-chat": "node --experimental-vm-modules --test tests/v2-chat-policy.test.mjs tests/v2-chat-api.test.mjs tests/chat-history.test.mjs tests/chat-provider.test.mjs tests/v2-comparison.test.mjs",
+    "test:v2-chat-ui": "node tests/v2-chat-ui.cjs",
+    "test:v2-comparison-ui": "node tests/v2-comparison-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",

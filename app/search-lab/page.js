@@ -5,5 +5,5 @@ import SearchLabClient from "./SearchLabClient";
 export const dynamic = "force-dynamic";
 
 export default function SearchLabPage() {
-  return <SearchLabClient />;
+  return <><p style={{maxWidth:1000,margin:"16px auto",padding:"0 18px"}}><a href="/search-lab/v2-comparison">V2 모델·토큰 비교 페이지 →</a></p><SearchLabClient /></>;
 }
