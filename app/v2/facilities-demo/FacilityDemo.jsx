@@ -59,7 +59,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   const result=info(row,index,id);
   result.originalName=result.name;
   const lockerName=pick(row,[/^lckrNm$/i]);
-  const lockerNumbers=lockerName.match(/\\((\\d+\\s*~\\s*\\d+)\\)/);
+  const lockerNumbers=lockerName.match(/\((\d+\s*~\s*\d+)\)/);
   if(id==='locker'&&lockerNumbers)result.name=t.types[id]+' · '+lockerNumbers[1];
   else if(['elevator','escalator'].includes(id))result.name=t.types[id]+' '+String(index+1).padStart(2,'0');
   else result.name=t.types[id];
@@ -71,12 +71,12 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   result.restroomInfo=pick(row,[/^rstrmInfo$/i]);
   const count=Number(pick(row,[/^lckrCnt$/i]));
   result.lockerCount=id==='locker'&&Number.isInteger(count)&&count>0?count+' '+t.lockerUnits:'';
-  result.entrance=/^\\d+(?:\\s*[,~\\-]\\s*\\d+)*$/.test(result.entrance)?result.entrance:'';
-  const timeText=value=>/^\\d{6}$/.test(String(value))?String(value).slice(0,2)+':'+String(value).slice(2,4):'';
+  result.entrance=/^\d+(?:\s*[,~\-]\s*\d+)*$/.test(result.entrance)?result.entrance:'';
+  const timeText=value=>/^\d{6}$/.test(String(value))?String(value).slice(0,2)+':'+String(value).slice(2,4):'';
   if(id==='locker'){
     const from=timeText(pick(row,[/^wkdayOperBgngTm$/i])),to=timeText(pick(row,[/^wkdayOperEndTm$/i]));
     if(from&&to)result.hours=t.weekday+' '+from+'–'+to;
-    result.phone=pick(row,[/^custCntrTelno$/i]).replace(/\\D/g,'');
+    result.phone=pick(row,[/^custCntrTelno$/i]).replace(/\D/g,'');
   }
   result.provider=id==='atm'?pick(row,[/^fnstNm$/i]):'';
   return result;
@@ -134,7 +134,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
          {['Y','N'].includes(s.stroller)&&<span className="sf-tag">{t.stroller} · {s.stroller==='Y'?t.yes:t.no}</span>}
          {s.provider&&<span className="sf-tag">{s.provider}</span>}
         </div>}
-        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={t.helpPhone+' '+s.phone}>{t.helpPhone} <span>{s.phone.replace(/^(\\d{4})(\\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
+        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={t.helpPhone+' '+s.phone}>{t.helpPhone} <span>{s.phone.replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
        </article>;
       })}</div>
       {moreCount>0&&<button className="sf-more" type="button" onClick={()=>setExpanded(prev=>({...prev,[cat.id]:true}))}>{t.showMore} +{moreCount} ↓</button>}
