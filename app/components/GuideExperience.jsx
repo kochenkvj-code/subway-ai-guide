@@ -2005,7 +2005,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                   </>
                 )}
 
-                {chatStation && onRecommendMenu && message.recommendedMenu && recommendationTargets(chatStation).some(([id])=>id===message.recommendedMenu) && !message.pending && !message.error && <button type="button" className="sag-menu-recommendation" onClick={()=>onRecommendMenu(message.recommendedMenu)}>{recommendationLabel(message.recommendedMenu,lang)} <span aria-hidden="true">→</span></button>}
+                {chatStation && onRecommendMenu && message.recommendedMenu && recommendationTargets(chatStation).some(([id])=>id===message.recommendedMenu) && !message.pending && !message.error && <button type="button" className="sag-menu-recommendation" onClick={()=>onRecommendMenu(message.recommendedMenu)}><span>{['facility','tour','timetable','live','found','feedback'].includes(message.recommendedMenu)&&<b className="sag-recommend-line" style={{background:chatStation.color}}>{chatStation.line}</b>}{recommendationLabel(message.recommendedMenu,lang,chatStation)}</span> <span aria-hidden="true">→</span></button>}
 
                 {message.searchSuggestion && (
                   <div

@@ -28,3 +28,9 @@ test('prompt preserves station, language, accuracy and independent-answer polici
  for(const forbidden of ['종로5가','광장시장','종오지하'])assert.ok(!text.includes(forbidden));
  assert.ok(!recommendationTargets(station).some(([id])=>id==='gate'));assert.ok(recommendationTargets({...station,stationCode:'0154'}).some(([id])=>id==='gate'));
 });
+test('transfer-line identity is mandatory for answers, searches and recommendations',()=>{
+ for(const [code,line]of [['0159','1'],['2637','6']]){
+ const text=buildV2Prompt('수유실 어디예요?','ko',{stationCode:code,line,names:{ko:'동묘앞'}},'한국어');
+ for(const rule of [line+'호선 동묘앞역','LINE-SPECIFIC STATION IDENTITY','separate staff','separate station entities',line+'호선 동묘앞 수유실','bare shared station name','useful alternative','transfer access only if verified','button would open the entry line'])assert.ok(text.includes(rule),rule);
+ }
+});
