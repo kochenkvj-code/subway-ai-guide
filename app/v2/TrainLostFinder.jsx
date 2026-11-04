@@ -158,7 +158,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
  // Search explicitly after the required item and car-position fields are filled.
  // Preserve the existing abort and stale-response protection on every new query.
  useEffect(()=>{
-   if(!searchRun||!active||editing||!next||!when.time||requiredDirection===null)return;
+   if(!searchRun||stage!=='results'||!active||editing||!next||!when.time||requiredDirection===null)return;
    const timer=setTimeout(()=>lookup(),0);
    return ()=>{clearTimeout(timer);requestId.current+=1;lookupAbort.current?.abort();};
  },[searchRun,active,editing,selection.name,selection.line,next,when.date,when.time,demoMode]);
