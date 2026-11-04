@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && next build",
+    "build": "npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs",
@@ -25,7 +25,9 @@
     "test:station-entry-ui": "node tests/station-entry-ui.cjs",
     "test:station-route": "node --experimental-vm-modules --test tests/station-route.test.mjs",
     "test:station-route-ui": "node --experimental-vm-modules tests/station-route-ui.cjs",
-    "test:arrivals-ui": "node --experimental-vm-modules tests/multi-arrivals-ui.cjs"
+    "test:arrivals-ui": "node --experimental-vm-modules tests/multi-arrivals-ui.cjs",
+    "test:v2-chat": "node --experimental-vm-modules --test tests/v2-chat-policy.test.mjs tests/v2-chat-api.test.mjs tests/chat-history.test.mjs tests/chat-provider.test.mjs",
+    "test:v2-chat-ui": "node tests/v2-chat-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",

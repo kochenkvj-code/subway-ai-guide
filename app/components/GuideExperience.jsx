@@ -1,5 +1,7 @@
 "use client";
 
+import {recommendationTargets} from '../lib/v2-chat-policy';
+import {recommendationLabel} from '../v2/recommendation-labels';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { captureLanguageScroll, restoreLanguageScroll } from "../lib/language-scroll";
 import { buildChatHistory } from "../lib/chat-history";
@@ -1113,7 +1115,7 @@ function renderBoldMarkdown(text) {
   });
 }
 
-export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null, routeStation = null }) {
+export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null, routeStation = null, chatStation = null, onRecommendMenu = null }) {
   const [lang, setLang] = useState(language);
   const visitRecordedRef = useRef(false);
   useEffect(() => {
@@ -1460,7 +1462,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
     ]);
 
     try {
-      const response = await fetch("/api/google-search", {
+      const response = await fetch(chatStation ? "/api/v2/chat" : "/api/google-search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
@@ -1470,12 +1472,13 @@ export default function GuideExperience({ embedded = false, initialAction = null
           lang,
           history,
           historyCompletedAt,
+          ...(chatStation ? {stationCode:chatStation.stationCode} : {}),
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok || !data.ok) {
+      if (!response.ok || !data.ok || (chatStation && data.stationCode !== chatStation.stationCode)) {
         throw new Error(data?.error || "Search request failed");
       }
 
@@ -1486,6 +1489,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
         const message = {
           role: "assistant",
           text: data.answer,
+          recommendedMenu: chatStation ? data.recommendedMenu : null,
           chatTurn: true,
           answerLang: lang,
           contextScope,
@@ -2000,6 +2004,8 @@ export default function GuideExperience({ embedded = false, initialAction = null
                     <div className="sag-query">{message.query}</div>
                   </>
                 )}
+
+                {chatStation && onRecommendMenu && message.recommendedMenu && recommendationTargets(chatStation).some(([id])=>id===message.recommendedMenu) && !message.pending && !message.error && <button type="button" className="sag-menu-recommendation" onClick={()=>onRecommendMenu(message.recommendedMenu)}>{recommendationLabel(message.recommendedMenu,lang)} <span aria-hidden="true">→</span></button>}
 
                 {message.searchSuggestion && (
                   <div

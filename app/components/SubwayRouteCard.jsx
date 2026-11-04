@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { destinationForApi, directionName, lineName, stationName } from "../lib/stationNameI18n";
 import { officialStationMatches, officialStationName } from "../lib/officialStations";
+import {getStationByCode,searchStationMaster} from '../lib/station-master';
 import { recordStat } from "../lib/record-stat";
 
 // Reuses the already tested /api/subway-route endpoint.
@@ -104,7 +105,11 @@ function ShortLineBadge({ name, lang }) {
 
 export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigationStep = null, navigationSnapshot = null, stationContext = null }) {
   const t = COPY[lang] || COPY.ko;
-  const originName = stationContext?.names[lang] || stationContext?.names.ko;
+  const [originStation,setOriginStation]=useState(stationContext);
+  const [originQuery,setOriginQuery]=useState('');
+  const [editingOrigin,setEditingOrigin]=useState(false);
+  const originMatches=editingOrigin&&originQuery.trim()?searchStationMaster(originQuery).slice(0,12):[];
+  const originName = originStation?.names[lang] || originStation?.names.ko;
   const originTag = stationContext ? ({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang] : t.originTag;
   const requestRef = useRef(null);
   useEffect(()=>()=>{requestRef.current?.abort();requestRef.current=null;},[]);
@@ -132,10 +137,10 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
     const sourceCode=navigationSnapshot.data.routeState.stationCode || navigationSnapshot.data.routeState.route?.originCode || '0154';
     if(sourceCode !== (stationContext?.stationCode || '0154'))return;
     appliedNavigation.current=navigationSnapshot.serial;
-    const saved=navigationSnapshot.data.routeState;setDestination(saved.destination);setSelectedStation(saved.selectedStation);setMode(saved.mode);setRoute(saved.route);setError('');
+    const saved=navigationSnapshot.data.routeState;setDestination(saved.destination);setSelectedStation(saved.selectedStation);setMode(saved.mode);setOriginStation(getStationByCode(saved.originCode)||stationContext);setRoute(saved.route);setError('');
   },[navigationSnapshot,stationContext?.stationCode]);
   const navRef=useRef(onNavigationStep);navRef.current=onNavigationStep;
-  useEffect(()=>{navRef.current?.(route?'route-result':'root',{destination,selectedStation,mode,route,stationCode:stationContext?.stationCode||'0154'});},[route,destination,selectedStation,mode,stationContext?.stationCode]);
+  useEffect(()=>{navRef.current?.(route?'route-result':'root',{destination,selectedStation,mode,route,originCode:originStation?.stationCode,stationCode:stationContext?.stationCode||'0154'});},[route,destination,selectedStation,mode,originStation?.stationCode,stationContext?.stationCode]);
   const stationLines = routeStationLines(route?.itinerary);
   const [newSearchOpened, setNewSearchOpened] = useState(false);
   const resultRef = useRef(null);
@@ -211,6 +216,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
     if (!destination.trim()) { setError(t.empty); return; }
     if (!code && !to) { setError(t.unsupported); return; }
     setShowSuggestions(false);
+    setEditingOrigin(false);
     setBusy(true);
     setError("");
     setRoute(null);
@@ -221,14 +227,14 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
     try {
       const params = new URLSearchParams({ to, mode });
       if (code) params.set("toCode", code);
-      if(stationContext)params.set('station',stationContext.stationCode);
+      if(originStation)params.set('station',originStation.stationCode);
       const response = await fetch(`/api/subway-route?${params}`, { cache: "no-store",signal:controller.signal });
       const data = await response.json();
       if (!response.ok || !data?.ok || !data.route) {
         throw new Error(data?.error || t.searchFailed);
       }
       if(controller.signal.aborted || requestRef.current !== controller)return;
-      if(stationContext && data.route.originCode !== stationContext.stationCode)throw new Error(t.searchFailed);
+      if(originStation && data.route.originCode !== originStation.stationCode)throw new Error(t.searchFailed);
       setRoute(data.route);
       recordStat("route_search", "success", lang);
     } catch (e) {
@@ -242,8 +248,10 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
 
   return (
     <section ref={cardRef} className="srg-card" aria-label={t.heading}>
-      <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin" title={originTag}>{stationContext&&<span className="srg-origin-line" style={{background:stationContext.color}}>{stationContext.line}</span>}{originTag}</span></header>
+      <header className="srg-heading"><div className="srg-title"><span className="srg-train" aria-hidden="true">🚇</span><strong>{t.heading}</strong></div><span className="srg-origin" title={originTag}>{stationContext&&<span className="srg-origin-line" style={{background:originStation.color}}>{originStation.line}</span>}{originTag}</span></header>
       <form onSubmit={search}>
+        {stationContext&&<div className="srg-origin-editor"><div className="srg-origin-edit-heading"><span>{t.from}: <strong>{originName}</strong></span><button type="button" disabled={busy} aria-expanded={editingOrigin} onClick={()=>{setEditingOrigin(v=>!v);setOriginQuery('');}}>{({ko:'출발역 변경',en:'Change origin',ja:'出発駅を変更',zh:'更改出发站'})[lang]}</button></div>{editingOrigin&&<><input id="srg-origin-input" disabled={busy} aria-label={t.from} placeholder={t.from} value={originQuery} onChange={e=>setOriginQuery(e.target.value)} maxLength={40}/><div className="srg-origin-options">{originMatches.map(station=><button type="button" key={station.stationCode} data-origin-code={station.stationCode} disabled={busy} onClick={()=>{setOriginStation(station);setEditingOrigin(false);setOriginQuery('');setRoute(null);setError('');}}><span style={{background:station.color,color:'white',borderRadius:20,padding:'2px 6px'}}>{station.line}</span> {station.names[lang]} <small>{station.stationCode}</small></button>)}</div></>}</div>}
+
         <div ref={searchRef} className="srg-search-wrap">
           <span className="srg-search-icon" aria-hidden="true">⌕</span>
           <input id="srg-destination-input" aria-label={t.to} value={selectedStation ? display(selectedStation.ko) : destination} onChange={(e) => { setDestination(e.target.value); setSelectedStation(null); setShowSuggestions(true); setError(""); }} onFocus={() => { if (destination.trim() && !selectedStation) setShowSuggestions(true); }} placeholder={t.toHint} maxLength={30} autoComplete="off" role="combobox" aria-expanded={suggestions.length > 0} aria-autocomplete="list" aria-controls="srg-suggestions" />
@@ -343,6 +351,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
         .srg-mode.active{border-color:#5bc3aa;background:#21473e;color:#a7e4d3}
         .srg-mode input{position:absolute;opacity:0;width:1px;height:1px}
         .srg-submit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#008c73;color:#fff;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
+        .srg-origin-editor{margin-bottom:12px;font-size:13px}.srg-origin-edit-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.srg-origin-edit-heading button{padding:8px;border:1px solid #47776a;border-radius:8px;background:#203c36;color:#d8f0e7;cursor:pointer}.srg-origin-editor input{box-sizing:border-box;width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #47776a;background:#122b26;color:white}.srg-origin-options{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.srg-origin-options button{padding:9px;background:#203c36;border:1px solid #47776a;color:#e3f4ed;border-radius:8px;cursor:pointer}
         .srg-submit:disabled{opacity:.45;cursor:not-allowed}.srg-error{margin-top:12px;padding:12px;background:#422722;border:1px solid #86564b;border-radius:10px;color:#ffd3c8;font-size:12px}.srg-error p{margin:5px 0 0}
         .srg-route-steps{display:flex;flex-direction:column;gap:9px}
         .srg-ride-card{border:1px solid #e1e8ea;border-left:5px solid var(--ride-color);border-radius:12px;padding:12px 10px 10px;background:#fff;min-width:0}

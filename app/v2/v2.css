@@ -27,3 +27,6 @@
 
 /* Station-specific provider directions can include branch names. */
 .v2-directions-station{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:8px}.v2-directions-station>div{min-width:0}.v2-directions-station .v2-arrival-primary{align-items:flex-start}.v2-directions-station .v2-arrival-primary>span{white-space:normal;overflow-wrap:anywhere;line-height:1.5;min-width:0;flex:1}.v2-directions-station .v2-arrival-primary>b{flex-shrink:0}
+/* V2-only supplementary navigation; generated labels/URLs are never rendered. */
+.v2-app .sag-menu-recommendation{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:100%;margin-top:14px;padding:12px 15px;border:1px solid #cbded8;border-radius:12px;background:#edf6f2;color:#225b49;font:inherit;font-size:13px;font-weight:650;text-align:start;cursor:pointer;overflow-wrap:anywhere}
+.v2-app .sag-menu-recommendation:focus-visible{outline:3px solid #70aa94;outline-offset:2px}

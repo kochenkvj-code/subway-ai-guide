@@ -1,0 +1,31 @@
+const {chromium}=require('playwright'),{spawn}=require('node:child_process'),assert=require('node:assert/strict');const wait=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{const child=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--port','3042'],{stdio:['ignore','pipe','pipe']});let logs='';child.stdout.on('data',d=>logs+=d);child.stderr.on('data',d=>logs+=d);let browser;
+try{for(let i=0;i<100&&!logs.includes('Ready');i++)await wait(100);assert.ok(logs.includes('Ready'),logs);browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const p=await browser.newPage({viewport:{width:390,height:844}});const errors=[],calls=[];p.on('pageerror',e=>errors.push(e.message));let recommended='route';
+await p.route('**/api/**',async r=>{const req=r.request(),url=new URL(req.url());
+ if(url.pathname==='/api/v2/chat'||url.pathname==='/api/google-search'){const body=req.postDataJSON();calls.push({path:url.pathname,body});return r.fulfill({json:{ok:true,answer:'검증된 안내입니다. Verified answer. ご案内。 안내 유지.',stationCode:body.stationCode,recommendedMenu:recommended}});}
+ if(url.pathname==='/api/subway-route'){const station=url.searchParams.get('station')||'0154';calls.push({path:url.pathname,station});return r.fulfill({json:{ok:true,route:{originCode:station,origin:station==='0150'?'서울역':'동묘앞',destination:'강남',totalSeconds:1200,totalMeters:10000,fareWon:1550,transferCount:0,itinerary:[],allStations:[]}}});}
+ return r.fulfill({json:url.pathname.includes('/feedback/count')?{count:0}:{ok:false}});
+});
+for(const code of ['0154','2637'])for(const lang of ['ko','en','ja','zh']){
+ console.log('case',code,lang);await p.goto('http://localhost:3042/v2?station='+code+'&lang='+lang+'&view=chat');await p.locator('.v2-chat-pane:not([hidden])').waitFor();const input=p.locator('.sag-input input,.sag-input textarea,.sag-input-wrap input,.sag-composer textarea').first();
+ // The chat composer keeps its established DOM.
+ const fields=p.locator('.v2-chat-pane input[type="text"],.v2-chat-pane textarea');const field=await input.count()?input:fields.last();await field.fill('강남역 가는 법');await field.press('Enter');await p.locator('.sag-menu-recommendation').waitFor();const c=calls.at(-1);assert.equal(c.path,'/api/v2/chat');assert.equal(c.body.stationCode,code);assert.equal(c.body.lang,lang);assert.deepEqual(c.body.history,[]);
+ await p.locator('.sag-menu-recommendation').click();await p.locator('.srg-card').waitFor();assert.equal(new URL(p.url()).searchParams.get('station'),code);assert.equal(await p.locator('.srg-origin-editor').count(),1);
+ await p.locator('.srg-origin-edit-heading button').click();await p.locator('#srg-origin-input').fill('0150');await p.locator('[data-origin-code="0150"]').click();assert.ok((await p.locator('.srg-origin').innerText()).includes('서울')||lang!=='ko');
+ await p.locator('#srg-destination-input').fill('강남');await p.locator('.srg-suggestion').first().click();await p.locator('.srg-submit').click();await p.locator('.srg-result').waitFor();assert.equal(calls.at(-1).station,'0150');assert.equal(new URL(p.url()).searchParams.get('station'),code);
+ if(code==='0154'&&lang==='ko'){
+  await p.locator('.srg-origin-edit-heading button').click();await p.locator('#srg-origin-input').fill('0152');await p.locator('[data-origin-code="0152"]').click();
+  await p.waitForTimeout(150);assert.ok((await p.locator('.srg-origin').innerText()).includes('종각'),'changed origin after a result must survive history restoration');
+  await p.locator('.srg-submit').click();await p.locator('.srg-result').waitFor();assert.equal(calls.at(-1).station,'0152');
+ }
+ await p.goBack();await p.waitForFunction(()=>!document.querySelector('.srg-result'));await p.goForward();await p.locator('.srg-result').waitFor();assert.ok((await p.locator('.srg-origin').innerText()).length>0);
+ // Going back to chat restores the existing message rather than requesting AI again.
+ await p.goto('http://localhost:3042/v2?station='+code+'&lang='+lang+'&view=chat');await p.locator('.v2-chat-pane:not([hidden])').waitFor();
+}
+// Same-tab recommendation navigation preserves history, and subsequent requests contain clean answer text.
+await p.goto('http://localhost:3042/v2?station=2637&view=chat');let field=p.locator('.v2-chat-pane .sag-input-wrap input').last();await field.fill('안녕');await field.press('Enter');await p.locator('.sag-menu-recommendation').waitFor();const n=calls.filter(x=>x.path==='/api/v2/chat').length;await p.locator('.sag-menu-recommendation').click();await p.locator('.srg-card').waitFor();await p.goBack();await p.locator('.sag-menu-recommendation').waitFor();assert.equal(calls.filter(x=>x.path==='/api/v2/chat').length,n);field=p.locator('.v2-chat-pane .sag-input-wrap input').last();await field.fill('그다음은?');await field.press('Enter');await p.waitForFunction(()=>document.querySelectorAll('.sag-menu-recommendation').length===2);assert.equal(calls.at(-1).body.history.length,2);assert.ok(!JSON.stringify(calls.at(-1).body.history).includes('menu_recommendation'));
+for(const width of [320,390]){await p.setViewportSize({width,height:844});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}await p.screenshot({path:'work/v2-chat-mobile.png',fullPage:true});
+// Unknown/unavailable IDs cannot become navigation buttons.
+recommended='missing';await field.fill('새 질문');await field.press('Enter');await p.waitForFunction(()=>!document.querySelector('.sag-bubble.pending'));assert.equal(await p.locator('.sag-menu-recommendation').count(),2);
+await p.goto('http://localhost:3042/');assert.equal(await p.locator('.srg-origin-editor').count(),0);const legacy=p.locator('.sag-input-wrap input').last();await legacy.fill('화장실?');await legacy.press('Enter');await p.waitForFunction(()=>!document.querySelector('.sag-bubble.pending'));assert.equal(calls.at(-1).path,'/api/google-search');assert.equal(calls.at(-1).body.stationCode,undefined);assert.equal(await p.locator('.sag-menu-recommendation').count(),0);assert.deepEqual(errors,[]);console.log('PASS V2 chat: two stations/four languages, recommendation navigation, editable origin, history/back-forward, mobile widths and V1 isolation',calls.length);
+}finally{await browser?.close();child.kill('SIGTERM');}})().catch(e=>{console.error(e);process.exit(1)});
