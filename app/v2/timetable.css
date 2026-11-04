@@ -58,3 +58,80 @@
 @media(max-width:365px){.tt-toggle-wrap{grid-template-columns:1fr}.tt-title h2{font-size:19px}}
 
 @media(max-width:560px){.tt-toggle-wrap{grid-template-columns:1fr}.tt-toggle-directions button{min-height:48px}.tt-train-badges{align-items:flex-end}.tt-dir-tag{font-size:12px;padding:6px 9px}}
+
+
+/* Compact V2 train timetable: summary first, hourly browsing on demand. */
+.tt2-root{padding:10px 12px 24px}
+.tt2-heading{display:flex;justify-content:space-between;align-items:center;padding:2px 3px 11px}
+.tt2-heading h2{margin:2px 0 0;font-size:21px;letter-spacing:-.6px;font-weight:850}
+.tt2-heading-icon{font-size:27px;color:#8cb4d9}
+.tt2-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:11px 12px;background:#fff;border:1px solid #e0e8f2;border-radius:14px}
+.tt2-station{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
+.tt2-line-no{width:31px;height:31px;display:grid;place-items:center;flex-shrink:0;border-radius:50%;background:#2564a5;color:#fff;font-weight:900;font-size:16px}
+.tt2-station-text{display:flex;flex-direction:column;min-width:0;gap:1px}
+.tt2-station-text strong{font-size:17px;font-weight:850;overflow-wrap:anywhere}
+.tt2-station-text small{font-size:11px;color:#8698ae}
+.tt2-change-station{flex-shrink:0;border:1px solid #d9e5f3;background:#f3f8ff;padding:7px;border-radius:8px;color:#346b9f;font-size:12px;font-weight:750}
+.tt2-day-switch{display:flex;gap:3px;border:1px solid #e0e8f2;background:#f5f8fc;border-radius:10px;padding:3px}
+.tt2-day-switch button,.tt2-direction button,.tt2-mode-tabs button{border:0;background:transparent;color:#647b96;cursor:pointer}
+.tt2-day-switch button{padding:8px 11px;border-radius:8px;font-size:12px;font-weight:750;white-space:nowrap}
+.tt2-day-switch button.active{background:#fff;color:#255d97;box-shadow:0 1px 4px #1a4e7c1c}
+.tt2-direction{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;background:#eef3f8;border-radius:11px;padding:4px;margin-top:9px}
+.tt2-direction button{min-height:39px;border-radius:8px;font-size:13px;font-weight:800}
+.tt2-direction button.active{background:#fff;color:#225e9a;box-shadow:0 1px 6px #245d8d18}
+.tt2-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 14px}
+.tt2-mode-tabs{display:flex;align-items:center;gap:14px;min-width:0}
+.tt2-mode-tabs button{padding:8px 2px;border-bottom:2px solid transparent;font-size:14px;font-weight:800;white-space:nowrap}
+.tt2-mode-tabs button.active{color:#255f9e;border-bottom-color:#2568aa}
+.tt2-express-filter{border:1px solid #d9e5f0;background:#fff;color:#627c96;border-radius:99px;padding:8px 11px;white-space:nowrap;font-size:12px;font-weight:750}
+.tt2-express-filter.active{color:#245f9f;background:#e5f1ff;border-color:#83b4e5}
+.tt2-body{display:flex;flex-direction:column;gap:9px}
+.tt2-section-label{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:3px 2px 1px}
+.tt2-section-label strong{font-size:15px;font-weight:850}
+.tt2-section-label small{font-size:11px;color:#8194a9}
+.tt2-panel{overflow:hidden;background:#fff;border:1px solid #e1e9f2;border-radius:13px}
+.tt2-panel-head{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:#f8faff;border-bottom:1px solid #e9eff6}
+.tt2-panel-head strong{font-size:13px;font-weight:850}
+.tt2-panel-head small{font-size:11px;color:#879bb1}
+.tt2-train-row{display:flex;align-items:center;gap:9px;min-height:48px;padding:8px 13px;border-bottom:1px solid #edf1f5}
+.tt2-train-row:last-child{border-bottom:0}
+.tt2-train-time{width:63px;flex-shrink:0;color:#245e9c;font-size:19px;letter-spacing:-.5px;font-weight:850;font-variant-numeric:tabular-nums}
+.tt2-train-dest{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px}
+.tt2-train-dest strong{font-size:14px;font-weight:750;overflow-wrap:anywhere}
+.tt2-train-dest small{font-size:10px;color:#91a0b2}
+.tt2-dir-badge,.tt2-express-badge{display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:850;border-radius:6px;padding:4px 6px;white-space:nowrap}
+.tt2-dir-badge{color:#376ba0;background:#e9f2fb}
+.tt2-express-badge{color:#996117;background:#fff1db}
+.tt2-empty{padding:15px;margin:0;color:#8394a7;font-size:12px;text-align:center}
+.tt2-first-title{margin-top:5px}
+.tt2-first-panel{padding:3px 12px 9px}
+.tt2-first-group{padding:10px 1px;border-bottom:1px solid #edf1f6}
+.tt2-first-group:last-of-type{border-bottom:0}
+.tt2-first-direction{font-size:12px;font-weight:850;color:#526c8b;margin-bottom:8px}
+.tt2-first-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tt2-first-pair>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px;min-width:0}
+.tt2-first-pair small{font-size:11px;color:#8093a7}
+.tt2-first-pair strong{font-size:17px;color:#265f99;font-variant-numeric:tabular-nums}
+.tt2-first-pair span{font-size:11px;color:#778ca1;overflow-wrap:anywhere}
+.tt2-first-note{margin:8px 2px 1px;color:#8393a7;font-size:10px;line-height:1.6}
+.tt2-full-cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:1px solid #d1e2f4;background:#ecf5ff;color:#25639e;border-radius:11px;padding:12px;font-size:13px;font-weight:850}
+.tt2-hour-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding:1px 0 9px}
+.tt2-hour-strip button{flex-shrink:0;border:1px solid #dce6f1;border-radius:9px;padding:9px 11px;background:#fff;color:#59748e;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.tt2-hour-strip button.active{background:#2767a8;border-color:#2767a8;color:white}
+.tt2-load-more{width:100%;border:0;border-top:1px solid #e3edf7;background:#f2f8ff;color:#2766a0;padding:13px;font-size:12px;font-weight:800}
+.tt2-back-summary{align-self:center;border:0;background:transparent;color:#587d9e;font-size:12px;font-weight:750;padding:10px}
+.tt2-root .tt-disclaimer{margin-top:14px;font-size:10px;line-height:1.7}
+.tt2-root .tt-source{margin-top:12px}
+@media(max-width:470px){
+ .tt2-root{padding:9px 10px 24px}
+ .tt2-topbar{padding:10px}
+ .tt2-station-text strong{font-size:15px}
+ .tt2-day-switch button{padding:8px 9px}
+ .tt2-train-row{gap:7px;padding:8px 10px}
+ .tt2-train-time{width:59px;font-size:18px}
+ .tt2-train-dest strong{font-size:13px}
+ .tt2-first-pair strong{font-size:16px}
+ .tt2-mode-tabs{gap:11px}
+ .tt2-mode-tabs button{font-size:13px}
+}
+@media(max-width:350px){.tt2-topbar{flex-direction:column;align-items:stretch}.tt2-day-switch{align-self:flex-end}}
