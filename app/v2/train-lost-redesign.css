@@ -166,3 +166,16 @@
 .tf-redesign.tl-three-stage .tl-handoff{margin-top:0}
 .tf-redesign.tl-three-stage .tl-reset-row{flex-wrap:wrap}
 @media(max-width:380px){.tf-redesign.tl-three-stage{padding:9px 7px 20px}.tf-redesign.tl-three-stage .tl-input-panel{padding:12px 11px}.tf-redesign.tl-three-stage .tl-step{font-size:10px;gap:3px}.tf-redesign.tl-three-stage .tl-choice{padding:7px}.tf-redesign.tl-three-stage .tl-choice strong{font-size:11px}.tf-redesign.tl-three-stage .tl-candidate-chip{min-width:112px}}
+
+
+/* Step 1: make the two possible train directions unmistakably side by side. */
+.tf-redesign.tl-three-stage .tl-direction-field .tl-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-directions-single{grid-template-columns:minmax(0,1fr)}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice{position:relative;min-width:0;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;padding:10px 8px;border-radius:13px}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice .tl-direction-arrow{font-size:21px;line-height:1;font-weight:900;color:#7495a4}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice strong{max-width:100%;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice small{margin:0;font-size:10px;color:#8499a4}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice .tl-direction-check{position:absolute;right:9px;top:7px;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;font-size:11px;font-weight:900;background:#0b8c70;color:#fff}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice[aria-pressed="true"]{background:#e7f7f1;border-color:#19a381;box-shadow:0 0 0 1px #19a381 inset}
+.tf-redesign.tl-three-stage .tl-direction-field .tl-choice[aria-pressed="true"] .tl-direction-arrow{color:#087e65}
+@media(max-width:380px){.tf-redesign.tl-three-stage .tl-direction-field .tl-choice{min-height:73px;padding:8px 4px}.tf-redesign.tl-three-stage .tl-direction-field .tl-choice strong{font-size:12px}.tf-redesign.tl-three-stage .tl-direction-field .tl-directions{gap:6px}}
