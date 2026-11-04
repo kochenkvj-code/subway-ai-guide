@@ -16,3 +16,38 @@ test('timetable errors are not cached and valid line 2 directions are preserved'
  assert.equal((await GET({url:'https://app.test/api/v2/timetable?stationCode=0222&direction=상행'})).status,400);
  const r=await GET({url:'https://app.test/api/v2/timetable?stationCode=0222&direction=내선'});assert.equal(r.status,502);assert.equal(r.headers.get('cache-control'),'no-store');
 });
+
+test('facility preview uses read-only public data source without private API key',async()=>{
+ const calls=[];
+ const {GET}=await loadModule('app/api/v2/facilities/route.js',{
+  process:{env:{VERCEL_ENV:'preview'}},
+  fetch:async url=>{
+   calls.push(String(url));
+   return Response.json({ok:true,stationCode:'0154',station:'종로5가',line:'1호선',categories:[{id:'toilet',name:'화장실',count:1,items:[{stnNm:'종로5가',dtlPstn:'B1'}]}]});
+  }
+ });
+ const r=await GET({url:'https://preview.example/api/v2/facilities?stationCode=0154'});
+ assert.equal(r.status,200);
+ const data=await r.json();
+ assert.equal(data.categories[0].items[0].dtlPstn,'B1');
+ assert.equal(data.stationCode,'0154');
+ assert.equal(calls.length,1);
+ assert.equal(new URL(calls[0]).origin,'https://subway-ai-guide.vercel.app');
+ assert.equal(new URL(calls[0]).searchParams.get('stationCode'),'0154');
+ assert.equal(r.headers.get('Cache-Control'),'no-store');
+ const bad=await GET({url:'https://preview.example/api/v2/facilities?stationCode=9999'});
+ assert.equal(bad.status,400);
+ assert.equal(calls.length,1);
+});
+
+test('facility production never proxies without a private API key',async()=>{
+ let called=false;
+ const {GET}=await loadModule('app/api/v2/facilities/route.js',{
+  process:{env:{VERCEL_ENV:'production'}},
+  fetch:async()=>{called=true;throw Error('Must not proxy');}
+ });
+ const r=await GET({url:'https://production.example/api/v2/facilities?stationCode=0154'});
+ assert.equal(r.status,503);
+ assert.equal((await r.json()).error,'API_KEY_MISSING');
+ assert.equal(called,false);
+});
