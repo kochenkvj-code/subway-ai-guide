@@ -215,10 +215,10 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    zh:{seat:'座位',rack:'行李架',nearDoor:'车门附近',floor:'地板'}
  };
  const messageFields={
-   ko:{title:'[서울교통공사 열차 내 유실물 수배 요청]',line:'노선',lineUnit:'호선',station:'하차역',time:'하차일시',direction:'열차 진행 방향',train:'열차번호',position:'현재 확인 위치',boarding:'승차 위치',item:'분실물',place:'물건을 둔 곳',stationUnit:'역',toward:'방면',timeSuffix:'경',estimated:'실시간 위치 기반 추정',unknown:'확인 필요',unavailable:'실시간 확인 불가',door:n=>n+'번 출입문',closingChosen:'열차번호는 실시간 위치 기반 추정으로 실제 탑승 열차인지 확인이 필요합니다. 확인 후 유실물 수배를 요청드립니다.',closingUnknown:'탑승 열차번호 확인 후 유실물 수배를 요청드립니다.'},
-   en:{title:'[Lost Item on Train — Search Request]',line:'Line',lineUnit:'',station:'Alighting station',time:'Alighting time',direction:'Train direction',train:'Train number',position:'Last reported position',boarding:'Boarding position',item:'Lost item',place:'Where item was left',stationUnit:'',toward:'toward',timeSuffix:' (approx.)',estimated:'estimated from live position',unknown:'Needs confirmation',unavailable:'Not available',door:n=>'door '+n,closingChosen:'This train number is estimated from live positions, not confirmed as the train boarded. Please verify it before searching for the item.',closingUnknown:'Please identify the train before searching for the item.'},
-   ja:{title:'[車内忘れ物・捜索依頼]',line:'路線',lineUnit:'号線',station:'下車駅',time:'下車日時',direction:'進行方向',train:'列車番号',position:'最新確認位置',boarding:'乗車位置',item:'忘れ物',place:'置いた場所',stationUnit:'駅',toward:'方面',timeSuffix:'頃',estimated:'リアルタイム位置からの推定',unknown:'要確認',unavailable:'位置未確認',door:n=>n+'番ドア',closingChosen:'列車番号は位置情報からの推定であり、実際に乗車した列車とは未確定です。確認のうえ、忘れ物の捜索をお願いします。',closingUnknown:'乗車列車を確認のうえ、忘れ物の捜索をお願いします。'},
-   zh:{title:'[列车内遗失物品查找请求]',line:'线路',lineUnit:'号线',station:'下车站',time:'下车时间',direction:'列车行驶方向',train:'列车编号',position:'最近报告位置',boarding:'乘车位置',item:'遗失物品',place:'物品放置位置',stationUnit:'站',toward:'方向',timeSuffix:'左右',estimated:'根据实时位置推测',unknown:'待确认',unavailable:'未查到位置',door:n=>'第'+n+'号车门',closingChosen:'列车编号根据实时位置推测，尚不能确认实际乘坐的列车。请核实后协助查找遗失物品。',closingUnknown:'请先确认乘坐列车，再协助查找遗失物品。'}
+   ko:{title:'[열차 내 유실물 문의]',intro:'안녕하세요. 열차에 물건을 두고 내려 문의드립니다.',line:'노선',lineUnit:'호선',station:'하차역',time:'하차시각',direction:'진행방향',train:'열차번호',position:'최근 확인 위치',boarding:'탑승 위치',item:'분실물',place:'물건을 둔 곳',stationUnit:'역',toward:'방면',timeSuffix:'경',numberSuffix:'번',estimated:'추정',unknown:'확인하지 못함',door:n=>n+'번 출입문',closing:'분실물 확인 부탁드립니다. 감사합니다.'},
+   en:{title:'[Lost Item on Train]',intro:'Hello, I think I left an item on the train and would like to ask for help.',line:'Line',lineUnit:'',station:'Station I got off at',time:'Time I got off',direction:'Direction',train:'Train number',position:'Last reported location',boarding:'Where I was sitting/standing',item:'Lost item',place:'Where I left it',stationUnit:'',toward:'toward',timeSuffix:' (approx.)',numberSuffix:'',estimated:'estimated',unknown:'I could not identify it',door:n=>'door '+n,closing:'Could you please help me find my item? Thank you.'},
+   ja:{title:'[車内の忘れ物について]',intro:'こんにちは。電車内に忘れ物をしたため、ご連絡しました。',line:'路線',lineUnit:'号線',station:'下車駅',time:'下車時刻',direction:'進行方向',train:'列車番号',position:'最新確認位置',boarding:'乗車位置',item:'忘れ物',place:'置いた場所',stationUnit:'駅',toward:'方面',timeSuffix:'頃',numberSuffix:'番',estimated:'推定',unknown:'確認できませんでした',door:n=>n+'番ドア',closing:'忘れ物の確認をお願いいたします。ありがとうございます。'},
+   zh:{title:'[咨询列车内遗失物品]',intro:'您好，我可能把东西落在列车上了，想咨询一下。',line:'线路',lineUnit:'号线',station:'下车站',time:'下车时间',direction:'行驶方向',train:'列车编号',position:'最近报告位置',boarding:'乘车位置',item:'遗失物品',place:'物品放置位置',stationUnit:'站',toward:'方向',timeSuffix:'左右',numberSuffix:'次',estimated:'推测',unknown:'未能确认',door:n=>'第'+n+'号车门',closing:'麻烦帮忙查找一下遗失物品，谢谢！'}
  };
  const z=messageFields[lang]||messageFields.ko;
  const boardingPosition=carMode==='number'
@@ -226,18 +226,21 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    :carPosition+' · '+z.door(door);
  const message=(chosen||handoffUnknown)?[
    z.title,
+   '',
+   z.intro,
+   '',
    z.line+': '+selection.line+z.lineUnit,
    z.station+': '+selection.name+z.stationUnit,
    z.time+': '+when.date+' '+when.time+z.timeSuffix,
    z.direction+': '+next+z.stationUnit+' '+z.toward,
-   z.train+': '+(chosen?chosen.number+' ('+z.estimated+')':z.unknown),
-   z.position+': '+(chosen&&current?current.station+z.stationUnit+' ('+current.receivedAt+')':z.unavailable),
+   z.train+': '+(chosen?chosen.number+z.numberSuffix+' ('+z.estimated+')':z.unknown),
+   chosen&&current?z.position+': '+current.station+z.stationUnit:null,
    z.boarding+': '+boardingPosition,
    z.item+': '+thing.trim(),
-   place?z.place+': '+(placeNames[lang]||placeNames.ko)[place]:'',
+   place?z.place+': '+(placeNames[lang]||placeNames.ko)[place]:null,
    '',
-   chosen?z.closingChosen:z.closingUnknown
- ].filter((line,index)=>line!==''||index===10).join('\n'):'';
+   z.closing
+ ].filter(line=>line!==null).join('\\n'):'';
  function sms(){
    if(!message)return;
    // Opens a user-controlled SMS draft only. No SMS is sent by this site.
