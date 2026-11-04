@@ -95,7 +95,6 @@ async function load(station,line,key,identity){
 }
 export async function GET(req){
   const key=process.env.SEOUL_METRO_FACILITY_API_KEY?.trim();
-  if(!key)return Response.json({ok:false,error:'API_KEY_MISSING'},{status:503,headers:{'Cache-Control':'no-store'}});
   const url=new URL(req.url);
   const identity=url.searchParams.has('stationCode')?providerStation(url.searchParams.get('stationCode')):null;
   if(url.searchParams.has('stationCode')&&!identity)return Response.json({ok:false,error:'INVALID_STATION'},{status:400});
@@ -103,6 +102,27 @@ export async function GET(req){
   const line=identity?identity.line+'호선':(url.searchParams.get('line')||'1호선').trim();
   if(!/^[가-힣A-Za-z0-9()·\s-]{2,30}$/.test(station)||!/^(?:[1-9]호선|[가-힣A-Za-z0-9\s-]{2,20})$/.test(line)){
     return Response.json({ok:false,error:'INVALID_STATION'},{status:400,headers:{'Cache-Control':'no-store'}});
+  }
+  if(!key){
+    // Preview does not receive the production-only facility API key. Use this
+    // project's public, read-only production API for facility records instead.
+    // Restrict this fallback to Vercel Preview; no secrets are copied or exposed.
+    if(process.env.VERCEL_ENV!=='preview')return Response.json({ok:false,error:'API_KEY_MISSING'},{status:503,headers:{'Cache-Control':'no-store'}});
+    try{
+      const source=new URL('/api/v2/facilities','https://subway-ai-guide.vercel.app');
+      if(identity)source.searchParams.set('stationCode',identity.stationCode);
+      else{
+        source.searchParams.set('station',station);
+        source.searchParams.set('line',line);
+      }
+      const res=await fetch(source.toString(),{cache:'no-store',signal:AbortSignal.timeout(12000)});
+      if(!res.ok)throw new Error('UPSTREAM_'+res.status);
+      const payload=await res.json();
+      if(!payload?.ok||!Array.isArray(payload.categories)||identity&&payload.stationCode!==identity.stationCode)throw new Error('SOURCE_INVALID');
+      return Response.json(payload,{headers:{'Cache-Control':'no-store'}});
+    }catch{
+      return Response.json({ok:false,error:'PREVIEW_PUBLIC_FACILITY_LOOKUP_FAILED'},{status:502,headers:{'Cache-Control':'no-store'}});
+    }
   }
   const id=(identity?.stationCode||'legacy')+'|'+station+'|'+line;
   const cached=cache.get(id);
