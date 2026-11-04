@@ -1,7 +1,6 @@
 'use client';
-import {useMemo} from 'react';
 import {stationName,lineName} from '../lib/stationNameI18n';
-import {trainStationDisplay,trainStationKey,followStops} from '../lib/train-lost';
+import {trainStationDisplay} from '../lib/train-lost';
 import TrainLiveDiagram from './TrainLiveDiagram';
 import './train-lost-redesign.css';
 
@@ -14,91 +13,110 @@ const dictionary={
 const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 
+const flowCopy={
+ ko:{steps:['정보 입력','열차 확인','수배 요청'],time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'출입문·물품 위치 추가 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'열차 배치도 또는 위 후보에서 열차를 선택하세요.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 미확정으로 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
+ en:{steps:['Enter details','Find the train','Handoff'],time:'Alighting time',timeGuide:'Relative time is recalculated when you start the search.',timeExact:'Edit exact alighting time',additional:'Door & item position (optional)',candidateCount:'Live candidates',candidateHelp:'Tap a candidate to focus it in the live train diagram.',mapTitle:'Live train positions',confirm:'Continue with this train',selectHint:'Choose a train above or in the live diagram.',chosenPosition:'Selected train last seen',fallback:'Handoff without a confirmed train',handoffBack:'← Back to live train view',quickEdit:'← Edit information',secondary:'A candidate is not a verified boarding record.',noCandidate:'You can still hand off details without a train number.',timeRef:'Alighting time used in search'},
+ ja:{steps:['情報入力','列車確認','連絡内容'],time:'下車時刻',timeGuide:'「何分前」は検索時点で再計算されます。',timeExact:'正確な下車時刻を入力',additional:'ドア・置いた場所（任意）',candidateCount:'列車候補',candidateHelp:'候補を押すと下の列車位置図で強調します。',mapTitle:'リアルタイム列車位置',confirm:'この列車の情報で続ける',selectHint:'候補または列車位置図から選択してください。',chosenPosition:'選択列車の最新確認位置',fallback:'列車番号未確定で連絡',handoffBack:'← 列車位置に戻る',quickEdit:'← 情報を修正',secondary:'候補は乗車列車として確定していません。',noCandidate:'列車番号なしでも忘れ物情報を連絡できます。',timeRef:'検索に使用する下車時刻'},
+ zh:{steps:['填写信息','确认列车','转交信息'],time:'下车时间',timeGuide:'搜索时会重新计算“几分钟前”。',timeExact:'修改准确下车时间',additional:'车门及遗失位置（选填）',candidateCount:'实时候选',candidateHelp:'点击候选列车，在下方实时图中突出显示。',mapTitle:'实时列车位置',confirm:'用所选列车继续',selectHint:'请在候选列表或实时图中选择列车。',chosenPosition:'所选列车最近位置',fallback:'无法确认车次时转交',handoffBack:'← 返回实时列车图',quickEdit:'← 修改信息',secondary:'候选列车不代表实际乘车记录。',noCandidate:'没有车次也可以转交遗失信息。',timeRef:'搜索使用的下车时间'}
+};
 export default function TrainLostUI(p){
  const {lang='ko',t,active,demoMode,selection,selectionLabel,lines,neighbors,requiredDirection,matches,
-  editing,setEditing,query,setQuery,chooseStation,next,setNext,when,setWhen,quickMin,setQuickMin,korea,kstAlightDateForTime,resetMatches,
-  busy,error,candidates,chosen,current,searched,lookupStats,directionWarning,pick,livePositions,liveFetchedAt,onLiveSnapshot,
-  onSearch,onBack,onNone,carMode,setCarMode,carNumber,setCarNumber,relativeSide,setRelativeSide,thing,setThing,door,setDoor,place,setPlace,
-  stage,handoffUnknown,message,sms,copyMessage,copyStatus,recommended,liveInfo}=p;
+ editing,setEditing,query,setQuery,chooseStation,next,setNext,when,setWhen,quickMin,setQuickMin,korea,kstAlightDateForTime,resetMatches,
+ busy,error,candidates,chosen,current,searched,lookupStats,directionWarning,pick,livePositions,liveFetchedAt,onLiveSnapshot,
+ onSearch,onBack,onNone,onContinue,onBackToResults,carMode,setCarMode,carNumber,setCarNumber,relativeSide,setRelativeSide,thing,setThing,door,setDoor,place,setPlace,
+ stage,handoffUnknown,message,sms,copyMessage,copyStatus,recommended,liveInfo}=p;
  const u=dictionary[lang]||dictionary.ko;
+ const v=flowCopy[lang]||flowCopy.ko;
  const carLabel=carNumber?(carMode==='number'?carNumber+u.carUnit:(relativeSide==='앞'?u.front:u.back)+' '+carNumber+u.relativeUnit):'';
  const canSearch=Boolean(thing.trim()&&carNumber&&next&&requiredDirection!==null&&neighbors.length);
- const handoffReady=Boolean(chosen||handoffUnknown);
- const way=localized(next,selection.line,lang);
- const route=useMemo(()=>next?followStops(selection.line,selection.name,next,38).stops:[],[selection.line,selection.name,next]);
- const candidateRoute=(c)=>{
-  const at=route.findIndex(st=>trainStationKey(selection.line,st)===trainStationKey(selection.line,c.station));
-  if(at<0)return [selection.name,c.station];
-  if(at<=2)return [selection.name,...route.slice(0,at+1)];
-  return [selection.name,...route.slice(Math.max(0,at-1),at+1)];
- };
- const displayTime=when.date+' '+when.time;
- const approxMinutes=quickMin==null?'':quickMin;
- const first=candidates[0],rest=candidates.slice(1);
- const candidateCard=(c,index)=>{
-  const selected=compareNo(chosen?.number)===compareNo(c.number);
-  const positions=candidateRoute(c);
-  return <section key={c.number+'/'+index} className={'tl-candidate'+(index===0?' featured':'')+(selected?' chosen':'')}>
-   <div className="tl-candidate-header"><span className="tl-rank">{index+1}. {index===0?u.rank:u.nextRank}</span><span className="tl-uncertain">{u.candidate}</span></div>
-   <div className="tl-train-row"><span className="tl-train-no">#{c.number}<small>{u.train}</small></span><span className="tl-current">{u.position} <b>{localized((current&&selected?current.station:c.station),selection.line,lang)}</b></span></div>
-   <p className="tl-evidence">{lineName(selection.line+'호선',lang)} · {way} · {c.corroborated?u.corroborated:u.unverified} · {u.stopCount} {c.stopsFromAlight}{u.stops}{c.branched?' · '+u.branches:''}</p>
-   {index===0&&<div className="tl-route" aria-label={u.routePart}>{positions.map((stop,i)=><div key={stop+'/'+i} className={'tl-route-stop'+(i===0?' passed':'')+(i===positions.length-1?' current':'')}><i className="tl-route-dot"/><span>{localized(stop,selection.line,lang)}</span></div>)}</div>}
-   <button type="button" className={'tl-candidate-btn'+(selected?' selected':'')} onClick={()=>pick(c)}>{selected?'✓ '+u.chosen:u.choose}</button>
-  </section>;
- };
- return <div className="tf-root tf-redesign">
-  <section className="tl-hero"><span>LOST ITEM · TRAIN FINDER</span><h2>{stage==='input'?u.heroIn:u.heroOut}</h2><p>{stage==='input'?u.subtitle:u.resultSubtitle}</p></section>
-  <div className="tl-stepbar" aria-label={u.stepInput+' → '+u.stepResult}><div className={'tl-step'+(stage==='input'?' current':' done')}><b>{stage==='input'?'1':'✓'}</b>{u.stepInput}</div><span className="tl-progress-line"/><div className={'tl-step'+(stage==='results'?' current':'')}><b>2</b>{u.stepResult}</div></div>
+ const way=next?localized(next,selection.line,lang):'';
+ const displayTime=when.date.replace(/-/g,'.')+' '+when.time;
+ const stageNumber=stage==='input'?1:stage==='results'?2:3;
+ const closeStation=()=>setEditing(!editing);
+ return <div className="tf-root tf-redesign tl-three-stage">
+  <section className="tl-hero"><span>LOST ITEM · TRAIN FINDER</span><h2>{stage==='input'?u.heroIn:stage==='results'?u.heroOut:u.handoff}</h2><p>{stage==='input'?u.subtitle:stage==='results'?u.resultSubtitle:u.handoffSub}</p></section>
+  <nav className="tl-stepbar" aria-label={v.steps.join(' → ')}>
+   {v.steps.map((label,i)=><span key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</span>)}
+  </nav>
   {demoMode&&<p className="tf-warning">DEMO · {u.demo}</p>}
-  {stage==='input'?<>
-   <section className="tl-panel">
+  {stage==='input'&&<>
+   <section className="tl-panel tl-input-panel">
     <h3 className="tl-panel-title"><em>01</em>{u.panelA}</h3>
-    <div className="tl-field"><div className="tl-label">{u.station}</div><div className="tl-station"><span className="tl-station-bubble">{selection.line}</span><div className="tl-station-name">{selectionLabel}<small>{lineName(selection.line+'호선',lang)}</small></div><button type="button" className="tl-link" onClick={()=>setEditing(!editing)}>{editing?u.change+' ×':u.change}</button></div>
+    <div className="tl-field"><div className="tl-label">{u.station}</div>
+     <div className="tl-station"><span className="tl-station-bubble">{selection.line}</span><div className="tl-station-name">{selectionLabel}<small>{lineName(selection.line+'호선',lang)}</small></div><button type="button" className="tl-link" onClick={closeStation}>{editing?u.change+' ×':u.change}</button></div>
      {editing&&<div className="tl-picker"><input type="search" value={query} placeholder={t.search} onChange={e=>setQuery(e.target.value)} aria-label={t.search} autoComplete="off"/>{matches.length>0&&<div className="tf-matches">{matches.map(s=><button type="button" key={s.name+'/'+s.line} onClick={()=>chooseStation(s)}>{s.display} · {lineName(s.line+'호선',lang)}</button>)}</div>}</div>}
     </div>
-    {lines.length>1&&<div className="tl-field"><div className="tl-label">{t.line}</div><select className="tl-input" value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})}>{lines.map(l=><option value={l} key={l}>{lineName(l+'호선',lang)}</option>)}</select></div>}
+    {lines.length>1&&<div className="tl-field"><div className="tl-label">{t.line}</div><select className="tl-input" value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})}>{lines.map(l=><option key={l} value={l}>{lineName(l+'호선',lang)}</option>)}</select></div>}
     {!neighbors.length&&<p className="tf-warning">{u.stationUnavailable}</p>}
-    <div className="tl-field"><div className="tl-label">{u.direction}<span className="tl-required">{u.required}</span></div><div className="tl-directions">{neighbors.map((st,i)=><button type="button" className="tl-choice" key={st} aria-pressed={st===next} onClick={()=>{setNext(st);resetMatches();}}><span className="tl-arrow">{i===0?'←':'→'}</span><strong>{localized(st,selection.line,lang)}</strong><small>{u.directionSub}</small></button>)}</div>{next&&requiredDirection===null&&<p className="tf-warning">{u.needDirection}</p>}{neighbors.length>2&&<p className="tl-note">{u.branches}</p>}</div>
-    <div className="tl-field"><div className="tl-label">{u.elapsed}<span className="tl-required">{u.required}</span></div><div className="tl-times">{[3,5,10,15].map(n=><button type="button" key={n} className="tl-chip" aria-pressed={quickMin===n} onClick={()=>{setQuickMin(n);setWhen(korea(n));resetMatches();}}>{n}{u.mins}</button>)}</div>
-     <div className="tl-custom-time"><span>{u.custom}</span><input type="number" min="1" max="30" inputMode="numeric" aria-label={u.custom} value={approxMinutes} placeholder={u.minutes} onChange={e=>{const val=e.target.value;const n=Number(val);if(val===''||!Number.isInteger(n)||n<1||n>30){setQuickMin(null);return;}setQuickMin(n);setWhen(korea(n));resetMatches();}}/><span>{u.minutes}</span><small>{u.range}</small></div>
-     <details className="tl-exact-time"><summary>{u.exact}</summary><input type="time" value={when.time} aria-label={t.time} onChange={e=>{setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></details>
+    <div className="tl-field"><div className="tl-label">{u.direction}<span className="tl-required">{u.required}</span></div><div className="tl-directions">{neighbors.map((st,i)=><button type="button" className="tl-choice" key={st} aria-pressed={next===st} onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}><span className="tl-arrow">{i===0?'←':'→'}</span><strong>{localized(st,selection.line,lang)}</strong><small>{u.directionSub}</small></button>)}</div>{next&&requiredDirection===null&&<p className="tf-warning">{u.needDirection}</p>}{neighbors.length>2&&<p className="tl-note">{u.branches}</p>}</div>
+    <div className="tl-field tl-time-field"><div className="tl-label">{u.elapsed}<span className="tl-required">{u.required}</span></div>
+     <div className="tl-times">{[3,5,10,15].map(n=><button type="button" className="tl-chip" key={n} aria-pressed={quickMin===n} onClick={()=>{setQuickMin(n);setWhen(korea(n));resetMatches();}}>{n}{u.mins}</button>)}</div>
+     <div className="tl-time-summary" role="status"><span>◷ {v.time}</span><strong>{displayTime}</strong></div>
+     <details className="tl-exact-time"><summary>{v.timeExact}</summary><div className="tl-time-extra"><label>{u.custom} ({u.minutes}) <input type="number" min="1" max="30" inputMode="numeric" aria-label={u.custom} placeholder="1–30" value={quickMin===null?'':quickMin} onChange={e=>{const n=Number(e.target.value);if(e.target.value===''||!Number.isInteger(n)||n<1||n>30){setQuickMin(null);return;}setQuickMin(n);setWhen(korea(n));resetMatches();}}/></label><label>{v.time} <input type="time" aria-label={t.time} value={when.time} onChange={e=>{setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></label></div></details>
+     <p className="tl-note">{quickMin===null?u.range:v.timeGuide}</p>
     </div>
    </section>
-   <section className="tl-panel"><h3 className="tl-panel-title"><em>02</em>{u.panelB}</h3>
-    <div className="tl-field"><label className="tl-label" htmlFor="tl-item">{u.item}<span className="tl-required">{u.required}</span></label><input id="tl-item" className="tl-input" value={thing} maxLength={80} placeholder={u.itemExample} onChange={e=>setThing(e.target.value)}/></div>
-    <div className="tl-divider"/>
-    <div className="tl-field"><div className="tl-label">{u.carQuestion}<span className="tl-required">{u.required}</span></div><p className="tl-help">{u.carWhy}</p><div className="tl-switch"><button type="button" aria-pressed={carMode==='number'} onClick={()=>{setCarMode('number');setCarNumber('');}}>{u.numberMode}</button><button type="button" aria-pressed={carMode==='relative'} onClick={()=>{setCarMode('relative');setCarNumber('');}}>{u.relativeMode}</button></div>
+   <section className="tl-panel tl-input-panel">
+    <h3 className="tl-panel-title"><em>02</em>{u.panelB}</h3>
+    <div className="tl-field"><label className="tl-label" htmlFor="tl-item">{u.item}<span className="tl-required">{u.required}</span></label><input className="tl-input" id="tl-item" type="text" value={thing} maxLength={80} placeholder={u.itemExample} onChange={e=>setThing(e.target.value)}/></div>
+    <div className="tl-field"><div className="tl-label">{u.carQuestion}<span className="tl-required">{u.required}</span></div>
+     <div className="tl-switch"><button type="button" aria-pressed={carMode==='number'} onClick={()=>{setCarMode('number');setCarNumber('');}}>{u.numberMode}</button><button type="button" aria-pressed={carMode==='relative'} onClick={()=>{setCarMode('relative');setCarNumber('');}}>{u.relativeMode}</button></div>
      {carMode==='relative'&&<div className="tl-edges"><button type="button" aria-pressed={relativeSide==='앞'} onClick={()=>setRelativeSide('앞')}>{u.front}</button><button type="button" aria-pressed={relativeSide==='뒤'} onClick={()=>setRelativeSide('뒤')}>{u.back}</button></div>}
-     <div className="tl-cars">{Array.from({length:10},(_,i)=>String(i+1)).map(n=><button className="tl-car" type="button" key={n} aria-pressed={carNumber===n} onClick={()=>setCarNumber(n)}>{n}<small>{carMode==='number'?u.carUnit:u.relativeUnit}</small></button>)}</div>
-     <p className="tl-note">{carMode==='number'?u.carHelp:u.relativeHelp}</p>
+     <div className="tl-cars">{Array.from({length:10},(_,i)=>String(i+1)).map(n=><button type="button" className="tl-car" key={n} aria-pressed={carNumber===n} onClick={()=>setCarNumber(n)}>{n}<small>{carMode==='number'?u.carUnit:u.relativeUnit}</small></button>)}</div>
+     {carNumber&&<p className="tl-chosen-car">✓ {carLabel}</p>}
+     {carMode==='relative'&&<p className="tl-note">{u.relativeHelp}</p>}
     </div>
-    <div className="tl-divider"/>
-    <div className="tl-field"><div className="tl-label">{u.door}<span className="tl-optional">{u.optional}</span></div><div className="tl-mini-list">{['', '1','2','3','4'].map(n=><button type="button" key={n} aria-pressed={door===n} onClick={()=>setDoor(n)}>{n?n+u.doorUnit:u.unknown}</button>)}</div></div>
-    <div className="tl-field"><div className="tl-label">{u.place}<span className="tl-optional">{u.optional}</span></div><div className="tl-mini-list">{['seat','rack','nearDoor','floor'].map(id=><button type="button" key={id} aria-pressed={place===id} onClick={()=>setPlace(place===id?'':id)}>{u[id]}</button>)}</div></div>
+    <details className="tl-extra-details"><summary>{v.additional}{door||place?' ✓':''}</summary><div className="tl-extra-content">
+     <div className="tl-field"><div className="tl-label">{u.door}<span className="tl-optional">{u.optional}</span></div><div className="tl-mini-list">{['','1','2','3','4'].map(n=><button type="button" key={n} aria-pressed={door===n} onClick={()=>setDoor(n)}>{n?n+u.doorUnit:u.unknown}</button>)}</div></div>
+     <div className="tl-field"><div className="tl-label">{u.place}<span className="tl-optional">{u.optional}</span></div><div className="tl-mini-list">{['seat','rack','nearDoor','floor'].map(id=><button type="button" key={id} aria-pressed={place===id} onClick={()=>setPlace(place===id?'':id)}>{u[id]}</button>)}</div></div>
+    </div></details>
    </section>
-   <div className="tl-search-footer"><button type="button" className="tl-primary" disabled={!canSearch} onClick={onSearch}>{u.search} →</button><p className="tl-footer-hint">{canSearch?u.info:u.inputHint}</p></div>
-  </>:<>
+   <div className="tl-search-footer"><button type="button" className="tl-primary" disabled={!canSearch} onClick={onSearch}>{u.search} →</button><p className="tl-footer-hint">{canSearch?v.timeRef+': '+displayTime:u.inputHint}</p></div>
+  </>}
+  {stage==='results'&&<>
+   <section className="tl-search-context"><span>{lineName(selection.line+'호선',lang)} · {selectionLabel} → {way}</span><strong>◷ {v.time} {displayTime}</strong><button type="button" className="tl-link" onClick={onBack}>{u.change}</button></section>
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
-   {searched&&!busy&&!error&&<div className="tl-results-intro"><span className="tl-big-icon">◎</span><div><h3>{u.found} {candidates.length}{u.trains}</h3><p>{selectionLabel} · {way} · {displayTime}<br/>{u.resultSubtitle}</p></div></div>}
-   {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''}</div>}
-   {!busy&&!error&&candidates.length>0&&<>
-    {candidateCard(first,0)}
-    {rest.length>0&&<><div>{candidateCard(rest[0],1)}</div>{rest.length>1&&<details className="tl-other-candidates"><summary>{u.other} ({rest.length-1})</summary>{rest.slice(1).map((c,i)=>candidateCard(c,i+2))}</details>}</>}
-    {directionWarning&&<p className="tl-note">{t.directionUnknown}</p>}
-   </>}
-   {!busy&&searched&&<button type="button" className="tl-secondary" onClick={onNone}>{u.noneMatch} → {u.noCandidate}</button>}
-   {searched&&!error&&<details className="tl-map-details"><summary>{u.fullMap}<span>⌄</span></summary><TrainLiveDiagram line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active&&!busy} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/><p className="tl-note" style={{padding:'0 12px 10px'}}>{u.mapHint} {u.refresh}</p></details>}
-   {handoffReady&&<section className="tl-panel tl-handoff" aria-live="polite"><div className="tl-handoff-head"><span className="tl-handoff-icon">↗</span><div><h3>{u.handoff}</h3><p>{u.handoffSub}</p></div></div>
-    <div className="tl-handoff-grid"><div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div><div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carLabel}{door?' · '+door+u.doorUnit:''}</strong></div><div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div><div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong></div></div>
+   {!busy&&searched&&!error&&<div className="tl-live-candidate-header"><strong>{v.candidateCount} {candidates.length}{u.trains}</strong><span>{v.secondary}</span></div>}
+   {!busy&&searched&&!error&&candidates.length>0&&<div className="tl-candidate-strip" role="group" aria-label={v.candidateCount}>
+    {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
+     return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
+      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small><strong>#{c.number}</strong><span>{localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
+     </button>;
+    })}
+   </div>}
+   {!busy&&searched&&!error&&candidates.length>0&&<p className="tl-candidate-hint">{v.candidateHelp}</p>}
+   {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''} <p>{v.noCandidate}</p></div>}
+   {searched&&!error&&!busy&&<div className="tl-live-map-main">
+    <div className="tl-live-map-title"><strong>◎ {v.mapTitle}</strong><span>{u.refresh}</span></div>
+    <TrainLiveDiagram line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
+   </div>}
+   {directionWarning&&<p className="tl-note">{t.directionUnknown}</p>}
+   {!busy&&<section className="tl-next-panel">
+    {chosen?<><div className="tl-selection-summary"><div><small>✓ {u.chosen}</small><strong>#{chosen.number}</strong></div><div><small>{v.chosenPosition}</small><strong>{current?localized(current.station,selection.line,lang):u.unknown}</strong></div></div><p className="tl-note">{v.secondary}</p><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
+    <><p className="tl-select-instruction">{candidates.length>0?v.selectHint:v.noCandidate}</p><button type="button" className="tl-primary tl-secondary-primary" onClick={onNone}>{v.fallback} →</button></>}
+    <button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button>
+    {chosen&&<button type="button" className="tl-text-option" onClick={onNone}>{v.fallback}</button>}
+   </section>}
+  </>}
+  {stage==='handoff'&&<>
+   <section className="tl-search-context"><span>{lineName(selection.line+'호선',lang)} · {selectionLabel} → {way}</span><strong>◷ {v.time} {displayTime}</strong></section>
+   <section className="tl-panel tl-handoff">
+    <div className="tl-handoff-head"><span className="tl-handoff-icon">↗</span><div><h3>{u.handoff}</h3><p>{u.handoffSub}</p></div></div>
+    <div className="tl-handoff-grid">
+     <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carLabel}{door?' · '+door+u.doorUnit:''}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong></div>
+    </div>
     {chosen&&current&&<p className="tl-note">{u.position}: {localized(current.station,selection.line,lang)}</p>}
     {chosen&&recommended.stations.length>0&&<p className="tl-note">{u.stopsAhead}: {recommended.stations.map(st=>localized(st,selection.line,lang)).join(' · ')}</p>}
     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
     <div className="tl-label">{u.message}</div><div className="tl-message">{message}</div>
     <div className="tl-send-options"><button type="button" className="tl-copy" onClick={copyMessage}>{copyStatus?'✓ '+u.copied:u.copy}</button><button type="button" className="tl-sms" onClick={sms}>{u.sms}</button></div><a className="tl-call" href="tel:15771234">☎ {u.call}</a>
     <p className="tl-caution">{u.smsCaution}<br/>{u.operating}</p>
-   </section>}
-   <div className="tl-reset-row"><button type="button" className="tl-secondary" onClick={onBack}>← {u.edit}</button></div>
+   </section>
+   <div className="tl-reset-row"><button type="button" className="tl-secondary" onClick={onBackToResults}>{v.handoffBack}</button><button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button></div>
   </>}
   <p className="tl-status-foot">SOURCE · {u.info}</p>
  </div>;

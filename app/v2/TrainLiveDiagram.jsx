@@ -38,6 +38,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const [jumpStatus,setJumpStatus]=useState('');
  const [focusedTrain,setFocusedTrain]=useState('');
  const candidateJumpIndex=useRef(0);
+ const autoFocusedRef=useRef(false);
  const viewportRef=useRef(null);
  const [lastPoll,setLastPoll]=useState(null);
  const onSnapshotRef=useRef(onSnapshot);
@@ -82,6 +83,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  };
  const candidateKeys=candidates.map(c=>trainKey(c.number)).join('|');
  useEffect(()=>{candidateJumpIndex.current=0;setJumpStatus('');setFocusedTrain('');},[line,station,next,candidateKeys]);
+ useEffect(()=>{autoFocusedRef.current=false;},[line,station,next]);
  useEffect(()=>{
   const viewport=viewportRef.current;
   const origin=viewport?.querySelector('[data-tf-origin="true"]');
@@ -91,12 +93,30 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   viewport.scrollLeft+=Math.max(0,delta-20);
  },[line,station,next]);
  useEffect(()=>{
-  if(!trackedStation)return;
+  if(!trackedStation||!selectedNo)return;
   const viewport=viewportRef.current;
-  const target=[...(viewport?.querySelectorAll('[data-tf-station]')||[])].find(node=>node.dataset.tfStation===clean(trackedStation));
+  // Focus the exact selected train, not just the station: multiple trains
+  // can be stacked in the same narrow bay on mobile.
+  const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
+   .find(node=>node.dataset.tfTrainNo===selectedNo);
   if(!viewport||!target)return;
   centerTarget(target);
+  setFocusedTrain(selectedNo);
  },[trackedStation,selectedNo,line,station,next]);
+ // On entering the live-train screen, focus the top-ranked candidate once.
+ // Merely centering it must NOT confirm that the passenger rode that train.
+ useEffect(()=>{
+  if(selectedNo||autoFocusedRef.current||!visibleCandidates.length)return;
+  const viewport=viewportRef.current;
+  if(!viewport)return;
+  const key=trainKey(visibleCandidates[0].trainNo);
+  const target=[...viewport.querySelectorAll('[data-tf-train-no]')]
+   .find(node=>node.dataset.tfTrainNo===key);
+  if(target&&centerTarget(target)){
+    autoFocusedRef.current=true;
+    setFocusedTrain(key);
+  }
+ },[selectedNo,visibleCandidates,line,station,next]);
  const pollRef=useRef(null);
  const advanceDemo=()=>{
   const at=new Date().toISOString();
