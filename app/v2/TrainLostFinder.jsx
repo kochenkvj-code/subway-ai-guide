@@ -4,7 +4,7 @@ import {officialStationMatches} from '../lib/officialStations';
 import {stationName,lineName} from '../lib/stationNameI18n';
 import {stationNeighbors,supportsStation,findLiveCandidates,followStops,futureStops,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import './train-lost.css';
-import TrainLiveDiagram from './TrainLiveDiagram';
+import TrainLostUI from './TrainLostUI';
 
 const labels={
  ko:{head:'열차 내 유실물 찾기',sub:'하차한 열차를 추정하고 실시간 위치를 확인합니다.',station:'하차역',change:'다른 역 선택',search:'역명 검색',line:'호선',toward:'열차가 향한 다음 역',towardHint:'하차한 열차가 어느 쪽으로 떠났나요?',time:'하차 시각',date:'하차 날짜',thing:'분실 물품',thingExample:'예: 검은색 가방',car:'탑승 칸·출입문',carExample:'예: 4-2',lookup:'열차 후보 찾기',looking:'시간표와 실시간 정보를 대조 중…',none:'조건에 맞는 열차 후보가 없습니다. 시간을 다시 확인해 주세요.',candidates:'가능한 열차',scheduled:'시간표',live:'실시간 열차번호 일치 · 위치 확인',onlySchedule:'시간표로 추정 · 실시간 미확인',directionUnknown:'실시간 방향 검증 불가: 두 방향의 후보가 함께 표시될 수 있습니다.',uncertain:'후보 열차가 여러 대면 정확히 확인한 후 선택하세요. 시간표만으로 열차를 확정할 수 없습니다.',choose:'이 열차 추적',selected:'선택한 열차',update:'위치 새로고침',position:'현재 확인 위치',absent:'실시간 위치를 확인할 수 없습니다.',forth:'연락 가능성을 확인할 후속 역',forthNote:'일반열차·분기 없는 구간 기준입니다. 실제 정차 및 통화 가능 여부를 확인하세요.',noForth:'급행 정차역 또는 지선 경로가 확인되지 않아 특정 역을 추천하지 않습니다.',sms:'콜센터 문자 작성',copy:'문구 복사',call:'1577-1234 전화',smsNote:'문자 앱에서 내용을 확인하고 직접 발송하세요. 기기별로 본문이 채워지지 않을 수 있습니다.',openSms:'1577-1234 문자 앱 열기',again:'다시 검색',guide:'열차번호는 추정값이며, 조회된 위치가 해당 승객의 실제 탑승열차를 보장하지 않습니다.',failure:'정보를 불러오지 못했습니다. 기존 전화 상담을 이용하세요.',emptyQuery:'하차역을 먼저 선택하세요.',dateNote:'공휴일·운행 변경·막차 시간표는 실제와 다를 수 있습니다.',branch:'분기역에서는 같은 방향이라도 경로가 나뉠 수 있습니다.',noApi:'실시간 위치가 없을 경우 시간표 후보만 보여줍니다.',pick:'선택',arrivalGap:'시각 차이'},
@@ -71,7 +71,11 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const trackedTrainRef=useRef('');
  const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
  const [destinationHints,setDestinationHints]=useState({});
- const [thing,setThing]=useState(''),[car,setCar]=useState('');
+ const [thing,setThing]=useState('');
+ const [carMode,setCarMode]=useState('number'),[carNumber,setCarNumber]=useState('');
+ const [relativeSide,setRelativeSide]=useState('앞'),[door,setDoor]=useState(''),[place,setPlace]=useState('');
+ const [stage,setStage]=useState('input'),[handoffUnknown,setHandoffUnknown]=useState(false);
+ const [searchRun,setSearchRun]=useState(0);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
  const [copyStatus,setCopyStatus]=useState(false),[searched,setSearched]=useState(false),[lookupStats,setLookupStats]=useState(null);
@@ -82,7 +86,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
  useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
 
- function resetMatches(){lookupAbort.current?.abort();trackedTrainRef.current='';arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
+ function resetMatches(){lookupAbort.current?.abort();trackedTrainRef.current='';arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setHandoffUnknown(false);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
  function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
  async function lookup(){
    lookupAbort.current?.abort();const controller=new AbortController();lookupAbort.current=controller;
@@ -151,18 +155,22 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      setDirectionWarning(result.candidates.some(x=>!x.corroborated));
    }catch(ex){if(isCurrent())setError(ex.message||t.failure);}finally{if(isCurrent())setBusy(false);}
  }
- // Single-screen, auto-search: no submit button or second page.
- // Debounce rapid choices and invalidate any out-of-order network responses.
+ // Search explicitly after the required item and car-position fields are filled.
+ // Preserve the existing abort and stale-response protection on every new query.
  useEffect(()=>{
-   if(!active||editing||!next||!when.time||requiredDirection===null){
-     requestId.current+=1;
-     setBusy(false);
-     return;
-   }
-   const timer=setTimeout(()=>lookup(),320);
+   if(!searchRun||!active||editing||!next||!when.time||requiredDirection===null)return;
+   const timer=setTimeout(()=>lookup(),0);
    return ()=>{clearTimeout(timer);requestId.current+=1;lookupAbort.current?.abort();};
- },[active,editing,selection.name,selection.line,next,when.date,when.time,demoMode]);
+ },[searchRun,active,editing,selection.name,selection.line,next,when.date,when.time,demoMode]);
+ function startSearch(){
+   if(!thing.trim()||!carNumber||!next||requiredDirection===null)return;
+   setEditing(false);setStage('results');setHandoffUnknown(false);setCopyStatus(false);
+   setSearchRun(n=>n+1);
+ }
+ function returnToForm(){setStage('input');resetMatches();}
+ function chooseUnknown(){trackedTrainRef.current='';setChosen(null);setCurrent(null);setHandoffUnknown(true);setCopyStatus(false);}
  function pick(candidate){
+   setHandoffUnknown(false);setCopyStatus(false);
    trackedTrainRef.current=compareNo(candidate.number);
    setChosen(candidate);
    const found=livePositions.find(p=>compareNo(p.trainNo)===compareNo(candidate.number)&&String(p.direction)===String(requiredDirection));
@@ -193,105 +201,53 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const where=current?.station||'';
  const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express&&chosen.corroborated&&String(current.direction)===requiredDirection);
  const recommended=canRecommend?futureStops(selection.line,selection.name,next,where):{stations:[],reason:'NO_POSITION'};
- const message=chosen?'[서울교통공사 열차 내 유실물 수배 요청]\n노선: '+selection.line+'호선\n하차역: '+selection.name+'역\n하차일시: '+when.date+' '+when.time+'경\n열차 진행 방향: '+next+'역 방면\n열차번호: '+chosen.number+' (실시간 위치 기반 추정·미확정)\n현재 확인 위치: '+(current?current.station+'역 ('+current.receivedAt+')':'실시간 확인 불가')+'\n탑승 위치: '+(car.trim()||'미입력')+'\n분실물: '+(thing.trim()||'미입력')+'\n\n해당 열차번호는 실시간 위치 기반 추정이며 실제 탑승열차로 확정되지 않았습니다. 해당 열차 유실물 수배를 요청드립니다.':'';
- function sms(){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);window.location.href='sms:15771234'+(ios?'&':'?')+'body='+encodeURIComponent(message);}
- async function copyMessage(){try{await navigator.clipboard.writeText(message);setCopyStatus(true);}catch{setCopyStatus(false);}}
- return <div className="tf-root tf-onepage">
-   <header className="tf-compact-header">
-     <h2>{t.head}</h2>
-     <span className="tf-mode-pill">{lang==='ko'?'실시간 · 2분/역 추정':lang==='en'?'Live · ~2 min/stop':lang==='ja'?'リアルタイム・約2分/駅':'实时 · 约2分/站'}</span>
-   </header>
-   {demoMode&&<p className="tf-warning" role="status">DEMO · {lang==='ko'?'가상 열차 시연 화면 · 실제 수배 불가':lang==='en'?'Fictional trains · not for actual reports':lang==='ja'?'架空の列車によるデモです':'虚构列车演示'}</p>}
-   <form className="tf-form tf-auto-form" onSubmit={e=>e.preventDefault()}>
-     <div className="tf-compact-station tf-field">
-       <label>{t.station}</label>
-       <div className="tf-selected"><strong>{selectionLabel}</strong><span>{lineName(selection.line+'호선',lang)}</span>
-         <button type="button" onClick={()=>setEditing(!editing)}>{editing?(lang==='ko'?'닫기':'Close'):t.change}</button>
-       </div>
-       {editing&&<div className="tf-station-picker">
-         <input type="search" value={query} placeholder={t.search} onChange={e=>setQuery(e.target.value)} autoComplete="off" aria-label={t.search}/>
-         {matches.length>0&&<div className="tf-matches">{matches.map(st=><button type="button" key={st.name+st.line} onClick={()=>chooseStation(st)}>{st.display} · {lineName(st.line+'호선',lang)}</button>)}</div>}
-       </div>}
-     </div>
-     {!neighbors.length&&<p className="tf-warning" role="status">{({ko:'이 역의 열차 경로 자료가 아직 연결되지 않았습니다. 다른 하차역을 선택하거나 고객센터에 문의해 주세요.',en:'Train route data for this station is not connected yet. Choose another alighting station or contact the customer center.',ja:'この駅の列車経路情報は未接続です。別の下車駅を選ぶか、お問い合わせください。',zh:'本站列车路径数据尚未接入，请选择其他下车站或联系客服。'})[lang]} <a href="tel:15771234">1577-1234</a></p>}
-     {lines.length>1&&<div className="tf-field tf-line-field"><label>{t.line}</label>
-       <select value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})}>
-         {lines.map(line=><option value={line} key={line}>{lineName(line+'호선',lang)}</option>)}
-       </select>
-     </div>}
-     <div className="tf-field tf-direction-field">
-       <label>{lang==='ko'?'열차 진행 방향':t.toward}</label>
-       <div className="tf-options tf-direction-options">{neighbors.map((st,index)=><button type="button" key={st}
-         className={next===st?'chosen':''} aria-pressed={next===st}
-         onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}>
-         {index===0&&neighbors.length>1?'← ':''}{fmt(st,lang,selection.line)}{index===0&&neighbors.length>1?'':index>1?' ↗':' →'}
-       </button>)}</div>
-       {next&&requiredDirection===null&&<p className="tf-warning">{lang==='ko'?'이 방향의 실시간 운행 코드가 확인되지 않았어요.':lang==='en'?'Real-time direction unavailable.':lang==='ja'?'進行方向を確認できません。':'无法确认该方向。'}</p>}
-       {neighbors.length>2&&<p className="tf-mini-help">{t.branch}</p>}
-     </div>
-     <div className="tf-field tf-time-field">
-       <label>{t.time}</label>
-       <div className="tf-time-controls">
-         <div className="tf-quick-times"><div>{[3,5,10,15].map(min=><button key={min} type="button"
-           className={quickMin===min?'chosen':''} aria-pressed={quickMin===min}
-           onClick={()=>{setQuickMin(min);setWhen(korea(min));resetMatches();}}>{min}{t.fastMin}</button>)}</div></div>
-         <input aria-label={t.time} type="time" value={when.time}
-           onChange={e=>{setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/>
-       </div>
-     </div>
-     <div className="tf-auto-state" role="status">
-       {busy?t.looking:next?(searched?(lang==='ko'?'조건을 바꾸면 자동으로 다시 검색해요.':lang==='en'?'Results update automatically.':lang==='ja'?'条件変更で自動更新':'条件变更后自动更新'):(lang==='ko'?'실시간 열차 확인 중…':t.looking)):(lang==='ko'?'열차가 떠난 방향을 누르면 바로 검색해요.':lang==='en'?'Choose a direction to find trains.':lang==='ja'?'進行方向を選択すると検索します。':'选择方向后自动搜索。')}
-     </div>
-   </form>
-   {error&&<div className="tf-warning" role="alert">{error}</div>}
-   {searched&&next&&requiredDirection!==null&&!error&&<TrainLiveDiagram
-      line={selection.line} station={selection.name} next={next} lang={lang}
-      positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates}
-      selected={chosen} active={active&&!busy} demo={demoMode} onSnapshot={onLiveSnapshot}
-      onPick={pick}
-    />}
-   {searched&&!busy&&!error&&candidates.length===0&&<p className="tf-warning">{t.none}{lookupStats&&lang==='ko'?(' · API '+(lookupStats.usableRows??'-')+'건'):''}</p>}
-   {searched&&!busy&&!error&&candidates.length>0&&<div className="tf-estimate-row">
-     <span>{lang==='ko'?'시간·방향·실시간 위치로 후보를 정렬했어요. (일반열차 약 2분/역)':lang==='en'?'Ranked by time, direction and live position (~2 min/stop for local trains).':lang==='ja'?'時刻・方向・現在位置で候補を順位付け':'按时间、方向及实时位置排序'}</span>
-     <div className="tf-candidate-chips">{candidates.map((c,index)=><button type="button" key={c.number}
-       className={compareNo(chosen?.number)===compareNo(c.number)?'chosen':''} onClick={()=>pick(c)}
-       aria-pressed={compareNo(chosen?.number)===compareNo(c.number)}
-       title={lang==='ko'?('하차역부터 '+c.stopsFromAlight+'역 · 추정시간 차이 '+Math.abs(c.timeErrorMinutes).toFixed(1)+'분 · '+(c.corroborated?'도착정보에도 열차번호 확인':'현재 위치만 확인')):''}>
-       <strong>{index+1}. #{c.number}</strong>
-       <span>{fmt(c.station,lang,selection.line)} · {lang==='ko'?(c.matchGrade==='close'?'시간 근접':c.matchGrade==='possible'?'시간 가능':'시간 차이'):(c.matchGrade==='close'?'Close':'Estimated')}
-       {' · '+Math.abs(c.timeErrorMinutes).toFixed(1)}{lang==='ko'?'분':'m'}
-       {c.branched?(lang==='ko'?' · 분기 주의':' · branch'):''}
-       {c.corroborated?(lang==='ko'?' · 도착정보':' · arrival'):''}</span>
-     </button>)}</div>
-   </div>}
-   {chosen&&<section className="tf-results tf-compact-results">
-     <div className="tf-summary-head"><h3>{t.selected} · #{chosen.number}</h3>
-       <button type="button" onClick={()=>{trackedTrainRef.current='';setChosen(null);setCurrent(null);}}>{lang==='ko'?'선택 해제':t.again}</button>
-     </div>
-     <div className="tf-location tf-compact-location">
-       <div><small>{t.position}</small><strong>{current?fmt(current.station,lang,selection.line):t.absent}</strong></div>
-       <span>{lang==='ko'?('하차역에서 '+chosen.stopsFromAlight+'역 · '+(chosen.express?'급행(추정)':'일반열차 2분/역')+' · 시각 차이 '+Math.abs(chosen.timeErrorMinutes).toFixed(1)+'분'+(chosen.branched?' · 분기 주의':'')):('Passed '+chosen.stopsFromAlight+' stops · time offset '+Math.abs(chosen.timeErrorMinutes).toFixed(1)+' min')}</span>
-     </div>
-     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
-     {recommended.stations.length>0&&<div className="tf-contact-row">
-       <small>{t.forth}</small>
-       <div className="tf-stops">{recommended.stations.map(st=><span className="tf-stop" key={st}><strong>{fmt(st,lang,selection.line)}</strong></span>)}</div>
-     </div>}
-     {!demoMode&&<>
-       <div className="tf-two tf-lost-inputs">
-         <div className="tf-field"><label>{t.thing}</label><input value={thing} maxLength={80} placeholder={t.thingExample} onChange={e=>setThing(e.target.value)}/></div>
-         <div className="tf-field"><label>{t.car}</label><input value={car} maxLength={30} placeholder={t.carExample} onChange={e=>setCar(e.target.value)}/></div>
-       </div>
-       <div className="tf-actions"><button type="button" className="tf-submit" onClick={sms}>{t.openSms}</button>
-         <button type="button" onClick={copyMessage}>{copyStatus?'✓ '+t.copy:t.copy}</button>
-         <a href="tel:15771234">{t.call}</a>
-       </div>
-       <details className="tf-message-details"><summary>{lang==='ko'?'발송할 문자 내용 확인':t.sms}</summary>
-         <textarea className="tf-message" readOnly aria-label={t.sms} value={message} rows={9}/>
-       </details>
-     </>}
-     <p className="tf-hint">{t.guide}</p>
-   </section>}
-   <p className="tf-footer">SOURCE · 서울시 실시간 열차 위치·도착정보 (역 단위)</p>
- </div>;
+ const carPosition=carNumber?(carMode==='number'
+   ?({ko:carNumber+'호차',en:'Car '+carNumber,ja:carNumber+'号車',zh:'第'+carNumber+'车厢'})[lang]
+   :({ko:'열차 맨 '+relativeSide+'에서 '+carNumber+'번째 칸',en:(relativeSide==='앞'?'From front, car ':'From rear, car ')+carNumber,ja:(relativeSide==='앞'?'先頭':'最後尾')+'から'+carNumber+'両目',zh:'从'+(relativeSide==='앞'?'车头':'车尾')+'数第'+carNumber+'节车厢'})[lang]):'';
+ const placeNames={
+   ko:{seat:'좌석',rack:'선반',nearDoor:'출입문 근처',floor:'바닥'},
+   en:{seat:'Seat',rack:'Overhead rack',nearDoor:'Near door',floor:'Floor'},
+   ja:{seat:'座席',rack:'網棚',nearDoor:'ドア付近',floor:'床'},
+   zh:{seat:'座位',rack:'行李架',nearDoor:'车门附近',floor:'地板'}
+ };
+ const messageFields={
+   ko:['[열차 내 유실물 정보 전달]','노선','하차역','하차시각','진행 방향','열차번호','최근 확인 위치','탑승 위치','출입문','분실 물품','물건을 둔 곳','후보·미확정','열차번호 미확정','위치 조회 불가','열차번호는 실시간 위치로 추정한 것으로 실제 탑승 열차로 확정되지 않았습니다. 담당 역 또는 콜센터에서 확인 부탁드립니다.'],
+   en:['[Lost item on train — information handoff]','Line','Alighting station','Time','Direction','Train number','Last reported position','Car position','Door','Lost item','Item location','candidate, unconfirmed','Train number unknown','Position unavailable','The train number is an estimate, not confirmation. Please verify with station staff or the call center.'],
+   ja:['[車内忘れ物・情報連絡]','路線','下車駅','下車時刻','進行方向','列車番号','最新確認位置','乗車位置','ドア','忘れ物','置いた場所','候補・未確定','列車番号未確定','位置未確認','列車番号は推定であり乗車列車の確定ではありません。担当駅またはコールセンターでご確認ください。'],
+   zh:['[列车内遗失物品信息转交]','线路','下车站','下车时间','行车方向','列车编号','最近报告位置','乘车位置','车门','遗失物品','遗失位置','候选，未确认','车次尚未确认','无法确认位置','列车编号仅为估计，不能确认实际乘坐列车。请由车站或客服进一步核实。']
+ };
+ const z=messageFields[lang]||messageFields.ko;
+ const message=(chosen||handoffUnknown)?[
+   z[0],z[1]+': '+selection.line,z[2]+': '+selection.name,z[3]+': '+when.date+' '+when.time,
+   z[4]+': '+next,
+   z[5]+': '+(chosen?chosen.number+' ('+z[11]+')':z[12]),
+   z[6]+': '+(chosen&&current?current.station+' ('+current.receivedAt+')':z[13]),
+   z[7]+': '+carPosition,
+   door?z[8]+': '+door:'',
+   z[9]+': '+thing.trim(),
+   place?z[10]+': '+(placeNames[lang]||placeNames.ko)[place]:'',
+   '',z[14]
+ ].filter((v,i)=>v!==''||i>11).join('\n'):'';
+ function sms(){
+   if(!message)return;
+   // Opens a user-controlled SMS draft only. No SMS is sent by this site.
+   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);
+   window.location.href='sms:15771234'+(ios?'&':'?')+'body='+encodeURIComponent(message);
+ }
+ async function copyMessage(){if(!message)return;try{await navigator.clipboard.writeText(message);setCopyStatus(true);}catch{setCopyStatus(false);}}
+ return <TrainLostUI
+   lang={lang} t={t} active={active} demoMode={demoMode} selection={selection} selectionLabel={selectionLabel}
+   lines={lines} neighbors={neighbors} requiredDirection={requiredDirection} matches={matches}
+   editing={editing} setEditing={setEditing} query={query} setQuery={setQuery} chooseStation={chooseStation}
+   next={next} setNext={setNext} when={when} setWhen={setWhen} quickMin={quickMin} setQuickMin={setQuickMin}
+   korea={korea} kstAlightDateForTime={kstAlightDateForTime} resetMatches={resetMatches}
+   busy={busy} error={error} candidates={candidates} chosen={chosen} current={current} searched={searched}
+   lookupStats={lookupStats} directionWarning={directionWarning} pick={pick} livePositions={livePositions}
+   liveFetchedAt={liveFetchedAt} onLiveSnapshot={onLiveSnapshot} onSearch={startSearch} onBack={returnToForm}
+   onNone={chooseUnknown} carMode={carMode} setCarMode={setCarMode} carNumber={carNumber}
+   setCarNumber={setCarNumber} relativeSide={relativeSide} setRelativeSide={setRelativeSide}
+   thing={thing} setThing={setThing} door={door} setDoor={setDoor} place={place} setPlace={setPlace}
+   stage={stage} handoffUnknown={handoffUnknown} message={message} sms={sms}
+   copyMessage={copyMessage} copyStatus={copyStatus} recommended={recommended} liveInfo={liveInfo}
+ />;
 }
