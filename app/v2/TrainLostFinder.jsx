@@ -163,7 +163,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    return ()=>{clearTimeout(timer);requestId.current+=1;lookupAbort.current?.abort();};
  },[searchRun,active,editing,selection.name,selection.line,next,when.date,when.time,demoMode]);
  function startSearch(){
-   if(!thing.trim()||!carNumber||!next||requiredDirection===null)return;
+   if(!thing.trim()||!carNumber||!door||!next||requiredDirection===null)return;
    // Relative times must be calculated at the actual search moment, not when the form opened.
    if(quickMin!==null)setWhen(korea(quickMin));
    setEditing(false);setStage('results');setHandoffUnknown(false);setCopyStatus(false);
