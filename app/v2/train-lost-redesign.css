@@ -20,6 +20,17 @@
 .tf-redesign .tl-station{display:flex;align-items:center;gap:9px;padding:9px 11px;background:#f5f9fa;border:1px solid #e1eaee;border-radius:12px;min-height:50px}
 .tf-redesign .tl-station-bubble{background:#dfeef7;color:#126099;border-radius:9px;min-width:32px;height:32px;display:grid;place-items:center;font-size:12px;font-weight:850}
 .tf-redesign .tl-station-name{min-width:0;flex:1;font-size:14px;font-weight:850}.tf-redesign .tl-station-name small{font-weight:600;font-size:10px;color:#72838e;margin-left:5px}
+/* Alighting station and line are one glanceable row; station names need more space. */
+.tf-redesign .tl-station-layout{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(94px,1fr);gap:9px;align-items:stretch}
+.tf-redesign .tl-station-column{display:flex;flex-direction:column;min-width:0}
+.tf-redesign .tl-station-trigger,.tf-redesign .tl-station-line-select,.tf-redesign .tl-station-line-static{width:100%;min-width:0;min-height:48px;border:1px solid #dce6eb;border-radius:11px;background:#f5f9fa;color:#234959;font-size:13px;font-weight:750}
+.tf-redesign .tl-station-trigger{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:10px 11px;text-align:left;flex:1}
+.tf-redesign .tl-station-trigger[aria-expanded="true"]{border-color:#46b398;background:#eff8f4}
+.tf-redesign .tl-station-value{min-width:0;overflow-wrap:anywhere;line-height:1.35;font-weight:800}
+.tf-redesign .tl-station-edit-icon{flex:none;font-size:17px;color:#648798;font-weight:500;line-height:1}
+.tf-redesign .tl-station-line-select{padding:9px 20px 9px 8px;cursor:pointer;flex:1;appearance:auto}
+.tf-redesign .tl-station-line-static{display:flex;align-items:center;justify-content:center;padding:9px 6px;line-height:1.35;flex:1;text-align:center}
+.tf-redesign .tl-station-line-select:focus-visible{outline:3px solid #6bafe0;outline-offset:2px}
 .tf-redesign .tl-link{border:0;background:transparent;color:#2f779c;font-weight:800;font-size:11px;padding:6px 2px}
 .tf-redesign .tl-picker{margin-top:9px}.tf-redesign .tl-picker input{width:100%;min-height:43px;border:1px solid #d6e3e8;border-radius:10px;padding:9px 11px}
 .tf-redesign .tl-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
