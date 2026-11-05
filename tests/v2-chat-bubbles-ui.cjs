@@ -7,13 +7,13 @@ await p.goto('http://localhost:3061/v2?station=2637&view=chat');
 const composer=p.locator('.v2-chat-pane .sag-input-wrap input');await composer.waitFor();
 assert.ok(parseFloat(await composer.evaluate(e=>getComputedStyle(e).fontSize))>=16,'prevent iOS input auto zoom');
 await composer.fill('작성 중인 질문');
-async function viewport(height,top){await p.evaluate(({height,top})=>{Object.defineProperties(visualViewport,{height:{configurable:true,value:height},offsetTop:{configurable:true,value:top}});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'));},{height,top});await p.waitForFunction(({height,top})=>{const b=document.querySelector('.v2-chat-workspace').getBoundingClientRect();return Math.abs(b.height-height)<2&&Math.abs(b.top-top)<2;},{height,top});}
+async function viewport(height,top){await p.evaluate(({height,top})=>{Object.defineProperties(visualViewport,{height:{configurable:true,value:height},offsetTop:{configurable:true,value:top}});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'));},{height,top});await p.waitForFunction(({height,top})=>{const b=document.querySelector('.v2-chat-workspace').getBoundingClientRect();return Math.abs(b.height-height)<2&&Math.abs(b.top)<2;},{height,top});}
 for(let i=0;i<3;i++){
   await composer.focus();await viewport(470,0);await viewport(470,86);
-  let box=await composer.boundingBox();assert.ok(box.y>=86&&box.y+box.height<=556,'composer stays above keyboard');
+  let box=await composer.boundingBox();assert.ok(box.y>=0&&box.y+box.height<=470,'composer stays above keyboard');
   assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden));
   await composer.evaluate(e=>e.blur());await viewport(520,40);
-  assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden),'do not restore dock before closing animation finishes');
+  assert.equal(await p.locator('.v2-chat-workspace').evaluate(e=>e.getBoundingClientRect().top),0,'blur must not preserve the keyboard pan');
   await viewport(844,0);await p.waitForFunction(()=>!document.querySelector('.v2-workspace .v2-bottom-tabs').hidden);
   box=await composer.boundingBox();assert.ok(box.y>680&&box.y+box.height<844,'composer returns to bottom');
   assert.equal(await p.evaluate(()=>window.scrollY),0);

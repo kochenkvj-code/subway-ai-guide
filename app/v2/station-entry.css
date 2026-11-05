@@ -39,3 +39,8 @@
 .se-addresses{margin-top:10px}
 .se-options>button[aria-pressed=true]{border-color:#8db39b;background:#eef6f0}
 .se-dialog:has(.se-addresses:not([hidden])) .se-options{max-height:26dvh}
+
+.se-heading .se-address-toggle{display:inline-flex;align-items:center;gap:6px;border-color:#bdd3c5;background:#edf5ef;color:#37664a;font-weight:600}
+.se-address-caret{display:inline-block;font-size:14px;line-height:1}
+.se-address-toggle[aria-expanded=true] .se-address-caret{transform:rotate(180deg)}
+.se-address-toggle:hover{background:#e4f0e8}
