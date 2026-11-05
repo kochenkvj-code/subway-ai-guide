@@ -47,7 +47,7 @@ async function getGoogleAccessToken() {
   return tokenResult.token;
 }
 
-const VARIANTS={current:{model:'gemini-3.5-flash-lite',maxOutputTokens:500},a:{model:'gemini-3.5-flash-lite',maxOutputTokens:1200},b:{model:'gemini-3.5-flash-lite',maxOutputTokens:1200,thinking:'LOW'},c:{model:'gemini-3.5-flash',maxOutputTokens:1200,thinking:'LOW'}};
+const VARIANTS={current:{model:'gemini-3.5-flash-lite',maxOutputTokens:500},a:{model:'gemini-3.5-flash-lite',maxOutputTokens:1200},b:{model:'gemini-3.5-flash-lite',maxOutputTokens:1200,thinking:'LOW'},c:{model:'gemini-3.5-flash',maxOutputTokens:1200,thinking:'LOW'},d:{model:'gemini-3.8-flash',maxOutputTokens:1200,thinking:'LOW'}};
 export async function POST(request){
  const started=Date.now();
  try{

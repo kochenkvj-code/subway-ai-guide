@@ -1,7 +1,7 @@
 'use client';
 import {useRef,useState} from 'react';
 import {searchStationMaster} from '../../lib/station-master';
-const variants={current:'이전 기준 · Lite / 500 / 기본',a:'A · Lite / 1,200 / 기본(MINIMAL)',b:'B · Lite / 1,200 / LOW (현재 V2)',c:'C · Flash / 1,200 / LOW'};
+const variants={current:'이전 기준 · Gemini 3.5 Flash-Lite / 500 / 기본(MINIMAL)',a:'A · Gemini 3.5 Flash-Lite / 1,200 / 기본(MINIMAL)',b:'B · Gemini 3.5 Flash-Lite / 1,200 / LOW (현재 V2)',c:'C · Gemini 3.5 Flash / 1,200 / LOW',d:'D · Gemini 3.8 Flash / 1,200 / LOW'};
 const presets=[['2637','수유실 어디에 있나요?'],['0159','수유실 어디에 있나요?'],['0154','수유실 어디에 있나요?']];
 const fmt=v=>v==null?'미제공':v;const seconds=v=>(v/1000).toFixed(2)+'초';
 export default function Comparison(){
