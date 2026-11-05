@@ -1796,7 +1796,13 @@ export default function GuideExperience({ embedded = false, initialAction = null
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
-                {message.text && <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>}
+                {message.text && (message.pending && embedded && chatStation
+                  ? <div className="sag-answer sag-ai-pending-indicator" role="status" aria-live="polite" aria-label={message.text}>
+                      <span aria-hidden="true">{message.text.replace(/[.…\s]+$/u, '')}</span>
+                      <span className="sag-ai-loading-dots" aria-hidden="true"><i/><i/><i/></span>
+                    </div>
+                  : <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
+                )}
 
                 {message.gateMenu && (() => {
                   const writing = V2_GATE_WRITING[lang] || V2_GATE_WRITING.ko;
