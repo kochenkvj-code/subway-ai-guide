@@ -52,11 +52,23 @@ export default function TrainLostUI(p){
   {stage==='input'&&<>
    <section className="tl-panel tl-input-panel">
     <h3 className="tl-panel-title"><em>01</em>{u.panelA}</h3>
-    <div className="tl-field"><div className="tl-label">{u.station}</div>
-     <div className="tl-station"><span className="tl-station-bubble">{selection.line}</span><div className="tl-station-name">{selectionLabel}<small>{lineName(selection.line+'호선',lang)}</small></div><button type="button" className="tl-link" onClick={closeStation}>{editing?u.change+' ×':u.change}</button></div>
+    <div className="tl-field tl-station-field">
+     <div className="tl-station-layout">
+      <div className="tl-station-column">
+       <div className="tl-label">{u.station}</div>
+       <button type="button" className="tl-station-trigger" onClick={closeStation} aria-label={u.station+': '+selectionLabel+' · '+u.change} aria-expanded={editing}>
+        <strong className="tl-station-value">{selectionLabel}</strong><span className="tl-station-edit-icon" aria-hidden="true">{editing?'×':'⌄'}</span>
+       </button>
+      </div>
+      <div className="tl-station-column">
+       <label className="tl-label" htmlFor={lines.length>1?'tl-station-line':undefined}>{t.line}</label>
+       {lines.length>1?<select id="tl-station-line" className="tl-station-line-select" value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})} aria-label={t.line}>
+        {lines.map(l=><option key={l} value={l}>{lineName(l+'호선',lang)}</option>)}
+       </select>:<div className="tl-station-line-static">{lineName(selection.line+'호선',lang)}</div>}
+      </div>
+     </div>
      {editing&&<div className="tl-picker"><input type="search" value={query} placeholder={t.search} onChange={e=>setQuery(e.target.value)} aria-label={t.search} autoComplete="off"/>{matches.length>0&&<div className="tf-matches">{matches.map(s=><button type="button" key={s.name+'/'+s.line} onClick={()=>chooseStation(s)}>{s.display} · {lineName(s.line+'호선',lang)}</button>)}</div>}</div>}
     </div>
-    {lines.length>1&&<div className="tl-field"><div className="tl-label">{t.line}</div><select className="tl-input" value={selection.line} onChange={e=>chooseStation({name:selection.name,line:e.target.value})}>{lines.map(l=><option key={l} value={l}>{lineName(l+'호선',lang)}</option>)}</select></div>}
     {!neighbors.length&&<p className="tf-warning">{u.stationUnavailable}</p>}
     <div className="tl-field tl-direction-field"><div className="tl-label">{u.direction}<span className="tl-required">{u.required}</span></div><div className={'tl-directions'+(neighbors.length===1?' tl-directions-single':'')} role="group" aria-label={u.direction}>{neighbors.map((st,i)=><button type="button" className="tl-choice" key={st} aria-pressed={next===st} aria-label={localized(st,selection.line,lang)+' · '+u.directionSub} onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}><span className="tl-direction-arrow" aria-hidden="true">{i===0?'←':i===1?'→':'↗'}</span><strong>{localized(st,selection.line,lang)}</strong><small>{u.directionSub}</small>{next===st&&<span className="tl-direction-check" aria-hidden="true">✓</span>}</button>)}</div>{next&&requiredDirection===null&&<p className="tf-warning">{u.needDirection}</p>}{neighbors.length>2&&<p className="tl-note">{u.branches}</p>}</div>
     <div className="tl-field tl-time-field"><div className="tl-label">{u.elapsed}<span className="tl-required">{u.required}</span></div>
