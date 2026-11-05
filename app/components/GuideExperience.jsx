@@ -1115,7 +1115,7 @@ function renderBoldMarkdown(text) {
   });
 }
 
-export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null, routeStation = null, chatStation = null, onRecommendMenu = null, privacyNotice = null }) {
+export default function GuideExperience({ embedded = false, initialAction = null, language = "ko", active = true, chatRequest = null, onBusyChange = null, resetToken = 0, onNavigationStep = null, navigationSnapshot = null, routeStation = null, chatStation = null, onRecommendMenu = null, showPrivacyNotice = true }) {
   const [lang, setLang] = useState(language);
   const visitRecordedRef = useRef(false);
   useEffect(() => {
@@ -2093,7 +2093,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
             {voiceError || {ko:"듣고 있어요… 말씀해 주세요.",en:"Listening… please speak.",ja:"聞き取り中です… 話してください。",zh:"正在聆听… 请讲话。"}[lang]}
           </p>
         )}
-        <p className="sag-privacy-notice">{privacyNotice ?? t.privacyNotice}</p>
+        {showPrivacyNotice && <p className="sag-privacy-notice">{t.privacyNotice}</p>}
       </section>
 
       <style>{`

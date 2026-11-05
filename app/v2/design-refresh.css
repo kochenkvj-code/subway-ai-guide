@@ -140,3 +140,5 @@
 .v2-summary-train+.v2-summary-train{margin-top:1px}
 .v2-summary-train b{font-size:13px;line-height:1.3}
 @media(max-width:360px){.v2-summary-train b{font-size:12px}}
+/* Complete privacy sentences belong in the vacated top space, not beside the composer. */
+.v2-chat-privacy{flex:none;margin:0 14px 10px;padding:0 0 9px;border-bottom:1px solid #edf1ee;color:#718579;font-size:11px;line-height:1.65;white-space:normal;overflow-wrap:break-word}

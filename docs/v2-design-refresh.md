@@ -21,3 +21,5 @@ Facilities correction: scope feedback `.sf-station` rules under `.sf-pane`, prev
 Staff QR controls are now inside a disclosure in the station picker, retaining both existing main/gate URL inputs and copy actions. No share arrow is shown on the visitor main card. The station name stays at the AI card upper-right with its caret and a title-sized 20px weight. Reduced the AI header row gap and top/bottom padding, without shrinking the question field.
 
 The arrival board is a secondary strip: compact heading/row heights and reduced vertical padding retain both trains per direction. A full-column hit area opens details without requiring a tiny visual heading target.
+
+Current chat notice: restore complete localized privacy sentences at the top below the chat title, remove the redundant chat-header station badge/name, and hide the original bottom notice only for V2 general chat. The shared component defaults to showing its original notice for V1. The selected-station AI context remains unchanged.
