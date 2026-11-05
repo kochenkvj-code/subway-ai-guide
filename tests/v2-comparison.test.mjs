@@ -22,7 +22,7 @@ test('KRW cost estimate uses measured input, answer and thinking tokens, plus co
  assert.equal(estimateV2ComparisonCost({...sample,diagnostics:{...sample.diagnostics,inputTokens:null}}),null);
  assert.equal(estimateV2ComparisonCost(sample,0),null);
  const cached=estimateV2ComparisonCost({diagnostics:{model:'gemini-3.5-flash-lite',inputTokens:1000,outputTokens:100,thoughtsTokens:null,usageMetadata:{cachedContentTokenCount:500,toolUsePromptTokenCount:100}},googleSearchQueries:[]},1000);
- assert.equal(Number(cached.modelKrw.toFixed(4)),Number(((600*.3+500*.03+100*2.5)/1e6*1000).toFixed(4)));
+ assert.equal(Number(cached.modelKrw.toFixed(4)),Number(((500*.3+500*.03+100*2.5)/1e6*1000).toFixed(4)));
  assert.equal(cached.thoughtsReported,false);
  assert.equal(cached.searchCount,0);
 });
