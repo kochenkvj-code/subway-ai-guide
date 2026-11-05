@@ -7,16 +7,16 @@ await p.goto('http://localhost:3061/v2?station=2637&view=chat');
 const composer=p.locator('.v2-chat-pane .sag-input-wrap input');await composer.waitFor();
 assert.ok(parseFloat(await composer.evaluate(e=>getComputedStyle(e).fontSize))>=16,'prevent iOS input auto zoom');
 await composer.fill('작성 중인 질문');
-async function viewport(height,top){await p.evaluate(({height,top})=>{Object.defineProperties(visualViewport,{height:{configurable:true,value:height},offsetTop:{configurable:true,value:top}});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'));},{height,top});await p.waitForFunction(({height,top})=>{const b=document.querySelector('.v2-chat-workspace').getBoundingClientRect();return Math.abs(b.height-height)<2&&Math.abs(b.top)<2;},{height,top});}
+async function viewport(height,top){await p.evaluate(({height,top})=>{Object.defineProperties(visualViewport,{height:{configurable:true,value:height},offsetTop:{configurable:true,value:top},pageTop:{configurable:true,value:top}});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'));},{height,top});await p.waitForFunction(({height,top})=>{const b=document.querySelector('.v2-chat-workspace').getBoundingClientRect();return Math.abs(b.height-height)<2&&Math.abs(b.top+window.scrollY-top)<2;},{height,top});}
 for(let i=0;i<3;i++){
   await composer.focus();await viewport(470,0);await viewport(470,86);
-  let box=await composer.boundingBox();assert.ok(box.y>=0&&box.y+box.height<=470,'composer stays above keyboard');
+  let box=await composer.boundingBox();assert.ok(box.y>=86&&box.y+box.height<=556,'composer stays above keyboard');
   assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').isVisible());
   await p.evaluate(()=>{window.__scrollCorrections=0;window.__originalScrollTo=window.scrollTo;window.scrollTo=(...args)=>{window.__scrollCorrections++;window.__originalScrollTo(...args);};});
-  let previousHeight=470,previousY=(await composer.boundingBox()).y;const dockHeight=(await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height;
-  await composer.evaluate(e=>e.blur());for(const height of [520,580,650,720,790]){await viewport(height,40);const currentY=(await composer.boundingBox()).y;assert.ok(Math.abs((currentY-previousY)-(height-previousHeight))<2,'composer follows viewport without a second layout step');assert.equal((await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height,dockHeight);previousHeight=height;previousY=currentY;}
+  let previousHeight=470,previousY=(await composer.boundingBox()).y-86;const dockHeight=(await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height;
+  await composer.evaluate(e=>e.blur());for(const height of [520,580,650,720,790]){await viewport(height,40);const currentY=(await composer.boundingBox()).y-40;assert.ok(Math.abs((currentY-previousY)-(height-previousHeight))<2,'composer follows viewport without a second layout step');assert.equal((await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height,dockHeight);previousHeight=height;previousY=currentY;}
   assert.equal(await p.evaluate(()=>window.__scrollCorrections),0,'no forced scroll during closing animation');
-  assert.equal(await p.locator('.v2-chat-workspace').evaluate(e=>e.getBoundingClientRect().top),0,'blur must not preserve the keyboard pan');
+  assert.equal(await p.locator('.v2-chat-workspace').evaluate(e=>e.getBoundingClientRect().top),40,'shell must follow visible origin during the remaining pan');
   await viewport(844,0);const finalY=(await composer.boundingBox()).y;await p.waitForTimeout(250);assert.equal((await composer.boundingBox()).y,finalY,'settle callback must not move the composer again');
   box=await composer.boundingBox();assert.ok(box.y>680&&box.y+box.height<844,'composer returns to bottom');
   assert.equal(await p.evaluate(()=>window.scrollY),0);
@@ -24,7 +24,7 @@ for(let i=0;i<3;i++){
 }
 await p.locator('.v2-view-header>button').last().click();await p.locator('.v2-home:not([hidden])').waitFor();
 assert.equal(await p.evaluate(()=>document.body.style.position),'','release page scroll on leaving chat');
-await p.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;});
+await p.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;delete visualViewport.pageTop;});
 await p.setViewportSize({width:320,height:500});await p.evaluate(()=>window.scrollTo(0,150));
 assert.ok(await p.evaluate(()=>window.scrollY)>0,'home remains scrollable');
 console.log('PASS repeated keyboard resize/pan/blur/close, input font, draft retention and home scroll restoration (simulated visual viewport).');

@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import GuideExperience from '../components/GuideExperience';
 import { recordStat, startActivityTracking } from '../lib/record-stat';
 import { copy, menuItems } from './copy';
@@ -32,7 +32,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const [keyboardOpen,setKeyboardOpen]=useState(false);
-  const [chatViewport,setChatViewport]=useState(null);
+  const chatWorkspace=useRef(null);
   const [languageOpen,setLanguageOpen]=useState(false);
   const languageTrigger=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
@@ -83,38 +83,33 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
 
   function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
-  useEffect(()=>{
-    if(view!=='chat'){setKeyboardOpen(false);setChatViewport(null);return;}
-    // Keep the document still; only the message list should scroll in chat.
-    // iOS pans the visual viewport while focusing an input, independently of resize.
-    const root=document.documentElement,body=document.body,scrollY=window.scrollY;
-    const previous={rootOverflow:root.style.overflow,position:body.style.position,top:body.style.top,width:body.style.width,overflow:body.style.overflow};
-    root.style.overflow='hidden';body.style.position='fixed';body.style.top='0px';body.style.width='100%';body.style.overflow='hidden';
+  useLayoutEffect(()=>{
+    if(view!=='chat'){setKeyboardOpen(false);return;}
+    const shell=chatWorkspace.current,root=document.documentElement,body=document.body;
+    if(!shell)return;
+    const scrollY=window.scrollY,previous={rootOverflow:root.style.overflow,bodyOverflow:body.style.overflow};
+    // Do not fix the body: Safari also pans the visual viewport while opening its keyboard.
+    // Position the shell in document coordinates, using BOTH visible origin and height.
+    root.style.overflow='hidden';body.style.overflow='hidden';
     const viewport=window.visualViewport;
-    let baseline=viewport?.height||window.innerHeight,frame=0,settled=0;
-    const focused=()=>!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
-    const finish=()=>{
-      const height=viewport?.height||window.innerHeight;
-      // Normalize residual Safari page pan after events stop; never change dock geometry.
-      if(!focused()||baseline-height<100){
-        baseline=height;setKeyboardOpen(false);
-        if(window.scrollY||viewport?.offsetTop)window.scrollTo(0,0);
-      }
-    };
+    let frame=0,baseline=viewport?.height||window.innerHeight;
     const sync=()=>{
       const height=viewport?.height||window.innerHeight;
-      if(focused()&&baseline-height>150){setKeyboardOpen(true);}
-      // The dock keeps the same space throughout; only follow the visible height.
-      setChatViewport(previous=>previous?.height===height?previous:{height});
-      clearTimeout(settled);settled=setTimeout(finish,150);
+      const top=viewport?.pageTop??window.scrollY+(viewport?.offsetTop||0);
+      shell.style.height=height+'px';shell.style.top=top+'px';
+      const focused=!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
+      if(!focused)baseline=Math.max(height,window.innerHeight);
+      setKeyboardOpen(focused&&baseline-height>150);
     };
-    const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(sync);};
+    const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync();});};
     viewport?.addEventListener('resize',schedule);viewport?.addEventListener('scroll',schedule);
-    window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);sync();
+    window.addEventListener('resize',schedule);window.addEventListener('scroll',schedule);
+    document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);sync();
     return()=>{
-      cancelAnimationFrame(frame);clearTimeout(settled);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
-      window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);
-      root.style.overflow=previous.rootOverflow;Object.assign(body.style,{position:previous.position,top:previous.top,width:previous.width,overflow:previous.overflow});
+      cancelAnimationFrame(frame);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
+      window.removeEventListener('resize',schedule);window.removeEventListener('scroll',schedule);
+      document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);
+      shell.style.height='';shell.style.top='';root.style.overflow=previous.rootOverflow;body.style.overflow=previous.bodyOverflow;
       window.scrollTo(0,scrollY);
     };
   },[view]);
@@ -149,7 +144,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
       {bottomTabs(true)}
     </div>
-    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} style={view==='chat'&&chatViewport?{height:chatViewport.height,top:0}:undefined} hidden={view==='home'}>
+    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}

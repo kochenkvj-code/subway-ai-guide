@@ -205,7 +205,7 @@
 
 /* Chat owns the visible viewport, including Safari keyboard pan/close animations. */
 .v2-design-refresh.v2-chat-active{min-height:0}
-.v2-design-refresh .v2-chat-workspace{position:fixed;inset:0 0 auto;width:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
+.v2-design-refresh .v2-chat-workspace{position:absolute;inset:0 0 auto;width:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
 .v2-design-refresh .v2-chat-pane .sag-chat{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap{flex-shrink:0}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap input{font-size:16px}
