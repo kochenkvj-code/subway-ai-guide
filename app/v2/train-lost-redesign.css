@@ -249,3 +249,9 @@
 .tf-redesign.tl-three-stage .tl-required-status.ready{background:#edf8f1;border:1px solid #cee9d7;color:#28714e}
 .tf-redesign.tl-three-stage .tl-required-status.ready>span:first-child{background:#25936a;color:#fff}
 @media(max-width:380px){.tf-redesign.tl-three-stage .tl-stepbar{gap:7px}.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{font-size:10px;gap:3px}.tf-redesign.tl-three-stage .tl-required-status{font-size:10px;padding:6px 8px}}
+
+/* Once step 1 is filled, make step 2 read as the next available action. */
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete b{background:#d9f3e5;color:#087d5c}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete:not(:last-child)::after{color:#0b9476}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready{background:#e8f6ee;color:#08795e;border-radius:9px;font-weight:800}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready b{background:#0c9875;color:#fff}
