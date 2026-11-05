@@ -97,3 +97,16 @@
 .v2-summary-train b.v2-arrival-available{color:#3e6c50}
 .v2-design-refresh .v2-notice{margin:16px 0 0}
 @media(max-width:360px){.v2-design-refresh .v2-home-header{grid-template-columns:minmax(0,1fr) 114px;gap:7px}.v2-home-header .se-tools{gap:4px}.v2-home-header .se-station{font-size:18px}.v2-home-header .se-line{width:21px;height:21px;font-size:11px}.v2-home-header .se-share{padding-left:4px!important;padding-right:4px!important}.v2-home-header .v2-direct-languages button{font-size:10px;min-height:36px;padding:6px 1px}.v2-summary-destination{font-size:11px;gap:4px}.v2-summary-train{gap:4px}.v2-summary-train b{font-size:13px}}
+/* Language controls move out of the header into an upward-opening bottom picker. */
+.v2-design-refresh .v2-home-header{display:block;margin-bottom:10px;min-height:34px}
+.v2-home-header .se-station{font-size:22px}
+.v2-summary-heading>span:not([aria-hidden]){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+.v2-language-picker{position:relative;min-width:0;display:flex}
+.v2-bottom-tabs .v2-language-toggle{width:100%;margin:0}
+.v2-bottom-tabs .v2-language-toggle[aria-expanded=true]{background:#edf3ef;color:#245e47;font-weight:650}
+.v2-language-popover{position:absolute;right:0;bottom:calc(100% + 10px);width:220px;max-width:calc(100vw - 30px);border:1px solid #dce7df;border-radius:15px;background:#fff;padding:13px;box-shadow:0 5px 15px #203b3009,0 15px 40px #203b301c;color:#355544;z-index:20}
+.v2-language-popover>p{font-size:12px;font-weight:600;line-height:1.5;color:#6f8477;margin:0 0 9px}
+.v2-language-popover>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.v2-bottom-tabs .v2-language-popover button{display:block;text-align:center;padding:9px 4px;font-size:13px;font-weight:400;min-height:44px;border:1px solid #edf1ed;border-radius:9px;background:#fff;color:#6a7e70}
+.v2-bottom-tabs .v2-language-popover button[aria-pressed=true]{border-color:#cadfd0;background:#eff6f1;color:#285c40;font-weight:650}
+@media(max-width:360px){.v2-home-header .se-station{font-size:21px}}

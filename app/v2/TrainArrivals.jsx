@@ -40,10 +40,10 @@ export function TrainSummary({state,lang,t,onDetails,active,stationContext=null}
   return <section className="v2-trains" aria-label={t.next}>
     <div className="v2-summary-board">{groups.map(({label,group},index)=>{
       const names=group?.nextStations||[];
-      const direction=names.length?names.map(n=>stationName(n,lang)).join(' · ')+({ko:' 방면',en:' bound',ja:'方面',zh:'方向'})[lang]:label;
+      const direction=names.length?names.map(n=>stationName(n,lang)).join(' · '):label;
       const trains=message?[]:usable(group,now).slice(0,2);
       return <div className="v2-summary-direction" key={group?.id||index}>
-        <button className="v2-summary-heading" onClick={onDetails} aria-label={direction+' · '+t.detail}>{index%2===0&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"/></svg>}<span>{direction}</span>{index%2===1&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>}</button>
+        <button className="v2-summary-heading" title={direction} onClick={onDetails} aria-label={direction+' · '+t.detail}>{index%2===0&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"/></svg>}<span>{direction}</span>{index%2===1&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>}</button>
         {[0,1].map(i=>{const item=trains[i],destination=item?summaryDestination(item.train,group?.provider,lang,labels):'—',eta=item?summaryText(item.status,labels,lang):'—';return <div className="v2-summary-train" key={i}>
           <span className="v2-summary-destination" title={destination}>{lang==='ko'&&item&&['내선','외선'].includes(group?.provider)&&item.train.destination&&!/순환$/.test(item.train.destination)?<><span>{stationName(item.train.destination,'ko').replace(/\((내선|외선)\)/g,'').replace(/행$/,'')}행</span><small>{group.provider}</small></>:destination}</span><b className={item?'v2-arrival-available':''} title={eta}>{eta}</b>
         </div>;})}
