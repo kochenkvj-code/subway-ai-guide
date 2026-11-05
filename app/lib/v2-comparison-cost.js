@@ -17,10 +17,11 @@ export function estimateV2ComparisonCost(result,usdKrw=DEFAULT_USD_KRW){
   const usage=d.usageMetadata||{};
   const input=count(d.inputTokens);
   const cache=Math.min(input,count(usage.cachedContentTokenCount));
-  const toolInput=count(usage.toolUsePromptTokenCount);
+  // Google Search grounding tool results are supplied to the model without input-token charges.
+  // Do not add toolUsePromptTokenCount to paid prompt tokens.
   const answer=count(d.outputTokens);
   const thoughts=count(d.thoughtsTokens);
-  const inputUsd=((input-cache+toolInput)*price.input+cache*price.cached)/1_000_000;
+  const inputUsd=((input-cache)*price.input+cache*price.cached)/1_000_000;
   const outputUsd=(answer+thoughts)*price.output/1_000_000;
   const modelUsd=inputUsd+outputUsd;
   const searchQueries=Array.isArray(result.googleSearchQueries)?result.googleSearchQueries:[];
