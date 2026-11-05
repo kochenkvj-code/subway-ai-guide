@@ -292,11 +292,16 @@
 .v2-design-refresh .v2-ai-top .se-station{font-size:14px!important;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:360px){.v2-design-refresh .v2-ai-top .v2-eyebrow{display:flex;font-size:7px;letter-spacing:1.1px}.v2-design-refresh .v2-ai-top .v2-ai-station-tools{max-width:calc(100% - 145px)}}
 
+/* Fit only the loading bubble to its short label + dots.
+   Normal AI answers keep their original width and wrapping. */
+.v2-design-refresh .v2-chat-pane .sag-row.assistant .sag-bubble.pending{width:max-content;max-width:calc(100% - 18px);min-width:0;padding:10px 12px;border-radius:14px 14px 14px 4px;box-sizing:border-box}
+.v2-design-refresh .v2-chat-pane .sag-bubble.pending .sag-ai-pending-indicator{max-width:100%;font-size:13px}
+
 /* V2 AI chat: stable-width, sequential dots while the answer is pending.
    The indicator is presentation only, never a fake completion percentage. */
-.v2-design-refresh .v2-chat-pane .sag-ai-pending-indicator{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px;line-height:1.55}
-.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:0 0 24px;height:14px}
-.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i{display:block;width:5px;height:5px;border-radius:50%;background:#4c9479;animation:v2-ai-thinking-dot 1.2s ease-in-out infinite;transform-origin:center}
+.v2-design-refresh .v2-chat-pane .sag-ai-pending-indicator{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:6px;line-height:1.4;white-space:nowrap}
+.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:0 0 18px;height:12px}
+.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i{display:block;width:4px;height:4px;border-radius:50%;background:#4c9479;animation:v2-ai-thinking-dot 1.2s ease-in-out infinite;transform-origin:center}
 .v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i:nth-child(2){animation-delay:.16s}
 .v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i:nth-child(3){animation-delay:.32s}
 @keyframes v2-ai-thinking-dot{0%,70%,100%{opacity:.3;transform:translateY(0) scale(.88)}35%{opacity:1;transform:translateY(-3px) scale(1.06)}}
