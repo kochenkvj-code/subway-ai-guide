@@ -67,7 +67,13 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   },[view]);
   function navigate(next){
     if(next===view)return;
-    if(view==='home')homeScroll.current=window.scrollY;
+    if(view==='home'){
+      // Safari may pan the page solely to expose the focused home composer.
+      // That keyboard-induced offset is not a real home scroll position and
+      // must not be restored after the user switches back from AI chat.
+      const submittingFromHome=document.activeElement?.closest?.('.v2-ask');
+      homeScroll.current=submittingFromHome?0:window.scrollY;
+    }
     if(next!=='home'&&next!=='chat'&&next!=='feedback')setVisits(prev=>({...prev,[next]:(prev[next]||0)+1}));
     setRestoration(null);setDetail(false);
     const item=menuItems.find(x=>x.id===next);
@@ -93,14 +99,18 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     // the keyboard slides away. Translating the *whole* shell by that offset
     // also drags the header down, then makes it snap back later.
     //
-    // Keep the bottom edge unchanged: old bottom = offsetTop + height.
-    // Grow the shell upward from top:0 instead of translating it down.
-    // This preserves the already-smooth composer / bottom-tab tracking.
+    // Keep the shell anchored at top:0 (the validated Safari keyboard fix).
+    // Its bottom follows visualViewport.height + offsetTop while the keyboard
+    // moves, but must NEVER extend below the layout viewport. During a
+    // home-form submission / rapid tab switch, Safari can retain a stale
+    // positive offsetTop after restoring the keyboard-free viewport.
+    // Without a bound, that extra offset puts the bottom tab behind Safari UI.
     const sync=()=>{
       frame=0;
-      const height=viewport?.height||window.innerHeight;
+      const layoutHeight=window.innerHeight;
+      const visualHeight=viewport?.height||layoutHeight;
       const offset=Math.max(0,viewport?.offsetTop||0);
-      shell.style.height=(height+offset)+'px';
+      shell.style.height=Math.max(1,Math.min(layoutHeight,visualHeight+offset))+'px';
     };
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(sync);};
     viewport?.addEventListener('resize',schedule);
