@@ -98,10 +98,10 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   return {...cat,items};
  }).filter(cat=>cat.items.length>0);
  const shownTotal=shown.reduce((n,category)=>n+category.items.length,0);
- return <div className="v2-facility-scope"><style>{css}</style><main className="sf-page">
+ return <div className={"v2-facility-scope"+(embedded?" sf-compact":"")}><style>{css}</style><main className="sf-page">
   <div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div><button className="sf-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button></div>
-  <span className="sf-eyebrow">{t.title} · STATION GUIDE</span>
-  <div className="sf-hero"><div><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div><span className="sf-hero-mark" aria-hidden="true">⌖</span></div>
+  {!embedded&&<span className="sf-eyebrow">{t.title} · STATION GUIDE</span>}
+  {!embedded&&<div className="sf-hero"><div><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div><span className="sf-hero-mark" aria-hidden="true">⌖</span></div>}
   <label className="sf-search"><span className="sf-search-icon" aria-hidden="true">⌕</span><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}>×</button>}</label>
   {!loading&&data?.ok&&available.length>0&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
     <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>{t.all} <small>{total}</small></button>
@@ -143,6 +143,6 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
     })}
    </>}
   {data?.partial&&<div className="sf-alert" role="status">ⓘ {t.partial}</div>}
-  <div className="sf-footer"><span>ⓘ {t.note}</span><small>{t.source} · {t.statusNotice}</small></div>
+
  </main></div>;
 }

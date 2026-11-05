@@ -8,7 +8,7 @@ Only V2 presentation and its staff picker change. Root V1, Search Lab, AI model/
 - Station identity and caret at the AI card upper-right: fixed 16px text beside a 19px line badge. Long names ellipsize without growing or displacing the row; the caret stays visible.
 - 15px horizontal AI-card padding (14px on narrow phones). Example chips size by their text rather than equal-width columns, wrap only when the full row is genuinely too narrow, and do not hide behind station tools.
 - Compact arrival strip with symmetric adjacent-station labels: same font size as train destination labels, emphasized by darker semibold color. No direction suffixes such as 방면/bound. Each direction has two trains; every train shows its own provider destination and existing ETA/status. No guessed destinations, train numbers, estimates or API changes.
-- On shorter phones, reduced whitespace and denser menu cards keep all nine guides visible. Very small screens may scroll; menu scroll margins protect focus from the bottom dock. The question text/input remain legible and tourism banner remains available.
+- Quick-guide cards always center the icon above the label, including short phones. Heights are reduced through vertical padding/gaps (74px normally, 68/64px minimum on shorter phones), rather than a horizontal icon/label layout. On shorter phones, reduced whitespace and denser menu cards keep all nine guides visible. Very small screens may scroll; menu scroll margins protect focus from the bottom dock. The question text/input remain legible and tourism banner remains available.
 
 ## Navigation and chat
 
