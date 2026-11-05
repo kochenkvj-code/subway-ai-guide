@@ -30,7 +30,7 @@ export default function TrainLostUI(p){
  editing,setEditing,query,setQuery,chooseStation,next,setNext,when,setWhen,quickMin,setQuickMin,korea,kstAlightDateForTime,resetMatches,
  busy,error,candidates,chosen,current,searched,lookupStats,directionWarning,pick,livePositions,liveFetchedAt,onLiveSnapshot,
  onSearch,onBack,onNone,onContinue,onBackToResults,carMode,setCarMode,carNumber,setCarNumber,relativeSide,setRelativeSide,thing,setThing,door,setDoor,place,setPlace,
- stage,handoffUnknown,message,sms,copyMessage,copyStatus,recommended,liveInfo}=p;
+ stage,onStageChange,handoffUnknown,message,sms,copyMessage,copyStatus,recommended,liveInfo}=p;
  const u=dictionary[lang]||dictionary.ko;
  const v=flowCopy[lang]||flowCopy.ko;
  const w=sliderWords[lang]||sliderWords.ko;
@@ -40,13 +40,13 @@ export default function TrainLostUI(p){
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
- const displayTime=when.date.replace(/-/g,'.')+' '+when.time;
+ const displayTime=when.time;
  const stageNumber=stage==='input'?1:stage==='results'?2:3;
  const closeStation=()=>setEditing(!editing);
  return <div className="tf-root tf-redesign tl-three-stage">
-  <section className="tl-hero"><span>LOST ITEM · TRAIN FINDER</span><h2>{stage==='input'?u.heroIn:stage==='results'?u.heroOut:u.handoff}</h2><p>{stage==='input'?u.subtitle:stage==='results'?u.resultSubtitle:u.handoffSub}</p></section>
+  <section className="tl-hero"><h2>{stage==='input'?u.heroIn:stage==='results'?u.heroOut:u.handoff}</h2>{stage!=='input'&&<p>{stage==='results'?u.resultSubtitle:u.handoffSub}</p>}</section>
   <nav className="tl-stepbar" aria-label={v.steps.join(' → ')}>
-   {v.steps.map((label,i)=><span key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</span>)}
+   {v.steps.map((label,i)=>{const target=['input','results','handoff'][i],available=i===0||i===1&&searched||i===2&&searched&&(chosen||handoffUnknown);return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={()=>onStageChange(target)}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;})}
   </nav>
   {demoMode&&<p className="tf-warning">DEMO · {u.demo}</p>}
   {stage==='input'&&<>
@@ -64,9 +64,8 @@ export default function TrainLostUI(p){
      <input className="tl-time-slider" type="range" min="0" max="30" step="1" value={sliderMinutes} style={{'--tl-slider-fill':sliderMinutes/30*100+'%'}} aria-label={u.elapsed} aria-valuetext={sliderMinutes===0?w.now:sliderMinutes+u.mins} onChange={e=>pickElapsed(Number(e.target.value))}/>
      <div className="tl-slider-ends"><span>{w.now}</span><span>30{u.mins}</span></div>
      <div className="tl-times">{[3,5,10,15].map(n=><button type="button" className="tl-chip" key={n} aria-pressed={quickMin===n} onClick={()=>pickElapsed(n)}>{n}{u.mins}</button>)}</div>
-     <div className="tl-time-summary" role="status"><span>◷ {v.time}</span><strong>{displayTime}</strong></div>
-     <details className="tl-exact-time"><summary>{v.timeExact}</summary><div className="tl-time-extra"><label>{u.custom} ({u.minutes}) <input type="number" min="0" max="30" inputMode="numeric" aria-label={u.custom} placeholder="0–30" value={quickMin===null?'':quickMin} onChange={e=>{const n=Number(e.target.value);if(e.target.value===''||!Number.isInteger(n)||n<0||n>30){setQuickMin(null);return;}pickElapsed(n);}}/></label><label>{v.time} <input type="time" aria-label={t.time} value={when.time} onChange={e=>{setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></label></div></details>
-     <p className="tl-note">{quickMin===null?u.range:v.timeGuide}</p>
+     <label className="tl-time-summary tl-time-edit"><span>◷ {v.time}</span><span className="tl-time-edit-control"><input type="time" required aria-label={v.timeExact} value={when.time} onChange={e=>{if(!e.target.value)return;setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/><span aria-hidden="true">✎</span></span></label>
+
     </div>
    </section>
    <section className="tl-panel tl-input-panel">

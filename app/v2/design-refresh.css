@@ -105,9 +105,9 @@
 .v2-language-picker{position:relative;min-width:0;display:flex}
 .v2-bottom-tabs .v2-language-toggle{width:100%;margin:0}
 .v2-bottom-tabs .v2-language-toggle[aria-expanded=true]{background:#edf3ef;color:#245e47;font-weight:650}
-.v2-language-popover{position:absolute;right:0;bottom:calc(100% + 10px);width:220px;max-width:calc(100vw - 30px);border:1px solid #dce7df;border-radius:15px;background:#fff;padding:13px;box-shadow:0 5px 15px #203b3009,0 15px 40px #203b301c;color:#355544;z-index:20}
+.v2-language-popover{position:absolute;right:0;bottom:calc(100% + 10px);width:164px;max-width:calc(100vw - 30px);border:1px solid #dce7df;border-radius:15px;background:#fff;padding:13px;box-shadow:0 5px 15px #203b3009,0 15px 40px #203b301c;color:#355544;z-index:20}
 .v2-language-popover>p{font-size:12px;font-weight:600;line-height:1.5;color:#6f8477;margin:0 0 9px}
-.v2-language-popover>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.v2-language-popover>div{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
 .v2-bottom-tabs .v2-language-popover button{display:block;text-align:center;padding:9px 4px;font-size:13px;font-weight:400;min-height:44px;border:1px solid #edf1ed;border-radius:9px;background:#fff;color:#6a7e70}
 .v2-bottom-tabs .v2-language-popover button[aria-pressed=true]{border-color:#cadfd0;background:#eff6f1;color:#285c40;font-weight:650}
 @media(max-width:360px){.v2-home-header .se-station{font-size:21px}}
@@ -272,3 +272,22 @@
 .v2-design-refresh .v2-chat-workspace .v2-view-header h1{white-space:nowrap;flex:none}
 .v2-design-refresh .v2-chat-workspace .v2-chat-privacy{margin-left:2px;padding-left:10px;border-left:1px solid #dce6df;font-size:10px;line-height:1.5;color:#728477}
 @media(max-width:360px){.v2-design-refresh .v2-chat-workspace .v2-chat-privacy{margin-left:0;padding-left:8px}}
+
+/* Route text fields already have their own focus treatment; avoid the app-wide blue box. */
+.v2-design-refresh .srg-search-wrap input:focus-visible,
+.v2-design-refresh .srg-origin-editor input:focus-visible{outline:none;outline-offset:0}
+.v2-design-refresh .srg-search-wrap:focus-within{border-color:#6da994;box-shadow:0 0 0 1px #6da99455}
+.v2-design-refresh .srg-origin-editor input:focus{border-color:#6da994;box-shadow:0 0 0 1px #6da99455}
+
+/* Keep the status dot round when long English station names share this row. */
+.v2-design-refresh .v2-ai-top .v2-eyebrow{flex:1 1 auto;min-width:0}
+.v2-design-refresh .v2-ai-top .v2-eyebrow>i{display:block;flex:0 0 5px;width:5px;height:5px;border-radius:50%}
+.v2-design-refresh .v2-ai-top .v2-eyebrow-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Preserve the complete brand line; the station name yields space with ellipsis. */
+.v2-design-refresh .v2-ai-top .v2-eyebrow{flex:0 0 auto;overflow:visible}
+.v2-design-refresh .v2-ai-top .v2-eyebrow-text{overflow:visible;text-overflow:clip}
+.v2-design-refresh .v2-ai-top .v2-ai-station-tools{flex:0 1 auto;min-width:0;max-width:calc(100% - 173px);margin-left:auto}
+.v2-design-refresh .v2-ai-top .se-line{width:17px;height:17px;font-size:9px}
+.v2-design-refresh .v2-ai-top .se-station{font-size:14px!important;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:360px){.v2-design-refresh .v2-ai-top .v2-eyebrow{display:flex;font-size:7px;letter-spacing:1.1px}.v2-design-refresh .v2-ai-top .v2-ai-station-tools{max-width:calc(100% - 145px)}}

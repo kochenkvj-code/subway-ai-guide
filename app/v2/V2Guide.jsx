@@ -95,7 +95,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     const focused=()=>!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
     const finish=()=>{
       const height=viewport?.height||window.innerHeight;
-      // Restore chrome only after resize events stop, including "Done" without blur.
+      // Normalize residual Safari page pan after events stop; never change dock geometry.
       if(!focused()||baseline-height<100){
         baseline=height;setKeyboardOpen(false);
         if(window.scrollY||viewport?.offsetTop)window.scrollTo(0,0);
@@ -104,7 +104,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     const sync=()=>{
       const height=viewport?.height||window.innerHeight;
       if(focused()&&baseline-height>150){setKeyboardOpen(true);}
-      // Do not scroll the page or reinsert the dock during the keyboard animation.
+      // The dock keeps the same space throughout; only follow the visible height.
       setChatViewport(previous=>previous?.height===height?previous:{height});
       clearTimeout(settled);settled=setTimeout(finish,150);
     };
@@ -127,7 +127,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);
     return()=>{cancelAnimationFrame(frame);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape);};
   },[languageOpen]);
-  function bottomTabs(home=false){const n=navigationCopy[lang],open=languageOpen&&(home?view==='home':view!=='home'),popupId=home?'v2-home-language-popup':'v2-workspace-language-popup';return <nav className="v2-bottom-tabs" aria-label={n.guide} hidden={view==='chat'&&keyboardOpen}>
+  function bottomTabs(home=false){const n=navigationCopy[lang],open=languageOpen&&(home?view==='home':view!=='home'),popupId=home?'v2-home-language-popup':'v2-workspace-language-popup';return <nav className="v2-bottom-tabs" aria-label={n.guide}>
     {[['home','home',n.guide],['chat','spark',n.ai]].map(([id,icon,label])=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>navigate(id)}><Icon name={icon}/><span>{label}</span></button>)}
     <div className="v2-language-picker">
       <button className="v2-language-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls={open?popupId:undefined} onClick={e=>{languageTrigger.current=e.currentTarget;setLanguageOpen(v=>!v);}}><Icon name="globe"/><span>{t.language}</span></button>
@@ -139,7 +139,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
 
       <section className="v2-ai">
-        <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
+        <div className="v2-ai-top"><span className="v2-eyebrow"><i aria-hidden="true"/><span className="v2-eyebrow-text">YOUR AI STATION GUIDE</span></span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
         <h1>{t.title}</h1><p>{t.description}</p>
         <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question);}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
         <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div></div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}

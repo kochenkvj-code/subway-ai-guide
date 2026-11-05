@@ -11,12 +11,13 @@ async function viewport(height,top){await p.evaluate(({height,top})=>{Object.def
 for(let i=0;i<3;i++){
   await composer.focus();await viewport(470,0);await viewport(470,86);
   let box=await composer.boundingBox();assert.ok(box.y>=0&&box.y+box.height<=470,'composer stays above keyboard');
-  assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden));
+  assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').isVisible());
   await p.evaluate(()=>{window.__scrollCorrections=0;window.__originalScrollTo=window.scrollTo;window.scrollTo=(...args)=>{window.__scrollCorrections++;window.__originalScrollTo(...args);};});
-  await composer.evaluate(e=>e.blur());for(const height of [520,580,650,720,790]){await viewport(height,40);assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden),'dock stays hidden during closing frames');}
+  let previousHeight=470,previousY=(await composer.boundingBox()).y;const dockHeight=(await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height;
+  await composer.evaluate(e=>e.blur());for(const height of [520,580,650,720,790]){await viewport(height,40);const currentY=(await composer.boundingBox()).y;assert.ok(Math.abs((currentY-previousY)-(height-previousHeight))<2,'composer follows viewport without a second layout step');assert.equal((await p.locator('.v2-workspace .v2-bottom-tabs').boundingBox()).height,dockHeight);previousHeight=height;previousY=currentY;}
   assert.equal(await p.evaluate(()=>window.__scrollCorrections),0,'no forced scroll during closing animation');
   assert.equal(await p.locator('.v2-chat-workspace').evaluate(e=>e.getBoundingClientRect().top),0,'blur must not preserve the keyboard pan');
-  await viewport(844,0);await p.waitForFunction(()=>!document.querySelector('.v2-workspace .v2-bottom-tabs').hidden);
+  await viewport(844,0);const finalY=(await composer.boundingBox()).y;await p.waitForTimeout(250);assert.equal((await composer.boundingBox()).y,finalY,'settle callback must not move the composer again');
   box=await composer.boundingBox();assert.ok(box.y>680&&box.y+box.height<844,'composer returns to bottom');
   assert.equal(await p.evaluate(()=>window.scrollY),0);
   assert.equal(await composer.inputValue(),'작성 중인 질문');await p.evaluate(()=>{window.scrollTo=window.__originalScrollTo;});

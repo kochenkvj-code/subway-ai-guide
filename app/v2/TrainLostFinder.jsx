@@ -170,6 +170,12 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    setSearchRun(n=>n+1);
  }
  function returnToForm(){setStage('input');resetMatches();}
+ function changeStage(nextStage){
+   if(busy||nextStage===stage)return;
+   if(nextStage==='input')returnToForm();
+   else if(nextStage==='results'&&searched)returnToResults();
+   else if(nextStage==='handoff'&&searched){if(chosen)confirmCandidate();else if(handoffUnknown)chooseUnknown();}
+ }
  function returnToResults(){setStage('results');setCopyStatus(false);}
  function confirmCandidate(){if(!chosen)return;setStage('handoff');setCopyStatus(false);}
  function chooseUnknown(){trackedTrainRef.current='';setChosen(null);setCurrent(null);setHandoffUnknown(true);setCopyStatus(false);setStage('handoff');}
@@ -257,7 +263,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='ì
    onNone={chooseUnknown} onContinue={confirmCandidate} onBackToResults={returnToResults} carMode={carMode} setCarMode={setCarMode} carNumber={carNumber}
    setCarNumber={setCarNumber} relativeSide={relativeSide} setRelativeSide={setRelativeSide}
    thing={thing} setThing={setThing} door={door} setDoor={setDoor} place={place} setPlace={setPlace}
-   stage={stage} handoffUnknown={handoffUnknown} message={message} sms={sms}
+   stage={stage} onStageChange={changeStage} handoffUnknown={handoffUnknown} message={message} sms={sms}
    copyMessage={copyMessage} copyStatus={copyStatus} recommended={recommended} liveInfo={liveInfo}
  />;
 }

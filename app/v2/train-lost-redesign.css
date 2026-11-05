@@ -202,3 +202,23 @@
 /* Keep optional item location visible and adjacent to the car-door controls. */
 .tf-redesign.tl-three-stage .tl-place-field{margin-top:15px;padding-top:12px;border-top:1px solid #edf1f4}
 .tf-redesign.tl-three-stage .tl-place-field .tl-mini-list button{min-height:42px;flex:1 1 100px}
+
+/* Compact introduction, without a decorative header row. */
+.tf-redesign.tl-three-stage .tl-hero{padding:12px 14px;border-radius:13px;box-shadow:none}
+.tf-redesign.tl-three-stage .tl-hero:after{content:none}
+.tf-redesign.tl-three-stage .tl-hero h2{font-size:16px;font-weight:650;line-height:1.45;margin:0;letter-spacing:-.3px}
+.tf-redesign.tl-three-stage .tl-hero p{font-size:11px;line-height:1.5;margin:4px 0 0;max-width:none}
+
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{border:0;background:transparent;padding:5px 3px;min-height:40px;border-radius:8px;font-size:11px;line-height:1.4;cursor:pointer}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:disabled{cursor:default;opacity:.5}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:not(:disabled):hover{background:#eaf2ef}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:focus-visible{outline:2px solid #3e8f79;outline-offset:2px}
+
+/* Four optional item locations stay on one row on mobile. */
+.tf-redesign.tl-three-stage .tl-place-field .tl-mini-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.tf-redesign.tl-three-stage .tl-place-field .tl-mini-list button{min-width:0;min-height:42px;padding:7px 3px;flex:initial;font-size:11px;line-height:1.35;overflow-wrap:break-word}
+
+/* Edit the displayed alighting time directly; dates stay internal. */
+.tf-redesign.tl-three-stage .tl-time-edit{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tf-redesign.tl-three-stage .tl-time-edit-control{display:flex;align-items:center;gap:7px;color:#577d70}
+.tf-redesign.tl-three-stage .tl-time-edit input{width:113px;min-width:0;min-height:42px;border:1px solid #d6e4dd;border-radius:8px;padding:5px 8px;background:#fff;color:#284f3d;font:inherit;font-size:16px;text-align:center}
