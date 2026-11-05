@@ -29,7 +29,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const tourStation=stationContext||station;
   const foundStation=stationContext?lostFoundStation(stationContext.stationCode):station;
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
-  const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
+  const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const chatWorkspace=useRef(null);
   const [languageOpen,setLanguageOpen]=useState(false);
@@ -61,13 +61,17 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   },[]);
   useEffect(()=>{const onPop=()=>{const next=readView();activate(next);setDetail(!!window.history.state?.sagDetail);setRestoration({view:next,data:window.history.state?.sagData,serial:Date.now()+Math.random()});};window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
   useEffect(()=>startActivityTracking(),[]);
+  useEffect(()=>()=>homeSubmitCancel.current?.(),[]);
   useEffect(()=>{
     const frame=requestAnimationFrame(()=>{if(view==='home')window.scrollTo(0,homeScroll.current);else{window.scrollTo(0,0);titleRef.current?.focus({preventScroll:true});}});
     return()=>cancelAnimationFrame(frame);
   },[view]);
-  function navigate(next){
+  function navigate(next,{keepHomeScroll=false}={}){
     if(next===view)return;
-    if(view==='home')homeScroll.current=window.scrollY;
+    // A different navigation cancels a home composer submission that is
+    // waiting for iOS Safari to finish dismissing the software keyboard.
+    if(!keepHomeScroll)homeSubmitCancel.current?.();
+    if(view==='home'&&!keepHomeScroll)homeScroll.current=window.scrollY;
     if(next!=='home'&&next!=='chat'&&next!=='feedback')setVisits(prev=>({...prev,[next]:(prev[next]||0)+1}));
     setRestoration(null);setDetail(false);
     const item=menuItems.find(x=>x.id===next);
@@ -81,7 +85,57 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   useEffect(()=>setLang(initialLanguage),[initialLanguage]);
   function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
 
-  function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
+  function send(text,{fromHomeComposer=false}={}){
+    const clean=text.trim();
+    if(!clean||chatBusy||homeSubmitPending.current)return;
+    const deliver=()=>{
+      homeSubmitPending.current=false;
+      homeSubmitCancel.current=null;
+      setChatRequest({id:++requestSequence.current,text:clean});
+      setQuestion('');
+      navigate('chat',{keepHomeScroll:fromHomeComposer});
+    };
+    if(!fromHomeComposer){deliver();return;}
+    // The home composer is the only entry that opens the software keyboard
+    // before navigating to chat. Defer mounting the fixed chat shell until
+    // Safari has restored its visual viewport after that keyboard closes.
+    // Example questions and bottom-tab navigation keep their instant path.
+    homeScroll.current=homeFocusScroll.current;
+    const viewport=window.visualViewport;
+    const keyboardOpen=viewport&&window.innerHeight-viewport.height>120;
+    document.activeElement?.blur?.();
+    if(!keyboardOpen){deliver();return;}
+    homeSubmitPending.current=true;
+    let finished=false;
+    let timeout=0;
+    const cleanup=()=>{
+      viewport.removeEventListener('resize',check);
+      viewport.removeEventListener('scroll',check);
+      window.removeEventListener('resize',check);
+      window.clearTimeout(timeout);
+      homeSubmitCancel.current=null;
+    };
+    const finish=()=>{
+      if(finished)return;
+      finished=true;
+      cleanup();
+      // The keyboard may have panned the document to reveal the home input.
+      // Restore the page before the fixed chat viewport is measured.
+      window.scrollTo(0,0);
+      requestAnimationFrame(deliver);
+    };
+    const check=()=>{
+      const recovered=viewport.height>=window.innerHeight-70;
+      const originRestored=Math.max(0,viewport.offsetTop||0)<16;
+      if(recovered&&originRestored)finish();
+    };
+    homeSubmitCancel.current=()=>{if(finished)return;finished=true;cleanup();homeSubmitPending.current=false;};
+    viewport.addEventListener('resize',check);
+    viewport.addEventListener('scroll',check);
+    window.addEventListener('resize',check);
+    timeout=window.setTimeout(finish,1100);
+    check();
+  }
   useLayoutEffect(()=>{
     if(view!=='chat')return;
     const shell=chatWorkspace.current;
@@ -142,7 +196,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i aria-hidden="true"/><span className="v2-eyebrow-text">YOUR AI STATION GUIDE</span></span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
         <h1>{t.title}</h1><p>{t.description}</p>
-        <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question);}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
+        <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question,{fromHomeComposer:true});}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onFocus={()=>{homeFocusScroll.current=window.scrollY;}} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
         <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div></div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
       </section>
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
