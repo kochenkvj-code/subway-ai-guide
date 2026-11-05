@@ -76,3 +76,24 @@
 .v2-design-refresh .v2-arrival-details{background:#f4f8f5}
 @media(max-width:360px){.v2-design-refresh .v2-home{padding-left:15px;padding-right:15px}.v2-home>.v2-bottom-tabs{margin-left:-15px;margin-right:-15px}.v2-summary-direction{padding-right:7px}.v2-summary-direction:nth-child(2n){padding-left:7px}.v2-summary-destination{font-size:11px;letter-spacing:-.45px}.v2-summary-train b{font-size:12px;max-width:76px}.v2-home-header .se-station{font-size:21px}.v2-design-refresh .v2-ai{padding:18px}.v2-design-refresh .v2-ai h1{font-size:20px}.v2-design-refresh .v2-grid strong{font-size:11px}.v2-bottom-tabs{padding-left:8px;padding-right:8px}.v2-bottom-tabs button{font-size:11px;gap:4px}}
 @media(prefers-reduced-motion:reduce){.v2-design-refresh *{scroll-behavior:auto;transition:none!important}}
+/* Compact station header: languages share the station row, not a full extra row. */
+.v2-design-refresh .v2-home-header{display:grid;grid-template-columns:minmax(0,1fr) 128px;align-items:center;gap:12px;margin-bottom:10px}
+.v2-home-header .se-tools{min-width:0;gap:6px}
+.v2-home-header .se-station{min-width:0;max-width:100%;font-size:22px}
+.v2-home-header .v2-direct-languages{grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;margin:0;padding:0;background:none;border:0;border-radius:0}
+.v2-home-header .v2-direct-languages button{min-height:36px;padding:6px 2px;font-size:11px;line-height:1.5;letter-spacing:0;border:1px solid transparent;border-radius:7px;color:#7b8a80}
+.v2-home-header .v2-direct-languages button[aria-pressed=true]{background:#f0f5f1;border-color:#e0e9e1;color:#315e45;font-weight:600;box-shadow:0 1px 2px #203b3005}
+.v2-home-header .v2-direct-languages button[aria-pressed=true]:after{display:none}
+/* Arrival typography stays on one line per train, with the terminus dominant. */
+.v2-design-refresh .v2-trains{padding-top:2px;border-color:#e3e9e4;border-radius:14px}
+.v2-summary-heading{min-height:34px;padding:4px 0 8px;color:#77867b;font-size:11px;font-weight:500;letter-spacing:0}
+.v2-summary-heading>svg{width:13px;height:13px;fill:none;stroke:#9aa99d;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.v2-summary-train{min-height:24px;align-items:center;gap:6px;line-height:1.5}
+.v2-summary-train+.v2-summary-train{margin-top:2px}
+.v2-summary-destination{display:flex;align-items:baseline;gap:5px;font-size:12px;font-weight:500;line-height:1.5;letter-spacing:-.25px;color:#41584a}
+.v2-summary-destination>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-summary-destination>small{font-size:9px;color:#87968b;font-weight:400;letter-spacing:0;flex:none}
+.v2-summary-train b{font-size:14px;font-weight:600;letter-spacing:-.35px;line-height:1.4}
+.v2-summary-train b.v2-arrival-available{color:#3e6c50}
+.v2-design-refresh .v2-notice{margin:16px 0 0}
+@media(max-width:360px){.v2-design-refresh .v2-home-header{grid-template-columns:minmax(0,1fr) 114px;gap:7px}.v2-home-header .se-tools{gap:4px}.v2-home-header .se-station{font-size:18px}.v2-home-header .se-line{width:21px;height:21px;font-size:11px}.v2-home-header .se-share{padding-left:4px!important;padding-right:4px!important}.v2-home-header .v2-direct-languages button{font-size:10px;min-height:36px;padding:6px 1px}.v2-summary-destination{font-size:11px;gap:4px}.v2-summary-train{gap:4px}.v2-summary-train b{font-size:13px}}

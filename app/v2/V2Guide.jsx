@@ -104,7 +104,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
       <nav className="v2-grid" aria-label={t.quick}>{menuItems.map((item,index)=><button key={item.id} onClick={()=>navigate(item.id)}><span className={'v2-icon v2-icon-'+item.id}><Icon name={item.icon}/>{item.id==='feedback'&&feedbackCount>0&&<span className="sf-badge" aria-label={feedbackCopy[lang].badge+': '+feedbackCount}>{feedbackCount}</span>}</span><strong>{t.menu[index]}</strong>{!item.action&&!['timetable','tour','found','facility','lost','feedback'].includes(item.id)&&<small>{t.pending}</small>}</button>)}</nav>
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
-      <footer className="v2-footer"><span>{t.footer}</span><span>SUBWAY AI GUIDE</span></footer><p className="v2-notice">{t.notice}<br/>{t.privacy}</p>
+      <p className="v2-notice">{t.privacy}</p>
       {bottomTabs()}
     </div>
     <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} style={view==='chat'&&keyboardHeight?{height:keyboardHeight}:undefined} hidden={view==='home'}>

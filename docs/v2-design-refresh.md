@@ -9,3 +9,5 @@ Only `/v2` presentation and its staff station picker change. Root V1, Search Lab
 - Station picker opens on the current line. All + lines 1–9 are direct buttons. Two-column list, search retained, no previous 30-result truncation. Codes remain canonical stationCode, not inferred public station numbers. URL dialog still has independent main and gate addresses.
 
 Validation: full project build/unit suites; fixtures for mobile layouts, four languages, all picker results, same-name transfer stations, link pairs/clipboard, tab/history and root isolation. Fixture AI/arrival responses avoid paid generation and operational DB writes. Real device Safari keyboard behavior requires device verification; visual viewport behavior is exercised in Chromium.
+
+Follow-up: the home header places the four language choices in a compact 2×2 group to the right of station tools. Workspace language controls stay directly accessible. Arrival labels use restrained weights and thin symmetric direction arrows; loop labels are secondary text in Korean. Removed obsolete V2 development copy and the promotional footer, while retaining privacy guidance and the tourism banner.
