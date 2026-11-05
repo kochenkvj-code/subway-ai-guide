@@ -19,6 +19,7 @@ import {feedbackCopy} from './feedback-copy';
 import { CURRENT_STATION } from '../lib/train-arrivals';
 import {lostFoundStation} from '../lib/lost-found-stations';
 function Icon({name}) { return <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:iconPaths[name] || iconPaths.train}}/>; }
+const chatWarning={ko:'개인정보를 입력하지 마세요.',en:'Do not enter personal information.',ja:'個人情報は入力しないでください。',zh:'请勿输入个人信息。'};
 const navigationCopy={ko:{guide:'전체 안내',ai:'AI 질문',live:'도착정보'},en:{guide:'All guides',ai:'Ask AI',live:'Arrivals'},ja:{guide:'案内一覧',ai:'AIに質問',live:'到着情報'},zh:{guide:'全部指南',ai:'AI提问',live:'到站信息'}};
 const languages=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']];
 const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
@@ -31,7 +32,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const [keyboardOpen,setKeyboardOpen]=useState(false);
-  const [keyboardHeight,setKeyboardHeight]=useState(null);
+  const [chatViewport,setChatViewport]=useState(null);
   const [languageOpen,setLanguageOpen]=useState(false);
   const languageTrigger=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
@@ -83,12 +84,32 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
 
   function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
   useEffect(()=>{
-    if(view!=='chat'){setKeyboardOpen(false);setKeyboardHeight(null);return;}
-    const viewport=window.visualViewport;if(!viewport)return;
-    let baseline=Math.max(viewport.height,window.innerHeight);
-    const sync=()=>{const focused=document.activeElement?.matches('input,textarea');if(!focused)baseline=Math.max(baseline,viewport.height,window.innerHeight);const open=!!focused&&Math.max(baseline,window.innerHeight)-viewport.height>150;setKeyboardOpen(open);setKeyboardHeight(open?viewport.height:null);};
-    viewport.addEventListener('resize',sync);document.addEventListener('focusin',sync);document.addEventListener('focusout',sync);sync();
-    return()=>{viewport.removeEventListener('resize',sync);document.removeEventListener('focusin',sync);document.removeEventListener('focusout',sync);};
+    if(view!=='chat'){setKeyboardOpen(false);setChatViewport(null);return;}
+    // Keep the document still; only the message list should scroll in chat.
+    // iOS pans the visual viewport while focusing an input, independently of resize.
+    const root=document.documentElement,body=document.body,scrollY=window.scrollY;
+    const previous={rootOverflow:root.style.overflow,position:body.style.position,top:body.style.top,width:body.style.width,overflow:body.style.overflow};
+    root.style.overflow='hidden';body.style.position='fixed';body.style.top='0px';body.style.width='100%';body.style.overflow='hidden';
+    const viewport=window.visualViewport;
+    let baseline=Math.max(viewport?.height||0,window.innerHeight),observedKeyboard=false,frame=0;
+    const sync=()=>{
+      const height=viewport?.height||window.innerHeight,top=viewport?.offsetTop||0;
+      const focused=!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
+      if(!focused&&!observedKeyboard)baseline=Math.max(baseline,height,window.innerHeight);
+      const contracted=Math.max(baseline,window.innerHeight)-height>150;
+      observedKeyboard=contracted&&(focused||observedKeyboard);
+      setKeyboardOpen(observedKeyboard);
+      setChatViewport(previous=>previous?.height===height&&previous?.top===top?previous:{height,top});
+    };
+    const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(sync);};
+    viewport?.addEventListener('resize',schedule);viewport?.addEventListener('scroll',schedule);
+    window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);sync();
+    return()=>{
+      cancelAnimationFrame(frame);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
+      window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);
+      root.style.overflow=previous.rootOverflow;Object.assign(body.style,{position:previous.position,top:previous.top,width:previous.width,overflow:previous.overflow});
+      window.scrollTo(0,scrollY);
+    };
   },[view]);
   useEffect(()=>{setLanguageOpen(false);},[view,keyboardOpen]);
   useEffect(()=>{
@@ -106,7 +127,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {open&&<div id={popupId} className="v2-language-popover" role="dialog" aria-label={t.language}><p>{t.language}</p><div>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>{changeLanguage(code);setLanguageOpen(false);languageTrigger.current?.focus();}}>{label}</button>)}</div></div>}
     </div>
   </nav>;}
-  return <main className={"v2-app v2-design-refresh"+(keyboardOpen?' v2-keyboard-open':'')} lang={lang==='zh'?'zh-CN':lang}>
+  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(keyboardOpen?' v2-keyboard-open':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
 
@@ -114,15 +135,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
         <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
         <h1>{t.title}</h1><p>{t.description}</p>
         <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question);}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
-        <div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}{mounted.chat&&<button onClick={()=>navigate('chat')}>{t.chat} ↗</button>}</div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
+        <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div></div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
       </section>
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
       <nav className="v2-grid" aria-label={t.quick}>{menuItems.map((item,index)=><button key={item.id} onClick={()=>navigate(item.id)}><span className={'v2-icon v2-icon-'+item.id}><Icon name={item.icon}/>{item.id==='feedback'&&feedbackCount>0&&<span className="sf-badge" aria-label={feedbackCopy[lang].badge+': '+feedbackCount}>{feedbackCount}</span>}</span><strong>{t.menu[index]}</strong>{!item.action&&!['timetable','tour','found','facility','lost','feedback'].includes(item.id)&&<small>{t.pending}</small>}</button>)}</nav>
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
       {bottomTabs(true)}
     </div>
-    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} style={view==='chat'&&keyboardHeight?{height:keyboardHeight}:undefined} hidden={view==='home'}>
-      <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button></header>{view==='chat'&&<p className="v2-chat-privacy">{t.privacy}</p>}
+    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} style={view==='chat'&&chatViewport?{height:chatViewport.height,top:chatViewport.top}:undefined} hidden={view==='home'}>
+      <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang]}</p>}<button onClick={()=>navigate('home')}>{t.home}</button></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
       {mounted.timetable&&<div className="v2-feature-pane" hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'} stationContext={stationContext}/></div>}

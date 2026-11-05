@@ -22,3 +22,7 @@
 .se-addresses[open] summary{color:#315e45;font-weight:600}
 .se-dialog:has(.se-addresses[open]) .se-options{max-height:25dvh}
 .se-addresses .se-selected{margin:4px 0 12px}
+
+/* Address access is the first action in the staff picker, above the search and station list. */
+.se-addresses{margin:0 0 10px;border-top:0;border-bottom:1px solid #e0e8e2;padding:0 0 4px}
+.se-addresses[open] summary>span{transform:rotate(180deg)}
