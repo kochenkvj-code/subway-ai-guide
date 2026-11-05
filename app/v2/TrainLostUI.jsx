@@ -58,7 +58,7 @@ export default function TrainLostUI(p){
     const target=['input','results','handoff'][i];
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
-    return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={goToStep}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;
+    return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={goToStep}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;
    })}
   </nav>
   {stage==='input'&&<div className={'tl-required-status'+(canSearch?' ready':' missing')} role="status" aria-live="polite">
