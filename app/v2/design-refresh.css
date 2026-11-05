@@ -110,3 +110,20 @@
 .v2-bottom-tabs .v2-language-popover button{display:block;text-align:center;padding:9px 4px;font-size:13px;font-weight:400;min-height:44px;border:1px solid #edf1ed;border-radius:9px;background:#fff;color:#6a7e70}
 .v2-bottom-tabs .v2-language-popover button[aria-pressed=true]{border-color:#cadfd0;background:#eff6f1;color:#285c40;font-weight:650}
 @media(max-width:360px){.v2-home-header .se-station{font-size:21px}}
+/* V2 conversation bubbles: leave room at the opposite edge of each turn. */
+.v2-design-refresh .v2-chat-pane .sag-row.assistant .sag-bubble{width:auto;max-width:85%;min-width:0;padding:13px 15px;background:#f3f6f4;border:1px solid #e3ebe5;border-radius:15px 15px 15px 3px}
+.v2-design-refresh .v2-chat-pane .sag-row.user .sag-bubble{max-width:85%;min-width:0;border-radius:15px 15px 3px 15px}
+.v2-design-refresh .v2-chat-pane .sag-privacy-notice{white-space:nowrap;overflow-wrap:normal;line-height:1.5;font-size:10px;padding-top:0}
+.v2-design-refresh .v2-chat-pane .sag-feedback{flex-wrap:wrap;gap:6px}
+.v2-design-refresh .v2-chat-pane .sag-search-suggestion{max-width:100%;overflow-x:auto}
+/* Keep station identity and quiet staff actions in the AI card's upper-right. */
+.v2-design-refresh .v2-ai-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.v2-ai-station-tools{margin-left:auto;min-width:0;max-width:72%;color:#426552}
+.v2-ai-station-tools .se-tools{min-width:0;gap:5px}
+.v2-ai-station-tools .se-station{font-size:12px;font-weight:600;min-width:0;max-width:160px}
+.v2-ai-station-tools .se-line{width:19px;height:19px;font-size:10px}
+.v2-ai-station-tools .se-share{border:0;background:none;color:#82988a;border-radius:5px}
+.v2-ai-top .v2-eyebrow{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.v2-design-refresh .v2-view-header>.v2-back-button{display:grid;place-items:center;width:44px;min-height:44px;padding:0;flex:none}
+.v2-back-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:360px){.v2-ai-top .v2-eyebrow{display:none}.v2-ai-station-tools{max-width:100%}.v2-ai-station-tools .se-station{max-width:190px}}
