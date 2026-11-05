@@ -13,7 +13,7 @@ await pending.waitFor();
 assert.equal(await pending.getAttribute('role'),'status');
 assert.equal(await pending.locator('.sag-ai-loading-dots i').count(),3);
 assert.notEqual(await pending.locator('.sag-ai-loading-dots i').first().evaluate(el=>getComputedStyle(el).animationName),'none');
-assert.ok((await pending.innerText()).includes('답변을 준비하고 있어요'));
+assert.ok((await pending.innerText()).includes('AI가 답변을 생성하고 있습니다'));
 const compactLayout=await p.evaluate(()=>{
   const indicator=document.querySelector('.v2-chat-pane .sag-ai-pending-indicator');
   const bubble=indicator.closest('.sag-bubble');
