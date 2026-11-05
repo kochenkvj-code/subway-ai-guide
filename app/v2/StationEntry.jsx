@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import V2Guide from './V2Guide';
-import {searchStationMaster} from '../lib/station-master';
+import {searchStationMaster,stationMaster} from '../lib/station-master';
 import {readStationEntry,stationEntryUrl} from '../lib/station-entry';
 import './station-entry.css';
 const ui={
@@ -20,7 +20,7 @@ export default function StationEntry({basePath='/v2',selectorEnabled=true}){
  },[]);
  useEffect(()=>{if(panel&&!dialog.current?.open)dialog.current?.showModal();else if(!panel&&dialog.current?.open)dialog.current.close();},[panel]);
  const t=ui[entry?.language||'ko'];
- function open(kind){setQuery('');setLine('');setNotice('');setPanel(kind);}
+ function open(kind){setQuery('');setLine(entry?.station?.line||'');setNotice('');setPanel(kind);}
  function choose(station){
   const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:station.stationCode,language:language.current});
   window.history.pushState({sagV2:true,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url);
@@ -29,9 +29,10 @@ export default function StationEntry({basePath='/v2',selectorEnabled=true}){
  function changedLanguage(lang){language.current=lang;setEntry(previous=>({...previous,language:lang}));}
  async function copy(value,input){try{await navigator.clipboard.writeText(value);setNotice(t.copied);}catch{input?.focus();input?.select();setNotice(t.manual);}}
  const options=searchStationMaster(query,line);
+ const lines=[...new Set(stationMaster.map(s=>s.line))].sort((a,b)=>Number(a)-Number(b));
  const tools=entry?.station?<div className="se-tools"><span className="se-line" style={{background:entry.station.color}}>{entry.station.line}</span>{selectorEnabled?<button className="se-station" onClick={()=>open('select')} aria-label={t.choose}>{entry.station.names[entry.language]} <span aria-hidden="true">⌄</span></button>:<strong className="se-station">{entry.station.names[entry.language]}</strong>}<button className="se-share" aria-label={t.share} title={t.share} onClick={()=>open('share')}>↗</button></div>:null;
  return <>{!entry?<p className="se-loading">{ui.ko.loading}</p>:!entry.station?<main className="se-invalid"><h1>{t.invalid}</h1><p>{t.invalidHelp}</p><code>{entry.code||'—'}</code>{selectorEnabled&&<button onClick={()=>open('select')}>{t.choose}</button>}</main>:<V2Guide key={entry.code} basePath={basePath} stationContext={entry.station} initialLanguage={entry.language} onLanguageChange={changedLanguage} stationTools={tools}/>}
  <dialog ref={dialog} className="se-dialog" aria-labelledby="se-title" onCancel={()=>setPanel(null)} onClose={()=>setPanel(null)}><div className="se-heading"><h2 id="se-title">{panel==='select'?t.choose:t.share}</h2><button onClick={()=>setPanel(null)} aria-label={t.close}>×</button></div>
- {panel==='select'&&selectorEnabled?<><div className="se-filters"><label>{t.search}<input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="종각 / Jonggak / 0152"/></label><label>{t.line}<select aria-label={t.line} value={line} onChange={e=>setLine(e.target.value)}><option value="">{t.all}</option>{[1,2,3,4,5,6,7,8,9].map(n=><option key={n} value={n}>{n}</option>)}</select></label></div><div className="se-options">{options.slice(0,30).map(s=><button key={s.stationCode} data-station-code={s.stationCode} onClick={()=>choose(s)}><span className="se-line" style={{background:s.color}}>{s.line}</span><strong>{s.names[entry?.language||'ko']}</strong><code>{s.stationCode}</code><small>{t.select}</small></button>)}</div>{!options.length&&<p>{t.none}</p>}{options.length>30&&<p className="se-muted">{t.more}</p>}</>:panel==='share'&&entry?.station?<><p className="se-selected"><b>{entry.station.line} · {entry.station.names[entry.language]}</b> <code>{entry.code}</code></p>{[[false,t.home],[true,t.gate]].map(([gate,label])=>{const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:entry.code,language:entry.language,gate});return <div className="se-url" key={label}><label>{label}<input readOnly value={url} onFocus={e=>e.target.select()}/></label><button onClick={e=>copy(url,e.currentTarget.parentElement.querySelector('input'))}>{t.copy}</button></div>;})}<p className="se-muted">{t.note}</p><p role="status">{notice}</p></>:null}
+ {panel==='select'&&selectorEnabled?<><div className="se-filters"><label>{t.search}<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="종각 / Jonggak / 0152"/></label></div><nav className="se-line-filters" aria-label={t.line}><button aria-pressed={!line} onClick={()=>setLine('')}>{t.all}</button>{lines.map(n=><button key={n} aria-label={t.line+' '+n} aria-pressed={line===n} onClick={()=>setLine(n)}><span className="se-line" style={{background:stationMaster.find(s=>s.line===n).color}}>{n}</span></button>)}</nav><div className="se-options">{options.map(s=><button key={s.stationCode} data-station-code={s.stationCode} onClick={()=>choose(s)} aria-label={s.line+' · '+s.names[entry?.language||'ko']+' · '+s.stationCode}><span className="se-line" style={{background:s.color}}>{s.line}</span><strong>{s.names[entry?.language||'ko']}</strong><code>{s.stationCode}</code></button>)}</div>{!options.length&&<p>{t.none}</p>}</>:panel==='share'&&entry?.station?<><p className="se-selected"><b>{entry.station.line} · {entry.station.names[entry.language]}</b> <code>{entry.code}</code></p>{[[false,t.home],[true,t.gate]].map(([gate,label])=>{const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:entry.code,language:entry.language,gate});return <div className="se-url" key={label}><label>{label}<input readOnly value={url} onFocus={e=>e.target.select()}/></label><button onClick={e=>copy(url,e.currentTarget.parentElement.querySelector('input'))}>{t.copy}</button></div>;})}<p className="se-muted">{t.note}</p><p role="status">{notice}</p></>:null}
  </dialog></>;
 }

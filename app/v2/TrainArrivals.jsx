@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { arrivalStatus } from '../lib/train-arrivals';
 import { stationName } from '../lib/stationNameI18n';
-const FOLLOWING={ko:'뒤 열차',en:'Following',ja:'次の列車',zh:'后续列车'};
 const COPY={
   ko:{loading:'도착정보 확인 중…',error:'도착정보 조회 실패',empty:'확인 가능한 도착정보 없음',stale:'도착정보 갱신 지연',updated:'정보 기준',refresh:'새로고침',automatic:'30초 간격 갱신',source:'서울시 실시간 지하철 도착정보',train:'열차번호',destination:'행선지',location:'현재 위치',etaAt:'도착 예상',unknown:'확인 중',bound:'방면',minutes:n=>`약 ${n}분 후`,approaching:'진입 중',arrived:'도착',previousDeparted:'전역 출발',previousApproaching:'전역 진입',previousArrived:'전역 도착',general:'일반',express:'급행',special:'특급',last:'막차',notConfigured:'관리자가 도착정보 API 환경변수를 확인해야 합니다.',note:'도착시간은 예상값이며 실제 운행과 다를 수 있습니다. API의 방면 표기와 열차의 최종 행선지는 다를 수 있습니다.',position:'열차 위치도는 추후 연결 예정입니다.'},
   en:{loading:'Checking arrivals…',error:'Could not load arrivals',empty:'No current arrival information',stale:'Arrival updates delayed',updated:'Data as of',refresh:'Refresh',automatic:'Updates every 30 seconds',source:'Seoul real-time subway arrivals',train:'Train',destination:'Destination',location:'Last reported location',etaAt:'estimated arrival',unknown:'Not confirmed',bound:'Toward',minutes:n=>`About ${n} min`,approaching:'Approaching',arrived:'Arrived',previousDeparted:'Left previous station',previousApproaching:'Approaching previous station',previousArrived:'At previous station',general:'Local',express:'Express',special:'Limited express',last:'Last train',notConfigured:'The administrator needs to check the arrival API configuration.',note:'Arrival times are estimates and may differ from actual operations. The direction reported by the API is not necessarily the final destination.',position:'The train position diagram will be added later.'},
@@ -24,15 +23,33 @@ function displayGroups(state,lang,t,stationContext){
   if(!stationContext)return t.direction.map((label,i)=>({label,group:state.data?.groups?.[i]}));
   return (state.data?.groups||[]).map(group=>{const names=group.nextStations||[];const provider=({ko:{상행:'상행',하행:'하행',내선:'내선',외선:'외선'},en:{상행:'Upbound',하행:'Downbound',내선:'Inner loop',외선:'Outer loop'},ja:{상행:'上り',하행:'下り',내선:'内回り',외선:'外回り'},zh:{상행:'上行',하행:'下行',내선:'内环',외선:'外环'}})[lang][group.provider]||group.provider;return {group,label:names.length?names.map(n=>stationName(n,lang)).join(' · ')+({ko:' 방면',en:' →',ja:'方面',zh:'方向'})[lang]+' · '+provider:provider};});
 }
-export function TrainSummary({state,lang,t,onDetails,active,stationControl=null,stationContext=null}) {
-  const labels=COPY[lang],now=useNow(active),message=infoMessage(state,labels,now),groups=displayGroups(state,lang,t,stationContext);
+function summaryDestination(train,provider,lang,t){
+  if(!train?.destination)return t.unknown;
+  const name=stationName(train.destination,lang);
+  if(lang==='ko'){
+    const loop=['내선','외선'].includes(provider)&&!train.destination.includes(provider)?`(${provider})`:'';
+    return /순환$/.test(name)?name: name.replace(/행$/,'')+loop+'행';
+  }
+  const loop=['내선','외선'].includes(provider)?({en:{내선:' (Inner)',외선:' (Outer)'},ja:{내선:'(内回り)',외선:'(外回り)'},zh:{내선:'(内环)',외선:'(外环)'}})[lang]?.[provider]||'':'';
+  if(lang==='ja')return name+loop+'行';
+  if(lang==='zh')return '开往'+name+loop;
+  return name+loop;
+}
+export function TrainSummary({state,lang,t,onDetails,active,stationContext=null}) {
+  const labels=COPY[lang],now=useNow(active),message=infoMessage(state,labels,now),groups=displayGroups(state,lang,t,stationContext).sort((a,b)=>['외선','내선'].includes(a.group?.provider)&&['외선','내선'].includes(b.group?.provider)?(a.group.provider==='외선'?-1:1)-(b.group.provider==='외선'?-1:1):0);
   return <section className="v2-trains" aria-label={t.next}>
-    <div className="v2-train-head"><div>{stationControl||<><span className="v2-line">1</span><strong>{t.station}</strong></>}<span className="v2-separator">·</span><span>{t.next}</span></div><button onClick={onDetails}>{t.detail} ↗</button></div>
-    <div className={"v2-directions"+(stationContext?" v2-directions-station":"")}>{groups.map(({label:direction,group})=>{
-      const [selected,following]=message?[]:usable(group,now);
-      return <div key={direction}><div className="v2-arrival-primary"><span>{direction}</span><b className={selected?'v2-arrival-available':''}>{selected?summaryText(selected.status,labels,lang):'—'}</b></div><small className="v2-arrival-following">{FOLLOWING[lang]} · {following?summaryText(following.status,labels,lang):'—'}</small></div>;
+    <div className="v2-summary-board">{groups.map(({label,group},index)=>{
+      const names=group?.nextStations||[];
+      const direction=names.length?names.map(n=>stationName(n,lang)).join(' · ')+({ko:' 방면',en:' bound',ja:'方面',zh:'方向'})[lang]:label;
+      const trains=message?[]:usable(group,now).slice(0,2);
+      return <div className="v2-summary-direction" key={group?.id||index}>
+        <button className="v2-summary-heading" onClick={onDetails} aria-label={direction+' · '+t.detail}>{index%2===0&&<span aria-hidden="true">←</span>}<span>{direction}</span>{index%2===1&&<span aria-hidden="true">→</span>}</button>
+        {[0,1].map(i=>{const item=trains[i],destination=item?summaryDestination(item.train,group?.provider,lang,labels):'—',eta=item?summaryText(item.status,labels,lang):'—';return <div className="v2-summary-train" key={i}>
+          <span className="v2-summary-destination" title={destination}>{destination}</span><b className={item?'v2-arrival-available':''} title={eta}>{eta}</b>
+        </div>;})}
+      </div>;
     })}</div>
-    <div className="v2-arrival-footer"><p role={state.error?'status':undefined}>{message||`${labels.updated} ${time(state.data.updatedAt||state.data.fetchedAt,lang)} · KST`}</p><button onClick={state.refresh} disabled={state.loading} aria-label={labels.refresh}>↻</button></div>
+    {message&&<div className="v2-summary-notice" role="status"><span>{message}</span><button onClick={state.refresh} disabled={state.loading} aria-label={labels.refresh}>↻</button></div>}
   </section>;
 }
 export function ArrivalDetails({state,lang,t,stationContext=null}) {

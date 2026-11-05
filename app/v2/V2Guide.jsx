@@ -5,6 +5,7 @@ import { recordStat, startActivityTracking } from '../lib/record-stat';
 import { copy, menuItems } from './copy';
 import { iconPaths } from './icons';
 import './v2.css';
+import './design-refresh.css';
 import useTrainArrivals from './useTrainArrivals';
 import { TrainSummary, ArrivalDetails } from './TrainArrivals';
 import NearbyTour from './NearbyTour';
@@ -18,6 +19,7 @@ import {feedbackCopy} from './feedback-copy';
 import { CURRENT_STATION } from '../lib/train-arrivals';
 import {lostFoundStation} from '../lib/lost-found-stations';
 function Icon({name}) { return <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:iconPaths[name] || iconPaths.train}}/>; }
+const navigationCopy={ko:{guide:'전체 안내',ai:'AI 질문',live:'도착정보'},en:{guide:'All guides',ai:'Ask AI',live:'Arrivals'},ja:{guide:'案内一覧',ai:'AIに質問',live:'到着情報'},zh:{guide:'全部指南',ai:'AI提问',live:'到站信息'}};
 const languages=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']];
 const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);
 function readView(){const v=new URLSearchParams(window.location.search).get('view');return views.has(v)?v:'home';}
@@ -28,6 +30,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
+  const [keyboardOpen,setKeyboardOpen]=useState(false);
+  const [keyboardHeight,setKeyboardHeight]=useState(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
   const viewRef=useRef(view);viewRef.current=view;
   const publishStep=useCallback((key,data)=>{
@@ -76,13 +80,23 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
 
   function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
-  function Language(){return <label className="v2-language"><Icon name="globe"/><select aria-label={t.language} value={lang} onChange={e=>changeLanguage(e.target.value)}>{languages.map(([code,label])=><option key={code} value={code}>{label}</option>)}</select></label>;}
-  return <main className="v2-app" lang={lang==='zh'?'zh-CN':lang}>
+  useEffect(()=>{
+    if(view!=='chat'){setKeyboardOpen(false);setKeyboardHeight(null);return;}
+    const viewport=window.visualViewport;if(!viewport)return;
+    let baseline=Math.max(viewport.height,window.innerHeight);
+    const sync=()=>{const focused=document.activeElement?.matches('input,textarea');if(!focused)baseline=Math.max(baseline,viewport.height,window.innerHeight);const open=!!focused&&Math.max(baseline,window.innerHeight)-viewport.height>150;setKeyboardOpen(open);setKeyboardHeight(open?viewport.height:null);};
+    viewport.addEventListener('resize',sync);document.addEventListener('focusin',sync);document.addEventListener('focusout',sync);sync();
+    return()=>{viewport.removeEventListener('resize',sync);document.removeEventListener('focusin',sync);document.removeEventListener('focusout',sync);};
+  },[view]);
+  function languageButtons(){return <nav className="v2-direct-languages" aria-label={t.language}>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} onClick={()=>changeLanguage(code)} lang={code==='zh'?'zh-CN':code}>{label}</button>)}</nav>;}
+  function bottomTabs(){const n=navigationCopy[lang];return <nav className="v2-bottom-tabs" aria-label={n.guide} hidden={view==='chat'&&keyboardOpen}>{[['home','home',n.guide],['chat','spark',n.ai],['live','train',n.live]].map(([id,icon,label])=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>navigate(id)}><Icon name={icon}/><span>{label}</span></button>)}</nav>;}
+  return <main className={"v2-app v2-design-refresh"+(keyboardOpen?' v2-keyboard-open':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
-      <TrainSummary stationControl={stationTools} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
+      <header className="v2-home-header">{stationTools||<strong>{t.station}</strong>}{languageButtons()}</header>
+      <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
 
       <section className="v2-ai">
-        <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span><Language/></div>
+        <div className="v2-ai-top"><span className="v2-eyebrow"><i/>YOUR AI STATION GUIDE</span></div>
         <h1>{t.title}</h1><p>{t.description}</p>
         <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question);}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
         <div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}{mounted.chat&&<button onClick={()=>navigate('chat')}>{t.chat} ↗</button>}</div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
@@ -91,9 +105,10 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <nav className="v2-grid" aria-label={t.quick}>{menuItems.map((item,index)=><button key={item.id} onClick={()=>navigate(item.id)}><span className={'v2-icon v2-icon-'+item.id}><Icon name={item.icon}/>{item.id==='feedback'&&feedbackCount>0&&<span className="sf-badge" aria-label={feedbackCopy[lang].badge+': '+feedbackCount}>{feedbackCount}</span>}</span><strong>{t.menu[index]}</strong>{!item.action&&!['timetable','tour','found','facility','lost','feedback'].includes(item.id)&&<small>{t.pending}</small>}</button>)}</nav>
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
       <footer className="v2-footer"><span>{t.footer}</span><span>SUBWAY AI GUIDE</span></footer><p className="v2-notice">{t.notice}<br/>{t.privacy}</p>
+      {bottomTabs()}
     </div>
-    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} hidden={view==='home'}>
-      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button>{view==='chat'&&stationContext&&<span className="v2-chat-station"><b style={{background:stationContext.color}}>{stationContext.line}</b>{stationContext.names[lang]}</span>}<h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button>{view!=='chat'&&<Language/>}</header>{view==='chat'&&<nav className="v2-chat-languages" aria-label={t.language}>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} onClick={()=>changeLanguage(code)}>{label}</button>)}</nav>}
+    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} style={view==='chat'&&keyboardHeight?{height:keyboardHeight}:undefined} hidden={view==='home'}>
+      <header className="v2-view-header"><button onClick={back} aria-label={t.back}>←</button>{view==='chat'&&stationContext&&<span className="v2-chat-station"><b style={{background:stationContext.color}}>{stationContext.line}</b>{stationContext.names[lang]}</span>}<h1 ref={titleRef} tabIndex={-1}>{title}</h1><button onClick={()=>navigate('home')}>{t.home}</button></header>{languageButtons()}
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
       {mounted.timetable&&<div hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'} stationContext={stationContext}/></div>}
@@ -104,6 +119,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {view==='live'&&<ArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
 
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
+      {bottomTabs()}
     </div>
   </main>;
 }
