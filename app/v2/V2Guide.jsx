@@ -91,26 +91,29 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     const previous={rootOverflow:root.style.overflow,position:body.style.position,top:body.style.top,width:body.style.width,overflow:body.style.overflow};
     root.style.overflow='hidden';body.style.position='fixed';body.style.top='0px';body.style.width='100%';body.style.overflow='hidden';
     const viewport=window.visualViewport;
-    let baseline=viewport?.height||window.innerHeight,frame=0;
-    const timers=new Set();
+    let baseline=viewport?.height||window.innerHeight,frame=0,settled=0;
+    const focused=()=>!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
+    const finish=()=>{
+      const height=viewport?.height||window.innerHeight;
+      // Restore chrome only after resize events stop, including "Done" without blur.
+      if(!focused()||baseline-height<100){
+        baseline=height;setKeyboardOpen(false);
+        if(window.scrollY||viewport?.offsetTop)window.scrollTo(0,0);
+      }
+    };
     const sync=()=>{
       const height=viewport?.height||window.innerHeight;
-      const focused=!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
-      // Never turn Safari's temporary keyboard pan into a permanent layout offset.
-      // Its scroll and keyboard closing animations can finish after focusout.
-      if(window.scrollY||viewport?.offsetTop)window.scrollTo(0,0);
-      const open=focused&&baseline-height>150;
-      if(!focused)baseline=height;
-      setKeyboardOpen(open);
+      if(focused()&&baseline-height>150){setKeyboardOpen(true);}
+      // Do not scroll the page or reinsert the dock during the keyboard animation.
       setChatViewport(previous=>previous?.height===height?previous:{height});
+      clearTimeout(settled);settled=setTimeout(finish,150);
     };
     const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(sync);};
-    const settle=()=>{schedule();for(const delay of [100,300,600]){const timer=setTimeout(()=>{timers.delete(timer);schedule();},delay);timers.add(timer);}};
     viewport?.addEventListener('resize',schedule);viewport?.addEventListener('scroll',schedule);
-    window.addEventListener('resize',schedule);document.addEventListener('focusin',settle);document.addEventListener('focusout',settle);window.addEventListener('scroll',schedule);sync();
+    window.addEventListener('resize',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);sync();
     return()=>{
-      cancelAnimationFrame(frame);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
-      window.removeEventListener('resize',schedule);document.removeEventListener('focusin',settle);document.removeEventListener('focusout',settle);window.removeEventListener('scroll',schedule);timers.forEach(clearTimeout);
+      cancelAnimationFrame(frame);clearTimeout(settled);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
+      window.removeEventListener('resize',schedule);document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);
       root.style.overflow=previous.rootOverflow;Object.assign(body.style,{position:previous.position,top:previous.top,width:previous.width,overflow:previous.overflow});
       window.scrollTo(0,scrollY);
     };

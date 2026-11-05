@@ -266,3 +266,9 @@
 .v2-design-refresh .v2-chat-workspace .v2-chat-privacy{font-size:10px;line-height:1.5;letter-spacing:0}
 .v2-design-refresh .v2-chat-workspace .v2-chat-privacy>span{white-space:normal}
 @media(max-width:360px){.v2-design-refresh .v2-chat-workspace .v2-view-header h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
+
+/* Separate the chat title from the privacy copy, without adding another row. */
+.v2-design-refresh .v2-chat-workspace .v2-view-header{gap:8px}
+.v2-design-refresh .v2-chat-workspace .v2-view-header h1{white-space:nowrap;flex:none}
+.v2-design-refresh .v2-chat-workspace .v2-chat-privacy{margin-left:2px;padding-left:10px;border-left:1px solid #dce6df;font-size:10px;line-height:1.5;color:#728477}
+@media(max-width:360px){.v2-design-refresh .v2-chat-workspace .v2-chat-privacy{margin-left:0;padding-left:8px}}

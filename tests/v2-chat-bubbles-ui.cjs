@@ -12,12 +12,14 @@ for(let i=0;i<3;i++){
   await composer.focus();await viewport(470,0);await viewport(470,86);
   let box=await composer.boundingBox();assert.ok(box.y>=0&&box.y+box.height<=470,'composer stays above keyboard');
   assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden));
-  await composer.evaluate(e=>e.blur());await viewport(520,40);
+  await p.evaluate(()=>{window.__scrollCorrections=0;window.__originalScrollTo=window.scrollTo;window.scrollTo=(...args)=>{window.__scrollCorrections++;window.__originalScrollTo(...args);};});
+  await composer.evaluate(e=>e.blur());for(const height of [520,580,650,720,790]){await viewport(height,40);assert.ok(await p.locator('.v2-workspace .v2-bottom-tabs').evaluate(e=>e.hidden),'dock stays hidden during closing frames');}
+  assert.equal(await p.evaluate(()=>window.__scrollCorrections),0,'no forced scroll during closing animation');
   assert.equal(await p.locator('.v2-chat-workspace').evaluate(e=>e.getBoundingClientRect().top),0,'blur must not preserve the keyboard pan');
   await viewport(844,0);await p.waitForFunction(()=>!document.querySelector('.v2-workspace .v2-bottom-tabs').hidden);
   box=await composer.boundingBox();assert.ok(box.y>680&&box.y+box.height<844,'composer returns to bottom');
   assert.equal(await p.evaluate(()=>window.scrollY),0);
-  assert.equal(await composer.inputValue(),'작성 중인 질문');
+  assert.equal(await composer.inputValue(),'작성 중인 질문');await p.evaluate(()=>{window.scrollTo=window.__originalScrollTo;});
 }
 await p.locator('.v2-view-header>button').last().click();await p.locator('.v2-home:not([hidden])').waitFor();
 assert.equal(await p.evaluate(()=>document.body.style.position),'','release page scroll on leaving chat');
