@@ -237,8 +237,27 @@
 .v2-design-refresh .sf-compact .sf-filter-refresh{flex:none;align-self:center;margin-left:auto;min-height:38px;padding:6px 8px;border:0;border-radius:8px;background:transparent;color:#7b8d82;font-size:10px;font-weight:400;white-space:nowrap}
 
 /* Header actions share one restrained icon style across every menu. */
-.v2-design-refresh .v2-view-header>.v2-home-button{display:grid;place-items:center;flex:none;width:40px;min-height:44px;padding:0;margin-left:auto;border:0;border-radius:10px;background:transparent;color:#587368;box-shadow:none}
-.v2-design-refresh .v2-view-header>.v2-home-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.v2-design-refresh .v2-view-header>.v2-home-button{display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;border:0;border-radius:10px;background:transparent;color:#587368;box-shadow:none}
+.v2-design-refresh .v2-view-header>.v2-home-button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
 .v2-design-refresh .v2-view-header>.v2-home-button:hover{background:#f0f5f2;color:#285a43}
 .v2-design-refresh .v2-view-header .v2-chat-privacy{font-size:10px;line-height:1.5;text-align:left;padding:0 3px;color:#728477}
 .v2-design-refresh .v2-chat-privacy>span{display:block}
+
+.v2-design-refresh .sf-compact-intro h2{display:flex;align-items:flex-start;gap:7px}
+.v2-design-refresh .sf-compact-intro .sf-intro-line{display:grid;place-items:center;flex:none;width:21px;height:21px;margin-top:2px;border-radius:50%;color:#fff;font-size:11px;font-weight:600;letter-spacing:0;line-height:1}
+.v2-design-refresh .sf-compact-intro p{margin-top:5px}
+.v2-design-refresh .sf-pane .sf-entry-intro{display:flex;align-items:flex-start;gap:8px;margin-top:0}
+.v2-design-refresh .sf-pane .sf-entry-line{display:grid;place-items:center;flex:none;width:23px;height:23px;margin-top:5px;border-radius:50%;color:white;font-size:12px;font-weight:600;line-height:1;letter-spacing:0}
+.v2-design-refresh .v2-chat-workspace .v2-view-header{gap:4px;padding-left:8px;padding-right:8px}
+.v2-design-refresh .v2-chat-workspace .v2-view-header h1{font-size:14px;letter-spacing:-.6px}
+.v2-design-refresh .v2-chat-workspace .v2-view-header>.v2-home-button{margin-left:0;width:34px;min-width:34px;flex-basis:34px}
+.v2-design-refresh .v2-chat-workspace .v2-chat-privacy{flex:1;min-width:0;padding:0;font-size:9px;line-height:1.6;letter-spacing:-.2px}
+.v2-design-refresh .v2-chat-workspace .v2-chat-privacy>span{white-space:nowrap}
+@media(max-width:350px){.v2-design-refresh .v2-chat-workspace .v2-view-header h1{font-size:12px}.v2-design-refresh .v2-chat-workspace .v2-chat-privacy{font-size:8px}}
+
+/* Shared two-thirds copy / one-third station identity across station guides. */
+.v2-design-refresh .sf-context-heading{display:flex;align-items:flex-start;gap:10px;margin-bottom:5px}
+.v2-design-refresh .sf-context-heading>h2{flex:1;min-width:0;margin:0}
+.v2-design-refresh .sf-context-heading>.sf-context-station{display:flex;align-items:center;gap:5px;flex:0 1 34%;min-width:0;justify-content:flex-end;padding-top:3px;color:#567361;font-size:12px;line-height:1.5}
+.v2-design-refresh .sf-context-station>b{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:600}
+.v2-design-refresh .sf-context-station>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

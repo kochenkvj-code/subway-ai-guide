@@ -19,7 +19,7 @@ import {feedbackCopy} from './feedback-copy';
 import { CURRENT_STATION } from '../lib/train-arrivals';
 import {lostFoundStation} from '../lib/lost-found-stations';
 function Icon({name}) { return <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:iconPaths[name] || iconPaths.train}}/>; }
-const chatWarning={ko:['이름·연락처 등 개인정보는 입력하지 마세요.','질문은 외부 AI로 전송되고 저장됩니다.'],en:['Do not enter names, contact details or other personal information.','Questions are sent to an external AI service and stored.'],ja:['氏名・連絡先などの個人情報は入力しないでください。','質問は外部AIへ送信され、保存されます。'],zh:['请勿输入姓名、联系方式等个人信息。','问题将发送至外部AI服务并保存。']};
+const chatWarning={ko:['개인정보는 입력하지 마세요.','질문은 외부 AI로 전송·저장됩니다.'],en:['Do not share personal details.','Questions sent to AI and stored.'],ja:['個人情報は入力しないでください。','質問は外部AIへ送信・保存されます。'],zh:['请勿输入个人信息。','问题将发送至外部AI并保存。']};
 const navigationCopy={ko:{guide:'전체 안내',ai:'AI 질문',live:'도착정보'},en:{guide:'All guides',ai:'Ask AI',live:'Arrivals'},ja:{guide:'案内一覧',ai:'AIに質問',live:'到着情報'},zh:{guide:'全部指南',ai:'AI提问',live:'到站信息'}};
 const languages=[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']];
 const views=new Set(['home','chat','live',...menuItems.map(x=>x.id)]);

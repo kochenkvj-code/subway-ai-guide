@@ -26,3 +26,16 @@
 /* Address access is the first action in the staff picker, above the search and station list. */
 .se-addresses{margin:0 0 10px;border-top:0;border-bottom:1px solid #e0e8e2;padding:0 0 4px}
 .se-addresses[open] summary>span{transform:rotate(180deg)}
+
+/* Keep station selection and its live QR links in one persistent dialog. */
+.se-heading{gap:8px;align-items:center}
+.se-title-group{display:flex;align-items:center;flex-wrap:wrap;gap:5px 9px;flex:1;min-width:0}
+.se-heading .se-title-group h2{font-size:15px;white-space:nowrap}
+.se-current-station{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:100%;font-size:13px;color:#416452}
+.se-current-station strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.se-current-station .se-line{width:18px;height:18px;font-size:10px}
+.se-heading .se-address-toggle{flex:none;min-height:38px;padding:5px 8px;border:1px solid #dce7df;border-radius:8px;background:#f3f7f4;color:#50745d;font-size:11px;white-space:nowrap}
+.se-addresses[hidden]{display:none}
+.se-addresses{margin-top:10px}
+.se-options>button[aria-pressed=true]{border-color:#8db39b;background:#eef6f0}
+.se-dialog:has(.se-addresses:not([hidden])) .se-options{max-height:26dvh}

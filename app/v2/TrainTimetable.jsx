@@ -174,6 +174,5 @@ export default function TrainTimetable({lang='ko',active=true,stationContext=nul
     </div>}
    {data?.truncated&&<p className="tt-warning">{t.truncated}</p>}
    <p className="tt-disclaimer">{t.note} {t.week} {t.unavailable}</p>
-   <div className="tt-source">SOURCE · 서울교통공사 열차시간표 Open API</div>
  </section>;
 }
