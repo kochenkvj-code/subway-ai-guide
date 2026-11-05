@@ -13,3 +13,12 @@
 .se-options button:focus-visible,.se-line-filters>button:focus-visible{outline:3px solid #85b79b;outline-offset:1px}
 .se-dialog button{touch-action:manipulation}
 @media(max-width:350px){.se-options{gap:5px}.se-options button{padding:7px 5px;gap:3px 4px}.se-options strong{font-size:11px}}
+
+/* QR work stays inside the staff station picker, never on the visitor's main card. */
+.se-addresses{margin-top:12px;border-top:1px solid #e0e8e2;padding-top:4px}
+.se-addresses summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:5px;color:#617c6a;font-size:12px;list-style:none}
+.se-addresses summary::-webkit-details-marker{display:none}
+.se-addresses summary>span{margin-left:auto;font-size:14px;color:#81988a}
+.se-addresses[open] summary{color:#315e45;font-weight:600}
+.se-dialog:has(.se-addresses[open]) .se-options{max-height:25dvh}
+.se-addresses .se-selected{margin:4px 0 12px}
