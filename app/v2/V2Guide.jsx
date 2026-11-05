@@ -31,7 +31,6 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
   const homeScroll=useRef(0),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
-  const [keyboardOpen,setKeyboardOpen]=useState(false);
   const chatWorkspace=useRef(null);
   const [languageOpen,setLanguageOpen]=useState(false);
   const languageTrigger=useRef(null);
@@ -84,36 +83,41 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
 
   function send(text){const clean=text.trim();if(!clean||chatBusy)return;setChatRequest({id:++requestSequence.current,text:clean});setQuestion('');navigate('chat');}
   useLayoutEffect(()=>{
-    if(view!=='chat'){setKeyboardOpen(false);return;}
-    const shell=chatWorkspace.current,root=document.documentElement,body=document.body;
+    if(view!=='chat')return;
+    const shell=chatWorkspace.current;
     if(!shell)return;
-    const scrollY=window.scrollY,previous={rootOverflow:root.style.overflow,bodyOverflow:body.style.overflow};
-    // Do not fix the body: Safari also pans the visual viewport while opening its keyboard.
-    // Position the shell in document coordinates, using BOTH visible origin and height.
-    root.style.overflow='hidden';body.style.overflow='hidden';
     const viewport=window.visualViewport;
-    let frame=0,baseline=viewport?.height||window.innerHeight;
+    let frame=0;
+    // A fixed shell is relative to the layout viewport. Safari can pan its
+    // *visual* viewport separately while the software keyboard is visible.
+    // Use only offsetTop here; pageTop also includes document scrolling and
+    // can displace the shell twice. Never fix/scroll the document in response.
     const sync=()=>{
+      frame=0;
       const height=viewport?.height||window.innerHeight;
-      const top=viewport?.pageTop??window.scrollY+(viewport?.offsetTop||0);
-      shell.style.height=height+'px';shell.style.top=top+'px';
-      const focused=!!document.activeElement?.matches('.v2-chat-pane input,.v2-chat-pane textarea');
-      if(!focused)baseline=Math.max(height,window.innerHeight);
-      setKeyboardOpen(focused&&baseline-height>150);
+      const offset=viewport?.offsetTop||0;
+      shell.style.height=height+'px';
+      shell.style.transform='translate3d(0,'+offset+'px,0)';
     };
-    const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync();});};
-    viewport?.addEventListener('resize',schedule);viewport?.addEventListener('scroll',schedule);
-    window.addEventListener('resize',schedule);window.addEventListener('scroll',schedule);
-    document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);sync();
+    const schedule=()=>{if(!frame)frame=requestAnimationFrame(sync);};
+    viewport?.addEventListener('resize',schedule);
+    viewport?.addEventListener('scroll',schedule);
+    window.addEventListener('resize',schedule);
+    document.addEventListener('focusin',schedule);
+    document.addEventListener('focusout',schedule);
+    sync();
     return()=>{
-      cancelAnimationFrame(frame);viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
-      window.removeEventListener('resize',schedule);window.removeEventListener('scroll',schedule);
-      document.removeEventListener('focusin',schedule);document.removeEventListener('focusout',schedule);
-      shell.style.height='';shell.style.top='';root.style.overflow=previous.rootOverflow;body.style.overflow=previous.bodyOverflow;
-      window.scrollTo(0,scrollY);
+      cancelAnimationFrame(frame);
+      viewport?.removeEventListener('resize',schedule);
+      viewport?.removeEventListener('scroll',schedule);
+      window.removeEventListener('resize',schedule);
+      document.removeEventListener('focusin',schedule);
+      document.removeEventListener('focusout',schedule);
+      shell.style.removeProperty('height');
+      shell.style.removeProperty('transform');
     };
   },[view]);
-  useEffect(()=>{setLanguageOpen(false);},[view,keyboardOpen]);
+  useEffect(()=>{setLanguageOpen(false);},[view]);
   useEffect(()=>{
     if(!languageOpen)return;
     const frame=requestAnimationFrame(()=>document.querySelector('.v2-language-popover button[aria-pressed=true]')?.focus());
@@ -129,7 +133,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {open&&<div id={popupId} className="v2-language-popover" role="dialog" aria-label={t.language}><p>{t.language}</p><div>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>{changeLanguage(code);setLanguageOpen(false);languageTrigger.current?.focus();}}>{label}</button>)}</div></div>}
     </div>
   </nav>;}
-  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(keyboardOpen?' v2-keyboard-open':'')} lang={lang==='zh'?'zh-CN':lang}>
+  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
 
