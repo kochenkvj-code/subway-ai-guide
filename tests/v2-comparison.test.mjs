@@ -2,9 +2,27 @@ import test from 'node:test';import assert from 'node:assert/strict';import {v2C
 const file='app/api/search-lab/v2-comparison/route.js';
 test('comparison preserves historical baseline while B matches production',async()=>{
  const body={question:'수유실 어디에 있나요?',lang:'ko',stationCode:'2637'};const prod=await api(),lab=await api(undefined,file);await prod.run(body);await lab.run(body);assert.deepEqual({...lab.calls[0].body,generationConfig:prod.calls[0].body.generationConfig},prod.calls[0].body);assert.equal(lab.calls[0].body.generationConfig.maxOutputTokens,500);assert.equal(lab.calls[0].body.generationConfig.thinkingConfig,undefined);const base=lab.calls[0].body;
- for(const [variant,model,cap,level]of [['a','gemini-3.5-flash-lite',1200,undefined],['b','gemini-3.5-flash-lite',1200,'LOW'],['c','gemini-3.5-flash',1200,'LOW'],['d','gemini-3.8-flash',1200,'LOW'],['e','gemini-3.5-flash-lite',1200,'MEDIUM'],['f','gemini-3.5-flash-lite',1200,'HIGH']]){
+ for(const [variant,model,cap,level]of [['a','gemini-3.5-flash-lite',1200,undefined],['b','gemini-3.5-flash-lite',1200,'LOW'],['c','gemini-3.5-flash',1200,'LOW'],['d','gemini-3.8-flash',1200,'LOW'],['e','gemini-3.5-flash-lite',3000,'MEDIUM'],['f','gemini-3.5-flash-lite',4000,'HIGH']]){
  const r=await lab.run({...body,variant});const d=await r.json();assert.equal(r.status,200);assert.equal(d.diagnostics.variant,variant);assert.equal(d.diagnostics.thoughtsTokens,null);assert.equal(d.diagnostics.finishReason,'STOP');const c=lab.calls.at(-1);assert.ok(c.url.includes('/'+model+':generateContent'));assert.equal(c.body.generationConfig.maxOutputTokens,cap);assert.equal(c.body.generationConfig.thinkingConfig?.thinkingLevel,level);assert.deepEqual(c.body.contents,base.contents);assert.deepEqual(c.body.tools,base.tools);assert.deepEqual(c.body.systemInstruction,base.systemInstruction);if(variant==='b')assert.deepEqual(c.body,prod.calls[0].body);
  }
  const n=lab.calls.length;assert.equal((await lab.run({...body,variant:'arbitrary-model'})).status,400);assert.equal(lab.calls.length,n);
 });
 test('comparison retains diagnostics for empty outputs instead of hiding token-limit evidence',async()=>{const lab=await api('',file);const r=await lab.run({question:'test',stationCode:'0154'});const d=await r.json();assert.equal(r.status,200);assert.equal(d.answer,'');assert.equal(d.diagnostics.outputTokens,null);assert.equal(lab.calls.length,1);});
+
+test('KRW cost estimate uses measured input, answer and thinking tokens, plus conditional grounding',async()=>{
+ const {loadModule}=await import('./station-menu-loader.mjs');
+ const {estimateV2ComparisonCost,DEFAULT_USD_KRW}=await loadModule('app/lib/v2-comparison-cost.js');
+ assert.equal(DEFAULT_USD_KRW,1340);
+ const sample={diagnostics:{model:'gemini-3.5-flash-lite',inputTokens:1854,outputTokens:145,thoughtsTokens:1107},googleSearchQueries:['atm global','atm card','atm global']};
+ const result=estimateV2ComparisonCost(sample);
+ assert.equal(Number(result.modelKrw.toFixed(2)),4.94);
+ assert.equal(result.searchCount,2);
+ assert.equal(Number(result.groundingIfBilledKrw.toFixed(2)),37.52);
+ assert.equal(Number((result.modelKrw+result.groundingIfBilledKrw).toFixed(2)),Number(result.totalIfSearchBilledKrw.toFixed(2)));
+ assert.equal(estimateV2ComparisonCost({...sample,diagnostics:{...sample.diagnostics,inputTokens:null}}),null);
+ assert.equal(estimateV2ComparisonCost(sample,0),null);
+ const cached=estimateV2ComparisonCost({diagnostics:{model:'gemini-3.5-flash-lite',inputTokens:1000,outputTokens:100,thoughtsTokens:null,usageMetadata:{cachedContentTokenCount:500,toolUsePromptTokenCount:100}},googleSearchQueries:[]},1000);
+ assert.equal(Number(cached.modelKrw.toFixed(4)),Number(((600*.3+500*.03+100*2.5)/1e6*1000).toFixed(4)));
+ assert.equal(cached.thoughtsReported,false);
+ assert.equal(cached.searchCount,0);
+});
