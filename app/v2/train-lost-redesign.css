@@ -20,6 +20,17 @@
 .tf-redesign .tl-station{display:flex;align-items:center;gap:9px;padding:9px 11px;background:#f5f9fa;border:1px solid #e1eaee;border-radius:12px;min-height:50px}
 .tf-redesign .tl-station-bubble{background:#dfeef7;color:#126099;border-radius:9px;min-width:32px;height:32px;display:grid;place-items:center;font-size:12px;font-weight:850}
 .tf-redesign .tl-station-name{min-width:0;flex:1;font-size:14px;font-weight:850}.tf-redesign .tl-station-name small{font-weight:600;font-size:10px;color:#72838e;margin-left:5px}
+/* Alighting station and line are one glanceable row; station names need more space. */
+.tf-redesign .tl-station-layout{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(94px,1fr);gap:9px;align-items:stretch}
+.tf-redesign .tl-station-column{display:flex;flex-direction:column;min-width:0}
+.tf-redesign .tl-station-trigger,.tf-redesign .tl-station-line-select,.tf-redesign .tl-station-line-static{width:100%;min-width:0;min-height:48px;border:1px solid #dce6eb;border-radius:11px;background:#f5f9fa;color:#234959;font-size:13px;font-weight:750}
+.tf-redesign .tl-station-trigger{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:10px 11px;text-align:left;flex:1}
+.tf-redesign .tl-station-trigger[aria-expanded="true"]{border-color:#46b398;background:#eff8f4}
+.tf-redesign .tl-station-value{min-width:0;overflow-wrap:anywhere;line-height:1.35;font-weight:800}
+.tf-redesign .tl-station-edit-icon{flex:none;font-size:17px;color:#648798;font-weight:500;line-height:1}
+.tf-redesign .tl-station-line-select{padding:9px 20px 9px 8px;cursor:pointer;flex:1;appearance:auto}
+.tf-redesign .tl-station-line-static{display:flex;align-items:center;justify-content:center;padding:9px 6px;line-height:1.35;flex:1;text-align:center}
+.tf-redesign .tl-station-line-select:focus-visible{outline:3px solid #6bafe0;outline-offset:2px}
 .tf-redesign .tl-link{border:0;background:transparent;color:#2f779c;font-weight:800;font-size:11px;padding:6px 2px}
 .tf-redesign .tl-picker{margin-top:9px}.tf-redesign .tl-picker input{width:100%;min-height:43px;border:1px solid #d6e3e8;border-radius:10px;padding:9px 11px}
 .tf-redesign .tl-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -222,3 +233,25 @@
 .tf-redesign.tl-three-stage .tl-time-edit{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .tf-redesign.tl-three-stage .tl-time-edit-control{display:flex;align-items:center;gap:7px;color:#577d70}
 .tf-redesign.tl-three-stage .tl-time-edit input{width:113px;min-width:0;min-height:42px;border:1px solid #d6e4dd;border-radius:8px;padding:5px 8px;background:#fff;color:#284f3d;font:inherit;font-size:16px;text-align:center}
+
+/* Compact three-step navigation with a visible completed-step connection. */
+.tf-redesign.tl-three-stage .tl-stepbar{gap:9px;margin:7px 0 4px}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{min-height:34px;padding:3px 2px;font-size:10.5px;line-height:1.2;gap:4px}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step b{width:18px;height:18px;font-size:10px}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:not(:last-child)::after{content:'→';top:50%;right:-10px;transform:translateY(-50%);width:12px;height:auto;background:transparent;color:#bac8c7;font-size:16px;font-weight:750;line-height:1}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.done:not(:last-child)::after{color:#0b9476}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current{color:#163e50}
+.tf-redesign.tl-three-stage .tl-required-status{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:9px;font-size:10.5px;line-height:1.45;margin:1px 0 10px;font-weight:650}
+.tf-redesign.tl-three-stage .tl-required-status>span:first-child{display:grid;place-items:center;flex:none;width:15px;height:15px;border-radius:50%;font-size:10px;font-weight:850;margin-top:0}
+.tf-redesign.tl-three-stage .tl-required-status>span:last-child{min-width:0}
+.tf-redesign.tl-three-stage .tl-required-status.missing{background:#fff7e9;border:1px solid #f1dcb9;color:#8b5a28}
+.tf-redesign.tl-three-stage .tl-required-status.missing>span:first-child{background:#dc974b;color:#fff}
+.tf-redesign.tl-three-stage .tl-required-status.ready{background:#edf8f1;border:1px solid #cee9d7;color:#28714e}
+.tf-redesign.tl-three-stage .tl-required-status.ready>span:first-child{background:#25936a;color:#fff}
+@media(max-width:380px){.tf-redesign.tl-three-stage .tl-stepbar{gap:7px}.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{font-size:10px;gap:3px}.tf-redesign.tl-three-stage .tl-required-status{font-size:10px;padding:6px 8px}}
+
+/* Once step 1 is filled, make step 2 read as the next available action. */
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete b{background:#d9f3e5;color:#087d5c}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete:not(:last-child)::after{color:#0b9476}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready{background:#e8f6ee;color:#08795e;border-radius:9px;font-weight:800}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready b{background:#0c9875;color:#fff}
