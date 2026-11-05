@@ -20,10 +20,10 @@ const sliderWords={
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 
 const flowCopy={
- ko:{steps:['정보 입력','열차 확인','수배 요청'],time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'열차 배치도 또는 위 후보에서 열차를 선택하세요.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
- en:{steps:['Enter details','Find the train','Handoff'],time:'Alighting time',timeGuide:'Relative time is recalculated when you start the search.',timeExact:'Edit exact alighting time',additional:'Where item was left (optional)',candidateCount:'Live candidates',candidateHelp:'Tap a candidate to focus it in the live train diagram.',mapTitle:'Live train positions',confirm:'Continue with this train',selectHint:'Choose a train above or in the live diagram.',chosenPosition:'Selected train last seen',fallback:'Handoff without a confirmed train',handoffBack:'← Back to live train view',quickEdit:'← Edit information',secondary:'A candidate is not a verified boarding record.',noCandidate:'You can still hand off details without a train number.',timeRef:'Alighting time used in search'},
- ja:{steps:['情報入力','列車確認','連絡内容'],time:'下車時刻',timeGuide:'「何分前」は検索時点で再計算されます。',timeExact:'正確な下車時刻を入力',additional:'忘れ物を置いた場所（任意）',candidateCount:'列車候補',candidateHelp:'候補を押すと下の列車位置図で強調します。',mapTitle:'リアルタイム列車位置',confirm:'この列車の情報で続ける',selectHint:'候補または列車位置図から選択してください。',chosenPosition:'選択列車の最新確認位置',fallback:'列車番号未確定で連絡',handoffBack:'← 列車位置に戻る',quickEdit:'← 情報を修正',secondary:'候補は乗車列車として確定していません。',noCandidate:'列車番号なしでも忘れ物情報を連絡できます。',timeRef:'検索に使用する下車時刻'},
- zh:{steps:['填写信息','确认列车','转交信息'],time:'下车时间',timeGuide:'搜索时会重新计算“几分钟前”。',timeExact:'修改准确下车时间',additional:'物品放置位置（选填）',candidateCount:'实时候选',candidateHelp:'点击候选列车，在下方实时图中突出显示。',mapTitle:'实时列车位置',confirm:'用所选列车继续',selectHint:'请在候选列表或实时图中选择列车。',chosenPosition:'所选列车最近位置',fallback:'无法确认车次时转交',handoffBack:'← 返回实时列车图',quickEdit:'← 修改信息',secondary:'候选列车不代表实际乘车记录。',noCandidate:'没有车次也可以转交遗失信息。',timeRef:'搜索使用的下车时间'}
+ ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'열차 배치도 또는 위 후보에서 열차를 선택하세요.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
+ en:{steps:['Enter details','Find the train','Handoff'],requiredMissing:'Required fields missing',requiredReady:'Ready · tap Find the train',requiredCar:'Car',requiredDirection:'Direction',requiredDoor:'Door',requiredItem:'Lost item',time:'Alighting time',timeGuide:'Relative time is recalculated when you start the search.',timeExact:'Edit exact alighting time',additional:'Where item was left (optional)',candidateCount:'Live candidates',candidateHelp:'Tap a candidate to focus it in the live train diagram.',mapTitle:'Live train positions',confirm:'Continue with this train',selectHint:'Choose a train above or in the live diagram.',chosenPosition:'Selected train last seen',fallback:'Handoff without a confirmed train',handoffBack:'← Back to live train view',quickEdit:'← Edit information',secondary:'A candidate is not a verified boarding record.',noCandidate:'You can still hand off details without a train number.',timeRef:'Alighting time used in search'},
+ ja:{steps:['情報入力','列車確認','連絡内容'],requiredMissing:'必須項目が未入力',requiredReady:'入力完了 · 列車確認へ',requiredCar:'車両位置',requiredDirection:'進行方向',requiredDoor:'ドア',requiredItem:'忘れ物',time:'下車時刻',timeGuide:'「何分前」は検索時点で再計算されます。',timeExact:'正確な下車時刻を入力',additional:'忘れ物を置いた場所（任意）',candidateCount:'列車候補',candidateHelp:'候補を押すと下の列車位置図で強調します。',mapTitle:'リアルタイム列車位置',confirm:'この列車の情報で続ける',selectHint:'候補または列車位置図から選択してください。',chosenPosition:'選択列車の最新確認位置',fallback:'列車番号未確定で連絡',handoffBack:'← 列車位置に戻る',quickEdit:'← 情報を修正',secondary:'候補は乗車列車として確定していません。',noCandidate:'列車番号なしでも忘れ物情報を連絡できます。',timeRef:'検索に使用する下車時刻'},
+ zh:{steps:['填写信息','确认列车','转交信息'],requiredMissing:'必填项未完成',requiredReady:'填写完成 · 点击确认列车',requiredCar:'车厢',requiredDirection:'行驶方向',requiredDoor:'车门',requiredItem:'遗失物品',time:'下车时间',timeGuide:'搜索时会重新计算“几分钟前”。',timeExact:'修改准确下车时间',additional:'物品放置位置（选填）',candidateCount:'实时候选',candidateHelp:'点击候选列车，在下方实时图中突出显示。',mapTitle:'实时列车位置',confirm:'用所选列车继续',selectHint:'请在候选列表或实时图中选择列车。',chosenPosition:'所选列车最近位置',fallback:'无法确认车次时转交',handoffBack:'← 返回实时列车图',quickEdit:'← 修改信息',secondary:'候选列车不代表实际乘车记录。',noCandidate:'没有车次也可以转交遗失信息。',timeRef:'搜索使用的下车时间'}
 };
 export default function TrainLostUI(p){
  const {lang='ko',t,active,demoMode,selection,selectionLabel,lines,neighbors,requiredDirection,matches,
@@ -35,7 +35,15 @@ export default function TrainLostUI(p){
  const v=flowCopy[lang]||flowCopy.ko;
  const w=sliderWords[lang]||sliderWords.ko;
  const carLabel=carNumber?(carMode==='number'?carNumber+u.carUnit:(relativeSide==='앞'?u.front:u.back)+' '+carNumber+u.relativeUnit):'';
- const canSearch=Boolean(thing.trim()&&carNumber&&door&&next&&requiredDirection!==null&&neighbors.length);
+ const missingRequired=[
+  !neighbors.length&&u.station,
+  (!when.date||!when.time)&&v.time,
+  (!next||requiredDirection===null)&&v.requiredDirection,
+  !thing.trim()&&v.requiredItem,
+  !carNumber&&v.requiredCar,
+  !door&&v.requiredDoor
+ ].filter(Boolean);
+ const canSearch=missingRequired.length===0;
  const manualElapsed=Math.round((Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00'))/60000);
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
@@ -46,8 +54,17 @@ export default function TrainLostUI(p){
  return <div className="tf-root tf-redesign tl-three-stage">
   <section className="tl-hero"><h2>{stage==='input'?u.heroIn:stage==='results'?u.heroOut:u.handoff}</h2><p>{stage==='input'?u.subtitle:stage==='results'?u.resultSubtitle:u.handoffSub}</p></section>
   <nav className="tl-stepbar" aria-label={v.steps.join(' → ')}>
-   {v.steps.map((label,i)=>{const target=['input','results','handoff'][i],available=i===0||i===1&&searched||i===2&&searched&&(chosen||handoffUnknown);return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={()=>onStageChange(target)}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;})}
+   {v.steps.map((label,i)=>{
+    const target=['input','results','handoff'][i];
+    const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
+    const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
+    return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={goToStep}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;
+   })}
   </nav>
+  {stage==='input'&&<div className={'tl-required-status'+(canSearch?' ready':' missing')} role="status" aria-live="polite">
+   <span aria-hidden="true">{canSearch?'✓':'!'}</span>
+   <span>{canSearch?v.requiredReady:v.requiredMissing+' ('+missingRequired.length+') · '+missingRequired.join(' · ')}</span>
+  </div>}
   {demoMode&&<p className="tf-warning">DEMO · {u.demo}</p>}
   {stage==='input'&&<>
    <section className="tl-panel tl-input-panel">
