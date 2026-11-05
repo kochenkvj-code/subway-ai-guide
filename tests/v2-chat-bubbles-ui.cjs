@@ -1,6 +1,56 @@
 const {chromium}=require('playwright'),{spawn}=require('node:child_process'),assert=require('node:assert/strict');const wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--port','3061'],{stdio:['ignore','pipe','pipe']});let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d);let browser;try{for(let i=0;i<100&&!log.includes('Ready');i++)await wait(100);assert.ok(log.includes('Ready'),log);browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const p=await browser.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/api/**',r=>{if(r.request().url().includes('/api/v2/chat')){const body=r.request().postDataJSON();return r.fulfill({json:{ok:true,stationCode:body.stationCode,answer:'확인 가능한 정보와 연결된 시설을 안내해 드립니다. 질문의 기준역과 호선을 구분하여 안내합니다. '.repeat(3),recommendedMenu:'route',searchSuggestion:'<div style="width:460px;background:#202020;color:white;padding:10px">Google search display fixture · unchanged provider markup</div>'}})}return r.fulfill({json:{ok:false,count:0}})});
 for(const width of [320,390])for(const lang of ['ko','en','ja','zh']){await p.setViewportSize({width,height:844});await p.goto('http://localhost:3061/v2?station=2637&lang='+lang+'&view=chat');const input=p.locator('.v2-chat-pane .sag-input-wrap input');await input.fill('시설 안내를 알려주세요.');await input.press('Enter');await p.locator('.sag-menu-recommendation').waitFor();const result=await p.evaluate(()=>{const row=document.querySelector('.v2-chat-pane .sag-row.assistant'),bubble=row.querySelector('.sag-bubble'),notice=document.querySelector('.v2-chat-privacy'),style=getComputedStyle(notice);return {ratio:bubble.getBoundingClientRect().width/row.getBoundingClientRect().width,noticeLines:(notice.getBoundingClientRect().height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom))/parseFloat(style.lineHeight),noticeFits:notice.scrollWidth<=notice.clientWidth,noticeAtTop:!!notice.closest('.v2-view-header')&&notice.getBoundingClientRect().top>=document.querySelector('.v2-view-header').getBoundingClientRect().top&&notice.getBoundingClientRect().bottom<=document.querySelector('.v2-view-header').getBoundingClientRect().bottom,overflow:document.documentElement.scrollWidth>innerWidth,searchScrollable:document.querySelector('.sag-search-suggestion').scrollWidth>document.querySelector('.sag-search-suggestion').clientWidth}});assert.ok(result.ratio<=.855&&result.ratio>.8,JSON.stringify(result));assert.ok(result.noticeAtTop&&result.noticeFits,lang+' '+JSON.stringify(result));assert.equal(await p.locator('.v2-chat-pane .sag-privacy-notice,.v2-chat-station').count(),0);assert.equal(result.overflow,false);assert.ok(result.searchScrollable);console.log(width,lang,result.ratio.toFixed(2),'natural notice inside title row');if(width===390&&lang==='ko')await p.screenshot({path:'work/v2-chat-bubbles-preview.png'});}
+// Regression: Safari keyboard raised from the *home composer*, unlike a
+// quick example or bottom-tab tap, must settle before mounting fixed chat.
+// Simulate a closed keyboard whose visual viewport still retains offsetTop.
+await p.setViewportSize({width:390,height:844});
+await p.goto('http://localhost:3061/v2?station=2637');
+const homeComposer=p.locator('.v2-home:not([hidden]) .v2-ask input');
+await homeComposer.focus();
+await homeComposer.fill('신라호텔 가는법');
+await p.evaluate(()=>{
+  Object.defineProperties(visualViewport,{
+    height:{configurable:true,value:450},
+    offsetTop:{configurable:true,value:60}
+  });
+});
+await homeComposer.press('Enter');
+assert.equal(await p.locator('.v2-home:not([hidden])').count(),1,'home remains mounted while keyboard is open');
+await p.evaluate(()=>{
+  Object.defineProperties(visualViewport,{
+    height:{configurable:true,value:844},
+    offsetTop:{configurable:true,value:78}
+  });
+  visualViewport.dispatchEvent(new Event('resize'));
+});
+await p.waitForTimeout(80);
+assert.equal(await p.locator('.v2-home:not([hidden])').count(),1,'do not enter chat while Safari retains viewport offset');
+await p.evaluate(()=>{
+  Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:0});
+  visualViewport.dispatchEvent(new Event('scroll'));
+});
+await p.locator('.v2-chat-workspace:not([hidden])').waitFor();
+const chatDock=p.locator('.v2-chat-workspace .v2-bottom-tabs');
+await p.waitForFunction(()=>{
+  const shell=document.querySelector('.v2-chat-workspace');
+  const dock=shell.querySelector('.v2-bottom-tabs');
+  return Math.abs(shell.getBoundingClientRect().top)<2 &&
+    dock.getBoundingClientRect().bottom<=window.innerHeight+2 &&
+    window.scrollY===0;
+});
+assert.ok(await chatDock.isVisible(),'chat dock remains visible after home keyboard submission');
+await p.locator('.v2-chat-workspace .v2-bottom-tabs button').first().click();
+await p.locator('.v2-home:not([hidden])').waitFor();
+await p.locator('.v2-home .v2-bottom-tabs button').nth(1).click();
+await p.locator('.v2-chat-workspace:not([hidden])').waitFor();
+assert.ok(await chatDock.evaluate(el=>el.getBoundingClientRect().bottom<=window.innerHeight+2),
+ 'dock remains in viewport after home/chat tab switching');
+await p.evaluate(()=>{
+  delete visualViewport.height;
+  delete visualViewport.offsetTop;
+});
+console.log('PASS home composer keyboard closes before chat mount; tab switch remains correctly anchored.');
 // Simulate independent iOS visual-viewport resize/pan updates. This is a
 // geometry regression, NOT a substitute for real iPhone Safari verification.
 await p.setViewportSize({width:390,height:844});
