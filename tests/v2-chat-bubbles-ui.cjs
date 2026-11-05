@@ -13,7 +13,23 @@ await pending.waitFor();
 assert.equal(await pending.getAttribute('role'),'status');
 assert.equal(await pending.locator('.sag-ai-loading-dots i').count(),3);
 assert.notEqual(await pending.locator('.sag-ai-loading-dots i').first().evaluate(el=>getComputedStyle(el).animationName),'none');
-assert.ok((await pending.innerText()).includes('AI가 답변을 생성하고 있습니다'));
+assert.ok((await pending.innerText()).includes('답변을 준비하고 있어요'));
+const compactLayout=await p.evaluate(()=>{
+  const indicator=document.querySelector('.v2-chat-pane .sag-ai-pending-indicator');
+  const bubble=indicator.closest('.sag-bubble');
+  const label=indicator.querySelector('span');
+  const dots=indicator.querySelector('.sag-ai-loading-dots');
+  const b=bubble.getBoundingClientRect();
+  const i=indicator.getBoundingClientRect();
+  const l=label.getBoundingClientRect();
+  const d=dots.getBoundingClientRect();
+  return {bubbleWidth:b.width,indicatorWidth:i.width,bubbleRightGap:b.right-i.right,
+    labelRight:l.right,dotsLeft:d.left,rowAligned:Math.abs(l.top-d.top)<8,screenWidth:innerWidth};
+});
+assert.ok(compactLayout.bubbleWidth-compactLayout.indicatorWidth<34,JSON.stringify(compactLayout));
+assert.ok(compactLayout.bubbleRightGap>=0&&compactLayout.bubbleRightGap<17,JSON.stringify(compactLayout));
+assert.ok(compactLayout.dotsLeft>=compactLayout.labelRight&&compactLayout.rowAligned,JSON.stringify(compactLayout));
+assert.ok(compactLayout.bubbleWidth<compactLayout.screenWidth*.8,JSON.stringify(compactLayout));
 await p.locator('.v2-chat-pane .sag-menu-recommendation').waitFor();
 assert.equal(await pending.count(),0,'animated indicator vanishes after answer is delivered');
 // Regression: Safari keyboard raised from the *home composer*, unlike a
