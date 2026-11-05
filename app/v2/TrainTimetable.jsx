@@ -112,7 +112,6 @@ export default function TrainTimetable({lang='ko',active=true,stationContext=nul
  const lineLabel=lineName(selection.line+'호선',lang);
  const chooseDirection=(direction)=>{setDir(direction);setHourChoice(null);setListLimit(8);};
  return <section className="tt-root tt2-root" aria-label={t.subtitle}>
-   <header className="tt2-heading"><div><span className="tt-eyebrow">TRAIN TIMETABLE</span><h2>{t.subtitle}</h2></div><span className="tt2-heading-icon" aria-hidden="true">▤</span></header>
    <div className="tt2-topbar">
      <div className="tt2-station">
        <span className="tt2-line-no" style={stationContext?{background:stationContext.color}:undefined}>{selection.line}</span>

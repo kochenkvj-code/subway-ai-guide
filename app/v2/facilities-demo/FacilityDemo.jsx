@@ -99,18 +99,22 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
  }).filter(cat=>cat.items.length>0);
  const shownTotal=shown.reduce((n,category)=>n+category.items.length,0);
  return <div className={"v2-facility-scope"+(embedded?" sf-compact":"")}><style>{css}</style><main className="sf-page">
-  <div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div><button className="sf-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button></div>
+  <div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div>{!embedded&&<button className="sf-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button>}</div>
+  {embedded&&<div className="sf-compact-intro"><h2>{({ko:`${stationLabel.endsWith('역')?stationLabel:stationLabel+'역'}에서 필요한 시설, 한눈에`,en:`Find what you need at ${stationLabel}`,ja:`${stationLabel}の施設をひと目で`,zh:`一眼找到${stationLabel}的便利设施`})[lang]}</h2><p>{t.oneScreenIntro}</p></div>}
   {!embedded&&<span className="sf-eyebrow">{t.title} · STATION GUIDE</span>}
   {!embedded&&<div className="sf-hero"><div><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div><span className="sf-hero-mark" aria-hidden="true">⌖</span></div>}
   <label className="sf-search"><span className="sf-search-icon" aria-hidden="true">⌕</span><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}>×</button>}</label>
-  {!loading&&data?.ok&&available.length>0&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
+  {(embedded||(!loading&&data?.ok&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
+    {!loading&&data?.ok&&available.length>0&&<>
     <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>{t.all} <small>{total}</small></button>
     {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>setFilter(filter===cat.id?'all':cat.id)}>{cat.label}<small>{cat.items.length}</small></button>)}
+    </>}
+    {embedded&&<button className="sf-refresh sf-filter-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button>}
   </nav>}
   {loading?<div className="sf-empty" role="status">{t.loading}</div>
    :!data?.ok?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
    :available.length===0?<div className="sf-empty">{t.empty}</div>
-   :<><div className="sf-count"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong><span>{t.atAGlance}</span></div>
+   :<><div className="sf-count"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong></div>
     {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:shown.map(cat=>{
      const showEverything=Boolean(keyword||filter===cat.id||expanded[cat.id]);
      const visibleItems=showEverything?cat.items:cat.items.slice(0,3);
