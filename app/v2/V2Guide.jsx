@@ -88,16 +88,19 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(!shell)return;
     const viewport=window.visualViewport;
     let frame=0;
-    // A fixed shell is relative to the layout viewport. Safari can pan its
-    // *visual* viewport separately while the software keyboard is visible.
-    // Use only offsetTop here; pageTop also includes document scrolling and
-    // can displace the shell twice. Never fix/scroll the document in response.
+    // Anchor the header at the layout viewport's top throughout keyboard
+    // close. Safari may temporarily retain visualViewport.offsetTop even as
+    // the keyboard slides away. Translating the *whole* shell by that offset
+    // also drags the header down, then makes it snap back later.
+    //
+    // Keep the bottom edge unchanged: old bottom = offsetTop + height.
+    // Grow the shell upward from top:0 instead of translating it down.
+    // This preserves the already-smooth composer / bottom-tab tracking.
     const sync=()=>{
       frame=0;
       const height=viewport?.height||window.innerHeight;
-      const offset=viewport?.offsetTop||0;
-      shell.style.height=height+'px';
-      shell.style.transform='translate3d(0,'+offset+'px,0)';
+      const offset=Math.max(0,viewport?.offsetTop||0);
+      shell.style.height=(height+offset)+'px';
     };
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(sync);};
     viewport?.addEventListener('resize',schedule);
@@ -114,7 +117,6 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       document.removeEventListener('focusin',schedule);
       document.removeEventListener('focusout',schedule);
       shell.style.removeProperty('height');
-      shell.style.removeProperty('transform');
     };
   },[view]);
   useEffect(()=>{setLanguageOpen(false);},[view]);
