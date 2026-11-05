@@ -19,6 +19,15 @@ const STATION = {
   zh: "钟路5街站",
 };
 
+// Compact visual label for the V2 AI pending bubble. Keep the original
+// pending message text for assistive technology and the request lifecycle.
+const V2_PENDING_LABEL = {
+  ko: "답변을 준비하고 있어요",
+  en: "Preparing your answer",
+  ja: "回答を準備しています",
+  zh: "正在准备回答",
+};
+
 const TEXT = {
   ko: {
     title: "AI 안내",
@@ -1798,7 +1807,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                 {message.facilityMap && <FacilityMapCard type={message.facilityMap === "selector" ? null : message.facilityMap} lang={lang} />}
                 {message.text && (message.pending && embedded && chatStation
                   ? <div className="sag-answer sag-ai-pending-indicator" role="status" aria-live="polite" aria-label={message.text}>
-                      <span aria-hidden="true">{message.text.replace(/[.…\s]+$/u, '')}</span>
+                      <span aria-hidden="true">{V2_PENDING_LABEL[lang] || V2_PENDING_LABEL.ko}</span>
                       <span className="sag-ai-loading-dots" aria-hidden="true"><i/><i/><i/></span>
                     </div>
                   : <div className="sag-answer">{renderBoldMarkdown(message.text)}</div>
