@@ -10,7 +10,7 @@ async function load(key,config,cacheKey) {
   // Official Seoul real-time subway API uses this HTTP service endpoint.
   // The browser only calls our HTTPS route; the key never reaches client code.
   // Reference: https://data.seoul.go.kr/dataList/OA-12764/A/1/datasetView.do
-  const url = `http://swopenapi.seoul.go.kr/api/subway/${encodeURIComponent(key)}/json/realtimeStationArrival/0/${config?80:40}/${encodeURIComponent(station.name)}`;
+  const url = `http://swopenapi.seoul.go.kr/api/subway/${encodeURIComponent(key)}/json/realtimeStationArrival/0/${config?80:40}/${encodeURIComponent(config?.apiName||station.name)}`;
   const destinationsPromise = config ? loadArrivalDestinations(process.env.SEOUL_SUBWAY_POSITION_API_KEY?.trim(), config.line) : Promise.resolve({});
   let response;
   try { response = await fetch(url, { cache:'no-store', signal:AbortSignal.timeout(10000) }); }
