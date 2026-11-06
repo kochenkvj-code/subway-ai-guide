@@ -7,14 +7,36 @@ export function positionGroups(rows,line,station,graph,directions){
   return network[name]?name:Object.keys(network).find(n=>n===name.replace(/\([^)]*\)/g,'').trim())||name;
  };
  const target=key(station),supported=Boolean(network[target]);
- function distance(origin,dir){
-  if(!supported||!network[origin])return null;
+ function undirectedDistance(origin,end){
   const queue=[[origin,0]],seen=new Set([origin]);
   for(let i=0;i<queue.length;i++){
-   const [at,count]=queue[i];if(at===target)return count;
-   for(const next of network[at]||[])if(String(edges[at]?.[next])===dir&&!seen.has(next)){seen.add(next);queue.push([next,count+1]);}
+   const [at,count]=queue[i];if(at===end)return count;
+   for(const next of network[at]||[])if(!seen.has(next)){seen.add(next);queue.push([next,count+1]);}
+  }
+  return Infinity;
+ }
+ function distance(origin,dir,end=target,terminus=null,branchOnly=false){
+  if(!network[end]||!network[origin])return null;
+  const queue=[[origin,0]],seen=new Set([origin]);
+  for(let i=0;i<queue.length;i++){
+   const [at,count]=queue[i];if(at===end)return count;
+   for(const next of network[at]||[]){
+    const providerDirection=edges[at]?.[next];
+    // Line 2's branch service stays on the branch, not the main loop.
+    if(branchOnly&&providerDirection!==undefined)continue;
+    const followsDirection=String(providerDirection)===dir;
+    // Branch edges absent from the direction table have a unique track path
+    // toward the named terminus. Never infer a reverse main-line movement.
+    const branchTowardTerminus=providerDirection===undefined&&terminus&&undirectedDistance(next,terminus)<undirectedDistance(at,terminus);
+    if((followsDirection||branchTowardTerminus)&&!seen.has(next)){seen.add(next);queue.push([next,count+1]);}
+   }
   }
   return null;
+ }
+ function routeTerminus(raw){
+  const label=String(raw||'').trim();if(network[key(label)])return key(label);
+  const base=label.replace(/행$/,'').replace(/\s*(?:\((?:종착|지선|내선|외선|급행)\)|종착|지선|내선|외선|급행)$/,'').trim();
+  return network[key(base)]?key(base):null;
  }
 
  // Select the latest event for each physical train before measuring distance.
@@ -43,7 +65,16 @@ export function positionGroups(rows,line,station,graph,directions){
   const trains=[];
   latest.forEach(({row,index})=>{
    if(String(row.subwayId)!=='100'+line||String(row.updnLine)!==dir)return;
-   const stops=distance(key(row.statnNm),dir);
+   const origin=key(row.statnNm),terminus=routeTerminus(row.statnTnm);
+   const branchOnly=String(line)==='2'&&/지선/.test(String(row.statnTnm||''));
+   const stops=distance(origin,dir,target,terminus,branchOnly);
+   if(stops===null)return;
+   if(terminus){
+    const total=distance(origin,dir,terminus,terminus,branchOnly);
+    const remaining=distance(target,dir,terminus,terminus,branchOnly);
+    // The selected station must be on the route before the train's terminus.
+    if(total===null||remaining===null||stops+remaining!==total)return;
+   }
    // At the selected station, a departed train is no longer incoming.
    // Departures at earlier stations still belong in the approaching list.
    if(stops===0&&String(row.trainSttus)==='2')return;

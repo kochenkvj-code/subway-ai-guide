@@ -63,3 +63,44 @@ test('entry and arrival at selected station remain visible in either direction',
  assert.equal(g.trains[0].row,r);
  }
 });
+test('line 1 terminus before selected station is skipped for the next train',()=>{
+ const before={...row('서울','0','short'),statnTnm:'청량리'};
+ const through={...row('남영','0','through'),statnTnm:'연천'};
+ const result=positionGroups([before,through],'1','회기',graph,directions).groups[0];
+ assert.deepEqual(result.trains.map(t=>t.row.trainNo),['through']);
+});
+test('line 1 Guro and Geumcheon branches use destination, not just direction',()=>{
+ const incheon={...row('영등포','1','incheon'),statnTnm:'인천'};
+ const sinchang={...incheon,trainNo:'sinchang',statnTnm:'신창'};
+ assert.deepEqual(positionGroups([incheon,sinchang],'1','가산디지털단지',graph,directions).groups[1].trains.map(t=>t.row.trainNo),['sinchang']);
+ assert.deepEqual(positionGroups([incheon,sinchang],'1','구일',graph,directions).groups[1].trains.map(t=>t.row.trainNo),['incheon']);
+ const gwangmyeong={...row('독산','1','gwangmyeong'),statnTnm:'광명'};
+ const south={...gwangmyeong,trainNo:'south',statnTnm:'신창'};
+ assert.deepEqual(positionGroups([gwangmyeong,south],'1','석수',graph,directions).groups[1].trains.map(t=>t.row.trainNo),['south']);
+});
+test('line 2 Seongsu terminus does not continue through terminus around loop',()=>{
+ const r={...row('왕십리','0','loop'),subwayId:'1002',statnTnm:'성수종착'};
+ assert.equal(positionGroups([r],'2','뚝섬',graph,directions).groups[1].trains.length,1);
+ assert.equal(positionGroups([r],'2','건대입구',graph,directions).groups[1].trains.length,0);
+});
+test('line 2 branch trains stay off main loop and reach their branch target',()=>{
+ const r={...row('용두','1','branch'),subwayId:'1002',statnTnm:'성수지선'};
+ assert.equal(positionGroups([r],'2','용답',graph,directions).groups[0].trains.length,1);
+ assert.equal(positionGroups([r],'2','왕십리',graph,directions).groups[0].trains.length,0);
+ const k={...r,trainNo:'kkachi',statnNm:'양천구청',statnTnm:'까치산'};
+ assert.equal(positionGroups([k],'2','신정네거리',graph,directions).groups[0].trains.length,1);
+ assert.equal(positionGroups([k],'2','대림',graph,directions).groups[0].trains.length,0);
+});
+test('mid-line termini on other lines stop before selected station',()=>{
+ for(const [line,origin,terminus,target,dir] of [['3','구파발','수서','가락시장','1'],['4','미아','사당','남태령','1'],['5','왕십리','마천','강동','1'],['6','공덕','봉화산','신내','1'],['7','도봉산','수락산','마들','1'],['8','잠실','가락시장','문정','1'],['9','김포공항','가양','증미','1']]){
+ const r={subwayId:'100'+line,statnNm:origin,statnTnm:terminus,updnLine:dir,trainNo:'test',trainSttus:'1'};
+ const g=positionGroups([r],line,target,graph,directions).groups.find(g=>g.dir===dir);
+ assert.equal(g.trains.length,line==='5'?1:0,line);
+ }
+});
+
+test('line 5 branch destination includes its branch and excludes the other branch',()=>{
+ const r={subwayId:'1005',statnNm:'천호',statnTnm:'마천',updnLine:'1',trainNo:'branch',trainSttus:'1'};
+ assert.equal(positionGroups([r],'5','명일',graph,directions).groups[1].trains.length,0);
+ assert.equal(positionGroups([r],'5','둔촌동',graph,directions).groups[1].trains.length,1);
+});
