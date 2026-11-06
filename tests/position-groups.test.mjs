@@ -21,3 +21,30 @@ test('line isolation and circle direction',()=>{
  assert.ok(positionGroups([r],'1','서울역',graph,directions).groups.every(g=>!g.trains.length));
  const result=positionGroups([r],'2','건대입구',graph,directions);assert.deepEqual(result.groups.map(g=>g.dir),['1','0']);assert.equal(result.groups[1].trains[0].stops,1);
 });
+test('0176 and 0189 duplicate provider events occupy one slot per train',()=>{
+ const a={...row('종로3가','0','0176'),recptnDt:'2026-11-06 20:00:45'};
+ const b={...a,recptnDt:'2026-11-06 20:01:10'};
+ const c={...row('종로5가','1','0189'),recptnDt:'2026-11-06 19:59:47'};
+ const d={...c,trainSttus:'2',recptnDt:'2026-11-06 20:01:28'};
+ const nextUp=row('종각','0','other-up'),nextDown=row('동대문','1','other-down');
+ const rows=[a,d,c,b,nextUp,nextDown];
+ const g=positionGroups(rows,'1','종로5가',graph,directions).groups;
+ assert.deepEqual(g[0].trains.map(x=>x.row.trainNo),['0176','other-up']);
+ assert.deepEqual(g[1].trains.map(x=>x.row.trainNo),['0189','other-down']);
+ assert.equal(g[0].trains[0].row,b);assert.equal(g[1].trains[0].row,d);
+ assert.equal(rows.length,6,'raw source snapshot remains intact');
+});
+test('latest position is chosen before distance and direction grouping',()=>{
+ const old={...row('서울','0','0482'),recptnDt:'2026-11-06 19:34:00'};
+ const current={...old,statnNm:'종각',recptnDt:'2026-11-06 19:41:25'};
+ assert.equal(positionGroups([old,current],'1','서울역',graph,directions).groups[0].trains.length,0);
+ const turned={...old,updnLine:'1',recptnDt:'2026-11-06 20:00:00'};
+ const groups=positionGroups([old,turned],'1','서울역',graph,directions).groups;
+ assert.equal(groups[0].trains.length,0);assert.equal(groups[1].trains[0].row,turned);
+});
+test('split date/time stamps and zero-padded train identities',()=>{
+ const old={...row('종각','0','0176'),recptnDt:'20:00:00',lastRecptnDt:'20261106'};
+ const newer={...old,trainNo:'176',statnNm:'종로3가',recptnDt:'20:01:00'};
+ const g=positionGroups([old,newer],'1','종로5가',graph,directions).groups[0];
+ assert.equal(g.trains.length,1);assert.equal(g.trains[0].row,newer);
+});
