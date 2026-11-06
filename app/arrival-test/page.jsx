@@ -32,6 +32,8 @@ const cell=value;
 export default function ArrivalTestPage(){
  const [stationCode,setStationCode]=useState(null),[picker,setPicker]=useState(false),[line,setLine]=useState('8'),[query,setQuery]=useState(''),[data,setData]=useState(null),[error,setError]=useState(''),[loading,setLoading]=useState(false),[showRaw,setShowRaw]=useState(false),[view,setView]=useState('summary'),[lang,setLang]=useState('ko');
  const [now,setNow]=useState(null);
+ const [ownKey,setOwnKey]=useState(''),[showOwnKey,setShowOwnKey]=useState(false);
+ const [checkingKey,setCheckingKey]=useState(false),[keyResult,setKeyResult]=useState(null),[keyError,setKeyError]=useState('');
  useEffect(()=>{const tick=()=>setNow(Date.now());tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);},[]);
  const sequence=useRef(0),refreshRef=useRef(()=>{}),titleRef=useRef(null);
  const station=stationMaster.find(s=>s.stationCode===stationCode),t=copy[lang];
@@ -51,8 +53,49 @@ export default function ArrivalTestPage(){
  const directions=['외선','내선','상행','하행'].filter(d=>observed.includes(d));if(!directions.length)directions.push(...(station?.line==='2'?['외선','내선']:['상행','하행']));
  const groups=directions.map(dir=>{const rows=matching.filter(r=>r.updnLine===dir),names=[...new Set(rows.map(r=>String(r.trainLineNm||'').match(/[-–—]\s*(.+?)\s*방면\s*$/)?.[1]).filter(Boolean))];return {dir,rows,heading:names.join(' · ')||dir};});
  const message=error?t.error:!data?t.loading:!matching.length?t.empty:null;
+ const keyRows=Array.isArray(keyResult?.raw?.realtimeArrivalList)
+  ?keyResult.raw.realtimeArrivalList.filter(row=>String(row.subwayId)===String(station?.subwayId))
+  :[];
+ const keyResponseCode=keyResult?.raw?.errorMessage?.code||keyResult?.raw?.RESULT?.CODE||keyResult?.raw?.code||'—';
+ const keyResponseText=keyResult?.raw?.message||keyResult?.raw?.errorMessage?.message||keyResult?.raw?.RESULT?.MESSAGE||'';
+ async function checkOwnKey(event){
+  event.preventDefault();
+  if(checkingKey||!stationCode||!ownKey.trim())return;
+  setCheckingKey(true);setKeyError('');setKeyResult(null);
+  try{
+   const response=await fetch('/api/arrival-test/key-check',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({station:stationCode,apiKey:ownKey.trim()})});
+   const result=await response.json();
+   if(!response.ok)throw Error(result.error||'HTTP '+response.status);
+   setKeyResult(result);
+  }catch(error){setKeyError(String(error.message||error));}
+  finally{setCheckingKey(false);}
+ }
+
  return <main className="v2-app v2-design-refresh arrival-test" lang={lang==='zh'?'zh-CN':lang}><div className="at-wrap">
   <header className="at-toolbar">{view==='details'&&<button className="at-back" onClick={()=>changeView('summary')} aria-label={t.back}><Arrow/></button>}<h1 ref={titleRef} tabIndex={-1}>{view==='details'?t.title:'도착정보 테스트'}</h1><button className="at-station" onClick={()=>{setQuery('');setLine(station?.line||'');setPicker(true);}}><span className="se-line" style={{background:station?.color}}>{station?.line||'?'}</span><span>{station?.names[lang]||'역 선택'}</span>⌄</button><select aria-label="Language" value={lang} onChange={e=>{setLang(e.target.value);const u=new URL(window.location.href);u.searchParams.set('lang',e.target.value);window.history.replaceState(null,'',u.pathname+u.search);}}><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh">中文</option></select></header>
+  <section className="at-own-key-panel" aria-label="직접 입력한 API 키 조회">
+   <form onSubmit={checkOwnKey} autoComplete="off">
+    <div className="at-key-panel-head"><strong>내 인증키로 원본 조회</strong><span>수동 1회 테스트</span></div>
+    <label htmlFor="at-own-api-key">서울시 실시간 지하철 API 인증키</label>
+    <div className="at-key-form-row">
+     <input id="at-own-api-key" name="manual-seoul-key" type={showOwnKey?'text':'password'} placeholder="인증키 입력" value={ownKey} onChange={event=>{setOwnKey(event.target.value);setKeyResult(null);setKeyError('');}} autoComplete="off" autoCapitalize="off" spellCheck={false} />
+     <button type="button" onClick={()=>setShowOwnKey(x=>!x)} aria-label={showOwnKey?'키 가리기':'키 보기'}>{showOwnKey?'숨기기':'보기'}</button>
+     <button type="submit" className="at-key-check-submit" disabled={!stationCode||!ownKey.trim()||checkingKey}>{checkingKey?'조회 중':'키로 조회'}</button>
+    </div>
+    <p className="at-key-panel-note">선택된 역({station?.names?.ko||'—'})을 입력한 키로 한 번 조회합니다. 키는 URL이나 브라우저 저장소에 기록하지 않으며, 요청 처리에만 사용합니다. 기존 운영 키는 변경되지 않습니다.</p>
+   </form>
+   {keyError&&<p role="alert" className="at-key-check-error">조회 실패: {keyError}</p>}
+   {keyResult&&<div className="at-key-check-results">
+    <p className="at-key-check-status">서울시 응답: <strong>{keyResponseCode}</strong> · 원본 {keyRows.length}건</p>
+    {keyResponseText&&<p className="at-key-check-error">{keyResponseText}</p>}
+    {keyRows.map((row,index)=><div className="at-key-check-row" key={index}>
+     <strong>{value(row.updnLine)} · ordkey {value(row.ordkey)} · {destination(row)}</strong>
+     <div>{value(row.arvlMsg2)}</div><small>arvlMsg3: {value(row.arvlMsg3)}</small>
+     <small>열차 {value(row.btrainNo)} · 생성시각 {value(row.recptnDt)}</small>
+    </div>)}
+    <details><summary>응답 JSON 보기 (인증키 제외)</summary><pre>{JSON.stringify(keyResult.raw,null,2)}</pre></details>
+   </div>}
+  </section>
   {view==='summary'?<section className="v2-trains" aria-label={t.next}><div className="v2-summary-board">{groups.map(({dir,rows,heading},index)=><div className="v2-summary-direction" key={dir}><button className="v2-summary-heading" onClick={()=>changeView('details')} aria-label={heading+' · '+t.details}>{index%2===0&&<Arrow/>}<span>{heading}</span>{index%2===1&&<Arrow right/>}</button>{[1,2].map(rank=>{const row=!error&&rows.find(r=>String(r.ordkey||'')[1]===String(rank));return <button className="v2-summary-train at-train" key={rank} onClick={()=>changeView('details')} aria-label={dir+' '+rank+' · '+t.details}><span className="v2-summary-destination">{row?destination(row):'—'}</span><b className={row?'v2-arrival-available':''}><span className="at-message">{row?value(row.arvlMsg2):'—'}</span>{row&&<CalculatedTime row={row} now={now} lang={lang}/>}</b></button>;})}</div>)}</div><div className="at-board-footer"><span role="status">{message||t.automatic}</span><button onClick={()=>refreshRef.current()} disabled={loading||!stationCode} aria-label={t.refresh}>↻</button></div></section>:
   <section className="v2-arrival-details"><div className="v2-arrival-detail-head"><div><small>{t.source}</small><h2>{station?.names[lang]} · {t.next}</h2></div><button onClick={()=>refreshRef.current()} disabled={loading}>{loading?t.loading:t.refresh}</button></div><p className="v2-arrival-caption">{t.automatic}</p>{message&&<p className="v2-arrival-message" role="status">{message}</p>}{!error&&groups.map(({dir,rows,heading})=><section className="v2-arrival-group" key={dir}><h3>{heading} · {dir}</h3>{[1,2].map(rank=>{const records=rows.filter(r=>String(r.ordkey||'')[1]===String(rank));return <div key={rank} className="at-rank">{records.length>1&&<p className="v2-arrival-caption">{rank}순위 · 원본 {records.length}건</p>}{records.map((row,i)=><article className="v2-arrival-train" key={rank+'-'+i}><div><strong><span className="at-message">{value(row.arvlMsg2)}</span><CalculatedTime row={row} now={now} lang={lang}/></strong><span>{value(row.btrainSttus)}</span></div><dl><dt>{t.destination}</dt><dd>{value(row.trainLineNm)}</dd><dt>{t.train}</dt><dd>{value(row.btrainNo)}</dd><dt>{t.location}</dt><dd>{value(row.arvlMsg3)}</dd></dl><small>{t.updated} {value(row.recptnDt)}</small><details className="at-row-fields"><summary>원본 필드</summary><p>ordkey: {value(row.ordkey)} · arvlCd: {value(row.arvlCd)} · barvlDt: {value(row.barvlDt)}</p></details></article>)}</div>;})}{!rows.some(r=>['1','2'].includes(String(r.ordkey||'')[1]))&&<p className="v2-arrival-empty">{t.empty}</p>}</section>)}</section>}
     {picker&&<div role="presentation" onClick={()=>setPicker(false)} style={{position:'fixed',inset:0,zIndex:20,background:'#14283c70',display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
