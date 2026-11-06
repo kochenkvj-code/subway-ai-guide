@@ -307,3 +307,15 @@
 .v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i:nth-child(3){animation-delay:.32s}
 @keyframes v2-ai-thinking-dot{0%,70%,100%{opacity:.3;transform:translateY(0) scale(.88)}35%{opacity:1;transform:translateY(-3px) scale(1.06)}}
 @media(prefers-reduced-motion:reduce){.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i{animation:none;opacity:.8;transform:none}}
+
+/* V2 raw-arrival mode: preserve the provider's complete message without ETA overlays. */
+.v2-raw-arrival-train{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:start;min-height:39px;gap:6px}
+.v2-raw-arrival-label{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:2px}
+.v2-raw-arrival-label .v2-summary-destination{display:block;width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+.v2-raw-arrival-label small{display:block;max-width:100%;color:#81988a;font-size:10px;line-height:1.35;overflow-wrap:anywhere}
+.v2-design-refresh .v2-raw-arrival-train b{display:block;max-width:none;white-space:normal;overflow:visible;text-overflow:clip;text-align:right;line-height:1.35;font-size:12px;letter-spacing:-.3px;overflow-wrap:anywhere;word-break:keep-all}
+.v2-raw-rank-label{margin:12px 0 4px;color:#7b8d80;font-size:11px;font-weight:700}
+.v2-raw-arrival-card>div{align-items:flex-start}
+.v2-raw-arrival-card>div strong{font-size:17px;line-height:1.5;overflow-wrap:anywhere;word-break:keep-all}
+.v2-raw-arrival-card .v2-raw-location{font-size:12px;color:#577a66}
+.v2-raw-arrival-card dd{overflow-wrap:anywhere}
