@@ -27,7 +27,7 @@ export default function LivePage(){
   const lines=useMemo(()=>[...new Set(stationMaster.map(x=>x.line))].sort((a,b)=>Number(a)-Number(b)),[]);
   const visible=useMemo(()=>stationMaster.filter(x=>!line||x.line===line),[line]);
   const t=words[lang];
-  function changeStation(code){setStationCode(code);const found=stationMaster.find(x=>x.stationCode===code);if(found)setLine(found.line);const url=new URL(window.location.href);url.searchParams.set('station',code);url.searchParams.set('lang',lang);window.history.replaceState(null,'',url);}
+  function changeStation(code){setStationCode(code);const url=new URL(window.location.href);url.searchParams.set('station',code);url.searchParams.set('lang',lang);window.history.replaceState(null,'',url);}
   function changeLang(value){setLang(value);const url=new URL(window.location.href);url.searchParams.set('lang',value);window.history.replaceState(null,'',url);}
   return <main style={s.page}><div style={s.wrap}>
     <header style={{...s.panel,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
