@@ -44,9 +44,12 @@ export function positionGroups(rows,line,station,graph,directions){
   latest.forEach(({row,index})=>{
    if(String(row.subwayId)!=='100'+line||String(row.updnLine)!==dir)return;
    const stops=distance(key(row.statnNm),dir);
+   // At the selected station, a departed train is no longer incoming.
+   // Departures at earlier stations still belong in the approaching list.
+   if(stops===0&&String(row.trainSttus)==='2')return;
    if(stops!==null)trains.push({row,stops,index});
   });
-  // Original API order is the tie breaker. No time/status filters or history.
+  // Original API order is the tie breaker. No age filters or historical ETA reuse.
   trains.sort((a,b)=>a.stops-b.stops||a.index-b.index);
   return {dir,next,trains:trains.slice(0,2),candidates:trains};
  });

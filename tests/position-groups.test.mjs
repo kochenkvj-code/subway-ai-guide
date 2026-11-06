@@ -30,8 +30,8 @@ test('0176 and 0189 duplicate provider events occupy one slot per train',()=>{
  const rows=[a,d,c,b,nextUp,nextDown];
  const g=positionGroups(rows,'1','종로5가',graph,directions).groups;
  assert.deepEqual(g[0].trains.map(x=>x.row.trainNo),['0176','other-up']);
- assert.deepEqual(g[1].trains.map(x=>x.row.trainNo),['0189','other-down']);
- assert.equal(g[0].trains[0].row,b);assert.equal(g[1].trains[0].row,d);
+ assert.deepEqual(g[1].trains.map(x=>x.row.trainNo),['other-down'],'latest 0189 has already departed selected station');
+ assert.equal(g[0].trains[0].row,b);assert.equal(g[1].trains[0].row,nextDown);
  assert.equal(rows.length,6,'raw source snapshot remains intact');
 });
 test('latest position is chosen before distance and direction grouping',()=>{
@@ -47,4 +47,19 @@ test('split date/time stamps and zero-padded train identities',()=>{
  const newer={...old,trainNo:'176',statnNm:'종로3가',recptnDt:'20:01:00'};
  const g=positionGroups([old,newer],'1','종로5가',graph,directions).groups[0];
  assert.equal(g.trains.length,1);assert.equal(g.trains[0].row,newer);
+});
+test('selected-station departure gives its slot to the next distinct train',()=>{
+ const arrived={...row('종로5가','0','0176','1'),recptnDt:'2026-11-06 20:01:00'};
+ const departed={...arrived,trainSttus:'2',recptnDt:'2026-11-06 20:02:00'};
+ const previousDeparture=row('종로3가','0','next','2'),following=row('종각','0','following','0');
+ const g=positionGroups([arrived,departed,previousDeparture,following],'1','종로5가',graph,directions).groups[0];
+ assert.deepEqual(g.trains.map(x=>x.row.trainNo),['next','following']);
+ assert.equal(g.trains[0].row,previousDeparture,'previous station departure remains visible');
+});
+test('entry and arrival at selected station remain visible in either direction',()=>{
+ for(const dir of ['0','1'])for(const state of ['0','1']){
+ const r=row('종로5가',dir,'current',state);
+ const g=positionGroups([r],'1','종로5가',graph,directions).groups.find(g=>g.dir===dir);
+ assert.equal(g.trains[0].row,r);
+ }
 });
