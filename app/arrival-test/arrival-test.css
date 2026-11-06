@@ -38,3 +38,15 @@
 .arrival-test .v2-arrival-train dl{margin:10px 0;row-gap:5px}
 .arrival-test .v2-arrival-train>div>strong{font-size:17px;line-height:1.5}
 .arrival-test .v2-arrival-group h3{font-size:14px;margin:16px 0 10px}
+
+/* Match the V2 compact board: one train per row, full message in details. */
+.arrival-test .at-wrap{max-width:620px;padding-top:14px}
+.arrival-test .at-toolbar{margin-bottom:14px}
+.arrival-test .at-train{min-height:28px;padding:3px 0;align-items:center;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:6px}
+.arrival-test .at-train .v2-summary-destination,.arrival-test .at-train b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:1.5}
+.arrival-test .at-train .at-message{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arrival-test .at-board-footer{margin-top:4px}
+.arrival-test .v2-arrival-detail-head h2{font-size:18px;margin:5px 0}
+.arrival-test .v2-arrival-train>div>strong{font-size:16px;font-weight:600}
+.arrival-test .at-diagnostics{margin-top:18px}
+@media(max-width:360px){.arrival-test .at-train .v2-summary-destination,.arrival-test .at-train b{font-size:11px}}

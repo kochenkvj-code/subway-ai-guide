@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {stationMaster,searchStationMaster} from '../lib/station-master';
+import {createArrivalLocalizer} from './localize';
 import {stationName} from '../lib/stationNameI18n';
 import {arrivalStationConfig} from '../lib/station-arrivals';
 import '../v2/v2.css';
@@ -16,27 +17,12 @@ const value=x=>x===null||x===undefined||x===''?'—':String(x);
 function destination(row){const text=String(row?.trainLineNm||'');return text.match(/^\s*(.+?행)\s*(?:[-–—]|$)/)?.[1]||text||'—';}
 
 const rawLabel={ko:'서울시 원문',en:'Seoul API original',ja:'ソウル市の原文',zh:'首尔市原文'};
-const stationNames=new Map(stationMaster.map(s=>[s.names.ko,s.names]));
-function localize(input,lang){
- const text=value(input);if(lang==='ko'||text==='—')return text;
- const name=n=>stationName(n,lang);
- const fixed={상행:['Upbound','上り','上行'],하행:['Downbound','下り','下行'],내선:['Inner loop','内回り','内环'],외선:['Outer loop','外回り','外环'],일반:['Local','各駅停車','普通'],급행:['Express','急行','快速']};
- const i={en:0,ja:1,zh:2}[lang];if(fixed[text])return fixed[text][i];
- if(stationNames.has(text)||stationName(text,lang,false))return name(text);
- let m=text.match(/^(\d+)분(?:\s*(\d+)초)?\s*후(?:\s*\(([^)]+)\))?$/);
- if(m){const n=m[1],sec=m[2],place=m[3]?' ('+name(m[3])+')':'';return [n+' min'+(sec?' '+sec+' sec':'')+place,n+'分'+(sec?sec+'秒':'')+'後'+place,n+'分'+(sec?sec+'秒':'')+'后'+place][i];}
- m=text.match(/^\[(\d+)\]번째 전역(?:\s*\(([^)]+)\))?$/);if(m)return [m[1]+' stops away',m[1]+'駅手前',m[1]+'站前'][i]+(m[2]?' ('+name(m[2])+')':'');
- m=text.match(/^(.+?)\s+(진입|도착|출발)$/);if(m)return name(m[1])+' · '+({진입:['Approaching','進入','进站'],도착:['Arriving','到着','到站'],출발:['Departing','出発','出站']}[m[2]][i]);
- m=text.match(/^(.+)행$/);if(m)return [ 'To '+name(m[1]),name(m[1])+'行き','开往'+name(m[1])][i];
- return text; // Unknown source wording remains intact; never invent a translation.
-}
+const localize=createArrivalLocalizer(stationName);
 
 function Arrow({right=false}){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={right?'M4 12h16m-6-6 6 6-6 6':'M20 12H4m6-6-6 6 6 6'}/></svg>;}
 const css={button:{border:'1px solid #dce7df',background:'#fff',color:'#456453',borderRadius:9,minHeight:40,padding:'7px 10px',fontSize:12,cursor:'pointer'},field:{width:'100%',border:'1px solid #dce7df',borderRadius:10,padding:11,fontSize:16},chip:{display:'inline-grid',placeItems:'center',color:'#fff',borderRadius:'50%',width:22,height:22,fontSize:11,flexShrink:0},subtle:{fontSize:12,color:'#718478',lineHeight:1.6}};
 const C={line:'#dce7df',green:'#1c8064',muted:'#718478'};
 const displayName=s=>s?.names?.ko||'역 선택';
-const fields=['subwayId','statnNm','updnLine','btrainNo','ordkey','arvlCd','arvlMsg2','arvlMsg3','recptnDt','barvlDt','trainLineNm'];
-const cell=value;
 export default function ArrivalTestPage(){
  const [stationCode,setStationCode]=useState(null),[picker,setPicker]=useState(false),[line,setLine]=useState('8'),[query,setQuery]=useState(''),[data,setData]=useState(null),[error,setError]=useState(''),[loading,setLoading]=useState(false),[showRaw,setShowRaw]=useState(false),[view,setView]=useState('summary'),[lang,setLang]=useState('ko');
  const sequence=useRef(0),refreshRef=useRef(()=>{}),titleRef=useRef(null);
@@ -59,7 +45,7 @@ export default function ArrivalTestPage(){
  const message=error?t.error:!data?t.loading:!matching.length?t.empty:null;
  return <main className="v2-app v2-design-refresh arrival-test" lang={lang==='zh'?'zh-CN':lang}><div className="at-wrap">
   <header className="at-toolbar">{view==='details'&&<button className="at-back" onClick={()=>changeView('summary')} aria-label={t.back}><Arrow/></button>}<h1 ref={titleRef} tabIndex={-1}>{t.title}</h1><button className="at-station" onClick={()=>{setQuery('');setLine(station?.line||'');setPicker(true);}}><span className="se-line" style={{background:station?.color}}>{station?.line||'?'}</span><span>{station?.names[lang]||'역 선택'}</span>⌄</button><select aria-label="Language" value={lang} onChange={e=>{setLang(e.target.value);const u=new URL(window.location.href);u.searchParams.set('lang',e.target.value);window.history.replaceState(null,'',u.pathname+u.search);}}><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh">中文</option></select></header>
-  {view==='summary'?<section className="v2-trains" aria-label={t.next}><div className="v2-summary-board">{groups.map(({dir,rows,heading},index)=><div className="v2-summary-direction" key={dir}><button className="v2-summary-heading" onClick={()=>changeView('details')} aria-label={heading+' · '+t.details}>{index%2===0&&<Arrow/>}<span>{localize(heading,lang)}</span>{index%2===1&&<Arrow right/>}</button>{[1,2].map(rank=>{const row=!error&&rows.find(r=>String(r.ordkey||'')[1]===String(rank));return <button className="v2-summary-train at-train" key={rank} onClick={()=>changeView('details')} aria-label={dir+' '+rank+' · '+t.details}><span className="v2-summary-destination">{row?localize(destination(row),lang):'—'}</span><b className={row?'v2-arrival-available':''}><span className="at-message">{row?localize(row.arvlMsg2,lang):'—'}</span></b></button>;})}</div>)}</div><div className="at-board-footer"><span role="status">{message||t.automatic}</span><button onClick={()=>refreshRef.current()} disabled={loading||!stationCode} aria-label={t.refresh}>↻</button></div></section>:
+  {view==='summary'?<section className="v2-trains" aria-label={t.next}><div className="v2-summary-board">{groups.map(({dir,rows,heading},index)=><div className="v2-summary-direction" key={dir}><button className="v2-summary-heading" onClick={()=>changeView('details')} aria-label={heading+' · '+t.details}>{index%2===0&&<Arrow/>}<span>{localize(heading,lang)}</span>{index%2===1&&<Arrow right/>}</button>{[1,2].map(rank=>{const row=!error&&rows.find(r=>String(r.ordkey||'')[1]===String(rank));return <button className="v2-summary-train at-train" key={rank} onClick={()=>changeView('details')} aria-label={dir+' '+rank+' · '+t.details}><span className="v2-summary-destination">{row?localize(destination(row),lang):'—'}</span><b className={row?'v2-arrival-available':''}><span className="at-message" title={row?localize(row.arvlMsg2,lang):undefined}>{row?localize(row.arvlMsg2,lang):'—'}</span></b></button>;})}</div>)}</div><div className="at-board-footer"><span role="status">{message||t.automatic}</span><button onClick={()=>refreshRef.current()} disabled={loading||!stationCode} aria-label={t.refresh}>↻</button></div></section>:
   <section className="v2-arrival-details"><div className="v2-arrival-detail-head"><div><small>{t.source}</small><h2>{station?.names[lang]} · {t.next}</h2></div><button onClick={()=>refreshRef.current()} disabled={loading}>{loading?t.loading:t.refresh}</button></div><p className="v2-arrival-caption">{t.automatic}</p>{message&&<p className="v2-arrival-message" role="status">{message}</p>}{!error&&groups.map(({dir,rows,heading})=><section className="v2-arrival-group" key={dir}><h3>{localize(heading,lang)} · {localize(dir,lang)}</h3>{[1,2].map(rank=>{const records=rows.filter(r=>String(r.ordkey||'')[1]===String(rank));return <div key={rank} className="at-rank">{records.length>1&&<p className="v2-arrival-caption">#{rank} · {records.length}</p>}{records.map((row,i)=><article className="v2-arrival-train" key={rank+'-'+i}><div><strong><span className="at-message">{localize(row.arvlMsg2,lang)}</span></strong><span>{localize(row.btrainSttus,lang)}</span></div><dl><dt>{t.destination}</dt><dd>{localize(destination(row),lang)}</dd><dt>{t.train}</dt><dd>{value(row.btrainNo)}</dd><dt>{t.location}</dt><dd>{localize(row.arvlMsg3,lang)}</dd></dl><small>{t.updated} {value(row.recptnDt)}</small><details className="at-row-fields"><summary>{rawLabel[lang]}</summary><p className="at-original">{value(row.arvlMsg2)}<br/>{value(row.arvlMsg3)}<br/>{value(row.trainLineNm)}</p><p>ordkey: {value(row.ordkey)} · arvlCd: {value(row.arvlCd)} · barvlDt: {value(row.barvlDt)}</p></details></article>)}</div>;})}{!rows.some(r=>['1','2'].includes(String(r.ordkey||'')[1]))&&<p className="v2-arrival-empty">{t.empty}</p>}</section>)}</section>}
     {picker&&<div role="presentation" onClick={()=>setPicker(false)} style={{position:'fixed',inset:0,zIndex:20,background:'#14283c70',display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
       <section role="dialog" aria-modal="true" aria-label="역 선택" onClick={e=>e.stopPropagation()} style={{background:'#fff',width:'100%',maxWidth:510,maxHeight:'86dvh',display:'flex',flexDirection:'column',borderRadius:17,padding:16,gap:12}}>
