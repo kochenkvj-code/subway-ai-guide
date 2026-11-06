@@ -9,3 +9,12 @@
 .tour-origin-head .tour-origin-tagline,.tour-origin-head .tour-origin-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tour-origin-head .tour-origin-meta{line-height:14px;margin-top:2px}
 .tour-origin-head .tour-origin-meta .tour-station-line{width:13px;height:13px;font-size:8px;margin-right:4px;vertical-align:-2px}
+
+/* Keep the compact two-line tour header aligned, readable and height-stable on Safari. */
+.tour-origin-head .tour-origin-meta{display:flex;align-items:center;gap:5px;min-width:0;line-height:17px;margin-top:2px;overflow:visible;text-overflow:clip}
+.tour-origin-head .tour-origin-station{display:inline-flex;align-items:center;gap:5px;min-width:0;flex:0 1 auto}
+.tour-origin-head .tour-origin-station-name{font-size:11px;line-height:17px;font-weight:700;color:#536c81;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tour-origin-head .tour-origin-meta .tour-station-line{flex:0 0 15px;width:15px;height:15px;min-width:15px;margin:0;vertical-align:middle;font-size:9px;line-height:1;align-self:center}
+.tour-origin-head .tour-origin-radius{font-size:10px;line-height:17px;flex:0 0 auto;color:#8a99a6;white-space:nowrap}
+.tour-category-row button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;line-height:1.3}
+@media(max-width:350px){.tour-origin-head .tour-origin-radius{display:none}}
