@@ -1,96 +1,67 @@
 'use client';
-import {rawArrivalGroups} from '../lib/raw-arrival-groups';
-import {stationName} from '../lib/stationNameI18n';
-
+import { useEffect, useState } from 'react';
+import { arrivalStatus } from '../lib/train-arrivals';
+import { stationName } from '../lib/stationNameI18n';
 const COPY={
- ko:{loading:'도착정보 확인 중…',error:'도착정보 조회 실패',empty:'서울시 원본 응답에 해당 순위 정보 없음',updated:'조회 시각',source:'서울시 실시간 지하철 도착정보',refresh:'새로고침',automatic:'30초마다 원본 조회',train:'열차번호',destination:'행선지',location:'원본 위치 메시지',received:'원본 생성시각',note:'서울시 원본 도착안내 문구를 표시합니다. 예상시간을 재계산하거나 시간 경과로 열차를 제외하지 않습니다.',other:'순위 없는 원본 정보',first:'첫 번째 열차',second:'두 번째 열차'},
- en:{loading:'Loading arrivals…',error:'Arrival request failed',empty:'No provider row for this rank',updated:'Fetched',source:'Seoul subway live arrivals',refresh:'Refresh',automatic:'Provider refresh every 30 seconds',train:'Train number',destination:'Destination',location:'Provider location message',received:'Provider timestamp',note:'Original Korean provider messages are displayed without modifying arrival times or excluding rows by age.',other:'Other provider rows',first:'First train',second:'Second train'},
- ja:{loading:'到着情報を取得中…',error:'到着情報の取得に失敗しました',empty:'この順位の元データはありません',updated:'取得時刻',source:'ソウル市 地下鉄リアルタイム到着情報',refresh:'更新',automatic:'30秒ごとに元データを取得',train:'列車番号',destination:'行先',location:'元データの位置メッセージ',received:'元データの時刻',note:'ソウル市の元の案内文を表示し、到着時間の再計算や時間による除外は行いません。',other:'その他の元データ',first:'1番目の列車',second:'2番目の列車'},
- zh:{loading:'正在查询到站信息…',error:'查询失败',empty:'此序位没有原始记录',updated:'查询时间',source:'首尔市地铁实时到站信息',refresh:'刷新',automatic:'每30秒查询原始数据',train:'列车编号',destination:'终点站',location:'原始位置消息',received:'原始数据时间',note:'显示首尔市原始韩文消息，不重新计算到站时间，也不按时间过滤列车。',other:'其他原始记录',first:'第一列车',second:'第二列车'},
+  ko:{loading:'도착정보 확인 중…',error:'도착정보 조회 실패',empty:'확인 가능한 도착정보 없음',stale:'도착정보 갱신 지연',updated:'정보 기준',refresh:'새로고침',automatic:'30초 간격 갱신',source:'서울시 실시간 지하철 도착정보',train:'열차번호',destination:'행선지',location:'현재 위치',etaAt:'도착 예상',unknown:'확인 중',bound:'방면',minutes:n=>`약 ${n}분 후`,approaching:'진입 중',arrived:'도착',previousDeparted:'전역 출발',previousApproaching:'전역 진입',previousArrived:'전역 도착',general:'일반',express:'급행',special:'특급',last:'막차',notConfigured:'관리자가 도착정보 API 환경변수를 확인해야 합니다.',note:'도착시간은 예상값이며 실제 운행과 다를 수 있습니다. API의 방면 표기와 열차의 최종 행선지는 다를 수 있습니다.',position:'열차 위치도는 추후 연결 예정입니다.'},
+  en:{loading:'Checking arrivals…',error:'Could not load arrivals',empty:'No current arrival information',stale:'Arrival updates delayed',updated:'Data as of',refresh:'Refresh',automatic:'Updates every 30 seconds',source:'Seoul real-time subway arrivals',train:'Train',destination:'Destination',location:'Last reported location',etaAt:'estimated arrival',unknown:'Not confirmed',bound:'Toward',minutes:n=>`About ${n} min`,approaching:'Approaching',arrived:'Arrived',previousDeparted:'Left previous station',previousApproaching:'Approaching previous station',previousArrived:'At previous station',general:'Local',express:'Express',special:'Limited express',last:'Last train',notConfigured:'The administrator needs to check the arrival API configuration.',note:'Arrival times are estimates and may differ from actual operations. The direction reported by the API is not necessarily the final destination.',position:'The train position diagram will be added later.'},
+  ja:{loading:'到着情報を確認中…',error:'到着情報を取得できません',empty:'現在の到着情報はありません',stale:'到着情報の更新が遅れています',updated:'情報時刻',refresh:'更新',automatic:'30秒ごとに更新',source:'ソウル市 地下鉄リアルタイム到着情報',train:'列車番号',destination:'行先',location:'最終受信位置',etaAt:'到着予測',unknown:'確認中',bound:'方面',minutes:n=>`約${n}分後`,approaching:'まもなく到着',arrived:'到着',previousDeparted:'前駅を出発',previousApproaching:'前駅に接近',previousArrived:'前駅に到着',general:'普通',express:'急行',special:'特急',last:'終電',notConfigured:'管理者による到着情報APIの設定確認が必要です。',note:'到着時間は予測であり、実際の運行と異なる場合があります。APIの方面表示と最終行先は異なる場合があります。',position:'列車位置の図は今後追加予定です。'},
+  zh:{loading:'正在查询到站信息…',error:'无法获取到站信息',empty:'暂无可用到站信息',stale:'到站信息更新延迟',updated:'信息时间',refresh:'刷新',automatic:'每30秒更新',source:'首尔市地铁实时到站信息',train:'列车编号',destination:'终点站',location:'最近上报位置',etaAt:'预计到站',unknown:'待确认',bound:'方向',minutes:n=>`约${n}分钟后`,approaching:'正在进站',arrived:'已到站',previousDeparted:'已离开前一站',previousApproaching:'正在进入前一站',previousArrived:'已到达前一站',general:'普通',express:'快速',special:'特快',last:'末班车',notConfigured:'需要管理员检查到站API配置。',note:'到站时间为预计时间，可能与实际运行不同。API标注的方向不一定是列车最终目的地。',position:'列车位置示意图将在后续接入。'},
 };
-const DIRECTIONS={
- ko:{상행:'상행',하행:'하행',내선:'내선',외선:'외선'},
- en:{상행:'Upbound',하행:'Downbound',내선:'Inner loop',외선:'Outer loop'},
- ja:{상행:'上り',하행:'下り',내선:'内回り',외선:'外回り'},
- zh:{상행:'上行',하행:'下行',내선:'内环',외선:'外环'}
-};
-function heading(group,lang){
- const directions=DIRECTIONS[lang]||DIRECTIONS.ko;
- const label=directions[group.provider]||group.provider;
- const next=group.nextStations.map(n=>stationName(n,lang)).join(' · ');
- if(!next)return label;
- const bound={ko:'방면',en:'toward',ja:'方面',zh:'方向'}[lang]||'방면';
- return lang==='en'?next+' · '+bound+' · '+label:next+' '+bound+' · '+label;
+function useNow(active){const[now,setNow]=useState(()=>Date.now());useEffect(()=>{if(!active)return;setNow(Date.now());const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[active]);return now;}
+function statusText(status,t){return status.state==='minutes'?t.minutes(status.minutes):t[status.state];}
+function summaryText(status,t,lang){
+  if(status.state==='minutes')return ({ko:`약 ${status.minutes}분`,en:`~${status.minutes} min`,ja:`約${status.minutes}分`,zh:`约${status.minutes}分钟`})[lang];
+  if(lang==='en')return ({approaching:'Arriving',arrived:'Arrived',previousDeparted:'Prev. left',previousApproaching:'Prev. entry',previousArrived:'Prev. stop'})[status.state];
+  return statusText(status,t);
 }
-function destination(row,lang){
- if(!row)return '—';
- const full=String(row.trainLineNm||'').trim();
- const raw=full.split(/\s+[-–—]\s+/)[0]?.trim()||String(row.bstatnNm||'').trim();
- if(lang==='ko')return raw||'—';
- const match=raw.match(/^(.+?)행$/);
- if(!match)return raw||'—';
- const translated=stationName(match[1],lang);
- return lang==='ja'?translated+'行':lang==='zh'?'开往'+translated:translated;
+
+function time(value,lang){return new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(value));}
+function usable(group,now){return (group?.trains||[]).map(train=>({train,status:arrivalStatus(train,now)})).filter(x=>x.status);}
+function infoMessage(state,t,now){if(state.error)return t.error;if(!state.data)return t.loading;if(state.data.status==='stale'||now-Date.parse(state.data.fetchedAt)>180000)return t.stale;if(!state.data.groups.some(group=>usable(group,now).length))return state.data.status==='empty'?t.empty:t.stale;return null;}
+function displayGroups(state,lang,t,stationContext){
+  if(!stationContext)return t.direction.map((label,i)=>({label,group:state.data?.groups?.[i]}));
+  return (state.data?.groups||[]).map(group=>{const names=group.nextStations||[];const provider=({ko:{상행:'상행',하행:'하행',내선:'내선',외선:'외선'},en:{상행:'Upbound',하행:'Downbound',내선:'Inner loop',외선:'Outer loop'},ja:{상행:'上り',하행:'下り',내선:'内回り',외선:'外回り'},zh:{상행:'上行',하행:'下行',내선:'内环',외선:'外环'}})[lang][group.provider]||group.provider;return {group,label:names.length?names.map(n=>stationName(n,lang)).join(' · ')+({ko:' 방면',en:' →',ja:'方面',zh:'方向'})[lang]+' · '+provider:provider};});
 }
-function rawGroups(state,stationContext){
- return rawArrivalGroups(state.data?.raw,stationContext||state.data?.station||null);
+function summaryDestination(train,provider,lang,t){
+  if(!train?.destination)return t.unknown;
+  const name=stationName(train.destination,lang);
+  if(lang==='ko'){
+    const loop=['내선','외선'].includes(provider)&&!train.destination.includes(provider)?`(${provider})`:'';
+    return /순환$/.test(name)?name: name.replace(/행$/,'')+loop+'행';
+  }
+  const loop=['내선','외선'].includes(provider)?({en:{내선:' (Inner)',외선:' (Outer)'},ja:{내선:'(内回り)',외선:'(外回り)'},zh:{내선:'(内环)',외선:'(外环)'}})[lang]?.[provider]||'':'';
+  if(lang==='ja')return name+loop+'行';
+  if(lang==='zh')return '开往'+name+loop;
+  return name+loop;
 }
-function message(state,labels){
- if(state.error&&!state.data)return labels.error;
- if(!state.data)return labels.loading;
- return null;
+export function TrainSummary({state,lang,t,onDetails,active,stationContext=null}) {
+  const labels=COPY[lang],now=useNow(active),message=infoMessage(state,labels,now),groups=displayGroups(state,lang,t,stationContext).sort((a,b)=>['외선','내선'].includes(a.group?.provider)&&['외선','내선'].includes(b.group?.provider)?(a.group.provider==='외선'?-1:1)-(b.group.provider==='외선'?-1:1):0);
+  return <section className="v2-trains" aria-label={t.next}>
+    <div className="v2-summary-board">{groups.map(({label,group},index)=>{
+      const names=group?.nextStations||[];
+      const direction=names.length?names.map(n=>stationName(n,lang)).join(' · '):label;
+      const trains=message?[]:usable(group,now).slice(0,2);
+      return <div className="v2-summary-direction" key={group?.id||index}>
+        <button className="v2-summary-heading" title={direction} onClick={onDetails} aria-label={direction+' · '+t.detail}>{index%2===0&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"/></svg>}<span>{direction}</span>{index%2===1&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>}</button>
+        {[0,1].map(i=>{const item=trains[i],destination=item?summaryDestination(item.train,group?.provider,lang,labels):'—',eta=item?summaryText(item.status,labels,lang):'—';return <div className="v2-summary-train" key={i}>
+          <span className="v2-summary-destination" title={destination}>{lang==='ko'&&item&&['내선','외선'].includes(group?.provider)&&item.train.destination&&!/순환$/.test(item.train.destination)?<><span>{stationName(item.train.destination,'ko').replace(/\((내선|외선)\)/g,'').replace(/행$/,'')}행</span><small>{group.provider}</small></>:destination}</span><b className={item?'v2-arrival-available':''} title={eta}>{eta}</b>
+        </div>;})}
+      </div>;
+    })}</div>
+    {message&&<div className="v2-summary-notice" role="status"><span>{message}</span><button onClick={state.refresh} disabled={state.loading} aria-label={labels.refresh}>↻</button></div>}
+  </section>;
 }
-function time(value){
- if(!value)return '—';
- const d=new Date(value);
- return Number.isNaN(d.getTime())?'—':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(d);
-}
-function rowsFor(group,rank){return rank===1?group.first:group.second;}
-export function TrainSummary({state,lang,t,onDetails,stationContext=null}){
- const labels=COPY[lang]||COPY.ko,notice=message(state,labels);
- const groups=rawGroups(state,stationContext);
- return <section className="v2-trains" aria-label={t.next}>
-  <div className="v2-summary-board">{groups.map((group,index)=><div className="v2-summary-direction" key={group.provider}>
-   <button className="v2-summary-heading" title={heading(group,lang)} onClick={onDetails} aria-label={heading(group,lang)+' · '+t.detail}>
-    {index%2===0&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"/></svg>}
-    <span>{heading(group,lang)}</span>
-    {index%2===1&&<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>}
-   </button>
-   {[1,2].map(rank=>{
-    const row=rowsFor(group,rank)[0];
-    return <div className="v2-summary-train v2-raw-arrival-train" key={rank}>
-     <span className="v2-raw-arrival-label"><span className="v2-summary-destination" title={destination(row,lang)}>{destination(row,lang)}</span>{row?.arvlMsg3&&<small title={String(row.arvlMsg3)}>{String(row.arvlMsg3)}</small>}</span>
-     <b className={row?'v2-arrival-available':''} title={row?String(row.arvlMsg2??''):''}>{row?String(row.arvlMsg2??'—'):'—'}</b>
-    </div>;
-   })}
-  </div>)}</div>
-  {notice&&<div className="v2-summary-notice" role="status"><span>{notice}</span><button onClick={state.refresh} disabled={state.loading} aria-label={labels.refresh}>↻</button></div>}
-  {state.error&&state.data&&<div className="v2-summary-notice" role="status">{labels.error}</div>}
- </section>;
-}
-function RawTrainCard({row,lang,labels}){
- return <article className="v2-arrival-train v2-raw-arrival-card">
-  <div><strong>{row.arvlMsg2===undefined?'—':String(row.arvlMsg2)}</strong><span>{String(row.btrainSttus||'')}{row.lstcarAt==='1'?' · LAST':''}</span></div>
-  <p className="v2-raw-location">{labels.location} · {row.arvlMsg3===undefined?'—':String(row.arvlMsg3)}</p>
-  <dl><dt>{labels.destination}</dt><dd>{destination(row,lang)}</dd><dt>{labels.train}</dt><dd>{String(row.btrainNo||'—')}</dd><dt>ordkey</dt><dd>{String(row.ordkey||'—')}</dd><dt>arvlCd</dt><dd>{String(row.arvlCd??'—')}</dd></dl>
-  <small>{labels.received} · {String(row.recptnDt||'—')}</small>
- </article>;
-}
-export function ArrivalDetails({state,lang,t,stationContext=null}){
- const labels=COPY[lang]||COPY.ko,notice=message(state,labels);
- const groups=rawGroups(state,stationContext),name=stationContext?.names?.[lang]||t.station;
- return <section className="v2-arrival-details">
-  <div className="v2-arrival-detail-head"><div><small>{labels.source}</small><h2>{name} · {t.next}</h2></div>
-   <button onClick={state.refresh} disabled={state.loading}>{state.loading?labels.loading:labels.refresh}</button></div>
-  <p className="v2-arrival-caption">{labels.automatic}{state.data?.fetchedAt?' · '+labels.updated+' '+time(state.data.fetchedAt)+' KST':''}</p>
-  {notice&&<p className="v2-arrival-message" role="status">{notice}</p>}
-  {state.error&&state.data&&<p className="v2-arrival-message" role="status">{labels.error}</p>}
-  {groups.map(group=><section key={group.provider} className="v2-arrival-group"><h3>{heading(group,lang)}</h3>
-   {[1,2].map(rank=><div key={rank}><p className="v2-raw-rank-label">{rank===1?labels.first:labels.second}</p>
-    {rowsFor(group,rank).length?rowsFor(group,rank).map((row,i)=><RawTrainCard key={i} row={row} lang={lang} labels={labels}/>):<p className="v2-arrival-empty">{labels.empty}</p>}
-   </div>)}
-   {group.other.length>0&&<div><p className="v2-raw-rank-label">{labels.other}</p>{group.other.map((row,i)=><RawTrainCard key={i} row={row} lang={lang} labels={labels}/>)}</div>}
-  </section>)}
-  <p className="v2-arrival-caption">{labels.note}</p>
- </section>;
+export function ArrivalDetails({state,lang,t,stationContext=null}) {
+  const labels=COPY[lang],now=useNow(true),message=infoMessage(state,labels,now),groups=displayGroups(state,lang,t,stationContext),name=stationContext?.names[lang]||t.station;
+  return <section className="v2-arrival-details">
+    <div className="v2-arrival-detail-head"><div><small>{labels.source}</small><h2>{name} · {t.next}</h2></div><button onClick={state.refresh} disabled={state.loading}>{state.loading?labels.loading:labels.refresh}</button></div>
+    <p className="v2-arrival-caption">{labels.automatic}{state.data?.updatedAt?` · ${labels.updated} ${time(state.data.updatedAt,lang)} KST`:''}</p>
+    {message&&<p className="v2-arrival-message" role="status">{message}{state.error==='NOT_CONFIGURED'&&<span>{labels.notConfigured}</span>}</p>}
+    {groups.map(({label:direction,group})=>{
+      const trains=message?[]:usable(group,now);
+      return <section key={direction} className="v2-arrival-group"><h3>{direction}</h3>{!trains.length?<p className="v2-arrival-empty">{labels.empty}</p>:trains.map(({train,status},i)=><article key={train.trainNo||i} className="v2-arrival-train"><div><strong>{statusText(status,labels)}</strong><span>{train.kind==='급행'?labels.express:train.kind==='특급'?labels.special:labels.general}{train.lastTrain?` · ${labels.last}`:''}</span></div><p>{name} · {labels.etaAt}</p><dl><dt>{labels.destination}</dt><dd>{train.destination?stationName(train.destination,lang):labels.unknown}</dd><dt>{labels.train}</dt><dd>{train.trainNo||'—'}</dd>{train.location&&<><dt>{labels.location}</dt><dd>{stationName(train.location,lang)}</dd></>}</dl><small>{labels.updated} {time(train.receivedAt,lang)} KST</small></article>)}</section>;
+    })}
+    <p className="v2-arrival-caption">{labels.note}</p><p className="v2-arrival-caption">{labels.position}</p>
+  </section>;
 }

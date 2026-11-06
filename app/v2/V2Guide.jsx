@@ -7,7 +7,7 @@ import { iconPaths } from './icons';
 import './v2.css';
 import './design-refresh.css';
 import {keyboardWorkspaceHeight} from './keyboard-viewport';
-import useRawTrainArrivals from './useRawTrainArrivals';
+import useTrainArrivals from './useTrainArrivals';
 import { TrainSummary, ArrivalDetails } from './TrainArrivals';
 import NearbyTour from './NearbyTour';
 import TrainTimetable from './TrainTimetable';
@@ -52,7 +52,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
   const feedbackCount=useFeedbackCount(feedbackStation.id,view==='home');
   const t=copy[lang];
-  const arrivals=useRawTrainArrivals(view==='home'||view==='live',stationContext?.stationCode||'0154');
+  const arrivals=useTrainArrivals(view==='home'||view==='live',stationContext?.stationCode||null);
   const title=view==='chat'?t.chat:view==='live'?t.liveTitle:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
   function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
