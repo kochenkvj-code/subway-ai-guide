@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {stationMaster,searchStationMaster} from '../lib/station-master';
+import {stationName} from '../lib/stationNameI18n';
 import {arrivalStationConfig} from '../lib/station-arrivals';
 import '../v2/v2.css';
 import '../v2/design-refresh.css';
@@ -18,10 +19,10 @@ const rawLabel={ko:'서울시 원문',en:'Seoul API original',ja:'ソウル市�
 const stationNames=new Map(stationMaster.map(s=>[s.names.ko,s.names]));
 function localize(input,lang){
  const text=value(input);if(lang==='ko'||text==='—')return text;
- const name=n=>stationNames.get(n)?.[lang]||stationNames.get(n+'역')?.[lang]||n;
+ const name=n=>stationName(n,lang);
  const fixed={상행:['Upbound','上り','上行'],하행:['Downbound','下り','下行'],내선:['Inner loop','内回り','内环'],외선:['Outer loop','外回り','外环'],일반:['Local','各駅停車','普通'],급행:['Express','急行','快速']};
  const i={en:0,ja:1,zh:2}[lang];if(fixed[text])return fixed[text][i];
- if(stationNames.has(text))return name(text);
+ if(stationNames.has(text)||stationName(text,lang,false))return name(text);
  let m=text.match(/^(\d+)분(?:\s*(\d+)초)?\s*후(?:\s*\(([^)]+)\))?$/);
  if(m){const n=m[1],sec=m[2],place=m[3]?' ('+name(m[3])+')':'';return [n+' min'+(sec?' '+sec+' sec':'')+place,n+'分'+(sec?sec+'秒':'')+'後'+place,n+'分'+(sec?sec+'秒':'')+'后'+place][i];}
  m=text.match(/^\[(\d+)\]번째 전역(?:\s*\(([^)]+)\))?$/);if(m)return [m[1]+' stops away',m[1]+'駅手前',m[1]+'站前'][i]+(m[2]?' ('+name(m[2])+')':'');
