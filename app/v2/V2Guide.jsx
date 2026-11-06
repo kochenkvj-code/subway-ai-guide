@@ -6,6 +6,7 @@ import { copy, menuItems } from './copy';
 import { iconPaths } from './icons';
 import './v2.css';
 import './design-refresh.css';
+import {keyboardWorkspaceHeight} from './keyboard-viewport';
 import useTrainArrivals from './useTrainArrivals';
 import { TrainSummary, ArrivalDetails } from './TrainArrivals';
 import NearbyTour from './NearbyTour';
@@ -137,39 +138,54 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     check();
   }
   useLayoutEffect(()=>{
-    if(view!=='chat')return;
+    if(view!=='chat'&&view!=='lost')return;
     const shell=chatWorkspace.current;
     if(!shell)return;
     const viewport=window.visualViewport;
     let frame=0;
-    // Anchor the header at the layout viewport's top throughout keyboard
-    // close. Safari may temporarily retain visualViewport.offsetTop even as
-    // the keyboard slides away. Translating the *whole* shell by that offset
-    // also drags the header down, then makes it snap back later.
-    //
-    // Keep the bottom edge unchanged: old bottom = offsetTop + height.
-    // Grow the shell upward from top:0 instead of translating it down.
-    // This preserves the already-smooth composer / bottom-tab tracking.
+    const timeouts=new Set();
+    // Chat and the train-lost form both use a fixed, independently scrolling
+    // workspace. iOS Safari sometimes leaves a 100dvh flex shell at its
+    // keyboard-shrunken height after tapping Done, leaving a huge blank area.
+    // Use the visual viewport only while typing, otherwise restore the full
+    // layout viewport immediately (even if visualViewport resize is delayed).
     const sync=()=>{
       frame=0;
-      const height=viewport?.height||window.innerHeight;
-      const offset=Math.max(0,viewport?.offsetTop||0);
-      shell.style.height=(height+offset)+'px';
+      const focused=document.activeElement;
+      const editing=!!focused&&shell.contains(focused)&&
+        (focused.matches?.('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable="true"]')||false);
+      const height=keyboardWorkspaceHeight({
+        layoutHeight:Math.max(window.innerHeight,document.documentElement.clientHeight),
+        visualHeight:viewport?.height,
+        offsetTop:viewport?.offsetTop,
+        editing,
+      });
+      if(height!==null)shell.style.height=height+'px';
     };
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(sync);};
+    const onFocusOut=()=>{
+      schedule();
+      // WebKit can dispatch the final viewport resize after focusout, or
+      // omit it entirely. Repeat the restore while its keyboard animates.
+      for(const delay of [80,250,550]){
+        const timer=window.setTimeout(()=>{timeouts.delete(timer);schedule();if(!shell.contains(document.activeElement))window.scrollTo(0,0);},delay);
+        timeouts.add(timer);
+      }
+    };
     viewport?.addEventListener('resize',schedule);
     viewport?.addEventListener('scroll',schedule);
     window.addEventListener('resize',schedule);
     document.addEventListener('focusin',schedule);
-    document.addEventListener('focusout',schedule);
+    document.addEventListener('focusout',onFocusOut);
     sync();
     return()=>{
       cancelAnimationFrame(frame);
+      for(const timer of timeouts)window.clearTimeout(timer);
       viewport?.removeEventListener('resize',schedule);
       viewport?.removeEventListener('scroll',schedule);
       window.removeEventListener('resize',schedule);
       document.removeEventListener('focusin',schedule);
-      document.removeEventListener('focusout',schedule);
+      document.removeEventListener('focusout',onFocusOut);
       shell.style.removeProperty('height');
     };
   },[view]);
@@ -189,7 +205,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {open&&<div id={popupId} className="v2-language-popover" role="dialog" aria-label={t.language}><p>{t.language}</p><div>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>{changeLanguage(code);setLanguageOpen(false);languageTrigger.current?.focus();}}>{label}</button>)}</div></div>}
     </div>
   </nav>;}
-  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')} lang={lang==='zh'?'zh-CN':lang}>
+  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(view==='lost'?' v2-keyboard-active':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
 
@@ -204,7 +220,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
       {bottomTabs(true)}
     </div>
-    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
+    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace v2-keyboard-workspace':view==='lost'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
       {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
