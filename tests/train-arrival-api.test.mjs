@@ -89,6 +89,9 @@ test('all 30 known TOPIS provider names are queried without changing station ide
   assert.equal(response.status,200,code);
   assert.equal(body.station.stationCode,code);
   assert.equal(captured.at(-1),name,code);
+  if(code==='2617')assert.equal(body.station.name,'새절');
+  if(code==='2626')assert.equal(body.station.name,'대흥');
+  if(code==='2730')assert.equal(body.station.name,'자양');
   assert.ok(body.groups.some(g=>g.trains.length>0),code+' should not lose valid rows');
  }
  assert.equal(captured.length,30);
