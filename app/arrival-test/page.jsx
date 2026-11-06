@@ -62,10 +62,9 @@ export default function ArrivalTestPage(){
     return()=>{clearInterval(timer);controller.abort();};
   },[stationCode]);
   function choose(s){setStationCode(s.stationCode);setLine(s.line);setPicker(false);setData(null);setShowRaw(false);const u=new URL(window.location.href);u.searchParams.set('station',s.stationCode);window.history.replaceState(null,'',u.pathname+u.search);}
-  function manualRefresh(){setStationCode(code=>{const u=new URL(window.location.href);u.searchParams.set('station',code);return code;});window.dispatchEvent(new Event('arrival-test-refresh'));}
   const all=Array.isArray(data?.raw?.realtimeArrivalList)?data.raw.realtimeArrivalList:[];
   const matching=all.filter(row=>String(row.subwayId)===String(station?.subwayId));
-  const directions=[...new Set([...matching.map(row=>row.updnLine),...(['상행','하행'])])].filter(Boolean);
+  const directions=matching.length?[...new Set(matching.map(row=>row.updnLine).filter(Boolean))]:['상행','하행'];
   const responseCode=data?.raw?.errorMessage?.code||data?.raw?.RESULT?.CODE||'—';
   return <main style={css.page}><div style={css.wrap}>
     <header style={{...css.card,padding:'15px 16px'}}>
