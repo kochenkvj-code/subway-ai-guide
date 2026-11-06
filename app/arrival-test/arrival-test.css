@@ -31,3 +31,27 @@
 .arrival-test .v2-arrival-train>div:first-child>span{flex:none;white-space:nowrap}
 
 .arrival-test .at-calculated{display:block;margin-top:4px;color:#718478;font-size:11px;font-weight:400;line-height:1.4;white-space:normal}
+
+/* Explicit one-shot key comparison; never place the key in the address bar. */
+.arrival-test .at-own-key-panel{margin:0 0 15px;padding:14px;border:1px solid #bfdacf;background:#f4f9f6;border-radius:14px;color:#315543}
+.arrival-test .at-key-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.arrival-test .at-key-panel-head strong{font-size:14px}
+.arrival-test .at-key-panel-head span{font-size:10px;color:#748f7e}
+.arrival-test .at-own-key-panel label{display:block;font-size:11px;margin-bottom:6px}
+.arrival-test .at-key-form-row{display:flex;align-items:stretch;gap:5px;min-width:0}
+.arrival-test .at-key-form-row input{min-width:0;flex:1;width:0;font-size:14px;border:1px solid #b9d0c2;border-radius:9px;background:#fff;padding:10px;color:#203b2f}
+.arrival-test .at-key-form-row button{min-height:41px;border:1px solid #b9d0c2;border-radius:9px;background:#fff;color:#315b46;padding:7px 9px;font-size:11px;white-space:nowrap}
+.arrival-test .at-key-form-row button.at-key-check-submit{border-color:#217a55;background:#217a55;color:#fff;font-weight:750}
+.arrival-test .at-key-form-row button:disabled{opacity:.5}
+.arrival-test .at-key-panel-note{font-size:10px;line-height:1.65;color:#6f8876;margin:9px 0 0}
+.arrival-test .at-key-check-error{font-size:12px;line-height:1.6;color:#b0473e;overflow-wrap:anywhere}
+.arrival-test .at-key-check-results{padding:9px 0 0;margin-top:10px;border-top:1px solid #d1e5d9;font-size:12px}
+.arrival-test .at-key-check-status{font-size:12px;margin:4px 0 8px}
+.arrival-test .at-key-check-row{padding:10px 0;border-top:1px solid #e0eee5;line-height:1.5;overflow-wrap:anywhere}
+.arrival-test .at-key-check-row strong{display:block;color:#355d49;margin-bottom:4px}
+.arrival-test .at-key-check-row div{font-weight:750;font-size:14px;color:#17694e}
+.arrival-test .at-key-check-row small{display:block;font-size:11px;color:#708978;margin-top:3px}
+.arrival-test .at-key-check-results details{padding:10px 0}
+.arrival-test .at-key-check-results summary{cursor:pointer}
+.arrival-test .at-key-check-results pre{overflow-wrap:anywhere;white-space:pre-wrap;max-height:340px;overflow:auto;background:white;border-radius:8px;padding:10px;font-size:10px}
+@media(max-width:360px){.arrival-test .at-key-form-row{flex-wrap:wrap}.arrival-test .at-key-form-row input{flex-basis:100%;width:100%}.arrival-test .at-key-form-row button.at-key-check-submit{flex:1}}
