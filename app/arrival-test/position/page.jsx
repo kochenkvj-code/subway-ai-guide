@@ -5,14 +5,15 @@ import {stationName} from '../../lib/stationNameI18n';
 import graph from '../../data/trainLostGraph.json';
 import directions from '../../data/trainLostDirection.json';
 import {positionGroups} from './groups';
+import {positionMessage} from './message';
 import '../../v2/v2.css';
 import '../../v2/design-refresh.css';
 import '../arrival-test.css';
 const copy={
  ko:{title:'실시간 열차정보',next:'다음 열차',refresh:'새로고침',back:'뒤로',destination:'행선지',train:'열차번호',location:'현재 위치',updated:'정보 기준',fetched:'조회 시각',loading:'위치정보 확인 중…',error:'위치정보 조회 실패',empty:'다가오는 열차정보 없음',raw:'서울시 원문',up:'상행',down:'하행',inner:'내선',outer:'외선',auto:'30초 간격 갱신 · 열차 위치 기준',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발',previousArrived:'전역 도착',unsupported:'이 역의 선로 연결정보를 확인할 수 없습니다.',source:'서울시 실시간 열차 위치정보',select:'기준역 선택'},
- en:{title:'Live train information',next:'Next trains',refresh:'Refresh',back:'Back',destination:'Destination',train:'Train',location:'Current location',updated:'Data as of',fetched:'Fetched at',loading:'Checking positions…',error:'Could not load positions',empty:'No approaching train information',raw:'Seoul API original',up:'Upbound',down:'Downbound',inner:'Inner loop',outer:'Outer loop',auto:'Updates every 30 seconds · Based on train positions',entry:'Approaching',arrived:'Arrived',left:'Departed',previousLeft:'Left previous station',previousArrived:'At previous station',unsupported:'Track connections unavailable for this station.',source:'Seoul real-time train positions',select:'Select station'},
- ja:{title:'リアルタイム列車情報',next:'次の列車',refresh:'更新',back:'戻る',destination:'行先',train:'列車番号',location:'現在位置',updated:'情報時刻',fetched:'取得時刻',loading:'確認中…',error:'取得できませんでした',empty:'接近中の列車情報なし',raw:'ソウル市の原文',up:'上り',down:'下り',inner:'内回り',outer:'外回り',auto:'30秒ごとに更新 · 列車位置に基づく',entry:'進入',arrived:'到着',left:'出発',previousLeft:'前駅を出発',previousArrived:'前駅に到着',unsupported:'この駅の線路接続情報がありません。',source:'ソウル市リアルタイム列車位置情報',select:'駅を選択'},
- zh:{title:'实时列车信息',next:'下一班列车',refresh:'刷新',back:'返回',destination:'终点站',train:'列车编号',location:'当前位置',updated:'信息时间',fetched:'查询时间',loading:'查询中…',error:'查询失败',empty:'暂无接近列车信息',raw:'首尔市原文',up:'上行',down:'下行',inner:'内环',outer:'外环',auto:'每30秒更新 · 基于列车位置',entry:'进站',arrived:'到站',left:'出站',previousLeft:'已离开前一站',previousArrived:'已到达前一站',unsupported:'暂无本站轨道连接信息。',source:'首尔市实时列车位置信息',select:'选择车站'}
+ en:{title:'Live train information',next:'Next trains',refresh:'Refresh',back:'Back',destination:'Destination',train:'Train',location:'Current location',updated:'Data as of',fetched:'Fetched at',loading:'Checking positions…',error:'Could not load positions',empty:'No approaching train information',raw:'Seoul API original',up:'Upbound',down:'Downbound',inner:'Inner loop',outer:'Outer loop',auto:'Updates every 30 seconds · Based on train positions',entry:'Arriving',arrived:'Arrived',left:'Departed',previousLeft:'Left previous station',previousArrived:'At previous station',unsupported:'Track connections unavailable for this station.',source:'Seoul real-time train positions',select:'Select station'},
+ ja:{title:'リアルタイム列車情報',next:'次の列車',refresh:'更新',back:'戻る',destination:'行先',train:'列車番号',location:'現在位置',updated:'情報時刻',fetched:'取得時刻',loading:'確認中…',error:'取得できませんでした',empty:'接近中の列車情報なし',raw:'ソウル市の原文',up:'上り',down:'下り',inner:'内回り',outer:'外回り',auto:'30秒ごとに更新 · 列車位置に基づく',entry:'進入中',arrived:'到着',left:'出発',previousLeft:'前駅を出発',previousArrived:'前駅に到着',unsupported:'この駅の線路接続情報がありません。',source:'ソウル市リアルタイム列車位置情報',select:'駅を選択'},
+ zh:{title:'实时列车信息',next:'下一班列车',refresh:'刷新',back:'返回',destination:'终点站',train:'列车编号',location:'当前位置',updated:'信息时间',fetched:'查询时间',loading:'查询中…',error:'查询失败',empty:'暂无接近列车信息',raw:'首尔市原文',up:'上行',down:'下行',inner:'内环',outer:'外环',auto:'每30秒更新 · 基于列车位置',entry:'进站中',arrived:'已到站',left:'出站',previousLeft:'已离开前一站',previousArrived:'已到达前一站',unsupported:'暂无本站轨道连接信息。',source:'首尔市实时列车位置信息',select:'选择车站'}
 };
 function Arrow({right=false}){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={right?'M4 12h16m-6-6 6 6-6 6':'M20 12H4m6-6-6 6 6 6'}/></svg>;}
 export default function PositionTest(){
@@ -27,7 +28,7 @@ export default function PositionTest(){
  function navigate(next){setView(next);const u=new URL(location.href);next==='details'?u.searchParams.set('view','details'):u.searchParams.delete('view');history.pushState(null,'',u.pathname+u.search);window.scrollTo(0,0);}
  const all=data?.raw?.realtimePositionList||[],{groups,supported}=positionGroups(all,line,station?.names.ko,graph,directions);
  const status=r=>({'0':t.entry,'1':t.arrived,'2':t.left,'3':t.previousLeft}[String(r.trainSttus)]||String(r.trainSttus??'—'));
- const message=item=>item.stops===1&&String(item.row.trainSttus)==='1'?t.previousArrived:stationName(item.row.statnNm,lang)+' '+status(item.row);
+ const message=item=>positionMessage(item,lang);
  const destination=r=>{const n=stationName(r.statnTnm,lang);return lang==='ko'?n+'행':lang==='ja'?n+'行き':lang==='zh'?'开往'+n:n;};
  const direction=g=>line==='2'?(g.dir==='0'?t.inner:t.outer):(g.dir==='0'?t.up:t.down);
  const heading=g=>g.next.length?g.next.map(n=>stationName(n,lang)).join(' · '):direction(g);
