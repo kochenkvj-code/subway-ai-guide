@@ -62,3 +62,34 @@ test('position lookup failure does not fail arrivals or guess conflicting destin
  const response=await get(req('0154'));assert.equal(response.status,200);
  assert.equal((await response.json()).groups[0].trains[0].destination,'');
 });
+
+test('all 30 known TOPIS provider names are queried without changing station identity',async()=>{
+ const cases=[
+  ['0150','서울'],['0426','서울'],['0432','총신대입구(이수)'],
+  ['2520','신정(은행정)'],['2522','오목교(목동운동장앞)'],['2545','군자(능동)'],
+  ['2546','아차산(어린이대공원후문)'],['2547','광나루(장신대)'],['2548','천호(풍납토성)'],
+  ['2551','굽은다리(강동구민회관앞)'],['2556','올림픽공원(한국체대)'],
+  ['2611','응암순환(상선)'],['2617','새절(신사)'],['2618','증산(명지대앞)'],
+  ['2620','월드컵경기장(성산)'],['2626','대흥(서강대앞)'],['2640','안암(고대병원앞)'],
+  ['2642','월곡(동덕여대)'],['2643','상월곡(한국과학기술연구원)'],['2647','화랑대(서울여대입구)'],
+  ['2718','공릉(서울산업대입구)'],['2727','군자(능동)'],['2728','어린이대공원(세종대)'],
+  ['2730','뚝섬유원지'],['2738','총신대입구(이수)'],['2740','숭실대입구(살피재)'],
+  ['2741','상도(중앙대앞)'],['2812','천호(풍납토성)'],
+  ['2814','몽촌토성(평화의문)'],['2823','남한산성입구(성남법원,검찰청)']
+ ];
+ const captured=[];
+ const get=await handler(async value=>{
+  const url=new URL(value),name=decodeURIComponent(url.pathname.split('/').pop());
+  captured.push(name);
+  const code=cases[captured.length-1][0],line=code.startsWith('01')?'1001':code.startsWith('04')?'1004':'100'+code[1];
+  return Response.json({errorMessage:{code:'INFO-000'},realtimeArrivalList:[train(name,line,'상행','동묘앞','5'+code)]});
+ });
+ for(const [code,name] of cases){
+  const response=await get(req(code)),body=await response.json();
+  assert.equal(response.status,200,code);
+  assert.equal(body.station.stationCode,code);
+  assert.equal(captured.at(-1),name,code);
+  assert.ok(body.groups.some(g=>g.trains.length>0),code+' should not lose valid rows');
+ }
+ assert.equal(captured.length,30);
+});
