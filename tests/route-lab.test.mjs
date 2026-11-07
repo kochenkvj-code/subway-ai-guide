@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {buildV2Prompt,buildV2RoutePrompt} from '../app/lib/v2-chat-policy.js';
 import {preferredRouteOption} from '../app/lib/route-compare.js';
+import {splitPlaceStreamFrames,visiblePlaceDraft} from '../app/lib/route-place-stream.js';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const official=JSON.parse(await read('app/data/seoulMetroOfficialStations.json'));
@@ -176,4 +177,32 @@ test('prompt defaults to one station without extra searches and preserves a trul
  const result=parsePlaceAnswer('경복궁은 경복궁역에서 내리면 됩니다.\n<route_station>경복궁역</route_station>\n<menu_recommendation>route</menu_recommendation>');
  assert.equal(result.status,'found');
  assert.equal(result.stations.length,1);
+});
+
+test('streaming SSE frame decoder survives split chunks and CRLF',()=>{
+ const example='data: {"kind":"delta","text":"안국"}\\r\\n\\r\\ndata: {"kind":"result","data":{"ok":true}}\\r\\n\\r\\n';
+ const x=splitPlaceStreamFrames(example.slice(0,34));
+ const y=splitPlaceStreamFrames(x.remainder+example.slice(34));
+ assert.deepEqual(y.frames.map(JSON.parse),[
+  {kind:'delta',text:'안국'},
+  {kind:'result',data:{ok:true}}
+ ]);
+ assert.equal(y.remainder,'');
+});
+test('partial model route metadata is never presented as passenger-facing text',()=>{
+ assert.equal(visiblePlaceDraft('목적지는 안국역입니다.\\n<route_station>안국</route_station>'),'목적지는 안국역입니다.');
+ assert.equal(visiblePlaceDraft('목적지는 안국역입니다.\\n<r'),'목적지는 안국역입니다.');
+ assert.equal(visiblePlaceDraft('목적지는 안국역입니다.\\n<menu_recommendation>'),'목적지는 안국역입니다.');
+});
+test('Gemini streaming is opt-in; original JSON protocol and full grounding policy remain',()=>{
+ assert.match(api,/request\\.headers\\.get\\('accept'\\)\\?\\.includes\\('text\\/event-stream'\\)/);
+ assert.match(api,/:streamGenerateContent\\?alt=sse/);
+ assert.match(api,/endpoint\\+':generateContent'/);
+ assert.match(api,/tools:\\[\\{googleSearch:\\{\\}\\}\\]/);
+ assert.match(api,/maxOutputTokens:1200,thinkingConfig:\\{thinkingLevel:'LOW'\\}/);
+ assert.match(page,/readRoutePlaceStream\\(response,ctrl\\.signal/);
+ assert.match(page,/setPlace\\(\\{status:'loading',answer,place:term,sources:\\[\\]\\}\\)/);
+ assert.match(page,/place\\.status==='loading'\\?null/);
+ assert.match(api,/send\\('result',\\{data:/);
+ assert.match(api,/parsePlaceAnswer\\(rawAnswer,complete\\)/);
 });
