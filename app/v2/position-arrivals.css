@@ -1,0 +1,41 @@
+/* Position-based arrival cards: integrated in V2, shared behavior with /arrival-test. */
+.v2-position-trains .v2-summary-heading::after{content:none}
+.v2-position-trains .v2-position-train{width:100%;border:0;background:none;padding:0;text-align:left;color:inherit;cursor:pointer}
+.v2-position-trains .v2-summary-destination{display:flex;align-items:baseline;gap:5px;min-width:0;font-size:12px;line-height:1.5;letter-spacing:-.25px}
+.v2-position-trains .v2-summary-destination>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+.v2-position-trains .v2-summary-destination>small{flex:none;font-size:9px;font-weight:400;color:#87968b}
+.v2-position-trains .v2-summary-train b{min-width:0;font-size:13px;line-height:1.3;font-weight:600}
+.v2-position-trains .v2-position-message{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-position-arrivals{padding:14px 12px 20px;overflow-x:hidden}
+.v2-position-arrivals .v2-arrival-detail-head h2{font-size:17px;margin:2px 0}
+.v2-position-arrivals .v2-arrival-detail-head button{min-height:34px;padding:7px 9px}
+.v2-position-arrivals .v2-arrival-caption{margin:6px 0 13px;line-height:1.45}
+.v2-position-arrivals .v2-position-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-items:stretch}
+.v2-position-arrivals .v2-position-detail-column{display:grid;grid-template-rows:auto repeat(2,minmax(0,1fr));gap:9px;min-width:0;margin:0}
+.v2-position-arrivals .v2-position-detail-column h3{font-size:12px;line-height:1.45;margin:0;padding:0 1px 2px;min-height:34px;overflow-wrap:anywhere}
+.v2-position-arrivals .v2-position-detail-card{min-width:0;margin:0;padding:11px 10px;border-radius:12px;display:flex;flex-direction:column}
+.v2-position-arrivals .v2-position-card-top{display:flex;flex-wrap:wrap;gap:3px 6px;align-items:baseline;justify-content:space-between}
+.v2-position-arrivals .v2-position-card-top strong{font-size:18px;line-height:1.35;letter-spacing:-.5px;min-width:0;overflow-wrap:anywhere}
+.v2-position-arrivals .v2-position-card-top>span{font-size:9px;white-space:nowrap}
+.v2-position-arrivals .v2-position-detail-card dl{display:grid;grid-template-columns:50px minmax(0,1fr);column-gap:4px;row-gap:5px;margin:10px 0 8px;font-size:10px;line-height:1.4}
+.v2-position-arrivals .v2-position-detail-card dt,.v2-position-arrivals .v2-position-detail-card dd{font-size:10px}
+.v2-position-arrivals .v2-position-detail-card dd{min-width:0;overflow-wrap:anywhere}
+.v2-position-arrivals .v2-position-detail-card>small{font-size:9px;line-height:1.45;overflow-wrap:anywhere}
+.v2-position-arrivals .v2-position-raw{margin-top:auto;padding-top:6px;min-width:0;font-size:9px}
+.v2-position-arrivals .v2-position-raw summary{cursor:pointer;min-height:24px;padding:3px 0}
+.v2-position-arrivals .v2-position-raw pre{font-size:9px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}
+.v2-position-arrivals .v2-position-empty{min-width:0;border:1px dashed #dfe7ef;border-radius:12px;display:grid;place-items:center;text-align:center;padding:12px 7px;font-size:11px;color:#95a2b1;background:#fff}
+.v2-position-arrivals .v2-position-diagnostics{margin-top:18px;border-top:1px solid #e5ede7;padding-top:10px;color:#718478;font-size:11px}
+.v2-position-arrivals .v2-position-diagnostics summary{cursor:pointer;min-height:30px}
+.v2-position-arrivals .v2-position-diagnostics pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;font-size:9px;background:#f5f8f6;padding:8px;border-radius:8px}
+@media(max-width:370px){
+ .v2-position-arrivals{padding:12px 8px 16px}
+ .v2-position-arrivals .v2-position-detail-grid{gap:7px}
+ .v2-position-arrivals .v2-position-detail-column{gap:7px}
+ .v2-position-arrivals .v2-position-detail-card{padding:9px 7px}
+ .v2-position-arrivals .v2-position-detail-card dl{grid-template-columns:45px minmax(0,1fr);column-gap:3px}
+ .v2-position-arrivals .v2-position-detail-column h3{font-size:11px}
+ .v2-position-arrivals .v2-position-card-top strong{font-size:17px}
+ .v2-position-trains .v2-summary-destination{font-size:11px}
+ .v2-position-trains .v2-summary-train b{font-size:12px}
+}

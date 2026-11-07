@@ -7,8 +7,9 @@ import { iconPaths } from './icons';
 import './v2.css';
 import './design-refresh.css';
 import {keyboardWorkspaceHeight} from './keyboard-viewport';
-import useTrainArrivals from './useTrainArrivals';
-import { TrainSummary, ArrivalDetails } from './TrainArrivals';
+import usePositionArrivals from './usePositionArrivals';
+import { PositionTrainSummary, PositionArrivalDetails } from './PositionArrivals';
+import './position-arrivals.css';
 import NearbyTour from './NearbyTour';
 import TrainTimetable from './TrainTimetable';
 import CompactLostFound from './lost-found-demo/CompactLostFound';
@@ -52,7 +53,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const onFeedbackScreen=useCallback(handler=>{feedbackBack.current=handler;},[]);
   const feedbackCount=useFeedbackCount(feedbackStation.id,view==='home');
   const t=copy[lang];
-  const arrivals=useTrainArrivals(view==='home'||view==='live',stationContext?.stationCode||null);
+  const arrivals=usePositionArrivals(view==='home'||view==='live',stationContext?.stationCode||'0154');
   const title=view==='chat'?t.chat:view==='live'?t.liveTitle:t.menu[menuItems.findIndex(x=>x.id===view)] || t.pending;
   function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
@@ -207,7 +208,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   </nav>;}
   return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(view==='lost'?' v2-keyboard-active':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
-      <TrainSummary stationControl={null} stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')} active={view==='home'}/>
+      <PositionTrainSummary stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')}/>
 
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i aria-hidden="true"/><span className="v2-eyebrow-text">YOUR AI STATION GUIDE</span></span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
@@ -229,7 +230,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded stationContext={stationContext} lang={lang} active={view==='facility'}/></div>}
       {mounted.lost&&<div className="v2-feature-pane" hidden={view!=='lost'}><TrainLostFinder key={(visits.lost||0)+'-'+(stationContext?.stationCode||'0154')} lang={lang} active={view==='lost'} defaultStation={stationContext?.names.ko||CURRENT_STATION.name} defaultLine={stationContext?.line||String(Number(CURRENT_STATION.lineId)-1000)} defaultNames={stationContext?.names}/></div>}
       {mounted.feedback&&<StationFeedback key={feedbackStation.id} navigationSnapshot={restoration?.view==='feedback'?restoration:null} onNavigationStep={view==='feedback'?publishStep:null} station={feedbackStation} lang={lang} active={view==='feedback'} onInternalScreen={onFeedbackScreen}/>}
-      {view==='live'&&<ArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
+      {view==='live'&&<PositionArrivalDetails stationContext={stationContext} state={arrivals} lang={lang} t={t}/>}
 
       {!['home','chat','live','tour','timetable','found','facility','lost','feedback',...menuItems.filter(x=>x.action).map(x=>x.id)].includes(view)&&<section className="v2-pending"><span className="v2-pending-icon"><Icon name={menuItems.find(x=>x.id===view)?.icon||'train'}/></span><small>{t.pending}</small><h2>{title}</h2><p>{view==='live'?t.trainHelp:t.pendingText}</p><button onClick={()=>navigate('home')}>{t.home}</button></section>}
       {bottomTabs()}
