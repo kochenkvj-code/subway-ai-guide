@@ -7,7 +7,7 @@
     "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
-    "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs",
+    "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs tests/arrival-test-line2-branch-boundary.test.mjs tests/arrival-test-compact-layout.test.mjs",
     "test:lost-found": "node --experimental-vm-modules --test tests/lost-found-search.test.mjs",
     "test:lost-found-ui": "node --experimental-vm-modules tests/lost-found-ui.cjs",
     "test:feedback": "node --experimental-vm-modules --test tests/feedback.test.mjs",
