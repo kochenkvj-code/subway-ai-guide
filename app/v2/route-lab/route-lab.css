@@ -139,3 +139,7 @@
 .rl-compare-option:disabled .rl-compare-action{background:#f1f4f0;color:#889b8d}
 .rl-compare-note{color:#6e8375!important;font-size:10px!important;line-height:1.55!important;margin:11px 0 0!important}
 @media(max-width:370px){.rl-compare{padding:10px}.rl-compare-grid{gap:6px}.rl-compare-option{padding:8px;min-height:133px}.rl-compare-stop strong{font-size:12px}.rl-compare-metrics b{font-size:16px}}
+
+/* Display measured AI request latency separately from each official API lookup. */
+.rl-timing{display:flex;gap:4px;flex-wrap:wrap;font-size:10px;color:#688273;line-height:1.5;border-top:1px solid #edf2ef;margin:0 0 11px;padding-top:8px;font-variant-numeric:tabular-nums}
+.rl-compare-pending{font-variant-numeric:tabular-nums}
