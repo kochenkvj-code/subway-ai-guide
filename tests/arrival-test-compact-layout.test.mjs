@@ -46,3 +46,11 @@ test('language selector also localizes detail statuses and station-picker copy w
  assert.match(page,/\{t\.requestLine\}/);
  assert.match(page,/JSON\.stringify\(r,null,2\)/);
 });
+
+test('Eungam has distinct next-station headings, not a combined Yeokchon/Saejeol label',()=>{
+ assert.match(page,/station\?\.line==='6'&&station\?\.names\.ko==='응암'/);
+ assert.match(page,/g\.dir==='0'\?'역촌':'새절'/);
+ assert.match(page,/stationName\(g\.dir==='0'\?'역촌':'새절',lang\)/);
+ // The grouped provider rows and their original directions are unchanged.
+ assert.match(page,/positionGroups\(all,station\?\.line,station\?\.names\.ko,graph,directions\)/);
+});
