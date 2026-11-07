@@ -1,6 +1,9 @@
 // Distance is a count of track edges, never an ETA. Provider rows stay intact.
 export function positionGroups(rows,line,station,graph,directions){
  const network=graph[line+'호선']||{},edges=directions[line+'호선']||{};
+ // On line 2, the direction table describes the circular main line only.
+ // Stations absent from it belong to a Seongsu or Sindorim shuttle branch.
+ const line2=String(line)==='2',mainLineStations=line2?new Set(Object.keys(edges)):null;
  const key=value=>{
   let name=String(value||'').trim().replace(/역$/,'');
   if(String(line)==='4')name=({'불암산':'당고개','총신대입구':'이수','총신대입구(이수)':'이수'})[name]||name;
@@ -15,15 +18,25 @@ export function positionGroups(rows,line,station,graph,directions){
   }
   return Infinity;
  }
- function distance(origin,dir,end=target,terminus=null){
+ function distance(origin,dir,end=target,terminus=null,branchService=false){
   if(!network[end]||!network[origin])return null;
+  const startsOnBranch=line2&&!mainLineStations.has(origin);
+  const startsAtJunction=line2&&!startsOnBranch&&(network[origin]||[]).some(next=>!mainLineStations.has(next));
   const queue=[[origin,0]],seen=new Set([origin]);
   for(let i=0;i<queue.length;i++){
    const [at,count]=queue[i];if(at===end)return count;
    for(const next of network[at]||[]){
     const providerDirection=edges[at]?.[next];
-    // Line 2's branch service stays on the branch, not the main loop.
-    // Do not exclude a train just because it will terminate or branch before the selected station.
+    if(line2){
+     // A shuttle arriving from a branch may reach its junction station,
+     // but must never continue along the circular main line beyond it.
+     if(startsOnBranch&&providerDirection!==undefined)continue;
+     // A loop train cannot turn onto a branch. Only a shuttle departing
+     // directly from Seongsu/Sindorim can proceed onto that branch.
+     if(!startsOnBranch&&providerDirection===undefined&&
+        !(startsAtJunction&&at===origin&&branchService))continue;
+     if(startsAtJunction&&branchService&&at===origin&&providerDirection!==undefined)continue;
+    }
     const followsDirection=String(providerDirection)===dir;
     // Branch edges absent from the direction table have a unique track path
     // toward the named terminus. Never infer a reverse main-line movement.
@@ -66,7 +79,9 @@ export function positionGroups(rows,line,station,graph,directions){
   latest.forEach(({row,index})=>{
    if(String(row.subwayId)!=='100'+line||String(row.updnLine)!==dir)return;
    const origin=key(row.statnNm),terminus=routeTerminus(row.statnTnm);
-   const stops=distance(origin,dir,target,terminus);
+   const branchService=line2&&(/지선/.test(String(row.statnTnm||''))||
+    (terminus&&!mainLineStations.has(terminus)));
+   const stops=distance(origin,dir,target,terminus,branchService);
    if(stops===null)return;
    // Show trains currently ahead on the directed track, even if their
    // published destination is an earlier terminus or a diverging branch.
