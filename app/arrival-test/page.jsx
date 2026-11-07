@@ -1,23 +1,25 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {stationMaster,searchStationMaster} from '../lib/station-master';
-import {createArrivalLocalizer} from './localize';
 import {stationName} from '../lib/stationNameI18n';
-import {arrivalStationConfig} from '../lib/station-arrivals';
+import graph from '../data/trainLostGraph.json';
+import directions from '../data/trainLostDirection.json';
+import {positionGroups} from './position/groups';
+import {positionMessage} from './position/message';
+import {positionDestination} from './position/destination';
 import '../v2/v2.css';
 import '../v2/design-refresh.css';
 import './arrival-test.css';
 const copy={
- ko:{title:'실시간 열차정보',next:'다음 열차',back:'뒤로',refresh:'새로고침',loading:'도착정보 확인 중…',empty:'도착정보 없음',error:'도착정보 조회 실패',train:'열차번호',destination:'행선지',location:'보조 메시지',updated:'정보 기준',automatic:'30초 간격 갱신',source:'서울시 실시간 지하철 도착정보',details:'상세 보기'},
+ ko:{title:'실시간 열차정보',next:'다음 열차',back:'뒤로',refresh:'새로고침',loading:'열차 위치정보 확인 중…',empty:'다가오는 열차정보 없음',error:'위치정보 조회 실패',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',automatic:'30초 간격 갱신 · 열차 위치 기준',source:'서울시 실시간 열차 위치정보',details:'상세 보기'},
  en:{title:'Live train arrivals',next:'Next trains',back:'Back',refresh:'Refresh',loading:'Checking arrivals…',empty:'No arrival information',error:'Could not load arrivals',train:'Train',destination:'Destination',location:'Additional message',updated:'Data as of',automatic:'Updates every 30 seconds',source:'Seoul real-time subway arrivals',details:'Details'},
  ja:{title:'リアルタイム列車情報',next:'次の列車',back:'戻る',refresh:'更新',loading:'到着情報を確認中…',empty:'到着情報がありません',error:'取得できませんでした',train:'列車番号',destination:'行先',location:'補足情報',updated:'情報時刻',automatic:'30秒ごとに更新',source:'ソウル市地下鉄到着情報',details:'詳細'},
  zh:{title:'实时列车信息',next:'下一班列车',back:'返回',refresh:'刷新',loading:'正在查询…',empty:'暂无到站信息',error:'查询失败',train:'列车编号',destination:'终点站',location:'补充信息',updated:'信息时间',automatic:'每30秒更新',source:'首尔市地铁到站信息',details:'详情'}
 };
 const value=x=>x===null||x===undefined||x===''?'—':String(x);
-function destination(row){const text=String(row?.trainLineNm||'');return text.match(/^\s*(.+?행)\s*(?:[-–—]|$)/)?.[1]||text||'—';}
 
 const rawLabel={ko:'서울시 원문',en:'Seoul API original',ja:'ソウル市の原文',zh:'首尔市原文'};
-const localize=createArrivalLocalizer(stationName);
+
 
 function Arrow({right=false}){return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={right?'M4 12h16m-6-6 6 6-6 6':'M20 12H4m6-6-6 6 6 6'}/></svg>;}
 const css={button:{border:'1px solid #dce7df',background:'#fff',color:'#456453',borderRadius:9,minHeight:40,padding:'7px 10px',fontSize:12,cursor:'pointer'},field:{width:'100%',border:'1px solid #dce7df',borderRadius:10,padding:11,fontSize:16},chip:{display:'inline-grid',placeItems:'center',color:'#fff',borderRadius:'50%',width:22,height:22,fontSize:11,flexShrink:0},subtle:{fontSize:12,color:'#718478',lineHeight:1.6}};
@@ -31,22 +33,61 @@ export default function ArrivalTestPage(){
  const choices=useMemo(()=>searchStationMaster(query,line),[query,line]);
  useEffect(()=>{const params=new URLSearchParams(window.location.search),code=params.get('station')||'2816',s=stationMaster.find(x=>x.stationCode===code);if(!s){setError('지원하지 않는 역코드입니다.');return;}setStationCode(s.stationCode);setLine(s.line);if(copy[params.get('lang')])setLang(params.get('lang'));setView(params.get('view')==='details'?'details':'summary');const pop=()=>setView(new URLSearchParams(window.location.search).get('view')==='details'?'details':'summary');window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[]);
  useEffect(()=>{if(!stationCode)return;let stopped=false,inFlight=false;const controller=new AbortController(),id=++sequence.current;
-  async function refresh(){if(inFlight||stopped||document.visibilityState!=='visible')return;inFlight=true;setLoading(true);setError('');try{const response=await fetch('/api/arrival-test?station='+encodeURIComponent(stationCode)+'&t='+Date.now(),{cache:'no-store',signal:controller.signal}),payload=await response.json();const code=payload.raw?.errorMessage?.code||payload.raw?.RESULT?.CODE;if(!response.ok||code&&!['INFO-000','INFO-200'].includes(code))throw Error(payload.error||code||'HTTP '+response.status);if(payload.station?.stationCode!==stationCode)throw Error('ARRIVAL_STATION_MISMATCH');if(!stopped&&id===sequence.current)setData(payload);}catch(e){if(!controller.signal.aborted&&!stopped&&id===sequence.current)setError(String(e.message||e));}finally{inFlight=false;if(!stopped&&id===sequence.current)setLoading(false);}}
+  async function refresh(){if(inFlight||stopped||document.visibilityState!=='visible')return;inFlight=true;setLoading(true);setError('');try{
+    const currentStation=stationMaster.find(x=>x.stationCode===stationCode);
+    if(!currentStation)throw Error('INVALID_STATION');
+    const response=await fetch('/api/arrival-test/position?line='+encodeURIComponent(currentStation.line)+'&t='+Date.now(),{cache:'no-store',signal:controller.signal});
+    const payload=await response.json();
+    const providerCode=payload.raw?.errorMessage?.code||payload.raw?.RESULT?.CODE;
+    if(!response.ok||(providerCode&&!['INFO-000','INFO-200'].includes(providerCode)))throw Error(payload.error||providerCode||'HTTP '+response.status);
+    if(String(payload.line)!==String(currentStation.line))throw Error('POSITION_LINE_MISMATCH');
+    if(!Array.isArray(payload.raw?.realtimePositionList)&&providerCode!=='INFO-200')throw Error('INVALID_POSITION_DATA');
+    if(!stopped&&id===sequence.current)setData(payload);
+   }catch(e){if(!controller.signal.aborted&&!stopped&&id===sequence.current){setData(null);setError(String(e.message||e));}}
+   finally{inFlight=false;if(!stopped&&id===sequence.current)setLoading(false);}}
   refreshRef.current=refresh;void refresh();const timer=setInterval(refresh,30000);const visible=()=>{if(document.visibilityState==='visible')void refresh();};document.addEventListener('visibilitychange',visible);return()=>{stopped=true;controller.abort();clearInterval(timer);refreshRef.current=()=>{};document.removeEventListener('visibilitychange',visible);};
  },[stationCode]);
  useEffect(()=>{if(view==='details')titleRef.current?.focus({preventScroll:true});},[view]);
  function changeView(next){setView(next);const u=new URL(window.location.href);if(next==='summary')u.searchParams.delete('view');else u.searchParams.set('view',next);window.history.pushState(null,'',u.pathname+u.search);window.scrollTo(0,0);}
  function choose(s){setStationCode(s.stationCode);setLine(s.line);setPicker(false);setData(null);setShowRaw(false);const u=new URL(window.location.href);u.searchParams.set('station',s.stationCode);window.history.replaceState(null,'',u.pathname+u.search);}
- const all=Array.isArray(data?.raw?.realtimeArrivalList)?data.raw.realtimeArrivalList:[],config=stationCode?arrivalStationConfig(stationCode):null;
- const matching=all.filter(row=>String(row.subwayId)===String(station?.subwayId)&&config?.matchesStation(row.statnNm));
- const observed=[...new Set(matching.map(row=>row.updnLine).filter(Boolean))];
- const directions=['외선','내선','상행','하행'].filter(d=>observed.includes(d));if(!directions.length)directions.push(...(station?.line==='2'?['외선','내선']:['상행','하행']));
- const groups=directions.map(dir=>{const rows=matching.filter(r=>r.updnLine===dir),names=[...new Set(rows.map(r=>String(r.trainLineNm||'').match(/[-–—]\s*(.+?)\s*방면\s*$/)?.[1]).filter(Boolean))];return {dir,rows,heading:names.join(' · ')||dir};});
- const message=error?t.error:!data?t.loading:!matching.length?t.empty:null;
+ const all=Array.isArray(data?.raw?.realtimePositionList)?data.raw.realtimePositionList:[];
+ const {groups,supported}=positionGroups(all,station?.line,station?.names.ko,graph,directions);
+ const status=row=>({'0':'진입','1':'도착','2':'출발','3':'전역 출발'}[String(row.trainSttus)]||value(row.trainSttus));
+ const direction=g=>station?.line==='2'
+   ?(g.dir==='0'?({ko:'내선',en:'Inner loop',ja:'内回り',zh:'内环'})[lang]:({ko:'외선',en:'Outer loop',ja:'外回り',zh:'外环'})[lang])
+   :(g.dir==='0'?({ko:'상행',en:'Upbound',ja:'上り',zh:'上行'})[lang]:({ko:'하행',en:'Downbound',ja:'下り',zh:'下行'})[lang]);
+ const heading=g=>g.next.length?g.next.map(name=>stationName(name,lang)||name).join(' · '):direction(g);
+ const summaryDestination=row=>positionDestination(row.statnTnm,lang,stationName,station?.line,row.updnLine);
+ const message=error?t.error+': '+error:!data?t.loading:!supported?'선로 연결정보가 없습니다.':null;
  return <main className="v2-app v2-design-refresh arrival-test" lang={lang==='zh'?'zh-CN':lang}><div className="at-wrap">
   <header className="at-toolbar">{view==='details'&&<button className="at-back" onClick={()=>changeView('summary')} aria-label={t.back}><Arrow/></button>}<h1 ref={titleRef} tabIndex={-1}>{t.title}</h1><button className="at-station" onClick={()=>{setQuery('');setLine(station?.line||'');setPicker(true);}}><span className="se-line" style={{background:station?.color}}>{station?.line||'?'}</span><span>{station?.names[lang]||'역 선택'}</span>⌄</button><select aria-label="Language" value={lang} onChange={e=>{setLang(e.target.value);const u=new URL(window.location.href);u.searchParams.set('lang',e.target.value);window.history.replaceState(null,'',u.pathname+u.search);}}><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh">中文</option></select>{view==='summary'&&<button className="at-refresh" onClick={()=>refreshRef.current()} disabled={loading||!stationCode} aria-label={t.refresh}>↻</button>}</header>
-  {view==='summary'?<section className="v2-trains" aria-label={t.next}><div className="v2-summary-board">{groups.map(({dir,rows,heading},index)=><div className="v2-summary-direction" key={dir}><button className="v2-summary-heading" onClick={()=>changeView('details')} aria-label={heading+' · '+t.details}>{index%2===0&&<Arrow/>}<span>{localize(heading,lang)}</span>{index%2===1&&<Arrow right/>}</button>{[1,2].map(rank=>{const row=!error&&rows.find(r=>String(r.ordkey||'')[1]===String(rank));return <button className="v2-summary-train at-train" key={rank} onClick={()=>changeView('details')} aria-label={dir+' '+rank+' · '+t.details}><span className="v2-summary-destination" title={row?localize(destination(row),lang):undefined}>{row?localize(destination(row),lang):'—'}</span><b className={row?'v2-arrival-available':''}><span className="at-message" title={row?localize(row.arvlMsg2,lang):undefined}>{row?localize(row.arvlMsg2,lang):'—'}</span></b></button>;})}</div>)}</div>{message&&<div className="v2-summary-notice" role="status"><span>{message}</span></div>}</section>:
-  <section className="v2-arrival-details"><div className="v2-arrival-detail-head"><div><small>{t.source}</small><h2>{station?.names[lang]} · {t.next}</h2></div><button onClick={()=>refreshRef.current()} disabled={loading}>{loading?t.loading:t.refresh}</button></div><p className="v2-arrival-caption">{t.automatic}</p>{message&&<p className="v2-arrival-message" role="status">{message}</p>}{!error&&groups.map(({dir,rows,heading})=><section className="v2-arrival-group" key={dir}><h3>{localize(heading,lang)} · {localize(dir,lang)}</h3>{[1,2].map(rank=>{const records=rows.filter(r=>String(r.ordkey||'')[1]===String(rank));return <div key={rank} className="at-rank">{records.length>1&&<p className="v2-arrival-caption">#{rank} · {records.length}</p>}{records.map((row,i)=><article className="v2-arrival-train" key={rank+'-'+i}><div><strong>{localize(row.arvlMsg2,lang)}</strong><span>{localize(row.btrainSttus,lang)}</span></div><dl><dt>{t.destination}</dt><dd>{localize(destination(row),lang)}</dd><dt>{t.train}</dt><dd>{value(row.btrainNo)}</dd><dt>{t.location}</dt><dd>{localize(row.arvlMsg3,lang)}</dd></dl><small>{t.updated} {value(row.recptnDt)}</small><details className="at-row-fields"><summary>{rawLabel[lang]}</summary><p className="at-original">{value(row.arvlMsg2)}<br/>{value(row.arvlMsg3)}<br/>{value(row.trainLineNm)}</p><p>ordkey: {value(row.ordkey)} · arvlCd: {value(row.arvlCd)} · barvlDt: {value(row.barvlDt)}</p></details></article>)}</div>;})}{!rows.some(r=>['1','2'].includes(String(r.ordkey||'')[1]))&&<p className="v2-arrival-empty">{t.empty}</p>}</section>)}</section>}
+  {view==='summary'?<section className="v2-trains" aria-label={t.next}><div className="v2-summary-board">
+    {groups.map((g,index)=><div className="v2-summary-direction" key={g.dir}>
+      <button className="v2-summary-heading" onClick={()=>changeView('details')} aria-label={heading(g)+' · '+direction(g)+' · '+t.details}>
+        {index===0&&<Arrow/>}<span>{heading(g)}</span>{index===1&&<Arrow right/>}
+      </button>
+      {[0,1].map(i=>{const item=!error&&g.trains[i],dest=item?summaryDestination(item.row):null;return <button className="v2-summary-train at-train" key={i} onClick={()=>changeView('details')}>
+        <span className="v2-summary-destination" title={dest?.full||''}>
+          {dest?<><span>{dest.bound}</span>{dest.qualifier&&<small>{dest.qualifier}</small>}</>:'—'}
+        </span>
+        <b className={item?'v2-arrival-available':''} title={item?positionMessage(item,lang):''}>
+          <span className="at-message">{item?positionMessage(item,lang):'—'}</span>
+        </b>
+      </button>;})}
+    </div>)}
+  </div>{message&&<div className="v2-summary-notice" role="status"><span>{message}</span></div>}</section>:
+  <section className="v2-arrival-details"><div className="v2-arrival-detail-head"><div><small>{t.source}</small><h2>{station?.names[lang]} · {t.next}</h2></div><button onClick={()=>refreshRef.current()} disabled={loading}>{loading?t.loading:t.refresh}</button></div>
+    <p className="v2-arrival-caption">{t.automatic}</p>
+    {message&&<p className="v2-arrival-message" role="status">{message}</p>}
+    {!error&&groups.map(g=><section key={g.dir} className="v2-arrival-group"><h3>{heading(g)} · {direction(g)}</h3>
+      {!g.candidates.length?<p className="v2-arrival-empty">{t.empty}</p>:g.candidates.map(({row:r,stops},i)=><article className="v2-arrival-train" key={r.trainNo+'-'+i}>
+        <div><strong>{positionMessage({row:r,stops},lang)}</strong><span>{status(r)}</span></div>
+        <dl><dt>{t.destination}</dt><dd>{r.statnTnm||'—'}</dd><dt>{t.train}</dt><dd>{value(r.trainNo)}</dd><dt>{t.location}</dt><dd>{stationName(r.statnNm,lang)||value(r.statnNm)} · {status(r)}</dd></dl>
+        <small>{t.updated} {value(r.recptnDt)}</small>
+        <details className="at-row-fields"><summary>{rawLabel[lang]}</summary><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(r,null,2)}</pre></details>
+      </article>)}
+    </section>)}
+  </section>}
     {picker&&<div role="presentation" onClick={()=>setPicker(false)} style={{position:'fixed',inset:0,zIndex:20,background:'#14283c70',display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
       <section role="dialog" aria-modal="true" aria-label="역 선택" onClick={e=>e.stopPropagation()} style={{background:'#fff',width:'100%',maxWidth:510,maxHeight:'86dvh',display:'flex',flexDirection:'column',borderRadius:17,padding:16,gap:12}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><strong style={{fontSize:18}}>기준역 선택</strong><button aria-label="닫기" style={css.button} onClick={()=>setPicker(false)}>✕</button></div>
@@ -64,6 +105,6 @@ export default function ArrivalTestPage(){
     </div>}
 
 
-<details className="at-diagnostics"><summary>{rawLabel[lang]} · JSON</summary><p>요청 역명: {data?.requestedStationName||'—'} · 전체 {all.length}행 / 선택 역·호선 {matching.length}행</p><p>조회 시각: {data?.fetchedAt||'—'}</p><pre>{JSON.stringify(data?.raw||{},null,2)}</pre></details>
+<details className="at-diagnostics"><summary>{rawLabel[lang]} · JSON</summary><p>요청 호선: {data?.line||'—'} · 전체 {all.length}행 / 현재 기준역: {station?.names.ko||'—'}</p><p>조회 시각: {data?.fetchedAt||'—'}</p><pre>{JSON.stringify(data?.raw||{},null,2)}</pre></details>
 </div></main>;
 }

@@ -15,7 +15,7 @@ export function positionGroups(rows,line,station,graph,directions){
   }
   return Infinity;
  }
- function distance(origin,dir,end=target,terminus=null,branchOnly=false){
+ function distance(origin,dir,end=target,terminus=null){
   if(!network[end]||!network[origin])return null;
   const queue=[[origin,0]],seen=new Set([origin]);
   for(let i=0;i<queue.length;i++){
@@ -23,7 +23,7 @@ export function positionGroups(rows,line,station,graph,directions){
    for(const next of network[at]||[]){
     const providerDirection=edges[at]?.[next];
     // Line 2's branch service stays on the branch, not the main loop.
-    if(branchOnly&&providerDirection!==undefined)continue;
+    // Do not exclude a train just because it will terminate or branch before the selected station.
     const followsDirection=String(providerDirection)===dir;
     // Branch edges absent from the direction table have a unique track path
     // toward the named terminus. Never infer a reverse main-line movement.
@@ -66,15 +66,11 @@ export function positionGroups(rows,line,station,graph,directions){
   latest.forEach(({row,index})=>{
    if(String(row.subwayId)!=='100'+line||String(row.updnLine)!==dir)return;
    const origin=key(row.statnNm),terminus=routeTerminus(row.statnTnm);
-   const branchOnly=String(line)==='2'&&/지선/.test(String(row.statnTnm||''));
-   const stops=distance(origin,dir,target,terminus,branchOnly);
+   const stops=distance(origin,dir,target,terminus);
    if(stops===null)return;
-   if(terminus){
-    const total=distance(origin,dir,terminus,terminus,branchOnly);
-    const remaining=distance(target,dir,terminus,terminus,branchOnly);
-    // The selected station must be on the route before the train's terminus.
-    if(total===null||remaining===null||stops+remaining!==total)return;
-   }
+   // Show trains currently ahead on the directed track, even if their
+   // published destination is an earlier terminus or a diverging branch.
+   // Keep statnTnm unchanged so riders can see the actual destination.
    // At the selected station, a departed train is no longer incoming.
    // Departures at earlier stations still belong in the approaching list.
    if(stops===0&&String(row.trainSttus)==='2')return;
