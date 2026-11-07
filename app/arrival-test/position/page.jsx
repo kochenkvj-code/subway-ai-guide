@@ -30,7 +30,7 @@ export default function PositionTest(){
  const all=data?.raw?.realtimePositionList||[],{groups,supported}=positionGroups(all,line,station?.names.ko,graph,directions);
  const status=r=>({'0':t.entry,'1':t.arrived,'2':t.left,'3':t.previousLeft}[String(r.trainSttus)]||String(r.trainSttus??'—'));
  const message=item=>positionMessage(item,lang);
- const destination=r=>positionDestination(r.statnTnm,lang,stationName,line,r.updnLine);
+ const destination=r=>positionDestination(r.statnTnm,lang,stationName,line,r.updnLine,r.trainNo);
  const direction=g=>line==='2'?(g.dir==='0'?t.inner:t.outer):(g.dir==='0'?t.up:t.down);
  const heading=g=>g.next.length?g.next.map(n=>stationName(n,lang)).join(' · '):direction(g);
  const notice=error?t.error+': '+error:!data?t.loading:!supported?t.unsupported:null;
