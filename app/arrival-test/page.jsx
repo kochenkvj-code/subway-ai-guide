@@ -70,7 +70,16 @@ export default function ArrivalTestPage(){
  const direction=g=>station?.line==='2'
    ?(g.dir==='0'?({ko:'내선',en:'Inner loop',ja:'内回り',zh:'内环'})[lang]:({ko:'외선',en:'Outer loop',ja:'外回り',zh:'外环'})[lang])
    :(g.dir==='0'?({ko:'상행',en:'Upbound',ja:'上り',zh:'上行'})[lang]:({ko:'하행',en:'Downbound',ja:'下り',zh:'下行'})[lang]);
- const heading=g=>g.next.length?g.next.map(name=>stationName(name,lang)||name).join(' · '):direction(g);
+ // Eungam is reached twice by a single train: the incoming 0 service
+ // continues toward Yeokchon, while the returning 1 service goes to Saejeol.
+ // Only the presentation heading is special; do not alter route distances
+ // or the provider's original updnLine / destination fields.
+ const heading=g=>{
+   if(station?.line==='6'&&station?.names.ko==='응암'){
+     return stationName(g.dir==='0'?'역촌':'새절',lang);
+   }
+   return g.next.length?g.next.map(name=>stationName(name,lang)||name).join(' · '):direction(g);
+ };
  const summaryDestination=row=>positionDestination(row.statnTnm,lang,stationName,station?.line,row.updnLine);
  const message=error?t.error+': '+error:!data?t.loading:!supported?t.unsupported:null;
 
