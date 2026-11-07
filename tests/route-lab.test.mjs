@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {buildV2Prompt,buildV2RoutePrompt} from '../app/lib/v2-chat-policy.js';
+import {preferredRouteOption} from '../app/lib/route-compare.js';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const official=JSON.parse(await read('app/data/seoulMetroOfficialStations.json'));
@@ -67,7 +68,6 @@ test('freeform answer survives absent tags, invalid station, ambiguous answer, o
   '안내입니다.\n<route_station>가짜신도시</route_station>\n<menu_recommendation>route</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n<menu_recommendation>none</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n추가 설명',
-  '안내입니다.\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<menu_recommendation>route</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n<menu_recommendation>bad</menu_recommendation>'
  ]){
   const parsed=parsePlaceAnswer(text,true);
@@ -89,7 +89,12 @@ test('station and place inputs route through existing official API, with AI answ
  assert.match(page,/toCode:destination\.code/);
  assert.match(page,/setPlace\(result\)/);
  assert.match(page,/result\.status==='found'/);
- assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
+ assert.match(page,/compareOfficialRoutes\(candidates,ctrl\.signal\)/);
+ assert.match(page,/Promise\.all\(stations\.slice\(0,2\)/);
+ assert.match(page,/selectedRouteCode===st\.code/);
+ assert.match(page,/preferredRouteOption\(checks,chosenMode\)/);
+ assert.match(page,/onSubmit=\{e=>\{e\.preventDefault\(\);void perform\(\);\}\}/);
+ assert.doesNotMatch(page,/className="rl-as-place"/);
  assert.match(page,/\['duration','distance','transfer'\]/);
  assert.match(page,/aiTitle:'AI 목적지 안내'/);
  assert.match(css,/max-width:490px/);
@@ -105,4 +110,41 @@ test('route API reuses V2 chat prompt and model settings without gating on citat
  assert.doesNotMatch(api,/if\(!sources\.length&&parsed\.status==='found'/);
  assert.match(api,/request\.headers\.get\('origin'\)/);
  assert.match(api,/getVercelOidcToken\(\)/);
+});
+
+test('two verified alternatives from one natural-language answer, not arbitrary prose',()=>{
+ const two=parsePlaceAnswer('코엑스몰은 삼성역과 봉은사역에서 접근할 수 있습니다.\\n<route_station>삼성역</route_station>\\n<route_station>봉은사역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(two.status,'found');
+ assert.deepEqual(Array.from(two.stations,x=>x.ko),['삼성','봉은사']);
+ assert.equal(two.station.ko,'삼성');
+ assert.equal(two.recommendedMenu,'route');
+ assert.match(two.answer,/봉은사역/);
+ const duplicates=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>삼성</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(duplicates.stations.length,1);
+ const tooMany=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>봉은사역</route_station>\\n<route_station>강남역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(tooMany.stations.length,0);
+ const unknown=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>가짜역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(unknown.stations.length,0);
+});
+test('official subway route metric comparison respects selected criterion',()=>{
+ const options=[
+  {station:{code:'S'},route:{totalSeconds:2200,transferCount:1,totalMeters:15000}},
+  {station:{code:'B'},route:{totalSeconds:2600,transferCount:0,totalMeters:12000}},
+  {station:{code:'X'},route:null}
+ ];
+ assert.equal(preferredRouteOption(options,'duration').station.code,'S');
+ assert.equal(preferredRouteOption(options,'transfer').station.code,'B');
+ assert.equal(preferredRouteOption(options,'distance').station.code,'B');
+ assert.equal(preferredRouteOption([{station:{code:'X'},route:null}]),null);
+ assert.equal(preferredRouteOption([],undefined),null);
+});
+test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two names',()=>{
+ const routePrompt=await read('app/lib/v2-chat-policy.js');
+ assert.match(routePrompt,/one or TWO distinct, well-supported/);
+ assert.match(routePrompt,/Do not repeat the same station/);
+ assert.match(routePrompt,/official route API compares those/);
+ const policy=await read('app/lib/route-place-policy.js');
+ assert.match(policy,/routeEntries.length<=2/);
+ const guide=await read('app/components/GuideExperience.jsx');
+ assert.match(guide,/SubwayRouteCard/);
 });
