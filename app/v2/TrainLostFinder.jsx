@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {officialStationMatches} from '../lib/officialStations';
+import {stationMaster} from '../lib/station-master';
 import {stationName,lineName} from '../lib/stationNameI18n';
 import {stationNeighbors,supportsStation,findLiveCandidates,followStops,futureStops,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import './train-lost.css';
