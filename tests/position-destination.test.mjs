@@ -14,5 +14,24 @@ test('actual line 2 provider labels retain station name and service qualifier',(
 });
 test('registered station destinations and unknown originals are preserved',()=>{
  for(const lang of ['en','ja','zh'])for(const name of Object.keys(data.stations))assert.equal(positionDestination(name,lang,stationName).name,stationName(name,lang));
- assert.equal(positionDestination('미등록행선지','en',stationName).name,'미등록행선지');
+ assert.equal(positionDestination('미등록행선지','en',stationName).name,'Destination unavailable');
+});
+
+test('line 6 Eungam loop destination labels are localized',()=>{
+ const raw='응암순환(상선)';
+ assert.equal(positionDestination(raw,'ko',stationName,'6','0').bound,raw+'행');
+ for(const [lang,expected] of [['en','Loop'],['ja','循環'],['zh','循环']]){
+  const translated=positionDestination(raw,lang,stationName,'6','0');
+  assert.ok(translated.bound.includes(expected),lang+': '+translated.bound);
+  assert.ok(!/[가-힣]/.test(translated.full),lang+': '+translated.full);
+ }
+});
+test('line 6 station track / terminus qualifiers are localized',async()=>{
+ const {positionStation}=await import('../app/arrival-test/position/destination.js');
+ for(const lang of ['en','ja','zh']){
+  const label=positionStation('응암(하선-종착)',lang,stationName);
+  assert.ok(!/[가-힣]/.test(label),lang+': '+label);
+  assert.ok(label.includes(stationName('응암',lang,false)));
+ }
+ assert.equal(positionStation('응암(하선-종착)','ko',stationName),'응암(하선-종착)');
 });
