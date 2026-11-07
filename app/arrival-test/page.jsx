@@ -123,6 +123,6 @@ export default function ArrivalTestPage(){
     </div>}
 
 
-<details className="at-diagnostics"><summary>{rawLabel[lang]} · JSON</summary><p>요청 호선: {data?.line||'—'} · 전체 {all.length}행 / 현재 기준역: {station?.names.ko||'—'}</p><p>조회 시각: {data?.fetchedAt||'—'}</p><pre>{JSON.stringify(data?.raw||{},null,2)}</pre></details>
+{view==='summary'&&<details className="at-diagnostics"><summary>{rawLabel[lang]} · JSON</summary><p>요청 호선: {data?.line||'—'} · 전체 {all.length}행 / 현재 기준역: {station?.names.ko||'—'}</p><p>조회 시각: {data?.fetchedAt||'—'}</p><pre>{JSON.stringify(data?.raw||{},null,2)}</pre></details>}
 </div></main>;
 }
