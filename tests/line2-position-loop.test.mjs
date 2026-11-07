@@ -51,4 +51,5 @@ test('Seongsu mainline label displays direction, not an unverified terminus',()=
  assert.equal(positionDestination('성수종착','ko',stationName,'2','1').bound,'성수 외선행');
  assert.equal(positionDestination('성수종착','en',stationName,'2','0').bound,'Seongsu · Inner loop');
  assert.ok(positionDestination('성수종착','ko',stationName,'1','0').full.includes('종착'));
+ assert.ok(positionDestination('성수종착','ko',stationName,'2','0','1548').full.includes('종착'));
 });
