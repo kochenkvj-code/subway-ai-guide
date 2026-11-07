@@ -89,23 +89,27 @@ export default function ArrivalTestPage(){
   <section className="v2-arrival-details"><div className="v2-arrival-detail-head"><div><small>{t.source}</small><h2>{station?.names[lang]} · {t.next}</h2></div><button onClick={()=>refreshRef.current()} disabled={loading}>{loading?t.loading:t.refresh}</button></div>
     <p className="v2-arrival-caption">{t.automatic}</p>
     {message&&<p className="v2-arrival-message" role="status">{message}</p>}
-    {!error&&groups.map(g=><section className="v2-arrival-group" key={g.dir}>
-      <h3>{heading(g)} · {direction(g)}</h3>
-      {!g.trains.length?<p className="v2-arrival-empty">{t.empty}</p>:g.trains.map(({row:r,stops},i)=>
-      <article className="v2-arrival-train" key={r.trainNo+'-'+i}>
-        <div><strong>{positionMessage({row:r,stops},lang)}</strong><span>{status(r)}</span></div>
-        <dl>
-          <dt>{t.destination}</dt><dd>{r.statnTnm||'—'}</dd>
-          <dt>{t.train}</dt><dd>{value(r.trainNo)}</dd>
-          <dt>{t.location}</dt><dd>{stationName(r.statnNm,lang)||value(r.statnNm)} · {status(r)}</dd>
-        </dl>
-        <small>{t.updated} {value(r.recptnDt)}</small>
-        <details className="at-row-fields">
-          <summary>{rawLabel[lang]}</summary>
-          <pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(r,null,2)}</pre>
-        </details>
-      </article>)}
-    </section>)}
+    {!error&&<div className="at-detail-grid">
+      {groups.map(g=><section className="v2-arrival-group at-detail-column" key={g.dir}>
+        <h3>{heading(g)} · {direction(g)}</h3>
+        {[0,1].map(i=>{const item=g.trains[i];if(!item)return <div className="at-detail-empty" key={i}>{t.empty}</div>;
+          const {row:r,stops}=item;
+          return <article className="v2-arrival-train at-detail-card" key={r.trainNo+'-'+i}>
+            <div className="at-card-top"><strong>{positionMessage({row:r,stops},lang)}</strong><span>{status(r)}</span></div>
+            <dl>
+              <dt>{t.destination}</dt><dd>{r.statnTnm||'—'}</dd>
+              <dt>{t.train}</dt><dd>{value(r.trainNo)}</dd>
+              <dt>{t.location}</dt><dd>{stationName(r.statnNm,lang)||value(r.statnNm)} · {status(r)}</dd>
+            </dl>
+            <small title={value(r.recptnDt)}>{t.updated} {String(r.recptnDt||'').split(' ').at(-1)||'—'}</small>
+            <details className="at-row-fields">
+              <summary>{rawLabel[lang]}</summary>
+              <pre>{JSON.stringify(r,null,2)}</pre>
+            </details>
+          </article>;
+        })}
+      </section>)}
+    </div>}
   </section>}
     {picker&&<div role="presentation" onClick={()=>setPicker(false)} style={{position:'fixed',inset:0,zIndex:20,background:'#14283c70',display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
       <section role="dialog" aria-modal="true" aria-label="역 선택" onClick={e=>e.stopPropagation()} style={{background:'#fff',width:'100%',maxWidth:510,maxHeight:'86dvh',display:'flex',flexDirection:'column',borderRadius:17,padding:16,gap:12}}>
