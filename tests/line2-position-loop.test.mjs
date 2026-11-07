@@ -45,7 +45,7 @@ test('a departed train at the selected station is not approaching',()=>{
  const inner=candidates([train('2104','건대입구','0',{trainSttus:'2'})],'0');
  assert.equal(inner.length,0);
 });
-test('Seongsu mainline label displays direction, not an unverified terminus',()=>{
+test('Seongsu mainline label displays direction only in summary, not raw details',async()=>{
  const stationName=(s,lang)=>lang==='en'?'Seongsu':s;
  assert.equal(positionDestination('성수종착','ko',stationName,'2','0').bound,'성수 · 내선');
  assert.equal(positionDestination('성수종착','ko',stationName,'2','1').bound,'성수 · 외선');
