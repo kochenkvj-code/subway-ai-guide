@@ -32,7 +32,7 @@ export default function UnifiedRouteLab(){
  const [loading,setLoading]=useState(''),[error,setError]=useState('');
  const requestRef=useRef(null),resultRef=useRef(null);
  const t=COPY[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
- const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
+ const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
  const originMatches=useMemo(()=>searchStationMaster(originQuery,'',{initials:true}).slice(0,12),[originQuery]);
  useEffect(()=>{
   const p=new URLSearchParams(window.location.search);
