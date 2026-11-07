@@ -57,7 +57,7 @@ test('natural prose and valid trailing optional station metadata return a route'
  assert.doesNotMatch(result.answer,/route_station|menu_recommendation/);
  const oneTag=parsePlaceAnswer('서울역을 이용할 수 있습니다.\n<route_station>서울역</route_station>');
  assert.equal(oneTag.status,'found');
- assert.equal(oneTag.station.ko,'서울');
+ assert.equal(oneTag.station.ko,'서울역');
 });
 
 test('freeform answer survives absent tags, invalid station, ambiguous answer, or truncation',()=>{
