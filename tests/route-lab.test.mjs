@@ -113,17 +113,17 @@ test('route API reuses V2 chat prompt and model settings without gating on citat
 });
 
 test('two verified alternatives from one natural-language answer, not arbitrary prose',()=>{
- const two=parsePlaceAnswer('코엑스몰은 삼성역과 봉은사역에서 접근할 수 있습니다.\\n<route_station>삼성역</route_station>\\n<route_station>봉은사역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ const two=parsePlaceAnswer('코엑스몰은 삼성역과 봉은사역에서 접근할 수 있습니다.\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<menu_recommendation>route</menu_recommendation>');
  assert.equal(two.status,'found');
  assert.deepEqual(Array.from(two.stations,x=>x.ko),['삼성','봉은사']);
  assert.equal(two.station.ko,'삼성');
  assert.equal(two.recommendedMenu,'route');
  assert.match(two.answer,/봉은사역/);
- const duplicates=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>삼성</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ const duplicates=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>삼성</route_station>\n<menu_recommendation>route</menu_recommendation>');
  assert.equal(duplicates.stations.length,1);
- const tooMany=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>봉은사역</route_station>\\n<route_station>강남역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ const tooMany=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<route_station>강남역</route_station>\n<menu_recommendation>route</menu_recommendation>');
  assert.equal(tooMany.stations.length,0);
- const unknown=parsePlaceAnswer('설명\\n<route_station>삼성역</route_station>\\n<route_station>가짜역</route_station>\\n<menu_recommendation>route</menu_recommendation>');
+ const unknown=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>가짜역</route_station>\n<menu_recommendation>route</menu_recommendation>');
  assert.equal(unknown.stations.length,0);
 });
 test('official subway route metric comparison respects selected criterion',()=>{
@@ -138,7 +138,7 @@ test('official subway route metric comparison respects selected criterion',()=>{
  assert.equal(preferredRouteOption([{station:{code:'X'},route:null}]),null);
  assert.equal(preferredRouteOption([],undefined),null);
 });
-test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two names',()=>{
+test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two names',async()=>{
  const routePrompt=await read('app/lib/v2-chat-policy.js');
  assert.match(routePrompt,/one or TWO distinct, well-supported/);
  assert.match(routePrompt,/Do not repeat the same station/);
