@@ -19,20 +19,39 @@ export function resolveOfficialStop(name){
  const st=preferredStation(matches);
  return st?{code:st.code,ko:st.ko,en:st.en,ja:st.ja,zh:st.zh,lines:[...new Set(matches.map(x=>x.line))]}:null;
 }
-// Gemini output is an answer plus optional strictly delimited metadata.
-// Truncated/ambiguous answers and unsupported names may NOT open a route.
+// The route model now produces a NORMAL V2 chat answer and optional final
+// metadata lines; unlike the old XML schema, missing metadata is not a failed
+// natural-language answer. Metadata must be complete and at the tail.
 export function parsePlaceAnswer(raw,complete=true){
- const text=String(raw||'');
- const field=name=>{
-  const m=text.match(new RegExp('<'+name+'>([\\s\\S]*?)<\\/'+name+'>','i'));
-  return m?m[1].trim():'';
- };
- const answer=field('answer').slice(0,1300);
- const place=field('place').slice(0,150);
- const stationName=field('station').replace(/<[^>]*>/g,'').trim().slice(0,60);
- const reason=field('reason').slice(0,400);
- const walk=field('walk').slice(0,260);
- const status=field('status').toUpperCase();
- const resolved=complete&&status==='FOUND'?resolveOfficialStop(stationName):null;
- return {status:resolved?'found':status==='AMBIGUOUS'?'ambiguous':'unverified',answer,place,station:resolved,reason,walk};
+ const lines=String(raw||'').split(/\r?\n/);
+ const visible=[],metadata=[];
+ let fence=null;
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i],trim=line.trim();
+  const boundary=trim.match(/^(`{3,}|~{3,})/);
+  if(boundary){
+   if(!fence)fence=boundary[1][0];
+   else if(fence===boundary[1][0])fence=null;
+   visible.push(line);continue;
+  }
+  // A quoted or fenced example of route_station is part of the answer.
+  if(!fence&&!trim.startsWith('>')&&/^<\/?(?:route_station|menu_recommendation)\b/i.test(trim)){
+   const route=trim.match(/^<route_station>([^<>]{1,65})<\/route_station>$/);
+   const menu=trim.match(/^<menu_recommendation>(route|none)<\/menu_recommendation>$/);
+   metadata.push({index:i,kind:route?'route':menu?'menu':'invalid',value:route?.[1]?.trim()||menu?.[1]||null});
+   continue;
+  }
+  visible.push(line);
+ }
+ const answer=visible.join('\n').trim().slice(0,2000);
+ const last=lines.findLastIndex(line=>line.trim());
+ const routeEntries=metadata.filter(e=>e.kind==='route');
+ const menuEntries=metadata.filter(e=>e.kind==='menu');
+ const validMenu=menuEntries.length===0||(menuEntries.length===1&&menuEntries[0].index===last&&menuEntries[0].value==='route');
+ const validRoute=complete&&answer&&metadata.length===routeEntries.length+menuEntries.length&&
+  routeEntries.length===1&&validMenu&&
+  routeEntries[0].index===(menuEntries.length?last-1:last);
+ const station=validRoute?resolveOfficialStop(routeEntries[0].value):null;
+ return {status:station?'found':'unverified',answer,place:'',station,reason:'',walk:'',
+  recommendedMenu:station?'route':null};
 }
