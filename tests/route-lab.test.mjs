@@ -45,7 +45,7 @@ test('test page preserves existing V2 and provides a unified station/place flow'
  assert.match(page,/result\.status==='found'/);
  assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
  assert.match(page,/\['duration','distance','transfer'\]/);
- assert.match(page,/\['ko'\]/);
+ assert.match(page,/ko:\{title:'목적지 길찾기'/);
  assert.match(css,/max-width:490px/);
 });
 test('AI route handler uses grounded single call; checks official station and search sources',()=>{
