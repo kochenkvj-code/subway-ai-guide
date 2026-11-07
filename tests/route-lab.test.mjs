@@ -140,9 +140,9 @@ test('official subway route metric comparison respects selected criterion',()=>{
 });
 test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two names',async()=>{
  const routePrompt=await read('app/lib/v2-chat-policy.js');
- assert.match(routePrompt,/one or TWO distinct, well-supported/);
- assert.match(routePrompt,/Do not repeat the same station/);
- assert.match(routePrompt,/official route API compares those/);
+ assert.match(routePrompt,/Usually recommend exactly ONE obvious, reliable subway stop/);
+ assert.match(routePrompt,/do not try to satisfy a two-station quota/);
+ assert.match(routePrompt,/Do not repeat a station/);
  const policy=await read('app/lib/route-place-policy.js');
  assert.match(policy,/routeEntries.length<=2/);
  const guide=await read('app/components/GuideExperience.jsx');
@@ -153,4 +153,27 @@ test('station recommendation cards share the full width as two equal grid column
  assert.match(css,/\.rl-recommend\s*>\s*\.rl-compare-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\);gap:9px;width:100%/);
  assert.match(css,/\.rl-compare-grid:has\(> :only-child\)\{grid-template-columns:1fr\}/);
  assert.match(page,/className="rl-compare-grid"/);
+});
+
+test('route lab responds with AI explanation first, progressively reveals first completed official route',()=>{
+ assert.match(page,/setPlace\(result\)/);
+ assert.match(page,/aiMs:Math\.round\(performance\.now\(\)-aiStartedAt\)/);
+ assert.match(page,/Promise\.all\(stations\.slice\(0,2\)\.map\(async station=>/);
+ assert.match(page,/setRouteOptions\(previous=>\[\.\.\.previous\.filter/);
+ assert.match(page,/setRoute\(current=>current\|\|option\.route\)/);
+ assert.match(page,/manualRouteSelectionRef\.current=true/);
+ assert.match(page,/disabled=\{!option\?\.route\|\|loading==='place'\}/);
+ assert.match(page,/AbortSignal\.timeout\(6000\)/);
+ assert.match(page,/timings\.aiMs\/1000/);
+ assert.match(api,/geminiMs:Date\.now\(\)-geminiStartedAt/);
+ assert.match(api,/timings:\{authMs,geminiMs,totalMs:/);
+});
+test('prompt defaults to one station without extra searches and preserves a truly obvious second',()=>{
+ const source=buildV2RoutePrompt('경복궁 관광지','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'한국어');
+ assert.match(source,/Do NOT perform additional Google searches to find a second stop/);
+ assert.match(source,/If unsure about a second, return only the primary station immediately/);
+ assert.match(source,/A SECOND station is allowed only if it is already clearly supported by the SAME evidence/);
+ const result=parsePlaceAnswer('경복궁은 경복궁역에서 내리면 됩니다.\n<route_station>경복궁역</route_station>\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(result.status,'found');
+ assert.equal(result.stations.length,1);
 });
