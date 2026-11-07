@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {buildV2Prompt,buildV2RoutePrompt} from '../app/lib/v2-chat-policy.js';
-import {preferredRouteOption} from '../app/lib/route-compare.js';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const official=JSON.parse(await read('app/data/seoulMetroOfficialStations.json'));
@@ -68,6 +67,7 @@ test('freeform answer survives absent tags, invalid station, ambiguous answer, o
   '안내입니다.\n<route_station>가짜신도시</route_station>\n<menu_recommendation>route</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n<menu_recommendation>none</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n추가 설명',
+  '안내입니다.\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<menu_recommendation>route</menu_recommendation>',
   '안내입니다.\n<route_station>삼성역</route_station>\n<menu_recommendation>bad</menu_recommendation>'
  ]){
   const parsed=parsePlaceAnswer(text,true);
@@ -89,12 +89,7 @@ test('station and place inputs route through existing official API, with AI answ
  assert.match(page,/toCode:destination\.code/);
  assert.match(page,/setPlace\(result\)/);
  assert.match(page,/result\.status==='found'/);
- assert.match(page,/compareOfficialRoutes\(candidates,ctrl\.signal\)/);
- assert.match(page,/Promise\.all\(stations\.slice\(0,2\)/);
- assert.match(page,/selectedRouteCode===st\.code/);
- assert.match(page,/preferredRouteOption\(checks,chosenMode\)/);
- assert.match(page,/onSubmit=\{e=>\{e\.preventDefault\(\);void perform\(\);\}\}/);
- assert.doesNotMatch(page,/className="rl-as-place"/);
+ assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
  assert.match(page,/\['duration','distance','transfer'\]/);
  assert.match(page,/aiTitle:'AI 목적지 안내'/);
  assert.match(css,/max-width:490px/);
@@ -112,68 +107,36 @@ test('route API reuses V2 chat prompt and model settings without gating on citat
  assert.match(api,/getVercelOidcToken\(\)/);
 });
 
-test('two verified alternatives from one natural-language answer, not arbitrary prose',()=>{
- const two=parsePlaceAnswer('코엑스몰은 삼성역과 봉은사역에서 접근할 수 있습니다.\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<menu_recommendation>route</menu_recommendation>');
- assert.equal(two.status,'found');
- assert.deepEqual(Array.from(two.stations,x=>x.ko),['삼성','봉은사']);
- assert.equal(two.station.ko,'삼성');
- assert.equal(two.recommendedMenu,'route');
- assert.match(two.answer,/봉은사역/);
- const duplicates=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>삼성</route_station>\n<menu_recommendation>route</menu_recommendation>');
- assert.equal(duplicates.stations.length,1);
- const tooMany=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>봉은사역</route_station>\n<route_station>강남역</route_station>\n<menu_recommendation>route</menu_recommendation>');
- assert.equal(tooMany.stations.length,0);
- const unknown=parsePlaceAnswer('설명\n<route_station>삼성역</route_station>\n<route_station>가짜역</route_station>\n<menu_recommendation>route</menu_recommendation>');
- assert.equal(unknown.stations.length,0);
+test('route button receives exactly one official station and no two-stop UI',()=>{
+ const prompt=buildV2RoutePrompt('국립고궁박물관','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean');
+ assert.match(prompt,/DESTINATION WAYFINDING EXTENSION/);
+ assert.doesNotMatch(prompt,/FAST PRIMARY RECOMMENDATION|Do NOT perform additional Google searches|SECOND station|two alternative stations|optimal route/);
+ assert.match(prompt,/<route_station>official Korean station name only<\/route_station>/);
+ assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
+ assert.doesNotMatch(page,/compareOfficialRoutes|preferredRouteOption|Promise\.all\(stations\.slice|AbortSignal\.timeout\(6000\)/);
+ assert.match(page,/aiMs\/1000/);
 });
-test('official subway route metric comparison respects selected criterion',()=>{
- const options=[
-  {station:{code:'S'},route:{totalSeconds:2200,transferCount:1,totalMeters:15000}},
-  {station:{code:'B'},route:{totalSeconds:2600,transferCount:0,totalMeters:12000}},
-  {station:{code:'X'},route:null}
- ];
- assert.equal(preferredRouteOption(options,'duration').station.code,'S');
- assert.equal(preferredRouteOption(options,'transfer').station.code,'B');
- assert.equal(preferredRouteOption(options,'distance').station.code,'B');
- assert.equal(preferredRouteOption([{station:{code:'X'},route:null}]),null);
- assert.equal(preferredRouteOption([],undefined),null);
-});
-test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two names',async()=>{
- const routePrompt=await read('app/lib/v2-chat-policy.js');
- assert.match(routePrompt,/Usually recommend exactly ONE obvious, reliable subway stop/);
- assert.match(routePrompt,/do not try to satisfy a two-station quota/);
- assert.match(routePrompt,/Do not repeat a station/);
- const policy=await read('app/lib/route-place-policy.js');
- assert.match(policy,/routeEntries.length<=2/);
- const guide=await read('app/components/GuideExperience.jsx');
- assert.match(guide,/SubwayRouteCard/);
-});
-
-test('station recommendation cards share the full width as two equal grid columns',()=>{
- assert.match(css,/\.rl-recommend\s*>\s*\.rl-compare-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\);gap:9px;width:100%/);
- assert.match(css,/\.rl-compare-grid:has\(> :only-child\)\{grid-template-columns:1fr\}/);
- assert.match(page,/className="rl-compare-grid"/);
-});
-
-test('route lab responds with AI explanation first, progressively reveals first completed official route',()=>{
- assert.match(page,/setPlace\(result\)/);
- assert.match(page,/aiMs:Math\.round\(performance\.now\(\)-aiStartedAt\)/);
- assert.match(page,/Promise\.all\(stations\.slice\(0,2\)\.map\(async station=>/);
- assert.match(page,/setRouteOptions\(previous=>\[\.\.\.previous\.filter/);
- assert.match(page,/setRoute\(current=>current\|\|option\.route\)/);
- assert.match(page,/manualRouteSelectionRef\.current=true/);
- assert.match(page,/disabled=\{!option\?\.route\|\|loading==='place'\}/);
- assert.match(page,/AbortSignal\.timeout\(6000\)/);
- assert.match(page,/timings\.aiMs\/1000/);
- assert.match(api,/const geminiMs=Date\.now\(\)-geminiStartedAt/);
- assert.match(api,/timings:\{authMs,geminiMs,totalMs:/);
-});
-test('prompt defaults to one station without extra searches and preserves a truly obvious second',()=>{
- const source=buildV2RoutePrompt('경복궁 관광지','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'한국어');
- assert.match(source,/Do NOT perform additional Google searches to find a second stop/);
- assert.match(source,/If unsure about a second, return only the primary station immediately/);
- assert.match(source,/A SECOND station is allowed only if it is already clearly supported by the SAME evidence/);
- const result=parsePlaceAnswer('경복궁은 경복궁역에서 내리면 됩니다.\n<route_station>경복궁역</route_station>\n<menu_recommendation>route</menu_recommendation>');
+test('museum answer with a standalone final subway station connects one official stop',()=>{
+ const answer='국립고궁박물관은 서울특별시 종로구 효자로에 위치한 박물관입니다. 지하철을 이용하실 경우 **3호선 경복궁역** 5번 출구가 박물관 바로 인접해 있어 편리합니다. 또한 5호선 광화문역을 통해서도 도보 접근이 가능합니다.\n\n경복궁역';
+ const result=parsePlaceAnswer(answer);
  assert.equal(result.status,'found');
+ assert.equal(result.station.ko,'경복궁');
+ assert.deepEqual(Array.from(result.stations,s=>s.ko),['경복궁']);
+ assert.ok(!result.answer.endsWith('\n경복궁역'));
+});
+test('fallback does not guess when no explicit recommended standalone stop exists',()=>{
+ const examples=[
+  '코엑스몰은 삼성역과 봉은사역에서 접근할 수 있습니다.',
+  '강남에 있는 박물관입니다.\n강남역',
+  '3호선 경복궁역이 가깝습니다.\n<menu_recommendation>none</menu_recommendation>',
+  '3호선 경복궁역이 가깝습니다.\n<route_station>가짜역</route_station>',
+  '3호선 경복궁역이 가깝습니다.\n<route_station>경복궁</route_station>\n<route_station>광화문</route_station>'
+ ];
+ for(const answer of examples)assert.equal(parsePlaceAnswer(answer).station,null,answer);
+ assert.equal(parsePlaceAnswer('지하철은 경복궁역 5번 출구를 이용하세요.\n경복궁역',false).station,null);
+});
+test('explicit route hint is preferred over other stations mentioned in prose',()=>{
+ const result=parsePlaceAnswer('국립고궁박물관은 경복궁역과 광화문역에서 갈 수 있습니다.\n<route_station>경복궁</route_station>\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(result.station.ko,'경복궁');
  assert.equal(result.stations.length,1);
 });
