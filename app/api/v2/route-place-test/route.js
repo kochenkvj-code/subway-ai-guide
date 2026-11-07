@@ -2,7 +2,7 @@ import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 import {getStationByCode} from '../../../lib/station-master';
 import {parsePlaceAnswer} from '../../../lib/route-place-policy';
-import {buildV2RoutePrompt} from '../../../lib/v2-chat-policy';
+import {buildRoutePlacePrompt} from '../../../lib/route-place-prompt';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const LANGUAGE={ko:'한국어',en:'English',ja:'日本語',zh:'简体中文'};
@@ -53,9 +53,8 @@ export async function POST(request){
   const station=getStationByCode(body.stationCode);
   if(!station)return respond({ok:false,error:'BAD_STATION'},400);
   const lang=Object.hasOwn(LANGUAGE,body.lang)?body.lang:'ko';
-  // Share the exact core prompt, grounding and output-language policy with V2 AI chat.
-  // Only the final, optional route-station recommendation differs.
-  const prompt=buildV2RoutePrompt(query,lang,station,languageOutputRule(lang));
+  // Dedicated place-wayfinding policy; do not apply station-facility chat rules.
+  const prompt=buildRoutePlacePrompt(query,lang,station,languageOutputRule(lang));
   const authStartedAt=Date.now();
   const access=await getToken();
   const authMs=Date.now()-authStartedAt;

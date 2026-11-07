@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {buildV2Prompt,buildV2RoutePrompt} from '../app/lib/v2-chat-policy.js';
+import {buildV2Prompt} from '../app/lib/v2-chat-policy.js';
+import {buildRoutePlacePrompt} from '../app/lib/route-place-prompt.js';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const official=JSON.parse(await read('app/data/seoulMetroOfficialStations.json'));
@@ -22,19 +23,26 @@ const page=await read('app/v2/route-lab/page.jsx');
 const api=await read('app/api/v2/route-place-test/route.js');
 const css=await read('app/v2/route-lab/route-lab.css');
 
-test('V2 route assistant keeps exact normal-chat grounding, station and language core',()=>{
+test('wayfinding has a dedicated compact prompt; existing V2 facility chat is unchanged',()=>{
  const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
  const chat=buildV2Prompt('코엑스','ko',station,'Korean language rule');
- const routed=buildV2RoutePrompt('코엑스','ko',station,'Korean language rule');
- const chatMarker='\nOPTIONAL MENU RECOMMENDATION (no tool call or API execution):';
- const routeMarker='\nDESTINATION WAYFINDING EXTENSION';
- assert.ok(chat.indexOf(chatMarker)>0);
- assert.ok(routed.indexOf(routeMarker)>0);
- assert.equal(routed.slice(0,routed.indexOf(routeMarker)),chat.slice(0,chat.indexOf(chatMarker)));
- for(const key of ['Google Search grounding','Independently answer','NOT nonexistent','LINE-SPECIFIC STATION IDENTITY','Korean language rule','<route_station>','<menu_recommendation>route</menu_recommendation>'])
-  assert.ok(routed.includes(key),key);
- assert.equal(buildV2Prompt('코엑스','ko',station,'Korean language rule'),chat,
-  'normal V2 chat prompt is unchanged');
+ const routed=buildRoutePlacePrompt('코엑스','ko',station,'Korean language rule');
+ assert.ok(chat.includes('LINE-SPECIFIC STATION IDENTITY'));
+ assert.ok(chat.includes('SEARCH COVERAGE'));
+ assert.ok(chat.includes('OPTIONAL MENU RECOMMENDATION'));
+ assert.match(routed,/Google Search grounding/);
+ assert.match(routed,/Destination requested by the passenger: "코엑스"/);
+ assert.match(routed,/Departure station.*1호선 종로5가역/);
+ assert.match(routed,/Korean language rule/);
+ assert.match(routed,/<route_station>official Korean subway station name<\/route_station>/);
+ assert.match(routed,/<menu_recommendation>route<\/menu_recommendation>/);
+ for(const forbidden of ['QR entry station','LINE-SPECIFIC STATION IDENTITY','SEARCH COVERAGE',
+  'station facilities','connected arcades','facility ownership','not verified inside',
+  'inside the station','connected underground arcade']){
+  assert.equal(routed.includes(forbidden),false,'unrelated station facility policy: '+forbidden);
+ }
+ assert.ok(routed.length<chat.length/2,'dedicated prompt should be shorter');
+ assert.equal(buildV2Prompt('코엑스','ko',station,'Korean language rule'),chat);
 });
 
 test('official station whitelist validates named stops without trusting model-made codes',()=>{
@@ -95,8 +103,10 @@ test('station and place inputs route through existing official API, with AI answ
  assert.match(css,/max-width:490px/);
 });
 
-test('route API reuses V2 chat prompt and model settings without gating on citation cards',()=>{
- assert.match(api,/buildV2RoutePrompt\(query,lang,station,languageOutputRule\(lang\)\)/);
+test('route API uses dedicated wayfinding prompt and preserves model settings',()=>{
+ assert.match(api,/buildRoutePlacePrompt\(query,lang,station,languageOutputRule\(lang\)\)/);
+ assert.match(api,/route-place-prompt/);
+ assert.doesNotMatch(api,/buildV2Prompt|buildV2RoutePrompt/);
  assert.match(api,/tools:\[\{googleSearch:\{\}\}\]/);
  assert.match(api,/maxOutputTokens:1200/);
  assert.match(api,/thinkingLevel:'LOW'/);
@@ -108,10 +118,10 @@ test('route API reuses V2 chat prompt and model settings without gating on citat
 });
 
 test('route button receives exactly one official station and no two-stop UI',()=>{
- const prompt=buildV2RoutePrompt('국립고궁박물관','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean');
- assert.match(prompt,/DESTINATION WAYFINDING EXTENSION/);
+ const prompt=buildRoutePlacePrompt('국립고궁박물관','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean');
+ assert.match(prompt,/SEOUL SUBWAY DESTINATION WAYFINDING/);
  assert.doesNotMatch(prompt,/FAST PRIMARY RECOMMENDATION|Do NOT perform additional Google searches|SECOND station|two alternative stations|optimal route/);
- assert.match(prompt,/<route_station>official Korean station name only<\/route_station>/);
+ assert.match(prompt,/<route_station>official Korean subway station name<\/route_station>/);
  assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
  assert.doesNotMatch(page,/compareOfficialRoutes|preferredRouteOption|Promise\.all\(stations\.slice|AbortSignal\.timeout\(6000\)/);
  assert.match(page,/aiMs\/1000/);
