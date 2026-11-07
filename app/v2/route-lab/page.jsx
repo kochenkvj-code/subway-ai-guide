@@ -58,7 +58,7 @@ export default function UnifiedRouteLab(){
   requestRef.current?.abort();setLoading('');setQuery(st[lang]||st.ko);setPicked(st);setFocused(false);setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);setPlace(null);setError('');
  };
  async function lookupRoute(station,signal){
-  setLoading('route');setError('');setRoute(null);
+  setLoading('route');setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);
   if(normalizeStation(station.ko)===normalizeStation(origin.names.ko)){setError(t.same);setLoading('');return;}
   const response=await fetch(buildRouteUrl(originCode,station,mode),{cache:'no-store',signal});
   const result=await response.json();
@@ -66,14 +66,51 @@ export default function UnifiedRouteLab(){
   if(result.route.originCode!==originCode)throw Error('ORIGIN_MISMATCH');
   if(!signal.aborted){setRoute(result.route);requestAnimationFrame(()=>resultRef.current?.scrollIntoView({block:'start',behavior:'smooth'}));}
  }
- async function perform(forcePlace=false){
+ async function compareOfficialRoutes(stations,signal,chosenMode=mode){
+  setLoading('route');setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);
+  // Parallel official-API requests: no Gemini-generated travel times or transfers.
+  const checks=await Promise.all(stations.slice(0,2).map(async station=>{
+   if(normalizeStation(station.ko)===normalizeStation(origin.names.ko))return {station,route:null,sameOrigin:true};
+   try{
+    const response=await fetch(buildRouteUrl(originCode,station,chosenMode),{cache:'no-store',signal});
+    const data=await response.json();
+    if(!response.ok||!data.ok||!data.route)throw Error(data.error||'ROUTE_UNAVAILABLE');
+    if(data.route.originCode!==originCode)throw Error('ORIGIN_MISMATCH');
+    return {station,route:data.route};
+   }catch(error){
+    return {station,route:null,error:String(error.message||'ROUTE_UNAVAILABLE')};
+   }
+  }));
+  if(signal.aborted)return;
+  setRouteOptions(checks);
+  const preferred=preferredRouteOption(checks,chosenMode);
+  if(preferred){setRoute(preferred.route);setSelectedRouteCode(preferred.station.code);}
+  else setError(t.compareFailed);
+ }
+ async function updateMode(value){
+  if(value===mode||loading)return;
+  setMode(value);setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);
+  const candidates=place?.stations?.length?place.stations:place?.station?[place.station]:[];
+  if(!candidates.length)return;
+  requestRef.current?.abort();
+  const ctrl=new AbortController();requestRef.current=ctrl;
+  try{await compareOfficialRoutes(candidates,ctrl.signal,value);}
+  catch(error){if(!ctrl.signal.aborted)setError(error.message||t.fail);}
+  finally{if(requestRef.current===ctrl){requestRef.current=null;setLoading('');}}
+ }
+ function selectComparedRoute(option){
+  if(!option?.route||loading)return;
+  setRoute(option.route);setSelectedRouteCode(option.station.code);
+  requestAnimationFrame(()=>resultRef.current?.scrollIntoView({block:'start',behavior:'smooth'}));
+ }
+ async function perform(){
   const term=query.trim();
   if(!term||loading)return;
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;
-  setFocused(false);setError('');setRoute(null);setPlace(null);
+  setFocused(false);setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);setPlace(null);
   const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
   try{
-   if(!forcePlace&&(picked||exact)){
+   if(picked||exact){
     await lookupRoute(picked||exact,ctrl.signal);
     return;
    }
@@ -86,10 +123,11 @@ export default function UnifiedRouteLab(){
    if(!response.ok||!result.ok)throw Error(result.error||t.fail);
    if(ctrl.signal.aborted)return;
    setPlace(result);
-   if(result.status==='found'&&result.station){
-    await lookupRoute(result.station,ctrl.signal);
+   const candidates=Array.isArray(result.stations)&&result.stations.length?result.stations:result.station?[result.station]:[];
+   if(result.status==='found'&&candidates.length){
+    await compareOfficialRoutes(candidates,ctrl.signal);
    }
-  }catch(e){if(!ctrl.signal.aborted)setError(e.message||t.fail);}
+  }catch(error){if(!ctrl.signal.aborted)setError(error.message||t.fail);}
   finally{if(requestRef.current===ctrl){requestRef.current=null;setLoading('');}}
  }
  const routeStation=name=>officialStationName(name,lang,stationName);
