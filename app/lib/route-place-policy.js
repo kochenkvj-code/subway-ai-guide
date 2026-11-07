@@ -48,10 +48,15 @@ export function parsePlaceAnswer(raw,complete=true){
  const routeEntries=metadata.filter(e=>e.kind==='route');
  const menuEntries=metadata.filter(e=>e.kind==='menu');
  const validMenu=menuEntries.length===0||(menuEntries.length===1&&menuEntries[0].index===last&&menuEntries[0].value==='route');
+ const tailEnd=menuEntries.length?last-1:last;
  const validRoute=complete&&answer&&metadata.length===routeEntries.length+menuEntries.length&&
-  routeEntries.length===1&&validMenu&&
-  routeEntries[0].index===(menuEntries.length?last-1:last);
- const station=validRoute?resolveOfficialStop(routeEntries[0].value):null;
- return {status:station?'found':'unverified',answer,place:'',station,reason:'',walk:'',
+  routeEntries.length>=1&&routeEntries.length<=2&&validMenu&&
+  routeEntries.every((entry,i)=>entry.index===tailEnd-routeEntries.length+1+i);
+ // Do not infer station candidates from prose. A malformed or unsupported
+ // official station name cannot trigger an automatic route search.
+ const resolved=validRoute?routeEntries.map(entry=>resolveOfficialStop(entry.value)):[];
+ const stations=resolved.every(Boolean)?resolved.filter((station,i)=>resolved.findIndex(x=>x.ko===station.ko)===i):[];
+ const station=stations[0]||null;
+ return {status:station?'found':'unverified',answer,place:'',station,stations,reason:'',walk:'',
   recommendedMenu:station?'route':null};
 }
