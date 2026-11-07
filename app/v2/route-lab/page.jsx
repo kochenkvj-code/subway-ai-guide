@@ -187,6 +187,7 @@ export default function UnifiedRouteLab(){
      <div className="rl-section-kicker">✦ GEMINI · GOOGLE SEARCH</div><h2>{t.aiTitle}</h2>
      {place.place&&<h3 className="rl-place-name">{place.place}</h3>}
      <p className="rl-ai-answer">{place.answer||t.unknown}</p>
+     {timings.aiMs!==null&&<p className="rl-timing" aria-label="Query processing times"><span>{t.aiTime} {(timings.aiMs/1000).toFixed(1)}s</span>{Object.keys(timings.routes).length>0&&<span> · {t.routeTime} {(Math.max(...Object.values(timings.routes))/1000).toFixed(1)}s</span>}</p>}
      {place.status==='found'&&(place.stations?.length||place.station)?<>
        <div className="rl-recommend rl-compare">
         <div className="rl-compare-title"><strong>{t.compare}</strong>{loading==='route'&&<small>{t.compareLoading}</small>}</div>
