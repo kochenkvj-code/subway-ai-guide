@@ -18,7 +18,7 @@ await moduleUnderTest.link(specifier=>{
   return new SyntheticModule(['default'],function(){this.setExport('default',fixture);});
 });
 await moduleUnderTest.evaluate();
-const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey,followStops}=moduleUnderTest.namespace;
+const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey}=moduleUnderTest.namespace;
 
 const now=Date.parse('2026-10-31T18:20:00+09:00');
 const date='2026-10-31',time='18:10',line='1',station='종로5가',next='동대문';
@@ -98,41 +98,11 @@ test('current line-4 names resolve the same topology and directions without chan
  assert.equal(expectedLiveDirection('4','총신대입구','사당'),expectedLiveDirection('4','이수','사당'));
  assert.equal(trainStationKey('7','이수'),'이수');assert.equal(supportsStation('7','총신대입구'),false);
 });
-test('all selectable master stations have topology, while external line-8 stations are routing-only',async()=>{
+test('all master entries keep their own graph identity; missing topology is never replaced by Jongno',async()=>{
  const master=JSON.parse(await readFile(new URL('../app/data/seoulMetroStationMaster.json',import.meta.url),'utf8'));
  const missing=master.stations.filter(s=>!supportsStation(s.line,s.names.ko));
- assert.deepEqual(missing.map(s=>s.stationCode),[]);
- assert.deepEqual(stationNeighbors('8','암사역사공원'),['장자호수공원','암사']);
- assert.equal(master.stations.filter(s=>s.line==='8').length,19);
- const externallyOperated=['장자호수공원','구리','동구릉','다산','별내'];
- for(const name of externallyOperated){
-  assert.equal(supportsStation('8',name),true);
-  assert.equal(master.stations.some(s=>s.line==='8'&&s.names.ko===name),false);
- }
-});
-test('line 8 extends toward Byeollae from both Seoul Metro boundary stations',()=>{
- assert.deepEqual(stationNeighbors('8','암사'),['암사역사공원','천호']);
- assert.equal(expectedLiveDirection('8','암사','암사역사공원'),'0');
- assert.equal(expectedLiveDirection('8','암사','천호'),'1');
- assert.equal(expectedLiveDirection('8','암사역사공원','장자호수공원'),'0');
- assert.equal(expectedLiveDirection('8','암사역사공원','암사'),'1');
- assert.equal(expectedLiveDirection('8','별내','다산'),'1');
- assert.deepEqual(followStops('8','암사','암사역사공원',8).stops,
-  ['암사역사공원','장자호수공원','구리','동구릉','다산','별내']);
- assert.equal(reachableTrainStations('8','암사','암사역사공원').distances.get('별내').distance,6);
- assert.equal(reachableTrainStations('8','암사역사공원','암사').distances.get('모란').distance,18);
- assert.equal(trainStationKey('8','천호(풍납토성)'),'천호');
- assert.equal(trainStationKey('8','몽촌토성(평화의문)'),'몽촌토성');
- assert.equal(trainStationKey('8','남한산성입구(성남법원,검찰청)'),'남한산성입구');
-});
-test('line 8 lost-train matching recognizes a position beyond the operating boundary',()=>{
- const when=Date.parse('2026-10-31T18:20:00+09:00');
- const result=findLiveCandidates([{
-  trainNo:'8088',line:'8',station:'구리',direction:'0',
-  receivedAt:new Date(when).toISOString(),express:false,status:'1'
- }],{date:'2026-10-31',time:'18:12',line:'8',station:'암사',next:'암사역사공원',now:when});
- assert.equal(result.candidates[0]?.number,'8088');
- assert.equal(result.candidates[0]?.stopsFromAlight,3);
+ assert.deepEqual(missing.map(s=>s.stationCode),['2810']);
+ assert.equal(stationNeighbors('8','암사역사공원').length,0);
 });
 test('renamed provider positions are matched under their actual line and train number',()=>{
  const dir=expectedLiveDirection('4','상계','당고개');

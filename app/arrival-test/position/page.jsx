@@ -27,7 +27,9 @@ export default function PositionTest(){
  },[line]);
  function choose(next){setCode(next);const u=new URL(location.href);u.searchParams.set('station',next);u.searchParams.delete('line');history.replaceState(null,'',u.pathname+u.search);}
  function navigate(next){setView(next);const u=new URL(location.href);next==='details'?u.searchParams.set('view','details'):u.searchParams.delete('view');history.pushState(null,'',u.pathname+u.search);window.scrollTo(0,0);}
- const all=data?.raw?.realtimePositionList||[],{groups,supported}=positionGroups(all,line,station?.names.ko,graph,directions);
+ const all=data?.raw?.realtimePositionList||[],{groups:sourceGroups,supported}=positionGroups(all,line,station?.names.ko,graph,directions);
+ const order=line==='2'?['0','1']:['1','0'];
+ const groups=[...sourceGroups].sort((a,b)=>order.indexOf(a.dir)-order.indexOf(b.dir));
  const status=r=>({'0':t.entry,'1':t.arrived,'2':t.left,'3':t.previousLeft}[String(r.trainSttus)]||String(r.trainSttus??'—'));
  const message=item=>positionMessage(item,lang);
  const destination=r=>positionDestination(r.statnTnm,lang,stationName);

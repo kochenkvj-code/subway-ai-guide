@@ -6,8 +6,7 @@ import directions from '../data/trainLostDirection.json';
 const clean=value=>String(value||'').trim().replace(/역$/,'');
 // Keep the existing graph/direction data intact; these verified line-4 names
 // refer to the same stations in its older station-name vocabulary.
-export const trainStationKey=(line,value)=>Number(line)===4?({'불암산':'당고개','총신대입구':'이수','총신대입구(이수)':'이수'}[clean(value)]||clean(value)):
-  Number(line)===8?clean(value).replace(/\s*[（(][^()（）]*[)）]$/,''):clean(value);
+export const trainStationKey=(line,value)=>Number(line)===4?({'불암산':'당고개','총신대입구':'이수','총신대입구(이수)':'이수'}[clean(value)]||clean(value)):clean(value);
 export const trainStationDisplay=(line,value)=>Number(line)===4?({'당고개':'불암산','이수':'총신대입구'}[clean(value)]||clean(value)):clean(value);
 export const stationNeighbors=(line,station)=>graph[Number(line)+'호선']?.[trainStationKey(line,station)]||[];
 export const supportsStation=(line,station)=>stationNeighbors(line,station).length>0;

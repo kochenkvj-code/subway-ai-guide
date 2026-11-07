@@ -35,22 +35,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
   // A local alighting-station change does not change the app/QR base station.
   fixture={name:'종각',line:'1',next:''};await p.goto('http://localhost:3036/v2?station=0152&view=lost');await p.locator('.tf-selected button').click();await p.locator('.tf-station-picker input').fill('동묘앞');fixture={name:'동묘앞',line:'6',next:''};await p.locator('.tf-matches button').filter({hasText:'6호선'}).click();assert.ok((await p.locator('.tf-selected').innerText()).includes('6호선'));assert.equal(new URL(p.url()).searchParams.get('station'),'0152');assert.equal(await p.locator('.tf-board').count(),0);
   await p.locator('.v2-view-header > button').filter({hasText:'홈'}).click();await p.locator('.v2-grid button').filter({hasText:'열차 내 유실물'}).click();await p.locator('.tf-selected').waitFor();assert.ok((await p.locator('.tf-selected').innerText()).includes('종각'));
-  fixture={name:'암사역사공원',line:'8',next:''};
-  const before=calls.length;
-  await p.goto('http://localhost:3036/v2?station=2810&view=lost');
-  await p.locator('.tf-selected').waitFor();
-  assert.ok((await p.locator('.tf-selected').innerText()).includes('암사역사공원'));
-  assert.equal(await p.locator('.tf-direction-options button').count(),2);
-  assert.equal(calls.length,before);
-  fixture.next='장자호수공원';
-  await p.locator('.tf-direction-options button').filter({hasText:'장자호수공원'}).click();
-  await p.locator('[data-tf-origin="true"]').waitFor();
-  assert.equal(await p.locator('.tf-h-stop').nth(1).getAttribute('data-tf-station'),'장자호수공원');
-  await p.locator('.tf-candidate-chips button').first().waitFor();
-  await p.locator('.tf-selected button').click();
-  await p.locator('.tf-station-picker input').fill('구리');
-  assert.equal(await p.locator('.tf-matches button').filter({hasText:'8호선'}).count(),0);
-  assert.ok((await p.locator('.tf-selected').innerText()).includes('암사역사공원'));
-  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS six entry stations/lines, direction → correct diagram and candidates, time-change refetch/reset, manual station override, home reset, four languages at 320/390px, URL line override ignored, Amsa History Park has both directions; Byeollae stations are routing-only');
+  const before=calls.length;await p.goto('http://localhost:3036/v2?station=2810&view=lost');await p.locator('.tf-selected').waitFor();assert.ok((await p.locator('.tf-selected').innerText()).includes('암사역사공원'));assert.equal(await p.locator('.tf-direction-options button').count(),0);assert.ok((await p.locator('.tf-warning').innerText()).includes('아직 연결'));assert.equal(calls.length,before);
+  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS six entry stations/lines, direction → correct diagram and candidates, time-change refetch/reset, manual station override, home reset, four languages at 320/390px, URL line override ignored, unsupported station never becomes Jongno');
  }finally{await browser?.close();child.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

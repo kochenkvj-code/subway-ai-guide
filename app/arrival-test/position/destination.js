@@ -1,22 +1,8 @@
 // The position API's statnTnm may include a service qualifier, not just a name.
 const qualifiers={종착:{ko:'종착',en:'Terminus',ja:'終着',zh:'终到'},지선:{ko:'지선',en:'Branch',ja:'支線',zh:'支线'},내선:{ko:'내선',en:'Inner',ja:'内回り',zh:'内环'},외선:{ko:'외선',en:'Outer',ja:'外回り',zh:'外环'},급행:{ko:'급행',en:'Express',ja:'急行',zh:'快速'}};
-export function positionDestination(raw,lang,stationName,line,direction){
+export function positionDestination(raw,lang,stationName){
  const original=String(raw??'').trim();
  if(!original)return {name:'—',qualifier:'',bound:'—',full:'—'};
- // Only compact line-2 summary labels are adapted. Keep original
- // statnTnm untouched for detail cards and JSON diagnostics.
- if(String(line)==='2'){
-  const isSeongsuMain=/^성수(?:종착|행)?$/.test(original);
-  const isSeongsuBranch=original==='성수지선';
-  if(isSeongsuMain||isSeongsuBranch){
-   const name=lang==='ko'?'성수':stationName('성수',lang,false)||'성수';
-   const qualifier=isSeongsuBranch?qualifiers.지선[lang]:
-    String(direction)==='0'?qualifiers.내선[lang]:
-    String(direction)==='1'?qualifiers.외선[lang]:'';
-   const bound=lang==='ko'?'성수행':lang==='ja'?name+'行き':lang==='zh'?'开往'+name:name;
-   return {name,qualifier,bound,full:bound+(qualifier?' · '+qualifier:'')};
-  }
- }
  let base=original,qualifier='';
  if(!stationName(base,'en',false)&&base.endsWith('행')&&stationName(base.slice(0,-1),'en',false))base=base.slice(0,-1);
  const match=base.match(/^(.*?)\s*(?:\((종착|지선|내선|외선|급행)\)|(종착|지선|내선|외선|급행))$/);
