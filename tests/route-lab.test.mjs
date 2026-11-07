@@ -148,3 +148,9 @@ test('V2 chatbot and existing menu are untouched; AI prompt asks for at most two
  const guide=await read('app/components/GuideExperience.jsx');
  assert.match(guide,/SubwayRouteCard/);
 });
+
+test('station recommendation cards share the full width as two equal grid columns',()=>{
+ assert.match(css,/\.rl-recommend\s*>\s*\.rl-compare-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\);gap:9px;width:100%/);
+ assert.match(css,/\.rl-compare-grid:has\(> :only-child\)\{grid-template-columns:1fr\}/);
+ assert.match(page,/className="rl-compare-grid"/);
+});
