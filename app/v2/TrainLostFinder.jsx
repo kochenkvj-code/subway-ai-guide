@@ -27,6 +27,12 @@ const korea=(minutesAgo=0)=>{
 };
 const fmt=(name,lang,line)=>stationName(trainStationDisplay(line,name),lang)||name;
 const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
+// Live routes may include stations outside the operator's jurisdiction.
+// Those stations are valid for train-location calculations, not as user
+// selectable alighting/base stations. Keep this constraint independent of
+// the complete line-8 topology used by train-lost.js.
+const selectableLine8=new Set(stationMaster.filter(s=>s.line==='8').map(s=>trainStationKey('8',s.names.ko)));
+const selectableAlightingStation=(line,name)=>String(line)!=='8'||selectableLine8.has(trainStationKey('8',name));
 function kstAlightDateForTime(time){
  const today=korea().date;
  const todayMs=Date.parse(today+'T'+time+':00+09:00');
