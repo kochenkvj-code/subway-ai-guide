@@ -39,6 +39,7 @@ async function getToken(){
  return result.token;
 }
 export async function POST(request){
+ const startedAt=Date.now();
  try{
   const origin=request.headers.get('origin');
   if(origin&&origin!==new URL(request.url).origin)return respond({ok:false,error:'ORIGIN_REJECTED'},403);
@@ -55,7 +56,10 @@ export async function POST(request){
   // Share the exact core prompt, grounding and output-language policy with V2 AI chat.
   // Only the final, optional route-station recommendation differs.
   const prompt=buildV2RoutePrompt(query,lang,station,languageOutputRule(lang));
+  const authStartedAt=Date.now();
   const access=await getToken();
+  const authMs=Date.now()-authStartedAt;
+  const geminiStartedAt=Date.now();
   const result=await fetch(`https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}/locations/global/publishers/google/models/gemini-3.5-flash-lite:generateContent`,{
    method:'POST',headers:{Authorization:'Bearer '+access,'Content-Type':'application/json; charset=utf-8',Accept:'application/json'},
    body:JSON.stringify({
@@ -67,6 +71,7 @@ export async function POST(request){
   });
   if(!result.ok)return respond({ok:false,error:'AI_UPSTREAM_ERROR'},502);
   const data=await result.json();
+  const geminiMs=Date.now()-geminiStartedAt;
   const candidate=data.candidates?.[0],complete=candidate?.finishReason==='STOP';
   const text=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim()||'';
   const parsed=parsePlaceAnswer(text,complete);
@@ -75,9 +80,9 @@ export async function POST(request){
   // A search-grounded answer may not expose a groundingChunks array. Lack of
   // citation cards is not evidence that the station recommendation was wrong.
   if(!parsed.answer)return respond({ok:false,error:'AI_FORMAT_ERROR'},502);
-  return respond({ok:true,...parsed,place:query,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[]});
+  return respond({ok:true,...parsed,place:query,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
  }catch(error){
-  console.error('[route-place-test]',error?.name||'Error');
+  console.error('[route-place-test]',error?.name||'Error','elapsedMs',Date.now()-startedAt);
   return respond({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);
  }
 }
