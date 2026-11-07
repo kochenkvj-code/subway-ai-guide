@@ -165,7 +165,7 @@ test('route lab responds with AI explanation first, progressively reveals first 
  assert.match(page,/disabled=\{!option\?\.route\|\|loading==='place'\}/);
  assert.match(page,/AbortSignal\.timeout\(6000\)/);
  assert.match(page,/timings\.aiMs\/1000/);
- assert.match(api,/geminiMs:Date\.now\(\)-geminiStartedAt/);
+ assert.match(api,/const geminiMs=Date\.now\(\)-geminiStartedAt/);
  assert.match(api,/timings:\{authMs,geminiMs,totalMs:/);
 });
 test('prompt defaults to one station without extra searches and preserves a truly obvious second',()=>{
