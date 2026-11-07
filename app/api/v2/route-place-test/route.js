@@ -76,7 +76,7 @@ export async function POST(request){
    const encoder=new TextEncoder();
    const stream=new ReadableStream({
     async start(controller){
-     const send=(kind,value)=>controller.enqueue(encoder.encode('data: '+JSON.stringify({kind,...value})+'\\n\\n'));
+     const send=(kind,value)=>controller.enqueue(encoder.encode('data: '+JSON.stringify({kind,...value})+'\n\n'));
      try{
       const upstream=await fetch(endpoint+':streamGenerateContent?alt=sse',options);
       if(!upstream.ok||!upstream.body)throw Error('AI_UPSTREAM_ERROR');
@@ -104,7 +104,7 @@ export async function POST(request){
        for(const frame of split.frames)handleData(frame);
       }
       buffer+=decoder.decode();
-      const trailing=splitPlaceStreamFrames(buffer+'\\n\\n');
+      const trailing=splitPlaceStreamFrames(buffer+'\n\n');
       for(const frame of trailing.frames)handleData(frame);
       const parsed=parsePlaceAnswer(rawAnswer,complete);
       if(!parsed.answer)throw Error('AI_FORMAT_ERROR');
