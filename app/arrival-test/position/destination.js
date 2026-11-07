@@ -1,11 +1,11 @@
 // The position API's statnTnm may include a service qualifier, not just a name.
 const qualifiers={종착:{ko:'종착',en:'Terminus',ja:'終着',zh:'终到'},지선:{ko:'지선',en:'Branch',ja:'支線',zh:'支线'},내선:{ko:'내선',en:'Inner',ja:'内回り',zh:'内环'},외선:{ko:'외선',en:'Outer',ja:'外回り',zh:'外环'},급행:{ko:'급행',en:'Express',ja:'急行',zh:'快速'}};
-export function positionDestination(raw,lang,stationName,line,direction){
+export function positionDestination(raw,lang,stationName,line,direction,trainNo){
  const original=String(raw??'').trim();
  if(!original)return {name:'—',qualifier:'',bound:'—',full:'—'};
  // Only the position-test line 2 display is changed. "성수종착" is
  // not evidence that a particular train ends its service at Seongsu.
- if(String(line)==='2'&&/^성수(?:\s*(?:종착|행|\(종착\)))?$/.test(original)&&['0','1'].includes(String(direction))){
+ if(String(line)==='2'&&!/^[15]\d{3}$/.test(String(trainNo||''))&&/^성수(?:\s*(?:종착|행|\(종착\)))?$/.test(original)&&['0','1'].includes(String(direction))){
   const name=lang==='ko'?'성수':stationName('성수',lang,false)||'성수';
   const directionLabel=String(direction)==='0'
    ?({ko:'내선',en:'Inner loop',ja:'内回り',zh:'内环'})[lang]
