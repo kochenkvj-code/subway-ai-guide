@@ -37,8 +37,8 @@ test('line 2 outer loop still approaches Konkuk Univ. from Guui and Gangbyeon',(
  assert.equal(outer.find(item=>item.row.trainNo==='2087').stops,1);
  assert.equal(outer.find(item=>item.row.trainNo==='2089').stops,2);
 });
-test('branch trains are not allowed onto the line 2 main loop',()=>{
- const outer=candidates([train('1547','용답','1',{statnTnm:'성수종착'})],'1');
+test('explicit line 2 branch service keeps its own branch path',()=>{
+ const outer=candidates([train('1547','용답','1',{statnTnm:'성수지선'})],'1');
  assert.equal(outer.length,0);
 });
 test('a departed train at the selected station is not approaching',()=>{
@@ -57,4 +57,19 @@ test('Seongsu mainline label displays direction only in summary, not raw details
  const page=await load('app/arrival-test/position/page.jsx');
  assert.match(page,/<dd>\{r\.statnTnm\|\|'—'\}<\/dd>/);
  assert.match(page,/g\.candidates\.map\(\(\{row:r,stops\},i\)=>/);
+});
+
+test('an upstream train remains visible even if it terminates before the selected station',()=>{
+ const row={subwayId:'1001',trainNo:'1023',statnNm:'동대문',updnLine:'0',statnTnm:'동묘앞종착',trainSttus:'1',recptnDt:at};
+ const group=positionGroups([row],'1','신설동',graph,directions).groups.find(g=>g.dir==='0');
+ assert.equal(group.candidates.length,1);
+ assert.equal(group.candidates[0].stops,2);
+ assert.equal(group.candidates[0].row.statnTnm,'동묘앞종착');
+});
+test('an upstream train can remain visible even if its destination diverges before the selected station',()=>{
+ const row={subwayId:'1005',trainNo:'5789',statnNm:'광나루',updnLine:'1',statnTnm:'둔촌동종착',trainSttus:'1',recptnDt:at};
+ const group=positionGroups([row],'5','길동',graph,directions).groups.find(g=>g.dir==='1');
+ assert.equal(group.candidates.length,1);
+ assert.equal(group.candidates[0].stops,3);
+ assert.equal(group.candidates[0].row.statnTnm,'둔촌동종착');
 });
