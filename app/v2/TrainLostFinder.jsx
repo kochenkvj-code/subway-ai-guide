@@ -90,7 +90,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const selectionLabel=defaultNames&&selection.line===String(defaultLine)&&trainStationKey(selection.line,selection.name)===trainStationKey(defaultLine,defaultStation)?defaultNames[lang]||defaultNames.ko:fmt(trainStationDisplay(selection.line,selection.name),lang);
  const requiredDirection=expectedLiveDirection(selection.line,selection.name,next);
  const lines=useMemo(()=>Array.from({length:9},(_,i)=>String(i+1)).filter(line=>supportsStation(line,selection.name)),[selection.name]);
- const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name))):[],[query,lang]);
+ const matches=useMemo(()=>query.trim()?officialStationMatches(query,lang,15).flatMap(s=>(s.lines||[s.line]).map(l=>({name:s.ko.replace(/역$/,''),line:String(Number(l.match(/(\d+)호선/)?.[1]||0)),display:s[lang]||s.ko})).filter(s=>supportsStation(s.line,s.name)&&selectableAlightingStation(s.line,s.name))):[],[query,lang]);
  useEffect(()=>{if(next&&!neighbors.includes(next))setNext('');},[neighbors,next]);
 
  function resetMatches(){lookupAbort.current?.abort();trackedTrainRef.current='';arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setHandoffUnknown(false);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
