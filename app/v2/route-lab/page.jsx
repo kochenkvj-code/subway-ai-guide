@@ -4,6 +4,7 @@ import {getStationByCode,searchStationMaster} from '../../lib/station-master';
 import {officialStationMatches,officialStationName} from '../../lib/officialStations';
 import {stationName,lineName,directionName} from '../../lib/stationNameI18n';
 import {preferredRouteOption} from '../../lib/route-compare';
+import {splitPlaceStreamFrames,visiblePlaceDraft} from '../../lib/route-place-stream';
 import './route-lab.css';
 
 const COPY={
@@ -25,6 +26,44 @@ function buildRouteUrl(origin,destination,mode){
  const params=new URLSearchParams({station:origin,to:destination.ko,toCode:destination.code,mode});
  return '/api/subway-route?'+params;
 }
+/**
+ * Show a progressively generated natural-language response; only the final
+ * official station whitelist validation may trigger subway route requests.
+ */
+async function readRoutePlaceStream(response,signal,onDraft){
+ if(!response.body)throw Error('AI_STREAM_UNAVAILABLE');
+ const reader=response.body.getReader(),decoder=new TextDecoder();
+ let buffer='',rawAnswer='',previousDraft='';
+ function processFrame(frame){
+  let packet;try{packet=JSON.parse(frame);}catch{throw Error('AI_STREAM_FORMAT_ERROR');}
+  if(packet.kind==='error')throw Error(packet.error||'AI_UNAVAILABLE');
+  if(packet.kind==='result')return packet.data;
+  if(packet.kind==='delta'){
+   rawAnswer+=String(packet.text||'');
+   const visible=visiblePlaceDraft(rawAnswer);
+   if(visible&&visible!==previousDraft&&!signal.aborted){
+    previousDraft=visible;
+    onDraft(visible);
+   }
+  }
+  return null;
+ }
+ try{
+  while(!signal.aborted){
+   const {done,value}=await reader.read();
+   if(done)break;
+   buffer+=decoder.decode(value,{stream:true});
+   const frames=splitPlaceStreamFrames(buffer);
+   buffer=frames.remainder;
+   for(const frame of frames.frames){
+    const result=processFrame(frame);
+    if(result)return result;
+   }
+  }
+  throw Error('AI_STREAM_INTERRUPTED');
+ }finally{reader.releaseLock();}
+}
+
 export default function UnifiedRouteLab(){
  const [lang,setLang]=useState('ko'),[originCode,setOriginCode]=useState('0154');
  const [originOpen,setOriginOpen]=useState(false),[originQuery,setOriginQuery]=useState('');
@@ -140,11 +179,17 @@ export default function UnifiedRouteLab(){
    setLoading('place');
    const aiStartedAt=performance.now();
    const response=await fetch('/api/v2/route-place-test',{
-    method:'POST',headers:{'Content-Type':'application/json'},
+    method:'POST',headers:{'Content-Type':'application/json',Accept:'text/event-stream'},
     body:JSON.stringify({query:term,lang,stationCode:originCode}),signal:ctrl.signal,cache:'no-store'
    });
-   const result=await response.json();
-   if(!response.ok||!result.ok)throw Error(result.error||t.fail);
+   if(!response.ok){
+    const failure=await response.json().catch(()=>({}));
+    throw Error(failure.error||t.fail);
+   }
+   const result=response.headers.get('content-type')?.includes('text/event-stream')?
+    await readRoutePlaceStream(response,ctrl.signal,answer=>setPlace({status:'loading',answer,place:term,sources:[]})):
+    await response.json();
+   if(!result.ok)throw Error(result.error||t.fail);
    if(ctrl.signal.aborted)return;
    // Display Gemini guidance immediately, before either subway route returns.
    setPlace(result);
@@ -211,7 +256,7 @@ export default function UnifiedRouteLab(){
        </div>
        {place.walk&&<p className="rl-last-mile"><strong>↗ {t.walk}</strong><span>{place.walk}</span></p>}
        <button className="rl-change-stop" type="button" onClick={()=>{changeQuery('');setFocused(true);document.getElementById('rl-destination')?.focus();}}>{t.other} →</button>
-      </>:<div className="rl-unverified">{t.unknown}</div>}
+      </>:place.status==='loading'?null:<div className="rl-unverified">{t.unknown}</div>}
       {place.sources?.length>0&&<div className="rl-sources"><strong>{t.sources}</strong>{place.sources.map((s,i)=><a key={i} href={s.url} target="_blank" rel="noreferrer noopener">{s.title||'Source'} ↗</a>)}</div>}
    </section>}
    {route&&<section ref={resultRef} className="rl-result-card rl-route-card" aria-live="polite">
