@@ -21,7 +21,7 @@ test('compact detail view renders two directions side-by-side and exactly two ro
 test('detail keeps original information and per-train raw JSON',()=>{
  assert.match(page,/positionDestination\(r\.statnTnm,lang,stationName,station\?\.line,r\.updnLine\)\.full/);
  assert.match(page,/\{value\(r\.trainNo\)\}/);
- assert.match(page,/\{stationName\(r\.statnNm,lang\)/);
+ assert.match(page,/\{positionStation\(r\.statnNm,lang,stationName\)/);
  assert.match(page,/JSON\.stringify\(r,null,2\)/);
  assert.match(page,/title=\{value\(r\.recptnDt\)\}/);
  assert.match(page,/onClick=\{\(\)=>changeView\('details'\)\}/);
