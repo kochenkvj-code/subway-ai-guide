@@ -11,5 +11,13 @@ test('remaining stops come only from position, regardless of station status',()=
  for(const state of ['0','1','2','3','99'])for(const [lang,one,three] of [['ko','1 정거장','3 정거장'],['en','1 stop','3 stops'],['ja','1駅前','3駅前'],['zh','前方1站','前方3站']]){
  assert.equal(message(1,state,lang),one);assert.equal(message(3,state,lang),three);
  }
- assert.equal(message(0,'3','ko'),'3','an unhandled status must not invent a one-stop distance');
+ assert.equal(message(0,'3','ko'),'전역 출발','the previous-station departure state is localized');
+ assert.equal(message(0,'99','ko'),'—','an unknown provider code is not shown raw');
+});
+
+test('previous station departure has short labels in every supported language',()=>{
+ for(const [lang,label] of [['ko','전역 출발'],['en','Prev. left'],['ja','前駅発'],['zh','前站发车']])
+  assert.equal(message(0,'3',lang),label);
+ for(const lang of ['ko','en','ja','zh'])
+  assert.equal(message(0,'2',lang),'—','departures at the selected station are removed from the list');
 });

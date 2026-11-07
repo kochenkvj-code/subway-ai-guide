@@ -4,6 +4,9 @@ export function positionGroups(rows,line,station,graph,directions){
  // On line 2, the direction table describes the circular main line only.
  // Stations absent from it belong to a Seongsu or Sindorim shuttle branch.
  const line2=String(line)==='2',mainLineStations=line2?new Set(Object.keys(edges)):null;
+ // The five Eungam-loop stations have one physical running direction.
+ // Separate upstream Eungam-circle trains (0) from trains inside the loop (1).
+ const line6Loop=String(line)==='6'?['역촌','불광','독바위','연신내','구산']:null;
  const key=value=>{
   let name=String(value||'').trim().replace(/역$/,'');
   if(String(line)==='4')name=({'불암산':'당고개','총신대입구':'이수','총신대입구(이수)':'이수'})[name]||name;
@@ -18,8 +21,18 @@ export function positionGroups(rows,line,station,graph,directions){
   }
   return Infinity;
  }
- function distance(origin,dir,end=target,terminus=null,branchService=false){
+ function distance(origin,dir,end=target,terminus=null,branchService=false,rawDestination=''){
   if(!network[end]||!network[origin])return null;
+  if(line6Loop&&line6Loop.includes(end)){
+   const targetIndex=line6Loop.indexOf(end),originIndex=line6Loop.indexOf(origin);
+   // A train already past the selected loop station must not circle backwards.
+   if(dir==='1')return originIndex>=0&&originIndex<=targetIndex?targetIndex-originIndex:null;
+   // Upstream Eungam-circle service is shown as a position hint, not a
+   // guaranteed through train. Do not include ordinary Eungam terminators.
+   if(dir!=='0'||originIndex>=0||!/응암\s*순환/.test(String(rawDestination)))return null;
+   const toEungam=origin==='응암'?0:distance(origin,'0','응암',terminus,branchService,rawDestination);
+   return toEungam===null?null:toEungam+targetIndex+1;
+  }
   const startsOnBranch=line2&&!mainLineStations.has(origin);
   const startsAtJunction=line2&&!startsOnBranch&&(network[origin]||[]).some(next=>!mainLineStations.has(next));
   const queue=[[origin,0]],seen=new Set([origin]);
@@ -81,7 +94,7 @@ export function positionGroups(rows,line,station,graph,directions){
    const origin=key(row.statnNm),terminus=routeTerminus(row.statnTnm);
    const branchService=line2&&(/지선/.test(String(row.statnTnm||''))||
     (terminus&&!mainLineStations.has(terminus)));
-   const stops=distance(origin,dir,target,terminus,branchService);
+   const stops=distance(origin,dir,target,terminus,branchService,row.statnTnm);
    if(stops===null)return;
    // Show trains currently ahead on the directed track, even if their
    // published destination is an earlier terminus or a diverging branch.

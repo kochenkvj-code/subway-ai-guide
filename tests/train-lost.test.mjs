@@ -139,3 +139,17 @@ test('renamed provider positions are matched under their actual line and train n
  const result=findLiveCandidates([{trainNo:'0123',line:'4',station:'불암산',direction:dir,receivedAt:new Date(now).toISOString(),express:false}],{now,date,time:'18:18',line:'4',station:'상계',next:'당고개'});
  assert.equal(result.candidates.length,1);assert.equal(result.candidates[0].number,'0123');
 });
+
+test('line 6 one-way loop directions are explicit and reject reversed choices',()=>{
+ const pairs=[['응암','역촌'],['역촌','불광'],['불광','독바위'],['독바위','연신내'],['연신내','구산'],['구산','응암']];
+ for(const [from,to] of pairs)assert.equal(expectedLiveDirection('6',from,to),'1',from+' → '+to);
+ for(const [from,to] of [['역촌','응암'],['불광','역촌'],['독바위','불광'],['연신내','독바위'],['구산','연신내'],['응암','구산']])
+  assert.equal(expectedLiveDirection('6',from,to),null,'reverse: '+from+' → '+to);
+ assert.equal(expectedLiveDirection('6','새절','응암'),'0');
+ assert.equal(expectedLiveDirection('6','응암','새절'),'1');
+ assert.deepEqual(followStops('6','역촌','불광',4).stops,['불광','독바위','연신내','구산']);
+ const stations=reachableTrainStations('6','역촌','불광');
+ assert.equal(stations.distances.get('구산').distance,4);
+ const fromGusan=reachableTrainStations('6','구산','응암');
+ assert.equal(fromGusan.distances.get('새절').distance,2);
+});

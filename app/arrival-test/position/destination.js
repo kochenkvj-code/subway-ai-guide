@@ -3,6 +3,19 @@ const qualifiers={종착:{ko:'종착',en:'Terminus',ja:'終着',zh:'终到'},지
 export function positionDestination(raw,lang,stationName,line,direction){
  const original=String(raw??'').trim();
  if(!original)return {name:'—',qualifier:'',bound:'—',full:'—'};
+ // Translate the line-6 Eungam-loop service label for presentation only.
+ const loop=String(line)==='6'&&original.match(/^응암\s*순환(?:\s*\(\s*(상선|하선)\s*\))?(?:행)?$/);
+ if(loop){
+  if(lang==='ko')return {name:original,qualifier:'',bound:original.endsWith('행')?original:original+'행',full:original};
+  const place=stationName('응암',lang,false);
+  const name=({en:place+' Loop',ja:place+'循環',zh:place+'循环'})[lang]||original;
+  const track=loop[1]?({
+   상선:{en:'Upper track',ja:'上線',zh:'上线'},
+   하선:{en:'Lower track',ja:'下線',zh:'下线'}
+  })[loop[1]]?.[lang]||'':'';
+  const bound=lang==='ja'?name+'行き':lang==='zh'?'开往'+name:name;
+  return {name,qualifier:track,bound,full:bound+(track?' · '+track:'')};
+ }
  // Only compact line-2 summary labels are adapted. Keep original
  // statnTnm untouched for detail cards and JSON diagnostics.
  if(String(line)==='2'){
@@ -24,7 +37,33 @@ export function positionDestination(raw,lang,stationName,line,direction){
   base=match[1].trim();qualifier=qualifiers[match[2]||match[3]][lang];
  }
  // Unknown labels stay readable in the original language, never a long error label.
- const name=lang==='ko'?base:stationName(base,lang,false)||original;
+ const translated=lang==='ko'?base:stationName(base,lang,false);
+ if(lang!=='ko'&&!translated&&/[가-힣]/.test(base)){
+  // Unknown source wording is available unchanged in the raw JSON.
+  const unavailable={en:'Destination unavailable',ja:'行先未登録',zh:'终点未登记'}[lang];
+  return {name:unavailable,qualifier:'',bound:unavailable,full:unavailable};
+ }
+ const name=translated||original;
  const bound=lang==='ko'?name+'행':lang==='ja'?name+'行き':lang==='zh'?'开往'+name:name;
  return {name,qualifier,bound,full:name+(qualifier?' · '+qualifier:'')};
+}
+
+export function positionStation(raw,lang,stationName){
+ const source=String(raw??'').trim();
+ if(!source)return '—';
+ if(lang==='ko')return source;
+ const match=source.match(/^(.+?)\s*\(\s*(상선|하선)(?:\s*[-–]\s*(종착|순환))?\s*\)$/);
+ if(!match)return stationName(source,lang);
+ const base=match[1].replace(/순환$/,'').trim();
+ const name=stationName(base,lang,false);
+ if(!name)return stationName(source,lang);
+ const track={
+  상선:{en:'Upper track',ja:'上線',zh:'上线'},
+  하선:{en:'Lower track',ja:'下線',zh:'下线'}
+ }[match[2]]?.[lang];
+ const service=match[3]?({
+  종착:{en:'Terminus',ja:'終着',zh:'终点'},
+  순환:{en:'Loop',ja:'循環',zh:'循环'}
+ })[match[3]]?.[lang]:'';
+ return name+' ('+[track,service].filter(Boolean).join(' · ')+')';
 }

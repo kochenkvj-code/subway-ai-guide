@@ -65,3 +65,33 @@ test('position grouping preserves upstream API row values without mutating them'
  assert.equal(JSON.stringify(row),before);
  assert.equal(result.groups.find(g=>g.dir==='0').trains[0].row.statnTnm,'성수지선');
 });
+
+test('line 6 loop stations use a one-way path and keep the original API direction',()=>{
+ const loop=['역촌','불광','독바위','연신내','구산'];
+ for(const [index,target] of loop.entries()){
+  const eungam=fixture('6','6116','응암','0','응암순환(상선)');
+  const sajeol={...eungam,trainNo:'6118',statnNm:'새절'};
+  const first=positionGroups([eungam,sajeol],'6',target,graph,directions).groups.find(g=>g.dir==='0');
+  assert.deepEqual(first.trains.map(x=>[x.row.trainNo,x.stops]),[['6116',index+1],['6118',index+2]],target);
+  assert.equal(first.trains[0].row.statnTnm,'응암순환(상선)');
+  assert.equal(first.trains[0].row.updnLine,'0');
+ }
+});
+test('line 6 loop does not show trains that have already passed the selected station',()=>{
+ assert.equal(distance('6','6125','독바위','1','봉화산','구산'),2);
+ assert.equal(distance('6','6125','연신내','1','봉화산','구산'),1);
+ for(const target of ['역촌','불광']){
+  assert.equal(distance('6','6125','연신내','1','봉화산',target),null,target);
+ }
+ assert.equal(distance('6','6125','응암','1','봉화산','역촌'),null,
+  'a returning train at Eungam is not a new Yeokchon arrival');
+});
+test('line 6 loop does not presume that an Eungam terminator runs around the loop',()=>{
+ assert.equal(distance('6','6116','응암','0','응암','역촌'),null);
+ assert.equal(distance('6','6116','응암','0','응암순환(상선)','역촌'),1);
+});
+test('line 6 ordinary Eungam arrivals remain intact',()=>{
+ assert.equal(distance('6','6116','새절','0','응암순환(상선)','응암'),1);
+ assert.equal(distance('6','6125','구산','1','봉화산','응암'),1);
+ assert.equal(distance('6','6125','연신내','1','봉화산','응암'),2);
+});

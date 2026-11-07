@@ -86,7 +86,13 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
  const [chosen,setChosen]=useState(null),[current,setCurrent]=useState(null),[liveInfo,setLiveInfo]=useState(''),[directionWarning,setDirectionWarning]=useState(false);
  const [copyStatus,setCopyStatus]=useState(false),[searched,setSearched]=useState(false),[lookupStats,setLookupStats]=useState(null);
- const neighbors=useMemo(()=>stationNeighbors(selection.line,selection.name),[selection.name,selection.line]);
+ const neighbors=useMemo(()=>{
+  const all=stationNeighbors(selection.line,selection.name);
+  // Only offer physically forward next stations on the one-way Eungam loop.
+  if(String(selection.line)==='6'&&['응암','역촌','불광','독바위','연신내','구산'].includes(trainStationKey(selection.line,selection.name)))
+   return all.filter(name=>expectedLiveDirection(selection.line,selection.name,name)!==null);
+  return all;
+ },[selection.name,selection.line]);
  const selectionLabel=defaultNames&&selection.line===String(defaultLine)&&trainStationKey(selection.line,selection.name)===trainStationKey(defaultLine,defaultStation)?defaultNames[lang]||defaultNames.ko:fmt(trainStationDisplay(selection.line,selection.name),lang);
  const requiredDirection=expectedLiveDirection(selection.line,selection.name,next);
  const lines=useMemo(()=>Array.from({length:9},(_,i)=>String(i+1)).filter(line=>supportsStation(line,selection.name)),[selection.name]);
