@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && next build",
+    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && npm run test:route-lab && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs tests/arrival-test-line2-branch-boundary.test.mjs tests/arrival-test-compact-layout.test.mjs tests/position-message.test.mjs tests/position-destination.test.mjs tests/v2-position-arrivals.test.mjs",
@@ -29,7 +29,8 @@
     "test:arrivals-ui": "node --experimental-vm-modules tests/multi-arrivals-ui.cjs",
     "test:v2-chat": "node --experimental-vm-modules --test tests/v2-chat-policy.test.mjs tests/v2-chat-api.test.mjs tests/chat-history.test.mjs tests/chat-provider.test.mjs tests/v2-comparison.test.mjs",
     "test:v2-chat-ui": "node tests/v2-chat-ui.cjs",
-    "test:v2-comparison-ui": "node tests/v2-comparison-ui.cjs"
+    "test:v2-comparison-ui": "node tests/v2-comparison-ui.cjs",
+    "test:route-lab": "node --experimental-vm-modules --test tests/route-lab.test.mjs"
   },
   "dependencies": {
     "next": "16.0.10",
