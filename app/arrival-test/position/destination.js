@@ -3,15 +3,19 @@ const qualifiers={종착:{ko:'종착',en:'Terminus',ja:'終着',zh:'终到'},지
 export function positionDestination(raw,lang,stationName,line,direction){
  const original=String(raw??'').trim();
  if(!original)return {name:'—',qualifier:'',bound:'—',full:'—'};
- // Only the position-test line 2 display is changed. "성수종착" is
- // not evidence that a particular train ends its service at Seongsu.
- if(String(line)==='2'&&original==='성수종착'&&['0','1'].includes(String(direction))){
-  const name=lang==='ko'?'성수':stationName('성수',lang,false)||'성수';
-  const directionLabel=String(direction)==='0'
-   ?({ko:'내선',en:'Inner loop',ja:'内回り',zh:'内环'})[lang]
-   :({ko:'외선',en:'Outer loop',ja:'外回り',zh:'外环'})[lang];
-  const bound=`${name} · ${directionLabel}`;
-  return {name,qualifier:'',bound,full:bound};
+ // Only compact line-2 summary labels are adapted. Keep original
+ // statnTnm untouched for detail cards and JSON diagnostics.
+ if(String(line)==='2'){
+  const isSeongsuMain=/^성수(?:종착|행)?$/.test(original);
+  const isSeongsuBranch=original==='성수지선';
+  if(isSeongsuMain||isSeongsuBranch){
+   const name=lang==='ko'?'성수':stationName('성수',lang,false)||'성수';
+   const qualifier=isSeongsuBranch?qualifiers.지선[lang]:
+    String(direction)==='0'?qualifiers.내선[lang]:
+    String(direction)==='1'?qualifiers.외선[lang]:'';
+   const bound=lang==='ko'?'성수행':lang==='ja'?name+'行き':lang==='zh'?'开往'+name:name;
+   return {name,qualifier,bound,full:bound+(qualifier?' · '+qualifier:'')};
+  }
  }
  let base=original,qualifier='';
  if(!stationName(base,'en',false)&&base.endsWith('행')&&stationName(base.slice(0,-1),'en',false))base=base.slice(0,-1);
