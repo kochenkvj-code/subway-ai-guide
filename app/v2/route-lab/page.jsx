@@ -69,28 +69,49 @@ export default function UnifiedRouteLab(){
  }
  async function compareOfficialRoutes(stations,signal,chosenMode=mode){
   setLoading('route');setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);
-  // Parallel official-API requests: no Gemini-generated travel times or transfers.
+  manualRouteSelectionRef.current=false;
+  setTimings(previous=>({...previous,routes:{}}));
+  // Each result is presented as soon as it finishes; a slow second station
+  // cannot block the first official subway path from becoming visible.
   const checks=await Promise.all(stations.slice(0,2).map(async station=>{
-   if(normalizeStation(station.ko)===normalizeStation(origin.names.ko))return {station,route:null,sameOrigin:true};
-   try{
-    const response=await fetch(buildRouteUrl(originCode,station,chosenMode),{cache:'no-store',signal});
-    const data=await response.json();
-    if(!response.ok||!data.ok||!data.route)throw Error(data.error||'ROUTE_UNAVAILABLE');
-    if(data.route.originCode!==originCode)throw Error('ORIGIN_MISMATCH');
-    return {station,route:data.route};
-   }catch(error){
-    return {station,route:null,error:String(error.message||'ROUTE_UNAVAILABLE')};
+   const routeStartedAt=performance.now();
+   let option;
+   if(normalizeStation(station.ko)===normalizeStation(origin.names.ko)){
+    option={station,route:null,sameOrigin:true};
+   }else{
+    try{
+     // A slow optional route must not monopolize the result screen.
+     // A user-initiated cancellation always takes precedence.
+     const routeSignal=typeof AbortSignal.any==='function'?
+      AbortSignal.any([signal,AbortSignal.timeout(6000)]):signal;
+     const response=await fetch(buildRouteUrl(originCode,station,chosenMode),{cache:'no-store',signal:routeSignal});
+     const data=await response.json();
+     if(!response.ok||!data.ok||!data.route)throw Error(data.error||'ROUTE_UNAVAILABLE');
+     if(data.route.originCode!==originCode)throw Error('ORIGIN_MISMATCH');
+     option={station,route:data.route};
+    }catch(error){
+     option={station,route:null,error:String(error.message||'ROUTE_UNAVAILABLE')};
+    }
    }
+   if(!signal.aborted){
+    setRouteOptions(previous=>[...previous.filter(x=>x.station.code!==station.code),option]);
+    setTimings(previous=>({...previous,routes:{...previous.routes,[station.code]:Math.round(performance.now()-routeStartedAt)}}));
+    if(option.route&&!manualRouteSelectionRef.current){
+     setRoute(current=>current||option.route);
+     setSelectedRouteCode(current=>current??station.code);
+    }
+   }
+   return option;
   }));
   if(signal.aborted)return;
-  setRouteOptions(checks);
   const preferred=preferredRouteOption(checks,chosenMode);
-  if(preferred){setRoute(preferred.route);setSelectedRouteCode(preferred.station.code);}
-  else setError(t.compareFailed);
+  if(preferred&&!manualRouteSelectionRef.current){
+   setRoute(preferred.route);setSelectedRouteCode(preferred.station.code);
+  }else if(!preferred)setError(t.compareFailed);
  }
  async function updateMode(value){
   if(value===mode||loading)return;
-  setMode(value);setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);
+  setMode(value);setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);setTimings(previous=>({...previous,routes:{}}));
   const candidates=place?.stations?.length?place.stations:place?.station?[place.station]:[];
   if(!candidates.length)return;
   requestRef.current?.abort();
@@ -100,7 +121,8 @@ export default function UnifiedRouteLab(){
   finally{if(requestRef.current===ctrl){requestRef.current=null;setLoading('');}}
  }
  function selectComparedRoute(option){
-  if(!option?.route||loading)return;
+  if(!option?.route||loading==='place')return;
+  manualRouteSelectionRef.current=true;
   setRoute(option.route);setSelectedRouteCode(option.station.code);
   requestAnimationFrame(()=>resultRef.current?.scrollIntoView({block:'start',behavior:'smooth'}));
  }
@@ -108,7 +130,7 @@ export default function UnifiedRouteLab(){
   const term=query.trim();
   if(!term||loading)return;
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;
-  setFocused(false);setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);setPlace(null);
+  setFocused(false);setError('');setRoute(null);setRouteOptions([]);setSelectedRouteCode(null);setPlace(null);setTimings({aiMs:null,routes:{}});manualRouteSelectionRef.current=false;
   const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
   try{
    if(picked||exact){
@@ -116,6 +138,7 @@ export default function UnifiedRouteLab(){
     return;
    }
    setLoading('place');
+   const aiStartedAt=performance.now();
    const response=await fetch('/api/v2/route-place-test',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({query:term,lang,stationCode:originCode}),signal:ctrl.signal,cache:'no-store'
@@ -123,7 +146,9 @@ export default function UnifiedRouteLab(){
    const result=await response.json();
    if(!response.ok||!result.ok)throw Error(result.error||t.fail);
    if(ctrl.signal.aborted)return;
+   // Display Gemini guidance immediately, before either subway route returns.
    setPlace(result);
+   setTimings(previous=>({...previous,aiMs:Math.round(performance.now()-aiStartedAt)}));
    const candidates=Array.isArray(result.stations)&&result.stations.length?result.stations:result.station?[result.station]:[];
    if(result.status==='found'&&candidates.length){
     await compareOfficialRoutes(candidates,ctrl.signal);
@@ -171,7 +196,7 @@ export default function UnifiedRouteLab(){
           const preferred=preferredRouteOption(routeOptions,mode)?.station.code===st.code;
           const active=selectedRouteCode===st.code&&!!option?.route;
           return <button type="button" key={st.code} className={'rl-compare-option'+(active?' rl-compare-active':'')}
-           aria-pressed={active} disabled={!option?.route||!!loading} onClick={()=>selectComparedRoute(option)}>
+           aria-pressed={active} disabled={!option?.route||loading==='place'} onClick={()=>selectComparedRoute(option)}>
            <span className="rl-compare-stop"><span className="rl-match-icon">🚇</span><strong>{stationLabel(st,lang)}</strong></span>
            <small className="rl-compare-lines">{st.lines?.join(' · ')}</small>
            {preferred&&<span className="rl-best">{t.bestSubway}</span>}
