@@ -38,3 +38,25 @@
 @media(max-width:360px){.arrival-test .at-wrap{padding-left:15px;padding-right:15px}.arrival-test .at-toolbar{flex-wrap:wrap}.arrival-test .at-toolbar h1{font-size:14px}}
 
 @media(max-width:420px){.arrival-test .at-toolbar{display:flex;flex-wrap:wrap}.arrival-test .at-toolbar h1{flex-basis:calc(100% - 50px);white-space:nowrap}.arrival-test .at-station{margin-right:auto;max-width:55%}}
+
+/* Keep the compact board's hierarchy identical to the V2 home train board:
+   primary destination 12px, secondary direction/branch 9px. */
+.arrival-test .v2-summary-destination{
+ display:flex;align-items:baseline;gap:5px;min-width:0;
+ font-size:12px;font-weight:500;line-height:1.5;letter-spacing:-.25px;
+}
+.arrival-test .v2-summary-destination>span{
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:12px;font-weight:500;flex:0 1 auto;
+}
+.arrival-test .v2-summary-destination>small{
+ flex:none;font-size:9px;font-weight:400;letter-spacing:0;color:#87968b;
+}
+.arrival-test .v2-summary-train b{
+ font-size:13px;line-height:1.3;font-weight:600;
+}
+@media(max-width:360px){
+ .arrival-test .v2-summary-destination,
+ .arrival-test .v2-summary-destination>span{font-size:11px}
+ .arrival-test .v2-summary-train b{font-size:12px}
+}
