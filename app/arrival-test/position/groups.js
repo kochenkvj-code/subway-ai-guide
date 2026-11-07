@@ -66,10 +66,16 @@ export function positionGroups(rows,line,station,graph,directions){
   latest.forEach(({row,index})=>{
    if(String(row.subwayId)!=='100'+line||String(row.updnLine)!==dir)return;
    const origin=key(row.statnNm),terminus=routeTerminus(row.statnTnm);
-   const branchOnly=String(line)==='2'&&/지선/.test(String(row.statnTnm||''));
+   const branchOnly=String(line)==='2'&&(/지선/.test(String(row.statnTnm||''))||/^[15]\d{3}$/.test(String(row.trainNo||'')));
    const stops=distance(origin,dir,target,terminus,branchOnly);
    if(stops===null)return;
-   if(terminus){
+   // The provider marks ordinary line-2 loop trains as Seongsu-terminating.
+   // Keep the directed main loop connected across Seongsu. Do not apply this
+   // exception to branches or to any other line's real terminal boundary.
+   const circularMainLine=String(line)==='2'&&!branchOnly&&
+     Object.values(edges[origin]||{}).some(value=>String(value)===dir)&&
+     Object.values(edges[target]||{}).some(value=>String(value)===dir);
+   if(terminus&&!circularMainLine){
     const total=distance(origin,dir,terminus,terminus,branchOnly);
     const remaining=distance(target,dir,terminus,terminus,branchOnly);
     // The selected station must be on the route before the train's terminus.
