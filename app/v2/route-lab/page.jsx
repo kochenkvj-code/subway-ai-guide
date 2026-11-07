@@ -17,7 +17,7 @@ const normalizeStation=x=>clean(x).replace(/역$/,'').replace(/station$/,'');
 const colors={'1호선':'#24559b','2호선':'#219052','3호선':'#ef8928','4호선':'#238cc4','5호선':'#9256ab','6호선':'#a77935','7호선':'#687a32','8호선':'#d13e78','9호선':'#ae8c35'};
 const lineColor=x=>colors[x]||'#536c80';
 const secondsToMinutes=x=>Math.max(0,Math.round(Number(x||0)/60));
-function StationIcon({line}){return <span className="rl-line" style={{background:lineColor(String(line).padStart(2,'0')+'호선')}}>{String(line).replace(/^0/,'')}</span>}
+function StationIcon({line}){return <span className="rl-line" style={{background:lineColor(Number(line)+'호선')}}>{String(line).replace(/^0/,'')}</span>}
 function LineBadge({line,lang}){return <span className="rl-route-line" style={{background:lineColor(line)}}>{lineName(line,lang)||line}</span>}
 function stationLabel(s,lang){return s?.[lang]||s?.ko||'—';}
 function buildRouteUrl(origin,destination,mode){
@@ -32,7 +32,7 @@ export default function UnifiedRouteLab(){
  const [loading,setLoading]=useState(''),[error,setError]=useState('');
  const requestRef=useRef(null),resultRef=useRef(null);
  const t=COPY[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
- const stationMatches=useMemo(()=>query.trim()?officialStationMatches(query,lang,8):[],[query,lang]);
+ const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
  const originMatches=useMemo(()=>searchStationMaster(originQuery,'',{initials:true}).slice(0,12),[originQuery]);
  useEffect(()=>{
   const p=new URLSearchParams(window.location.search);
@@ -41,7 +41,7 @@ export default function UnifiedRouteLab(){
  },[]);
  useEffect(()=>()=>requestRef.current?.abort(),[]);
  const setOrigin=station=>{
-  requestRef.current?.abort();
+  requestRef.current?.abort();setLoading('');
   setOriginCode(station.stationCode);setOriginOpen(false);setOriginQuery('');setRoute(null);setPlace(null);setError('');
   const u=new URL(window.location.href);u.searchParams.set('station',station.stationCode);window.history.replaceState(null,'',u.pathname+u.search);
  };
