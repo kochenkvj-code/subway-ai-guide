@@ -39,7 +39,7 @@ test('V2 retains two columns with two trains per direction and responsive card s
  assert.match(component,/v2-position-detail-grid/);
  assert.match(styles,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(component,/station\?\.names\?\.ko==='응암'/);
- assert.match(component,/g\.dir==='0'/); // direction grouping stays provider-owned
+ assert.match(component,/group\.dir==='0'/); // direction grouping stays provider-owned
 });
 test('line 6 shows upstream Eungam-circle in the original API direction',()=>{
  const a=row('응암','0','6116','응암순환(상선)');
