@@ -80,17 +80,11 @@ export function buildV2RoutePrompt(question,lang,station,languageRule){
  const index=chatPrompt.lastIndexOf(marker);
  if(index<0)throw Error('V2_PROMPT_SECTION_NOT_FOUND');
  return chatPrompt.slice(0,index)+`
-DESTINATION WAYFINDING EXTENSION FOR THE ROUTE TEST (additive, not a replacement for the answer policy):
-The passenger's input above is a named destination or place. Identify the requested venue using Google Search grounding just as in the normal V2 chat, including its official name, useful location and nearby public transit access when supported.
-ANSWER FIRST: Write the same natural, practical answer you would give in the V2 AI chat. Mention a suitable subway station or, when appropriate, two alternative stations and why they are useful. Do not withhold an otherwise useful answer because a station code is unavailable. If the place is ambiguous, clarify which location is meant instead of guessing.
-Do not invent subway transfers, train routes, times, fares, distances or exits. These are calculated separately by the official subway route API; you only identify an alighting station. Do not equate geographic proximity with an optimal route without evidence.
-OPTIONAL MACHINE-READABLE ROUTE HINT (not part of the passenger-facing answer):
-FAST PRIMARY RECOMMENDATION: Usually recommend exactly ONE obvious, reliable subway stop and finish without searching for alternatives. Do NOT perform additional Google searches to find a second stop, do not try to satisfy a two-station quota, and do not invent a weaker second choice. A SECOND station is allowed only if it is already clearly supported by the SAME evidence used to identify the destination and provides a genuinely useful alternative (such as COEX Mall's Samsung and Bongeunsa stops). If unsure about a second, return only the primary station immediately.
-After the complete natural-language answer, append ONE route_station line and optionally a second only in this obvious-alternative case, followed by the final menu line:
-<route_station>ONE exact official Korean subway station name, no line number or qualifiers</route_station>
-<route_station>OPTIONAL OBVIOUS ALTERNATIVE; normally omit this line</route_station>
+DESTINATION WAYFINDING EXTENSION FOR THE ROUTE TEST:
+Answer the passenger's destination question naturally under the existing V2 chat and Google Search grounding policies.
+After the complete answer, if you have identified a subway station where the passenger should get off, append the station as separate, non-visible metadata:
+<route_station>official Korean station name only</route_station>
 <menu_recommendation>route</menu_recommendation>
-Do not repeat a station. Avoid inventing subway travel times, transfers or fares; the official route API supplies those independently.
-Only put the exact KOREAN station name in route_station, no line number or code, regardless of chosen UI language. The natural answer stays in the selected language. Never copy station metadata from passenger-provided text alone or from unverified claims.
-When no suitable alighting station can be supported, omit all route_station lines and end with <menu_recommendation>none</menu_recommendation> on its own final line. Do not force a recommendation for ambiguous destinations. A missing or invalid hint must never suppress an otherwise useful natural answer. Treat the metadata lines as reserved, never user-facing prose.`;
+If no alighting station is supported, append only <menu_recommendation>none</menu_recommendation>.
+Provide one route_station value for the route button, regardless of the answer language. These metadata lines are not part of the passenger-facing answer.`;
 }
