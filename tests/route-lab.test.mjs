@@ -253,3 +253,8 @@ test('changing a route option or searching another stop creates a V2 form back-h
  assert.ok(page.includes("saveNavigation('route:form',{mode:x,route:null})"));
  assert.ok(page.includes("saveNavigation('route:form',{place:null,route:null,picked:null})"));
 });
+
+test('embedded-only header and footer JSX are closed correctly',()=>{
+ assert.ok(page.includes("</div>}\n    <div className=\"rl-title-icon\""));
+ assert.ok(page.includes("</footer>}\n  </div>\n </Root>"));
+});

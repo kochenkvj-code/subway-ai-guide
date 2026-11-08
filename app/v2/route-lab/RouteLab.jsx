@@ -208,7 +208,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
        <a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place.place||query.trim())} target="_blank" rel="noopener noreferrer">⌖ {t.mapGoogle} ↗</a>
      </div>
    </section>}
-   {!embedded&&<footer className="rl-footer"><p>{t.sourceNote}</p><p>{t.testing}</p></footer>
+   {!embedded&&<footer className="rl-footer"><p>{t.sourceNote}</p><p>{t.testing}</p></footer>}
   </div>
  </Root>;
 }
