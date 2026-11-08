@@ -191,9 +191,9 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
          <span className="rl-all-stop-chip">
           {stop.lines.length>0&&<span className="rl-all-stop-lines">{stop.lines.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}</span>}
           <span className="rl-all-stop-name">{routeStation(stop.name)}</span>
-          {stop.transfer&&<span className="rl-all-transfer-label" title={t.transfer} aria-label={t.transfer}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 3l4 4-4 4M4 7h16M8 21l-4-4 4-4m12-4H4"/></svg></span>}
+          {stop.transfer&&<span className="rl-all-transfer-label">{t.transfer}</span>}
          </span>
-         {!stop.end&&<span className="rl-all-stop-arrow" aria-hidden="true">→</span>}
+         
         </span>)}
        </div>
      </details>}
