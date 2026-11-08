@@ -140,19 +140,22 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
     {!embedded&&<div className="rl-top-row"><span className="rl-lab-label"><span className="rl-pulse"/> {t.lab}</span>
      <select aria-label="Language" value={lang} onChange={e=>setLanguage(e.target.value)}><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh">中文</option></select>
     </div>}
-    <div className="rl-title-icon">↗</div><h1>{t.title}</h1><p>{t.subtitle}</p>
+    <h1>{t.title}</h1><p>{t.subtitle}</p>
    </header>
    <section className="rl-search-card">
-    <div className="rl-field-head"><label>{t.origin}</label><button type="button" onClick={()=>setOriginOpen(v=>!v)}>{t.change} <span aria-hidden="true">⌄</span></button></div>
-    <div className="rl-station-box"><StationIcon line={origin.line}/><strong>{origin.names[lang]}</strong><span className="rl-muted">{origin.line} {lang==='ko'?'호선':''}</span></div>
+    <div className="rl-origin-row">
+     <span className="rl-origin-label">{t.origin}</span>
+     <div className="rl-origin-station"><StationIcon line={origin.line}/><strong>{origin.names[lang]}</strong></div>
+     <button className="rl-origin-change" type="button" aria-expanded={originOpen} onClick={()=>setOriginOpen(v=>!v)}>{t.change} <span aria-hidden="true">⌄</span></button>
+    </div>
     {originOpen&&<div className="rl-origin-picker"><input aria-label={t.chooseOrigin} autoFocus placeholder={t.chooseOrigin} value={originQuery} onChange={e=>setOriginQuery(e.target.value)}/><div className="rl-origin-options">{originMatches.map(s=><button key={s.stationCode} type="button" onClick={()=>setOrigin(s)}><StationIcon line={s.line}/><span>{s.names[lang]}</span><small>{s.line}</small></button>)}</div></div>}
-    <div className="rl-connection"><span/><span>↓</span><span/></div>
+    
     <form onSubmit={e=>{e.preventDefault();void perform(false);}}>
      <label htmlFor="rl-destination">{t.dest}</label>
      <div className="rl-query-box"><span className="rl-search-icon">⌕</span><input id="rl-destination" value={query} onChange={e=>changeQuery(e.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setTimeout(()=>setFocused(false),180)} placeholder={t.placeholder} maxLength={100} autoComplete="off"/>{query&&<button type="button" onClick={()=>changeQuery('')} aria-label="Clear">×</button>}</div>
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-list" role="listbox" aria-label={t.suggest}><div className="rl-match-head">{t.suggest}</div>{stationMatches.slice(0,6).map(s=><button key={s.code} type="button" role="option" aria-selected="false" onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><span className="rl-match-icon">🚇</span><span><strong>{stationLabel(s,lang)}</strong><small>{s.lines?.join(' · ')||s.line}</small></span><span className="rl-match-arrow">↗</span></button>)}</div>}
-     <p className="rl-field-note">{t.placeHint}</p>
-     <div className="rl-route-options"><span>{t.options}</span><div role="group">{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
+     
+     <div className="rl-route-options" role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div>
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button>
      {query.trim()&&!loading&&<button className="rl-as-place" type="button" onClick={()=>{setPicked(null);void perform(true);}}>✧ {t.searchPlace}</button>}
     </form>
@@ -160,17 +163,17 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    </section>
    {(loading||error)&&<section className={'rl-alert'+(error?' rl-error':'')} role="status"><span>{loading==='place'?'✦':loading==='route'?'🚇':'ⓘ'}</span>{error|| (loading==='place'?t.searchingPlace:t.searchingRoute)}</section>}
    {place&&<section className="rl-result-card rl-place-card" aria-live="polite">
-     <div className="rl-section-kicker">✦ GEMINI · GOOGLE SEARCH</div><h2>{t.aiTitle}</h2>
+     <h2>{t.aiTitle}</h2>
      {place.place&&<h3 className="rl-place-name">{place.place}</h3>}
      <p className="rl-ai-answer">{renderRouteAnswer(place.answer||t.unknown)}</p>
-     {aiMs!==null&&<p className="rl-timing">AI {(aiMs/1000).toFixed(1)}s</p>}
-     {place.status==='found'&&place.station?<><div className="rl-recommend"><small>{t.recommend}</small><div><span className="rl-match-icon">🚇</span><strong>{stationLabel(place.station,lang)}</strong><span className="rl-small-muted">{place.station.lines?.join(' · ')}</span></div>{place.reason&&<p>{place.reason}</p>}</div>
+     
+     {place.status==='found'&&place.station?<><div className="rl-recommend"><small>{t.recommend}</small><div className="rl-recommend-station">{(place.station.lines?.length?place.station.lines:[place.station.line].filter(Boolean)).map((line,i)=><LineBadge key={i} line={line} lang={lang} compact/>)}<strong>{stationLabel(place.station,lang)}</strong></div>{place.reason&&<p>{place.reason}</p>}</div>
        <button className="rl-change-stop" type="button" onClick={()=>{setPlace(null);setRoute(null);setPicked(null);setFocused(true);if(embedded)saveNavigation('route:form',{place:null,route:null,picked:null});document.getElementById('rl-destination')?.focus();}}>{t.other} →</button>
      </>:<div className="rl-unverified">{t.unknown}</div>}
-     {place.sources?.length>0&&<div className="rl-sources"><strong>{t.sources}</strong>{place.sources.map((s,i)=><a key={i} href={s.url} target="_blank" rel="noreferrer noopener">{s.title||'Source'} ↗</a>)}</div>}
+     
    </section>}
    {route&&<section ref={resultRef} className="rl-result-card rl-route-card" aria-live="polite">
-     <div className="rl-section-kicker">✦ OFFICIAL SUBWAY ROUTE API</div><h2>{t.official}</h2>
+     <h2>{t.official}</h2>
      <div className="rl-route-head"><div><small>{t.from}</small><strong>{routeStation(route.origin)}</strong></div><span>→</span><div><small>{t.to}</small><strong>{routeStation(route.destination)}</strong></div></div>
      <div className="rl-stats">
       <div><small>{t.duration}</small><strong>{secondsToMinutes(route.totalSeconds)}{t.minutes}</strong></div>
@@ -197,10 +200,10 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
         </span>)}
        </div>
      </details>}
-     {place&&<p className="rl-route-note">{t.exitUnknown}</p>}
+     
     </section>}
    {place?.status==='found'&&place.station&&<section className="rl-result-card rl-walk-guide" aria-live="polite">
-     <div className="rl-section-kicker">✦ WALKING · WEB MAP</div>
+     
      <h2>{t.walkingTitle}</h2>
      <div className="rl-walk-places"><span>{stationLabel(place.station,lang)}</span><span aria-hidden="true">→</span><strong>{place.place||query.trim()}</strong></div>
      <p className="rl-walk-summary">{renderRouteAnswer(place.walk||t.walkingUnknown)}</p>
