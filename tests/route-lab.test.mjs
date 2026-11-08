@@ -295,7 +295,14 @@ test('V2 route cards drop decorative kickers, AI timings and location source UI'
  assert.match(page,/className="rl-result-card rl-walk-guide"/);
 });
 test('compact form has a single departure station row, 3 equal path options, and one row of examples',()=>{
- assert.ok(page.includes('className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"'));
+ assert.ok(page.includes('className="rl-destination-heading"'));
+ assert.ok(page.includes('<label htmlFor="rl-destination"><svg className="rl-destination-pin"'));
+ assert.ok(page.includes('className="rl-departure-chip" title={departureLabel}'));
+ assert.ok(page.includes('className="rl-departure-line" style={{background:lineColor(origin.line+\'호선\')}'));
+ assert.ok(!page.includes('className="rl-field-head"'));
+ assert.ok(css.includes('.route-lab .rl-destination-heading label{display:flex;align-items:center;'));
+ assert.ok(css.includes('white-space:nowrap;line-height:1.3;letter-spacing:-.6px'));
+ assert.ok(css.includes('width:14px;height:14px;min-width:14px;border-radius:50%'));
  assert.ok(!page.includes('setOriginOpen'));
  assert.ok(!page.includes('rl-origin-picker'));
  assert.ok(!page.includes('searchStationMaster'));
@@ -309,6 +316,14 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(css.includes('.route-lab .rl-route-options button{min-width:0;min-height:40px;'));
  assert.ok(css.includes('line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
+});
+test('Gemini route_station metadata shows exact raw value as centered full tags',()=>{
+ assert.ok(page.includes('className="rl-route-station-tag"'));
+ assert.ok(page.includes("{'<route_station>'}"));
+ assert.ok(page.includes("{'</route_station>'}"));
+ assert.ok(page.includes('value||RAW_STATION_COPY[lang].empty'));
+ assert.ok(css.includes('.rl-route-station-debug{display:flex;flex-direction:column;align-items:center;justify-content:center;'));
+ assert.ok(css.includes('.rl-route-station-tag{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;'));
 });
 test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
  assert.ok(page.includes('className="rl-recommend-station"'));

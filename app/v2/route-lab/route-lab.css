@@ -80,9 +80,10 @@
 .rl-last-mile strong{color:#477b61}
 .rl-last-mile>span{color:#547064}
 .rl-unverified{border:1px solid #e8d9c3;color:#806a4a;background:#fff9ec;font-size:12px;line-height:1.6;padding:11px;border-radius:10px}
-.rl-route-station-debug{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 9px;margin-top:10px;padding:8px 2px 0;border-top:1px solid #e9eeec;color:#77877d;font-size:10px;line-height:1.45}
-.rl-route-station-debug>span{font-weight:600}
-.rl-route-station-debug code{display:flex;flex-direction:column;gap:3px;min-width:0;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;color:#305b48;white-space:pre-wrap;overflow-wrap:anywhere}
+.rl-route-station-debug{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;margin-top:10px;padding:11px 2px 0;border-top:1px solid #e9eeec;color:#77877d;text-align:center}
+.rl-route-station-tag{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;column-gap:5px;row-gap:1px;max-width:100%;font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#89998f;overflow-wrap:anywhere}
+.rl-route-station-tag strong{font-weight:800;color:#267953;white-space:pre-wrap;overflow-wrap:anywhere}
+.rl-route-tag-missing{font-size:11px;color:#84958a}
 .rl-route-station-debug small{font-size:10px;color:#8c7665}
 .rl-sources{margin-top:14px;border-top:1px solid #e8efea;padding-top:12px;display:grid;gap:7px}
 .rl-sources strong{font-size:11px;color:#7e9084}
@@ -224,3 +225,18 @@
 .route-lab .rl-result-feedback button{width:100%;min-height:30px;padding:5px 3px;border:1px solid #cbded5;border-radius:8px;background:#fff;color:#286d54;font-size:10px;font-weight:750;line-height:1.25;text-align:center;white-space:normal}
 .route-lab .rl-result-feedback>span{display:flex;align-items:center;justify-content:center;min-height:66px;color:#197656;font-size:11px;font-weight:750;text-align:center;line-height:1.4}
 @media(max-width:370px){.route-lab .rl-new-destination{font-size:11px}.route-lab .rl-result-feedback button{font-size:9px}}
+
+/* Compact single-line destination heading, matching the current / route card. */
+.route-lab .rl-top h1{font-size:clamp(15px,4.5vw,19px);white-space:nowrap;line-height:1.3;letter-spacing:-.6px}
+.route-lab .rl-destination-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;margin:0 0 8px}
+.route-lab .rl-destination-heading label{display:flex;align-items:center;gap:5px;min-width:0;max-width:65%;flex:0 0 auto;font-size:clamp(10px,2.8vw,13px);font-weight:800;white-space:nowrap;letter-spacing:-.35px;color:#2f5145}
+.route-lab .rl-destination-pin{width:14px;height:14px;flex:none;color:#29886b}
+.route-lab .rl-departure-chip{display:flex;align-items:center;gap:4px;min-width:0;max-width:53%;flex:0 1 auto;padding:5px 7px;border-radius:15px;background:#f3f8f4;color:#64816f;white-space:nowrap;font-size:10px;font-weight:650;letter-spacing:-.25px}
+.route-lab .rl-departure-line{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;min-width:14px;border-radius:50%;font-size:9px;line-height:1;font-weight:800;color:white}
+.route-lab .rl-departure-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:370px){
+ .route-lab .rl-top h1{font-size:15px}
+ .route-lab .rl-destination-heading label{font-size:10px;gap:3px}
+ .route-lab .rl-destination-pin{width:13px;height:13px}
+ .route-lab .rl-departure-chip{font-size:9px;padding:4px 5px}
+}

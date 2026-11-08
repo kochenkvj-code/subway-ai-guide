@@ -71,6 +71,8 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   navigationRef.current?.(key,{routeState:{originCode,query,picked,mode,place,route,aiMs,...overrides}});
  }
  const t=COPY[lang],actions=RESULT_ACTIONS[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
+ const originName=origin.names[lang]||origin.names.ko;
+ const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
  const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
  useEffect(()=>{
   if(embedded)return;
@@ -167,11 +169,11 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
     <h1>{t.title}</h1><p>{t.subtitle}</p>
    </header>
    <section className="rl-search-card">
-    <div className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"><StationIcon line={origin.line}/><strong>{origin.names[lang]}</strong></div></div>
-    
-    
     <form onSubmit={e=>{e.preventDefault();void perform(false);}}>
-     <label htmlFor="rl-destination">{t.dest}</label>
+     <div className="rl-destination-heading">
+      <label htmlFor="rl-destination"><svg className="rl-destination-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>{t.dest}</span></label>
+      <span className="rl-departure-chip" title={departureLabel}><span className="rl-departure-line" style={{background:lineColor(origin.line+'호선')}}>{origin.line}</span><span className="rl-departure-name">{departureLabel}</span></span>
+     </div>
      <div className="rl-query-box"><span className="rl-search-icon">⌕</span><input id="rl-destination" value={query} onChange={e=>changeQuery(e.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setTimeout(()=>setFocused(false),180)} placeholder={t.placeholder} maxLength={100} autoComplete="off"/>{query&&<button type="button" onClick={()=>changeQuery('')} aria-label="Clear">×</button>}</div>
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-list" role="listbox" aria-label={t.suggest}><div className="rl-match-head">{t.suggest}</div>{stationMatches.slice(0,6).map(s=><button key={s.code} type="button" role="option" aria-selected="false" onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><span className="rl-match-icon">🚇</span><span><strong>{stationLabel(s,lang)}</strong><small>{s.lines?.join(' · ')||s.line}</small></span><span className="rl-match-arrow">↗</span></button>)}</div>}
      
@@ -191,10 +193,9 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
        
      </>:<div className="rl-unverified">{t.unknown}</div>}
      <div className="rl-route-station-debug">
-      <span>{RAW_STATION_COPY[lang].label}</span>
-      <code>{place.rawRouteStationValues?.length
-       ?place.rawRouteStationValues.map((value,index)=><span key={index}>{value||RAW_STATION_COPY[lang].empty}</span>)
-       :place.rawRouteStationTagSeen?RAW_STATION_COPY[lang].malformed:RAW_STATION_COPY[lang].missing}</code>
+      {place.rawRouteStationValues?.length
+       ?place.rawRouteStationValues.map((value,index)=><code className="rl-route-station-tag" key={index}><span>{'<route_station>'}</span><strong>{value||RAW_STATION_COPY[lang].empty}</strong><span>{'</route_station>'}</span></code>)
+       :<span className="rl-route-tag-missing">{place.rawRouteStationTagSeen?RAW_STATION_COPY[lang].malformed:RAW_STATION_COPY[lang].missing}</span>}
       {place.geminiFinishReason&&place.geminiFinishReason!=='STOP'&&<small>finishReason: {place.geminiFinishReason}</small>}
      </div>
    </section>}
