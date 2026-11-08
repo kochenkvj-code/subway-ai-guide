@@ -127,7 +127,7 @@ test('route button receives exactly one official station and no two-stop UI',()=
  assert.match(prompt,/<route_station>official Korean subway station name<\/route_station>/);
  assert.match(page,/lookupRoute\(result\.station,ctrl\.signal,result,term\)/);
  assert.doesNotMatch(page,/compareOfficialRoutes|preferredRouteOption|Promise\.all\(stations\.slice|AbortSignal\.timeout\(6000\)/);
- assert.match(page,/aiMs\/1000/);
+ assert.doesNotMatch(page,/aiMs\/1000/);
 });
 test('museum answer with a standalone final subway station connects one official stop',()=>{
  const answer='국립고궁박물관은 서울특별시 종로구 효자로에 위치한 박물관입니다. 지하철을 이용하실 경우 **3호선 경복궁역** 5번 출구가 박물관 바로 인접해 있어 편리합니다. 또한 5호선 광화문역을 통해서도 도보 접근이 가능합니다.\n\n경복궁역';
@@ -220,7 +220,7 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.match(css,/\.rl-all-stations-list\{display:flex;align-items:center;flex-wrap:wrap/);
  assert.match(css,/\.rl-all-stop-chip\{display:inline-flex/);
  assert.match(css,/\.rl-all-transfer \.rl-all-stop-chip/);
- assert.match(css,/max-height:260px/);
+ assert.match(css,/max-height:none;overflow:visible/);
  assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
  assert.match(page,/compact\/>/);
  assert.match(page,/!stop\.end&&<span className="rl-all-stop-arrow"/);
@@ -255,7 +255,7 @@ test('changing a route option or searching another stop creates a V2 form back-h
 });
 
 test('embedded-only header and footer JSX are closed correctly',()=>{
- assert.ok(page.includes("</div>}\n    <div className=\"rl-title-icon\""));
+ assert.ok(page.includes("</div>}\n    <h1>{t.title}</h1>"));
  assert.ok(page.includes("</footer>}\n  </div>\n </Root>"));
 });
 
