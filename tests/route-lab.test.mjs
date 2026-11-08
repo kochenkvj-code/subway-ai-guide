@@ -220,7 +220,7 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.match(css,/\.rl-all-stations-list\{display:flex;align-items:center;flex-wrap:wrap/);
  assert.match(css,/\.rl-all-stop-chip\{display:inline-flex/);
  assert.match(css,/\.rl-all-transfer \.rl-all-stop-chip/);
- assert.match(css,/max-height:260px/);
+ assert.doesNotMatch(css,/\.rl-all-stations-list[^\n]*max-height:260px/);
  assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
  assert.match(page,/compact\/>/);
  assert.match(page,/!stop\.end&&<span className="rl-all-stop-arrow"/);
@@ -257,4 +257,29 @@ test('changing a route option or searching another stop creates a V2 form back-h
 test('embedded-only header and footer JSX are closed correctly',()=>{
  assert.ok(page.includes("</div>}\n    <div className=\"rl-title-icon\""));
  assert.ok(page.includes("</footer>}\n  </div>\n </Root>"));
+});
+
+test('V2 route cards drop decorative kickers, AI timings and location source UI',()=>{
+ assert.doesNotMatch(page,/GEMINI · GOOGLE SEARCH|OFFICIAL SUBWAY ROUTE API|WALKING · WEB MAP/);
+ for(const obsolete of ['className="rl-title-icon"','className="rl-timing"','className="rl-sources"','className="rl-route-note"','className="rl-connection"','className="rl-field-note"'])assert.ok(!page.includes(obsolete),obsolete);
+ assert.match(page,/renderRouteAnswer\(place\.answer\|\|t\.unknown\)/);
+ assert.match(page,/className="rl-result-card rl-route-card"/);
+ assert.match(page,/className="rl-result-card rl-walk-guide"/);
+});
+test('compact form has a single departure station row, 3 equal path options, and one row of examples',()=>{
+ assert.ok(page.includes('className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"'));
+ assert.ok(page.includes('aria-expanded={originOpen}'));
+ assert.ok(page.includes('className="rl-route-options"><div role="group" aria-label={t.options}>'));
+ assert.ok(page.includes("EXAMPLES.slice(0,3).map"));
+ assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'));
+ assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap'));
+ assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
+});
+test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
+ assert.ok(page.includes('className="rl-recommend-station"'));
+ assert.ok(page.includes('place.station.lines?.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)'));
+ assert.ok(css.includes('.route-lab .rl-recommend .rl-recommend-station{display:flex;align-items:center;justify-content:center'));
+ assert.ok(css.includes('.route-lab .rl-all-stations-list{max-height:none;overflow:visible;overscroll-behavior:auto}'));
+ assert.ok(!css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px 0;padding:13px 10px;max-height:260px;overflow-y:auto'));
+ assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
 });

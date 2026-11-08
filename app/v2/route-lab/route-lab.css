@@ -132,7 +132,7 @@
 .rl-all-stations-title small{font-size:11px;font-weight:600;color:#718977}
 .rl-all-stations-chevron{font-size:22px;line-height:1;transition:transform .18s ease}
 .rl-all-stations[open] .rl-all-stations-chevron{transform:rotate(180deg)}
-.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px 0;padding:13px 10px;max-height:260px;overflow-y:auto;overscroll-behavior:contain}
+.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:5px 0;padding:9px 8px;overflow:visible}
 .rl-all-stop{display:inline-flex;align-items:center;flex:none;max-width:100%;min-width:0}
 .rl-all-stop-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 8px;min-height:33px;max-width:100%;border:1px solid #e1ebe4;border-radius:8px;background:#fff;color:#354f40}
 .rl-all-stop-name{font-size:11px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
@@ -155,3 +155,68 @@
 .rl-all-transfer-label{width:23px;height:23px;border-radius:7px;background:linear-gradient(135deg,#068b68,#12a6bb);color:#fff;box-shadow:0 2px 7px #0b8b7040}
 .rl-all-transfer-label svg{display:block;width:17px;height:17px}
 .rl-transfer .rl-step-pin{background:linear-gradient(140deg,#0d946f,#16a6b0);color:#fff;box-shadow:0 2px 7px #0d957044}
+
+/* V2 wayfinding visual pass: one native page scroll, shorter controls and clearer hierarchy. */
+.route-lab .rl-shell{padding:0 14px 21px}
+.route-lab .rl-top{padding:13px 17px 15px;margin:0 -14px 11px;border-radius:0 0 18px 18px}
+.route-lab .rl-top h1{font-size:20px;letter-spacing:-.7px;line-height:1.3;margin:0 0 3px}
+.route-lab .rl-top p{font-size:11px;line-height:1.45;max-width:100%}
+.route-lab.rl-embedded .rl-top-embedded{padding-top:11px;padding-bottom:13px}
+.route-lab.rl-embedded .rl-top-embedded h1{font-size:19px}
+.route-lab .rl-search-card,.route-lab .rl-result-card{border-radius:15px;padding:14px}
+.route-lab .rl-result-card{margin-top:10px}
+.route-lab .rl-field-head{display:flex;align-items:center;justify-content:initial;gap:8px;min-width:0;margin-bottom:10px}
+.route-lab .rl-field-head label{font-size:11px;flex:none;white-space:nowrap}
+.route-lab .rl-station-box{display:flex;align-items:center;gap:7px;min-height:34px;flex:1;min-width:0;border:0;background:transparent;padding:0}
+.route-lab .rl-station-box strong{font-size:13px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.route-lab .rl-line{width:21px;height:21px;font-size:10px}
+.route-lab .rl-field-head button{font-size:10px;min-width:44px;min-height:35px;padding:6px;background:#f0f6ef}
+.route-lab .rl-query-box{margin-top:6px;min-height:48px;padding:0 10px}
+.route-lab .rl-query-box input{height:45px;font-size:16px}
+.route-lab .rl-route-options{display:block;margin:11px 0 10px}
+.route-lab .rl-route-options>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+.route-lab .rl-route-options button{min-width:0;min-height:38px;padding:7px 2px;font-size:11px;line-height:1.25;white-space:nowrap;border-radius:8px}
+.route-lab .rl-submit{min-height:45px;border-radius:10px;font-size:13px}
+.route-lab .rl-as-place{min-height:31px;margin:4px auto 0;font-size:11px}
+.route-lab .rl-examples{display:flex;align-items:center;gap:7px;min-width:0;margin-top:9px;padding-top:9px}
+.route-lab .rl-examples>strong{font-size:9px;white-space:nowrap;flex:none}
+.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap;margin-top:0}
+.route-lab .rl-examples button{flex:1;min-width:0;padding:6px 4px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.route-lab .rl-result-card h2{font-size:16px;letter-spacing:-.55px;margin:0 0 10px}
+.route-lab .rl-place-name{font-size:14px;margin:0 0 8px}
+.route-lab .rl-ai-answer{font-size:12px;line-height:1.65;margin:0 0 10px}
+.route-lab .rl-recommend{padding:11px;border-radius:11px;text-align:center}
+.route-lab .rl-recommend>small{display:block;font-size:10px}
+.route-lab .rl-recommend .rl-recommend-station{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:7px 0}
+.route-lab .rl-recommend .rl-route-line.rl-line-short{min-width:23px;min-height:23px;font-size:12px;border-radius:7px}
+.route-lab .rl-recommend strong{font-size:16px}
+.route-lab .rl-change-stop{min-height:30px;font-size:10px;margin-top:2px}
+.route-lab .rl-route-head{padding:10px;border-radius:11px}
+.route-lab .rl-stats{gap:6px;margin:10px 0 13px}
+.route-lab .rl-stats>div{padding:9px 10px;gap:4px;border-radius:9px}
+.route-lab .rl-path-title{font-size:12px;margin:11px 0 8px}
+.route-lab .rl-steps{gap:7px}
+.route-lab .rl-step{padding:10px;gap:9px;border-radius:11px}
+.route-lab .rl-step-pin{width:27px;height:27px;font-size:11px}
+.route-lab .rl-step p{margin:5px 0 3px}
+.route-lab .rl-all-stations{margin-top:10px;overflow:visible;border-radius:12px}
+.route-lab .rl-all-stations>summary{min-height:43px;padding:9px 11px;font-size:12px;border-radius:12px}
+.route-lab .rl-all-stations-list{max-height:none;overflow:visible;overscroll-behavior:auto}
+.route-lab .rl-all-stop-chip{padding:4px 6px;min-height:26px;gap:4px;border-radius:7px}
+.route-lab .rl-all-stop-name{font-size:10px;line-height:1.25}
+.route-lab .rl-all-stop-arrow{font-size:11px;margin:0 4px}
+.route-lab .rl-route-line.rl-line-short{min-width:18px;min-height:18px;padding:2px 5px;font-size:10px}
+.route-lab .rl-all-transfer-label{width:20px;height:20px;border-radius:6px;box-shadow:0 2px 5px #0b8b7040}
+.route-lab .rl-all-transfer-label svg{width:15px;height:15px}
+.route-lab .rl-walk-places{gap:7px;font-size:13px;margin:5px 0 10px}
+.route-lab .rl-walk-summary{padding:10px 11px;font-size:12px;line-height:1.6;margin:0 0 10px}
+@media(max-width:370px){
+ .route-lab .rl-shell{padding:0 11px 20px}
+ .route-lab .rl-top{margin:0 -11px 10px;padding:12px 14px 13px}
+ .route-lab .rl-top h1{font-size:19px}
+ .route-lab .rl-search-card,.route-lab .rl-result-card{padding:12px}
+ .route-lab .rl-route-options>div{gap:4px}
+ .route-lab .rl-route-options button{font-size:10px}
+ .route-lab .rl-examples{gap:5px}
+ .route-lab .rl-examples button{font-size:9px}
+}
