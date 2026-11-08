@@ -248,3 +248,8 @@ test('transfer icon contrast and Google Maps fallback',()=>{
  assert.ok(css.includes('.rl-all-transfer-label{width:23px;height:23px'));
  assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
 });
+
+test('changing a route option or searching another stop creates a V2 form back-history state',()=>{
+ assert.ok(page.includes("saveNavigation('route:form',{mode:x,route:null})"));
+ assert.ok(page.includes("saveNavigation('route:form',{place:null,route:null,picked:null})"));
+});

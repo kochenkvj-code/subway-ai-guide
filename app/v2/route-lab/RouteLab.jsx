@@ -152,7 +152,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      <div className="rl-query-box"><span className="rl-search-icon">⌕</span><input id="rl-destination" value={query} onChange={e=>changeQuery(e.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setTimeout(()=>setFocused(false),180)} placeholder={t.placeholder} maxLength={100} autoComplete="off"/>{query&&<button type="button" onClick={()=>changeQuery('')} aria-label="Clear">×</button>}</div>
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-list" role="listbox" aria-label={t.suggest}><div className="rl-match-head">{t.suggest}</div>{stationMatches.slice(0,6).map(s=><button key={s.code} type="button" role="option" aria-selected="false" onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><span className="rl-match-icon">🚇</span><span><strong>{stationLabel(s,lang)}</strong><small>{s.lines?.join(' · ')||s.line}</small></span><span className="rl-match-arrow">↗</span></button>)}</div>}
      <p className="rl-field-note">{t.placeHint}</p>
-     <div className="rl-route-options"><span>{t.options}</span><div role="group">{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);}}>{t.modes[i]}</button>)}</div></div>
+     <div className="rl-route-options"><span>{t.options}</span><div role="group">{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button>
      {query.trim()&&!loading&&<button className="rl-as-place" type="button" onClick={()=>{setPicked(null);void perform(true);}}>✧ {t.searchPlace}</button>}
     </form>
@@ -165,7 +165,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      <p className="rl-ai-answer">{renderRouteAnswer(place.answer||t.unknown)}</p>
      {aiMs!==null&&<p className="rl-timing">AI {(aiMs/1000).toFixed(1)}s</p>}
      {place.status==='found'&&place.station?<><div className="rl-recommend"><small>{t.recommend}</small><div><span className="rl-match-icon">🚇</span><strong>{stationLabel(place.station,lang)}</strong><span className="rl-small-muted">{place.station.lines?.join(' · ')}</span></div>{place.reason&&<p>{place.reason}</p>}</div>
-       <button className="rl-change-stop" type="button" onClick={()=>{setPlace(null);setRoute(null);setPicked(null);setFocused(true);document.getElementById('rl-destination')?.focus();}}>{t.other} →</button>
+       <button className="rl-change-stop" type="button" onClick={()=>{setPlace(null);setRoute(null);setPicked(null);setFocused(true);if(embedded)saveNavigation('route:form',{place:null,route:null,picked:null});document.getElementById('rl-destination')?.focus();}}>{t.other} →</button>
      </>:<div className="rl-unverified">{t.unknown}</div>}
      {place.sources?.length>0&&<div className="rl-sources"><strong>{t.sources}</strong>{place.sources.map((s,i)=><a key={i} href={s.url} target="_blank" rel="noreferrer noopener">{s.title||'Source'} ↗</a>)}</div>}
    </section>}
