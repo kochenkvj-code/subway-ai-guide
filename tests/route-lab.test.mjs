@@ -315,3 +315,18 @@ test('single search button automatically handles station names and AI places',()
  assert.ok(!css.includes('.rl-as-place{'));
  assert.ok(!css.includes('.rl-change-stop{'));
 });
+
+test('route guidance ends with a translated new-destination action and feedback',()=>{
+ for(const label of ['다른 목적지 검색','Search another destination','別の目的地を検索','搜索其他目的地'])assert.ok(page.includes(label),label);
+ for(const label of ['해결됨','해결 안 됨','Solved','Not solved'])assert.ok(page.includes(label),label);
+ assert.ok(page.includes("(route||place)&&<div className=\"rl-result-actions\""));
+ assert.ok(page.includes('className="rl-new-destination"'));
+ assert.ok(page.includes('className="rl-result-feedback"'));
+ assert.ok(page.includes("recordStat('feedback',result,lang)"));
+ assert.ok(page.includes("submitFeedback('solved')"));
+ assert.ok(page.includes("submitFeedback('not_solved')"));
+ assert.ok(page.includes("requestAnimationFrame(()=>document.getElementById('rl-destination')?.focus())"));
+ assert.ok(page.includes("changeQuery('')"));
+ assert.ok(page.includes('if(feedbackRef.current)return'));
+ assert.ok(css.includes('.route-lab .rl-result-actions{display:grid'));
+});
