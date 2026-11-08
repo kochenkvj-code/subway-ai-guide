@@ -20,7 +20,9 @@ const {parsePlaceAnswer,resolveOfficialStop}=policy.namespace;
 const reply=(station='삼성역')=>`코엑스몰은 2호선 삼성역이나 9호선 봉은사역에서 갈 수 있습니다. 공식 경로는 별도로 확인해 주세요.
 <route_station>${station}</route_station>
 <menu_recommendation>route</menu_recommendation>`;
-const page=await read('app/v2/route-lab/page.jsx');
+const page=await read('app/v2/route-lab/RouteLab.jsx');
+const standalone=await read('app/v2/route-lab/page.jsx');
+const v2=await read('app/v2/V2Guide.jsx');
 const api=await read('app/api/v2/route-place-test/route.js');
 const css=await read('app/v2/route-lab/route-lab.css');
 
@@ -98,7 +100,7 @@ test('station and place inputs route through existing official API, with AI answ
  assert.match(page,/toCode:destination\.code/);
  assert.match(page,/setPlace\(result\)/);
  assert.match(page,/result\.status==='found'/);
- assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
+ assert.match(page,/lookupRoute\(result\.station,ctrl\.signal,result,term\)/);
  assert.match(page,/\['duration','distance','transfer'\]/);
  assert.match(page,/aiTitle:'AI 목적지 안내'/);
  assert.match(css,/max-width:490px/);
@@ -123,7 +125,7 @@ test('route button receives exactly one official station and no two-stop UI',()=
  assert.match(prompt,/SEOUL SUBWAY DESTINATION WAYFINDING/);
  assert.doesNotMatch(prompt,/FAST PRIMARY RECOMMENDATION|Do NOT perform additional Google searches|SECOND station|two alternative stations|optimal route/);
  assert.match(prompt,/<route_station>official Korean subway station name<\/route_station>/);
- assert.match(page,/lookupRoute\(result\.station,ctrl\.signal\)/);
+ assert.match(page,/lookupRoute\(result\.station,ctrl\.signal,result,term\)/);
  assert.doesNotMatch(page,/compareOfficialRoutes|preferredRouteOption|Promise\.all\(stations\.slice|AbortSignal\.timeout\(6000\)/);
  assert.match(page,/aiMs\/1000/);
 });
@@ -172,7 +174,7 @@ test('optional walking hint is a safe, single-response extension',()=>{
 
 test('last-mile uses one Google Maps browser link in all four UI languages',()=>{
  assert.match(page,/google\.com\/maps\/search\/\?api=1&query=/);
- assert.match(page,/encodeURIComponent\(place\.place\)/);
+ assert.match(page,/encodeURIComponent\(place\.place\|\|query\.trim\(\)\)/);
  assert.match(page,/place\.walk\|\|t\.walkingUnknown/);
  assert.match(page,/rl-walk-guide/);
  assert.doesNotMatch(page,/kakaomap:\/\/|by=foot|\/v2\/routing\/walk/);
@@ -224,4 +226,25 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.match(page,/!stop\.end&&<span className="rl-all-stop-arrow"/);
  assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/\/api\/subway-route\?/);
+});
+
+test('Gemini Markdown emphasis renders as safe React nodes',()=>{assert.ok(page.includes("renderRouteAnswer(place.answer||t.unknown)"));assert.ok(page.includes("<strong key={i}>"));});
+test('V2 inherited station language and preserved other menus',()=>{
+ assert.ok(v2.includes("embedded stationContext={stationContext} language={lang} active={view==='route'}"));
+ assert.ok(v2.includes("menuItems.filter(x=>x.action&&x.id!=='route')"));
+ assert.ok(v2.includes("onRecommendMenu={id==='chat'?navigate:null}"));
+ assert.ok(standalone.includes("import UnifiedRouteLab from './RouteLab'"));
+ assert.ok(page.includes("useState(stationContext?.stationCode||'0154')"));
+ assert.ok(page.includes("const lang=embedded&&COPY[language]?language:standaloneLang"));
+});
+test('V2 route form and result are browser history entries',()=>{
+ assert.ok(v2.includes("key==='route:form'||key==='route:result'"));
+ assert.ok(page.includes("navigationSnapshot.data?.routeState"));
+ assert.ok(page.includes("saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route})"));
+ assert.ok(page.includes("saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null})"));
+});
+test('transfer icon contrast and Google Maps fallback',()=>{
+ assert.ok(page.includes('<svg width="16" height="16"'));
+ assert.ok(css.includes('.rl-all-transfer-label{width:23px;height:23px'));
+ assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
 });

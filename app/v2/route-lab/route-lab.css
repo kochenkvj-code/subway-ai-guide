@@ -143,3 +143,15 @@
 .rl-all-transfer-label{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;font-size:13px;font-weight:800;line-height:1;color:#27734e;background:#d0edda;border-radius:5px;flex:none}
 .rl-all-start .rl-all-stop-chip,.rl-all-end .rl-all-stop-chip{border-color:#9fc9ad}
 .rl-all-start .rl-all-stop-name,.rl-all-end .rl-all-stop-name{font-weight:850;color:#174b31}
+
+/* V2 route uses native Back, language selection and bottom tabs. */
+.route-lab.rl-embedded{min-height:100%;width:100%;background:#f5f8f5}
+.rl-embedded .rl-shell{min-height:0;width:100%;max-width:490px;padding-bottom:22px}
+.rl-embedded .rl-top-embedded{padding-top:12px;padding-bottom:19px}
+.rl-embedded .rl-top-embedded .rl-title-icon{width:30px;height:30px;margin:0 0 6px;font-size:18px}
+.rl-embedded .rl-top-embedded h1{font-size:20px}
+.rl-ai-answer strong{font-weight:800;color:#215c44}
+.rl-walk-summary strong{font-weight:800;color:#215c44}
+.rl-all-transfer-label{width:23px;height:23px;border-radius:7px;background:linear-gradient(135deg,#068b68,#12a6bb);color:#fff;box-shadow:0 2px 7px #0b8b7040}
+.rl-all-transfer-label svg{display:block;width:17px;height:17px}
+.rl-transfer .rl-step-pin{background:linear-gradient(140deg,#0d946f,#16a6b0);color:#fff;box-shadow:0 2px 7px #0d957044}

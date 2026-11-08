@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import GuideExperience from '../components/GuideExperience';
+import UnifiedRouteLab from './route-lab/RouteLab';
 import { recordStat, startActivityTracking } from '../lib/record-stat';
 import { copy, menuItems } from './copy';
 import { iconPaths } from './icons';
@@ -39,7 +40,17 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
   const viewRef=useRef(view);viewRef.current=view;
   const publishStep=useCallback((key,data)=>{
-    const current=window.history.state||{};const root=key==='root';
+    const current=window.history.state||{};
+    if(key==='route:form'||key==='route:result'){
+      const result=key==='route:result';
+      const state={...current,sagKey:key,sagData:data,sagDetail:result};
+      if(current.sagKey&&current.sagKey!==key){
+        state.sagV2Depth=(current.sagV2Depth||0)+1;
+        window.history.pushState(state,'');
+      }else window.history.replaceState(state,'');
+      setDetail(result);return;
+    }
+    const root=key==='root';
     const state={...current,sagKey:key,sagData:data,sagDetail:!root};
     if(!current.sagKey&&!root&&viewRef.current==='feedback'){window.history.replaceState({...current,sagKey:'root',sagData:{feedbackScreen:'entry'},sagDetail:false},'');state.sagV2Depth=(current.sagV2Depth||0)+1;window.history.pushState(state,'');setDetail(true);return;}
     // Changing the route origin starts a new form. Do not pop to an older
@@ -223,8 +234,9 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     </div>
     <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace v2-keyboard-workspace':view==='lost'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
-      {['chat',...menuItems.filter(x=>x.action).map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
-      {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
+      {['chat',...menuItems.filter(x=>x.action&&x.id!=='route').map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
+      {mounted.route&&<div className="v2-feature-pane v2-route-pane" hidden={view!=='route'}><UnifiedRouteLab key={(visits.route||0)+'-'+(stationContext?.stationCode||'0154')} embedded stationContext={stationContext} language={lang} active={view==='route'} onNavigationStep={view==='route'?publishStep:null} navigationSnapshot={restoration?.view==='route'?restoration:null}/></div>}
+       {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
       {mounted.timetable&&<div className="v2-feature-pane" hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'} stationContext={stationContext}/></div>}
       {mounted.found&&foundStation&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+foundStation.id} embedded station={foundStation} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}
       {mounted.facility&&<div className="v2-feature-pane" hidden={view!=='facility'}><FacilityDemo key={visits.facility||0} embedded stationContext={stationContext} lang={lang} active={view==='facility'}/></div>}
