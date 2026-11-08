@@ -139,7 +139,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    <header className={"rl-top"+(embedded?" rl-top-embedded":"")}>
     {!embedded&&<div className="rl-top-row"><span className="rl-lab-label"><span className="rl-pulse"/> {t.lab}</span>
      <select aria-label="Language" value={lang} onChange={e=>setLanguage(e.target.value)}><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh">中文</option></select>
-    </div>
+    </div>}
     <div className="rl-title-icon">↗</div><h1>{t.title}</h1><p>{t.subtitle}</p>
    </header>
    <section className="rl-search-card">
