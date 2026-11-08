@@ -16,7 +16,7 @@ await policy.link(async name=>{
  return new vm.SyntheticModule(['default'],function(){this.setExport('default',official);},{context});
 });
 await policy.evaluate();
-const {parsePlaceAnswer,resolveOfficialStop}=policy.namespace;
+const {parsePlaceAnswer,resolveOfficialStop,inspectRouteStationMetadata}=policy.namespace;
 const reply=(station='삼성역')=>`코엑스몰은 2호선 삼성역이나 9호선 봉은사역에서 갈 수 있습니다. 공식 경로는 별도로 확인해 주세요.
 <route_station>${station}</route_station>
 <menu_recommendation>route</menu_recommendation>`;
@@ -72,6 +72,30 @@ test('natural prose and valid trailing optional station metadata return a route'
  assert.equal(oneTag.station.ko,'서울역');
 });
 
+test('raw route_station value is preserved even when official route mapping rejects it',()=>{
+ const ja='ホテルへ向かう場合はこちらです。\n<route_station>乙支路入口</route_station>\n<menu_recommendation>route</menu_recommendation>';
+ const debug=inspectRouteStationMetadata(ja,'STOP');
+ assert.deepEqual(Array.from(debug.rawRouteStationValues),['乙支路入口']);
+ assert.equal(debug.rawRouteStationTagSeen,true);
+ assert.equal(debug.geminiFinishReason,'STOP');
+ assert.equal(parsePlaceAnswer(ja).status,'unverified');
+ const multiline=inspectRouteStationMetadata('案内\n<route_station> 을지로입구\n </route_station>');
+ assert.deepEqual(Array.from(multiline.rawRouteStationValues),[' 을지로입구\n ']);
+ assert.equal(inspectRouteStationMetadata('回答のみ').rawRouteStationTagSeen,false);
+ const malformed=inspectRouteStationMetadata('案内\n<route_station>乙支路入口');
+ assert.equal(malformed.rawRouteStationTagSeen,true);
+ assert.equal(malformed.rawRouteStationValues.length,0);
+ const duplicates=inspectRouteStationMetadata('<route_station>을지로입구</route_station>\n<route_station>市厅</route_station>');
+ assert.deepEqual(Array.from(duplicates.rawRouteStationValues),['을지로입구','市厅']);
+});
+test('raw Gemini station diagnostics appear in V2 including failed searches',()=>{
+ assert.match(api,/inspectRouteStationMetadata\(text,candidate\?\.finishReason\|\|null\)/);
+ assert.match(api,/\.\.\.routeStationDebug/);
+ assert.match(page,/rawRouteStationValues\?\.length/);
+ assert.match(page,/rawRouteStationTagSeen/);
+ assert.match(page,/rl-route-station-debug/);
+ assert.match(css,/\.rl-route-station-debug/);
+});
 test('freeform answer survives absent tags, invalid station, ambiguous answer, or truncation',()=>{
  for(const text of [
   '2호선 삼성역 또는 9호선 봉은사역에서 갈 수 있습니다.',

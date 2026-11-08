@@ -3,6 +3,15 @@ import stations from '../data/seoulMetroOfficialStations.json';
 // Only exact official Korean station names can be sent to the subway route API.
 const normalize=value=>String(value||'').normalize('NFKC').trim()
  .replace(/[\s·・()（）]/g,'').replace(/역$/,'').toLocaleLowerCase('ko');
+// Preserve Gemini's exact route_station contents independently of route validation.
+export function inspectRouteStationMetadata(raw,finishReason=null){
+ const text=String(raw||'');
+ return {
+  rawRouteStationValues:Array.from(text.matchAll(/<route_station>([\s\S]*?)<\/route_station>/gi),match=>match[1]),
+  rawRouteStationTagSeen:/<route_station\b/i.test(text),
+  geminiFinishReason:finishReason
+ };
+}
 const byName=new Map();
 for(const st of stations){
  if(st.code==='9005'&&st.line==='GTX-A')continue;

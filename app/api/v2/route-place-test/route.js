@@ -1,7 +1,7 @@
 import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 import {getStationByCode} from '../../../lib/station-master';
-import {parsePlaceAnswer} from '../../../lib/route-place-policy';
+import {parsePlaceAnswer,inspectRouteStationMetadata} from '../../../lib/route-place-policy';
 import {buildRoutePlacePrompt} from '../../../lib/route-place-prompt';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -74,12 +74,13 @@ export async function POST(request){
   const candidate=data.candidates?.[0],complete=candidate?.finishReason==='STOP';
   const text=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim()||'';
   const parsed=parsePlaceAnswer(text,complete);
+  const routeStationDebug=inspectRouteStationMetadata(text,candidate?.finishReason||null);
   const grounding=candidate?.groundingMetadata||{};
   const sources=(grounding.groundingChunks||[]).filter(c=>c.web?.uri?.startsWith('https://')).slice(0,6).map(c=>({title:c.web.title||'Source',url:c.web.uri}));
   // A search-grounded answer may not expose a groundingChunks array. Lack of
   // citation cards is not evidence that the station recommendation was wrong.
   if(!parsed.answer)return respond({ok:false,error:'AI_FORMAT_ERROR'},502);
-  return respond({ok:true,...parsed,place:query,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
+  return respond({ok:true,...parsed,...routeStationDebug,place:query,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
  }catch(error){
   console.error('[route-place-test]',error?.name||'Error','elapsedMs',Date.now()-startedAt);
   return respond({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);
