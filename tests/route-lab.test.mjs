@@ -251,9 +251,9 @@ test('simple transfer label and Google Maps fallback',()=>{
  assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
 });
 
-test('changing a route option or searching another stop creates a V2 form back-history state',()=>{
+test('changing a route option or destination preserves V2 back-history',()=>{
  assert.ok(page.includes("saveNavigation('route:form',{mode:x,route:null})"));
- assert.ok(page.includes("saveNavigation('route:form',{place:null,route:null,picked:null})"));
+ assert.ok(page.includes("saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null})"));
 });
 
 test('embedded-only header and footer JSX are closed correctly',()=>{
@@ -286,8 +286,10 @@ test('recommended stop shows centered numeric line badges; station timeline scro
  assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
 });
 
-test('compact V2 route removes connector arrows, redundant heading and nested step cards',()=>{
- assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
+test('compact V2 route keeps its introduction and removes connector arrows',()=>{
+ assert.ok(page.includes('<h1>{t.title}</h1><p>{t.subtitle}</p>'));
+ assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{padding-top:11px;padding-bottom:13px}'));
+ assert.ok(!css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
  assert.ok(css.includes('.route-lab .rl-steps{gap:0}'));
  assert.ok(css.includes('.route-lab .rl-all-stations-list{gap:6px 5px;'));
  assert.ok(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
@@ -300,4 +302,16 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
  assert.ok(lostCss.includes('.tl-stepbar button.tl-step::after{content:none}'));
  assert.ok(!lostCss.includes(".tl-stepbar button.tl-step:not(:last-child)::after{content:'→'"));
  assert.ok(!lostCss.includes(".tl-step:not(:last-child):after{content:''"));
+});
+
+test('single search button automatically handles station names and AI places',()=>{
+ assert.ok(page.includes('async function perform(){'));
+ assert.ok(page.includes('if(picked||exact){'));
+ assert.ok(page.includes("fetch('/api/v2/route-place-test'"));
+ assert.ok(page.includes('void perform(false)'));
+ assert.ok(!page.includes('className="rl-as-place"'));
+ assert.ok(!page.includes('className="rl-change-stop"'));
+ assert.ok(!page.includes('void perform(true)'));
+ assert.ok(!css.includes('.rl-as-place{'));
+ assert.ok(!css.includes('.rl-change-stop{'));
 });
