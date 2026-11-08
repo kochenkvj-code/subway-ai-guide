@@ -9,7 +9,7 @@ import './route-lab.css';
 
 const COPY={
  ko:{walkingTitle:'하차 후 도보안내',walkingUnknown:'정확한 출구·도보 안내가 확인되지 않았습니다. 지도에서 확인해 주세요.',mapGoogle:'구글맵에서 위치 보기',title:'목적지 길찾기',subtitle:'지하철역부터 호텔·관광지까지, 목적지만 입력하세요.',lab:'V2 · NEW ROUTE LAB',origin:'출발역',change:'변경',chooseOrigin:'출발역 검색',dest:'어디로 가시나요?',placeholder:'역명, 호텔, 관광지, 건물명 또는 주소',search:'길찾기',searchPlace:'이 장소를 AI로 검색',searchingPlace:'장소 위치·추천 하차역 확인 중…',searchingRoute:'공식 지하철 경로 조회 중…',examples:'예시 목적지',suggest:'일치하는 지하철역',placeHint:'역명을 선택하면 공식 길찾기, 장소명은 AI 위치 검색',aiTitle:'AI 목적지 안내',recommend:'추천 하차역',why:'추천 이유',walk:'하차 후 이동',near:'확인된 하차역으로 공식 경로를 조회합니다.',sources:'위치 확인 출처',other:'다른 역으로 길찾기',official:'공식 지하철 경로 결과',duration:'소요시간',transfers:'환승',fare:'교통카드 운임',distance:'이동 거리',ride:'탑승',transfer:'환승',bound:'방면',stops:'정거장',allStops:'경유역 보기',allStations:'경유역 전체보기',path:'이동 경로',options:'경로 기준',modes:['최소시간','최단거리','최소환승'],retry:'다시 검색',unknown:'추천 하차역을 자동 연결하지 못했습니다. 위 AI 안내를 확인하거나 목적지 역을 직접 선택해 주세요.',sourceNote:'AI는 목적지에 적합한 하차역만 제안하며 실제 지하철 경로·운임은 공식 API로 조회합니다.',noData:'검색 결과가 없습니다.',invalid:'역을 찾지 못했어요.',fail:'검색에 실패했습니다.',apiOnly:'역 검색은 AI를 호출하지 않습니다.',testing:'독립 테스트 페이지 · 기존 V2 기능 변경 없음',same:'출발역과 도착역이 동일합니다. 하차 후 이동 경로를 확인하세요.',exitUnknown:'정확한 출구와 도보 경로가 확인되지 않으면 지도에서 최종 이동을 확인하세요.',minutes:'분',won:'원',count:'회',from:'출발',to:'하차'},
- en:{walkingTitle:'Walk to your destination',walkingUnknown:'No confirmed exit or walking instructions. Please check the map.',mapGoogle:'See location on Google Maps',title:'Find your destination',subtitle:'A station, hotel, attraction or address — just enter where you want to go.',lab:'V2 · NEW ROUTE LAB',origin:'From station',change:'Change',chooseOrigin:'Find departure station',dest:'Where are you going?',placeholder:'Station, hotel, attraction, building or address',search:'Find route',searchPlace:'Search as a place with AI',searchingPlace:'Checking place and alighting station…',searchingRoute:'Checking the official subway route…',examples:'Try a destination',suggest:'Matching stations',placeHint:'Station → official route; other place → AI place lookup',aiTitle:'AI destination guide',recommend:'Suggested station',why:'Why this station?',walk:'After leaving the station',near:'Checking the official subway route to this station.',sources:'Location sources',other:'Choose a different station',official:'Official subway route',duration:'Travel time',transfers:'Transfers',fare:'Card fare',distance:'Distance',ride:'Ride',transfer:'Transfer',bound:'bound',stops:'stops',allStops:'Show intermediate stations',allStations:'Show all stations',path:'Journey',options:'Route preference',modes:['Fastest','Shortest distance','Fewest transfers'],retry:'Search again',unknown:'A subway stop could not be linked automatically. Read the AI guidance above or choose a station directly.',sourceNote:'AI suggests the alighting station; subway route and fare come from the official API.',noData:'No matches found.',invalid:'Station not found.',fail:'Search failed.',apiOnly:'Station lookups do not call AI.',testing:'Standalone test · Existing V2 unchanged',same:'The destination is the departure station. Check the walk to your destination.',exitUnknown:'Check a map for exits and the last walking segment if not verified.',minutes:'min',won:'KRW',count:'',from:'From',to:'To'},
+ en:{walkingTitle:'Walk to your destination',walkingUnknown:'No confirmed exit or walking instructions. Please check the map.',mapGoogle:'See location on Google Maps',title:'Find your destination',subtitle:'Enter a station, hotel, attraction or address.',lab:'V2 · NEW ROUTE LAB',origin:'From station',change:'Change',chooseOrigin:'Find departure station',dest:'Where are you going?',placeholder:'Station, place or address',search:'Find route',searchPlace:'Search as a place with AI',searchingPlace:'Finding your destination…',searchingRoute:'Finding your route…',examples:'Try a destination',suggest:'Matching stations',placeHint:'Station → official route; other place → AI place lookup',aiTitle:'AI destination guide',recommend:'Suggested station',why:'Why this station?',walk:'After leaving the station',near:'Checking the official subway route to this station.',sources:'Location sources',other:'Choose a different station',official:'Official subway route',duration:'Travel time',transfers:'Transfers',fare:'Card fare',distance:'Distance',ride:'Ride',transfer:'Transfer',bound:'bound',stops:'stops',allStops:'Show intermediate stations',allStations:'Show all stations',path:'Journey',options:'Route preference',modes:['Fastest','Shortest distance','Fewest transfers'],retry:'Search again',unknown:'A subway stop could not be linked automatically. Read the AI guidance above or choose a station directly.',sourceNote:'AI suggests the alighting station; subway route and fare come from the official API.',noData:'No matches found.',invalid:'Station not found.',fail:'Search failed.',apiOnly:'Station lookups do not call AI.',testing:'Standalone test · Existing V2 unchanged',same:'The destination is the departure station. Check the walk to your destination.',exitUnknown:'Check a map for exits and the last walking segment if not verified.',minutes:'min',won:'KRW',count:'',from:'From',to:'To'},
  ja:{walkingTitle:'下車後の徒歩案内',walkingUnknown:'出口や徒歩経路は確認できませんでした。地図でご確認ください。',mapGoogle:'Google マップで場所を確認',title:'目的地への行き方',subtitle:'駅・ホテル・観光地・住所など、行き先を入力するだけ。',lab:'V2 · NEW ROUTE LAB',origin:'出発駅',change:'変更',chooseOrigin:'出発駅を検索',dest:'どちらへ行きますか？',placeholder:'駅名・ホテル・観光地・建物名・住所',search:'経路検索',searchPlace:'AIで場所を検索',searchingPlace:'目的地と降車駅を確認中…',searchingRoute:'公式地下鉄経路を検索中…',examples:'入力例',suggest:'駅の候補',placeHint:'駅名は公式経路、それ以外の場所はAI検索',aiTitle:'AI目的地案内',recommend:'おすすめ降車駅',why:'選んだ理由',walk:'駅から目的地まで',near:'おすすめ駅までの公式経路を検索します。',sources:'確認元',other:'別の駅を選ぶ',official:'公式地下鉄経路',duration:'所要時間',transfers:'乗換',fare:'交通カード運賃',distance:'移動距離',ride:'乗車',transfer:'乗換',bound:'方面',stops:'駅',allStops:'途中駅を見る',allStations:'全経由駅を見る',path:'乗車経路',options:'検索条件',modes:['最短時間','最短距離','最少乗換'],retry:'再検索',unknown:'おすすめ降車駅を自動連携できませんでした。上のAI案内を確認するか、駅を直接選択してください。',sourceNote:'AIは降車駅のみ提案します。地下鉄経路と運賃は公式APIを使用します。',noData:'候補がありません。',invalid:'駅が見つかりません。',fail:'検索に失敗しました。',apiOnly:'駅名検索ではAIを使いません。',testing:'独立テストページ · V2本体は変更なし',same:'出発駅と到着駅が同じです。徒歩移動をご確認ください。',exitUnknown:'出口や徒歩経路が未確認の場合は地図でご確認ください。',minutes:'分',won:'ウォン',count:'回',from:'出発',to:'到着'},
  zh:{walkingTitle:'下车后步行指南',walkingUnknown:'未能确认出口或步行路线，请查看地图。',mapGoogle:'在 Google 地图查看位置',title:'前往目的地',subtitle:'车站、酒店、景点或地址，只需输入目的地。',lab:'V2 · NEW ROUTE LAB',origin:'出发站',change:'更改',chooseOrigin:'搜索出发站',dest:'您想去哪里？',placeholder:'车站、酒店、景点、建筑或地址',search:'查询路线',searchPlace:'使用AI搜索地点',searchingPlace:'正在确认地点及建议下车站…',searchingRoute:'正在查询官方地铁路线…',examples:'示例目的地',suggest:'匹配的车站',placeHint:'车站直接查询官方路线，其他地点由AI搜索',aiTitle:'AI目的地指南',recommend:'建议下车站',why:'推荐理由',walk:'出站后前往目的地',near:'正在查询前往建议车站的官方地铁路线。',sources:'地点来源',other:'选择其他车站',official:'官方地铁路线',duration:'预计时间',transfers:'换乘',fare:'交通卡票价',distance:'距离',ride:'乘车',transfer:'换乘',bound:'方向',stops:'站',allStops:'查看途经站',allStations:'查看全部途经站',path:'行程',options:'路线偏好',modes:['时间最短','距离最短','换乘最少'],retry:'重新搜索',unknown:'未能自动关联建议下车站。请参考上方AI指南，或直接选择地铁站。',sourceNote:'AI仅建议下车站，地铁路线和票价由官方API查询。',noData:'没有匹配结果。',invalid:'找不到车站。',fail:'查询失败。',apiOnly:'车站搜索无需AI。',testing:'独立测试页面 · V2原功能未改动',same:'出发站和目的站相同，请确认步行路线。',exitUnknown:'未经核实的出口和步行路线请使用地图确认。',minutes:'分钟',won:'韩元',count:'次',from:'出发',to:'下车'}
 };
@@ -64,7 +64,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   setFeedback(result);
   recordStat('feedback',result,lang);
  }
- const requestRef=useRef(null),resultRef=useRef(null);
+ const requestRef=useRef(null),resultRef=useRef(null),placeRef=useRef(null),scrollPendingRef=useRef(false);
  const navigationRef=useRef(null);
  navigationRef.current=embedded&&active?onNavigationStep:null;
  function saveNavigation(key,overrides={}){
@@ -90,23 +90,39 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!embedded||navigationSnapshot?.view!=='route')return;
   const saved=navigationSnapshot.data?.routeState;
   if(!saved||!getStationByCode(saved.originCode))return;
-  requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');resetFeedback();
+  scrollPendingRef.current=false;requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');resetFeedback();
   setOriginCode(embedded&&getStationByCode(stationContext?.stationCode)?stationContext.stationCode:saved.originCode);setQuery(saved.query||'');setPicked(saved.picked||null);
   setMode(saved.mode||'duration');setPlace(saved.place||null);setRoute(saved.route||null);setAiMs(saved.aiMs??null);
  },[embedded,navigationSnapshot?.serial]);
- useEffect(()=>{if(embedded&&!active){requestRef.current?.abort();requestRef.current=null;setLoading('');}},[embedded,active]);
+ useEffect(()=>{if(embedded&&!active){scrollPendingRef.current=false;requestRef.current?.abort();requestRef.current=null;setLoading('');}},[embedded,active]);
  useEffect(()=>()=>requestRef.current?.abort(),[]);
+ useEffect(()=>{
+  if(loading||!scrollPendingRef.current||(!place&&!route))return;
+  scrollPendingRef.current=false;
+  const frame=requestAnimationFrame(()=>{
+   const target=place?placeRef.current:resultRef.current;
+   if(!target)return;
+   const behavior=window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+   const pane=embedded?target.closest('.v2-feature-pane'):null;
+   if(pane){
+    pane.scrollTo({top:Math.max(0,pane.scrollTop+target.getBoundingClientRect().top-pane.getBoundingClientRect().top-12),behavior});
+   }else{
+    window.scrollTo({top:Math.max(0,window.scrollY+target.getBoundingClientRect().top-12),behavior});
+   }
+  });
+  return()=>cancelAnimationFrame(frame);
+ },[loading,place,route,embedded]);
  const setLanguage=value=>{
   if(embedded)return;
   setStandaloneLang(value);const u=new URL(window.location.href);u.searchParams.set('lang',value);
   window.history.replaceState(window.history.state,'',u.pathname+u.search);
  };
  const changeQuery=value=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(value);setPicked(null);setRoute(null);setPlace(null);setError('');
+  scrollPendingRef.current=false;requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(value);setPicked(null);setRoute(null);setPlace(null);setError('');
   if(embedded)saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null});
  };
  const choose=st=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(st[lang]||st.ko);setPicked(st);setFocused(false);setRoute(null);setPlace(null);setError('');
+  scrollPendingRef.current=false;requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(st[lang]||st.ko);setPicked(st);setFocused(false);setRoute(null);setPlace(null);setError('');
   if(embedded)saveNavigation('route:form',{query:st[lang]||st.ko,picked:st,route:null,place:null,aiMs:null});
  };
  async function lookupRoute(station,signal,placeResult=null,searchTerm=query){
@@ -119,13 +135,12 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!signal.aborted){
    setRoute(result.route);
    if(embedded)saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route});
-   requestAnimationFrame(()=>resultRef.current?.scrollIntoView({block:'start',behavior:'smooth'}));
   }
  }
  async function perform(){
   const term=query.trim();
   if(!term||loading)return;
-  requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;
+  requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;scrollPendingRef.current=true;
   setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);resetFeedback();
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
   const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
@@ -184,7 +199,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
     <div className="rl-examples"><strong>{t.examples}</strong><div>{EXAMPLES.slice(0,3).map(ex=><button key={ex.ko} type="button" title={ex[lang]||ex.ko} onClick={()=>{changeQuery(ex[lang]||ex.ko);setFocused(false);}}>{ex[lang]||ex.ko}</button>)}</div></div>
    </section>
    {(loading||error)&&<section className={'rl-alert'+(error?' rl-error':'')} role="status"><span>{loading==='place'?'✦':loading==='route'?'🚇':'ⓘ'}</span>{error|| (loading==='place'?t.searchingPlace:t.searchingRoute)}</section>}
-   {place&&<section className="rl-result-card rl-place-card" aria-live="polite">
+   {place&&<section ref={placeRef} className="rl-result-card rl-place-card" aria-live="polite">
      <h2>{t.aiTitle}</h2>
      {place.place&&<h3 className="rl-place-name">{place.place}</h3>}
      <p className="rl-ai-answer">{renderRouteAnswer(place.answer||t.unknown)}</p>

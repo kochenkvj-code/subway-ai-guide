@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {facilityCopy} from './facility-copy';
+import {translateFacilityText} from '../../lib/facility-i18n';
 const TYPES=[
  ['toilet','화장실','WC','기본 편의'],
  ['elevator','엘리베이터','↕','이동·접근성'],
@@ -79,6 +80,11 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
     result.phone=pick(row,[/^custCntrTelno$/i]).replace(/\D/g,'');
   }
   result.provider=id==='atm'?pick(row,[/^fnstNm$/i]):'';
+  result.originalLocation=result.location;
+  for(const field of ['location','floor','floorConnection','hours','method','restroomInfo','provider','status']){
+   const translated=translateFacilityText(result[field],lang,field);
+   result[field]=translated.untranslated?t.untranslated+': '+translated.original:translated.text;
+  }
   return result;
  };
  const available=TYPES.map(([id,koreanName,icon])=>{
@@ -125,11 +131,11 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
        const state=pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i]);
        return <article className="sf-record" key={cat.id+'-'+index}>
         <div className="sf-record-top"><h4 title={s.originalName}>{s.name}</h4>{s.status&&<span className={'sf-status'+(state==='M'?' status-good':state?' status-warn':'')}>{s.status}</span>}</div>
-        <div className="sf-location"><span className="sf-location-icon" aria-hidden="true">⌖</span><div className="sf-location-text"><small>{t.location}</small><strong className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</strong></div></div>
+        <div className="sf-location"><span className="sf-location-icon" aria-hidden="true">⌖</span><div className="sf-location-text"><small>{t.location}</small><strong title={s.originalLocation} className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</strong></div></div>
         {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider)&&<div className="sf-meta">
          {s.floorConnection?<span className="sf-tag sf-tag-strong">{t.connectedFloors} {s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}
          {s.gateLabel&&<span className="sf-tag sf-tag-strong">{s.gateLabel}</span>}
-         {s.entrance&&<span className="sf-tag">{s.entrance}{t.exitSuffix}</span>}
+         {s.entrance&&<span className="sf-tag">{lang==='en'?'Exit '+s.entrance:s.entrance+t.exitSuffix}</span>}
          {s.wheelchair&&<span className="sf-tag sf-tag-accessible">♿ {s.wheelchair}</span>}
          {s.lockerCount&&<span className="sf-tag">{s.lockerCount}</span>}
          {s.hours&&<span className="sf-tag">{t.hours} · {s.hours}</span>}

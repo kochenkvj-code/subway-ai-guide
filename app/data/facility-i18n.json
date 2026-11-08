@@ -1,0 +1,931 @@
+{
+  "version": 1,
+  "phrases": {
+    "1인가족 단독사용": {
+      "en": "One family at a time",
+      "ja": "1家族ずつ利用",
+      "zh": "每次限一户家庭使用"
+    },
+    "다수가족 공동사용": {
+      "en": "Shared by multiple families",
+      "ja": "複数家族で共用",
+      "zh": "多户家庭共用"
+    },
+    "영업시간내": {
+      "en": "During business hours",
+      "ja": "営業時間内",
+      "zh": "营业时间内"
+    },
+    "효성티앤에스": {
+      "en": "Hyosung TNS",
+      "ja": "Hyosung TNS",
+      "zh": "Hyosung TNS"
+    },
+    "㈜한네트": {
+      "en": "HANNET",
+      "ja": "HANNET",
+      "zh": "HANNET"
+    },
+    "일반(남,여) / 교통약자(남,여)": {
+      "en": "Standard (men/women) / Accessible (men/women)",
+      "ja": "一般（男性・女性）／バリアフリー（男性・女性）",
+      "zh": "普通（男/女）／无障碍（男/女）"
+    },
+    "일반(남,여) / 교통약자(남,여,공용)": {
+      "en": "Standard (men/women) / Accessible (men/women/unisex)",
+      "ja": "一般（男性・女性）／バリアフリー（男性・女性・共用）",
+      "zh": "普通（男/女）／无障碍（男/女/通用）"
+    },
+    "일반(남,여)": {
+      "en": "Standard (men/women)",
+      "ja": "一般（男性・女性）",
+      "zh": "普通（男/女）"
+    },
+    "사용 가능": {
+      "en": "Available",
+      "ja": "利用可能",
+      "zh": "可使用"
+    },
+    "삭제된 설비": {
+      "en": "Removed",
+      "ja": "撤去済み",
+      "zh": "已撤除"
+    },
+    "보수 중": {
+      "en": "Under maintenance",
+      "ja": "修理中",
+      "zh": "维修中"
+    },
+    "운행 중지": {
+      "en": "Out of service",
+      "ja": "運転停止",
+      "zh": "暂停运行"
+    },
+    "점검 중": {
+      "en": "Under inspection",
+      "ja": "点検中",
+      "zh": "检查中"
+    },
+    "공사 중": {
+      "en": "Construction",
+      "ja": "工事中",
+      "zh": "施工中"
+    },
+    "외부": {
+      "en": "Outside",
+      "ja": "外部",
+      "zh": "外部"
+    },
+    "내부": {
+      "en": "Inside",
+      "ja": "内部",
+      "zh": "内部"
+    }
+  },
+  "places": {
+    "대합실": {
+      "en": "Concourse",
+      "ja": "コンコース",
+      "zh": "站厅"
+    },
+    "환승통로": {
+      "en": "Transfer passage",
+      "ja": "乗換通路",
+      "zh": "换乘通道"
+    },
+    "연결통로": {
+      "en": "Connecting passage",
+      "ja": "連絡通路",
+      "zh": "连接通道"
+    },
+    "고객안전실": {
+      "en": "Customer service office",
+      "ja": "駅係員室",
+      "zh": "车站服务室"
+    },
+    "고객상담실": {
+      "en": "Customer service desk",
+      "ja": "お客様相談窓口",
+      "zh": "乘客咨询处"
+    },
+    "역무실": {
+      "en": "Station office",
+      "ja": "駅務室",
+      "zh": "站务室"
+    },
+    "고객안내부스": {
+      "en": "Information booth",
+      "ja": "案内ブース",
+      "zh": "咨询亭"
+    },
+    "아이센터": {
+      "en": "i-Center",
+      "ja": "iセンター",
+      "zh": "i中心"
+    },
+    "지하철경찰대": {
+      "en": "Subway police office",
+      "ja": "地下鉄警察隊",
+      "zh": "地铁警察队"
+    },
+    "남자화장실": {
+      "en": "Men’s restroom",
+      "ja": "男性用トイレ",
+      "zh": "男洗手间"
+    },
+    "여자화장실": {
+      "en": "Women’s restroom",
+      "ja": "女性用トイレ",
+      "zh": "女洗手间"
+    },
+    "화장실": {
+      "en": "Restroom",
+      "ja": "トイレ",
+      "zh": "洗手间"
+    },
+    "장애인화장실": {
+      "en": "Accessible restroom",
+      "ja": "バリアフリートイレ",
+      "zh": "无障碍洗手间"
+    },
+    "개집표기": {
+      "en": "Fare gates",
+      "ja": "改札機",
+      "zh": "检票闸机"
+    },
+    "개찰구": {
+      "en": "Fare gates",
+      "ja": "改札口",
+      "zh": "检票闸机"
+    },
+    "게이트": {
+      "en": "Gate",
+      "ja": "ゲート",
+      "zh": "闸机"
+    },
+    "통로": {
+      "en": "Passage",
+      "ja": "通路",
+      "zh": "通道"
+    },
+    "중간계단": {
+      "en": "Intermediate stairs",
+      "ja": "中間階段",
+      "zh": "中间楼梯"
+    },
+    "내부계단": {
+      "en": "Indoor stairs",
+      "ja": "屋内階段",
+      "zh": "内部楼梯"
+    },
+    "계단": {
+      "en": "Stairs",
+      "ja": "階段",
+      "zh": "楼梯"
+    },
+    "편의점": {
+      "en": "Convenience store",
+      "ja": "コンビニ",
+      "zh": "便利店"
+    },
+    "벽면": {
+      "en": "Wall",
+      "ja": "壁面",
+      "zh": "墙面"
+    },
+    "기둥": {
+      "en": "Pillar",
+      "ja": "柱",
+      "zh": "立柱"
+    },
+    "지하상가": {
+      "en": "Underground shopping arcade",
+      "ja": "地下商店街",
+      "zh": "地下商街"
+    },
+    "상가": {
+      "en": "Shopping area",
+      "ja": "商店街",
+      "zh": "商铺区"
+    },
+    "복도": {
+      "en": "Corridor",
+      "ja": "廊下",
+      "zh": "走廊"
+    },
+    "광장": {
+      "en": "Plaza",
+      "ja": "広場",
+      "zh": "广场"
+    },
+    "입구": {
+      "en": "Entrance",
+      "ja": "入口",
+      "zh": "入口"
+    },
+    "승강장": {
+      "en": "Platform",
+      "ja": "ホーム",
+      "zh": "站台"
+    },
+    "만남의장소": {
+      "en": "Meeting point",
+      "ja": "待ち合わせ場所",
+      "zh": "会合处"
+    },
+    "만남의광장": {
+      "en": "Meeting plaza",
+      "ja": "待ち合わせ広場",
+      "zh": "会合广场"
+    },
+    "에스컬레이터": {
+      "en": "Escalator",
+      "ja": "エスカレーター",
+      "zh": "自动扶梯"
+    },
+    "엘리베이터": {
+      "en": "Elevator",
+      "ja": "エレベーター",
+      "zh": "电梯"
+    },
+    "물품보관함": {
+      "en": "Lockers",
+      "ja": "ロッカー",
+      "zh": "储物柜"
+    },
+    "보관함": {
+      "en": "Locker",
+      "ja": "ロッカー",
+      "zh": "储物柜"
+    },
+    "즉석사진기": {
+      "en": "Photo booth",
+      "ja": "証明写真機",
+      "zh": "自助照相机"
+    },
+    "자전거보관함": {
+      "en": "Bicycle locker",
+      "ja": "自転車ロッカー",
+      "zh": "自行车储存柜"
+    },
+    "휴게공간": {
+      "en": "Rest area",
+      "ja": "休憩スペース",
+      "zh": "休息区"
+    },
+    "공연무대": {
+      "en": "Performance stage",
+      "ja": "公演ステージ",
+      "zh": "表演舞台"
+    },
+    "스마트도서관": {
+      "en": "Smart library",
+      "ja": "スマート図書館",
+      "zh": "智能图书馆"
+    },
+    "민원발급기": {
+      "en": "Document kiosk",
+      "ja": "証明書発行機",
+      "zh": "证明自助打印机"
+    },
+    "주출입구": {
+      "en": "Main entrance",
+      "ja": "主出入口",
+      "zh": "主出入口"
+    },
+    "출입문": {
+      "en": "Door",
+      "ja": "ドア",
+      "zh": "门"
+    },
+    "중앙게이트": {
+      "en": "Central gate",
+      "ja": "中央ゲート",
+      "zh": "中央闸机"
+    },
+    "중앙": {
+      "en": "Center",
+      "ja": "中央",
+      "zh": "中央"
+    },
+    "경부선": {
+      "en": "Gyeongbu Line",
+      "ja": "京釜線",
+      "zh": "京釜线"
+    },
+    "경의중앙선": {
+      "en": "Gyeongui–Jungang Line",
+      "ja": "京義・中央線",
+      "zh": "京义中央线"
+    },
+    "수인분당선": {
+      "en": "Suin–Bundang Line",
+      "ja": "水仁・盆唐線",
+      "zh": "水仁盆唐线"
+    },
+    "공항철도": {
+      "en": "Airport Railroad",
+      "ja": "空港鉄道",
+      "zh": "机场铁路"
+    },
+    "경의선": {
+      "en": "Gyeongui Line",
+      "ja": "京義線",
+      "zh": "京义线"
+    },
+    "경춘선": {
+      "en": "Gyeongchun Line",
+      "ja": "京春線",
+      "zh": "京春线"
+    },
+    "상행": {
+      "en": "Upbound",
+      "ja": "上り",
+      "zh": "上行"
+    },
+    "하행": {
+      "en": "Downbound",
+      "ja": "下り",
+      "zh": "下行"
+    },
+    "상선": {
+      "en": "Upbound track",
+      "ja": "上り線",
+      "zh": "上行线"
+    },
+    "하선": {
+      "en": "Downbound track",
+      "ja": "下り線",
+      "zh": "下行线"
+    },
+    "수유실": {
+      "en": "Nursing room",
+      "ja": "授乳室",
+      "zh": "母婴室"
+    },
+    "아기사랑방": {
+      "en": "Baby care room",
+      "ja": "ベビーケアルーム",
+      "zh": "母婴护理室"
+    },
+    "현금인출기": {
+      "en": "ATM",
+      "ja": "ATM",
+      "zh": "ATM"
+    },
+    "세븐일레븐": {
+      "en": "7-Eleven",
+      "ja": "セブンイレブン",
+      "zh": "7-Eleven"
+    },
+    "판매기실": {
+      "en": "Vending machine room",
+      "ja": "券売機室",
+      "zh": "售票机室"
+    },
+    "기계실": {
+      "en": "Machine room",
+      "ja": "機械室",
+      "zh": "机械室"
+    },
+    "창고": {
+      "en": "Storage room",
+      "ja": "倉庫",
+      "zh": "仓库"
+    },
+    "코너": {
+      "en": "Corner",
+      "ja": "コーナー",
+      "zh": "角落"
+    },
+    "셔터": {
+      "en": "Shutter",
+      "ja": "シャッター",
+      "zh": "卷帘门"
+    },
+    "개방통로": {
+      "en": "Open passage",
+      "ja": "開放通路",
+      "zh": "开放通道"
+    },
+    "사물함": {
+      "en": "Lockers",
+      "ja": "ロッカー",
+      "zh": "储物柜"
+    },
+    "상부": {
+      "en": "Upper section",
+      "ja": "上部",
+      "zh": "上部"
+    },
+    "하부": {
+      "en": "Lower section",
+      "ja": "下部",
+      "zh": "下部"
+    },
+    "건물": {
+      "en": "Building",
+      "ja": "建物",
+      "zh": "建筑物"
+    },
+    "지상": {
+      "en": "Ground level",
+      "ja": "地上",
+      "zh": "地面"
+    },
+    "역사": {
+      "en": "Station building",
+      "ja": "駅舎",
+      "zh": "站房"
+    },
+    "롯데백화점": {
+      "en": "Lotte Department Store",
+      "ja": "ロッテ百貨店",
+      "zh": "乐天百货"
+    },
+    "현대백화점": {
+      "en": "Hyundai Department Store",
+      "ja": "現代百貨店",
+      "zh": "现代百货"
+    },
+    "백화점": {
+      "en": "Department store",
+      "ja": "百貨店",
+      "zh": "百货商店"
+    },
+    "롯데몰": {
+      "en": "Lotte Mall",
+      "ja": "ロッテモール",
+      "zh": "乐天购物中心"
+    },
+    "육교": {
+      "en": "Footbridge",
+      "ja": "歩道橋",
+      "zh": "人行天桥"
+    },
+    "꽃집": {
+      "en": "Flower shop",
+      "ja": "花屋",
+      "zh": "花店"
+    },
+    "신발가게": {
+      "en": "Shoe store",
+      "ja": "靴店",
+      "zh": "鞋店"
+    },
+    "서비스센터": {
+      "en": "Service center",
+      "ja": "サービスセンター",
+      "zh": "服务中心"
+    },
+    "고객서비스센터": {
+      "en": "Customer service center",
+      "ja": "お客様サービスセンター",
+      "zh": "乘客服务中心"
+    },
+    "고객센터": {
+      "en": "Customer center",
+      "ja": "お客様センター",
+      "zh": "乘客中心"
+    },
+    "고객안내센터": {
+      "en": "Customer information center",
+      "ja": "案内センター",
+      "zh": "乘客咨询中心"
+    },
+    "안내부스": {
+      "en": "Information booth",
+      "ja": "案内ブース",
+      "zh": "咨询亭"
+    },
+    "외부문": {
+      "en": "Exterior door",
+      "ja": "外側のドア",
+      "zh": "外门"
+    },
+    "내선대합실": {
+      "en": "Inner-circle concourse",
+      "ja": "内回りコンコース",
+      "zh": "内环站厅"
+    },
+    "외선대합실": {
+      "en": "Outer-circle concourse",
+      "ja": "外回りコンコース",
+      "zh": "外环站厅"
+    },
+    "내선승강장": {
+      "en": "Inner-circle platform",
+      "ja": "内回りホーム",
+      "zh": "内环站台"
+    },
+    "외선승강장": {
+      "en": "Outer-circle platform",
+      "ja": "外回りホーム",
+      "zh": "外环站台"
+    },
+    "내선": {
+      "en": "Inner circle",
+      "ja": "内回り",
+      "zh": "内环"
+    },
+    "외선": {
+      "en": "Outer circle",
+      "ja": "外回り",
+      "zh": "外环"
+    },
+    "환승게이트": {
+      "en": "Transfer gates",
+      "ja": "乗換改札",
+      "zh": "换乘闸机"
+    },
+    "환승입구": {
+      "en": "Transfer entrance",
+      "ja": "乗換入口",
+      "zh": "换乘入口"
+    },
+    "환승": {
+      "en": "Transfer",
+      "ja": "乗換",
+      "zh": "换乘"
+    },
+    "공중전화기": {
+      "en": "Public telephone",
+      "ja": "公衆電話",
+      "zh": "公用电话"
+    },
+    "공중전화": {
+      "en": "Public telephone",
+      "ja": "公衆電話",
+      "zh": "公用电话"
+    },
+    "환기실": {
+      "en": "Ventilation room",
+      "ja": "換気室",
+      "zh": "通风室"
+    },
+    "임대상가": {
+      "en": "Leased retail space",
+      "ja": "賃貸店舗",
+      "zh": "出租商铺"
+    },
+    "다이소": {
+      "en": "Daiso",
+      "ja": "ダイソー",
+      "zh": "大创"
+    },
+    "구내식당": {
+      "en": "Staff cafeteria",
+      "ja": "職員食堂",
+      "zh": "职工食堂"
+    },
+    "국내선": {
+      "en": "Domestic terminal",
+      "ja": "国内線",
+      "zh": "国内航站楼"
+    },
+    "무빙워크": {
+      "en": "Moving walkway",
+      "ja": "動く歩道",
+      "zh": "自动步道"
+    },
+    "현금지급기": {
+      "en": "ATM",
+      "ja": "ATM",
+      "zh": "ATM"
+    },
+    "도서대여기": {
+      "en": "Book lending machine",
+      "ja": "図書貸出機",
+      "zh": "自助借书机"
+    },
+    "공영주차장": {
+      "en": "Public parking",
+      "ja": "公共駐車場",
+      "zh": "公共停车场"
+    },
+    "지하철경찰센터": {
+      "en": "Subway police center",
+      "ja": "地下鉄警察センター",
+      "zh": "地铁警察中心"
+    },
+    "비운임지역": {
+      "en": "Unpaid area",
+      "ja": "改札外エリア",
+      "zh": "非付费区"
+    },
+    "운임지역": {
+      "en": "Paid area",
+      "ja": "改札内エリア",
+      "zh": "付费区"
+    },
+    "경사형": {
+      "en": "Inclined",
+      "ja": "傾斜型",
+      "zh": "倾斜式"
+    },
+    "러너스테이션": {
+      "en": "Runner station",
+      "ja": "ランナーステーション",
+      "zh": "跑者服务站"
+    },
+    "토니모리": {
+      "en": "TONYMOLY",
+      "ja": "TONYMOLY",
+      "zh": "TONYMOLY"
+    },
+    "조명광고": {
+      "en": "Illuminated advertisement",
+      "ja": "照明広告",
+      "zh": "灯箱广告"
+    },
+    "우이신설": {
+      "en": "Ui–Sinseol Line",
+      "ja": "牛耳新設線",
+      "zh": "牛耳新设线"
+    },
+    "ATM기기": {
+      "en": "ATM",
+      "ja": "ATM",
+      "zh": "ATM"
+    },
+    "환승구간": {
+      "en": "Transfer section",
+      "ja": "乗換区間",
+      "zh": "换乘区段"
+    },
+    "중층": {
+      "en": "Mezzanine",
+      "ja": "中間階",
+      "zh": "夹层"
+    },
+    "중간층": {
+      "en": "Intermediate floor",
+      "ja": "中間階",
+      "zh": "中间楼层"
+    },
+    "중간": {
+      "en": "Middle",
+      "ja": "中間",
+      "zh": "中间"
+    },
+    "쉼터": {
+      "en": "Rest area",
+      "ja": "休憩所",
+      "zh": "休息处"
+    },
+    "화장품": {
+      "en": "Cosmetics shop",
+      "ja": "化粧品店",
+      "zh": "化妆品店"
+    },
+    "미샤": {
+      "en": "MISSHA",
+      "ja": "MISSHA",
+      "zh": "MISSHA"
+    },
+    "메트로의원": {
+      "en": "Metro Clinic",
+      "ja": "メトロ医院",
+      "zh": "Metro诊所"
+    },
+    "네이처리퍼블릭": {
+      "en": "NATURE REPUBLIC",
+      "ja": "NATURE REPUBLIC",
+      "zh": "NATURE REPUBLIC"
+    },
+    "가락몰": {
+      "en": "Garak Mall",
+      "ja": "カラクモール",
+      "zh": "可乐购物中心"
+    },
+    "승강지원단": {
+      "en": "Elevator support office",
+      "ja": "昇降機支援団",
+      "zh": "电梯支援团"
+    },
+    "승강기사업소": {
+      "en": "Elevator operations office",
+      "ja": "昇降機事業所",
+      "zh": "电梯事务所"
+    },
+    "동부권역": {
+      "en": "Eastern district",
+      "ja": "東部区域",
+      "zh": "东部区域"
+    },
+    "엔터식스몰": {
+      "en": "Enter-6 Mall",
+      "ja": "エンターシックスモール",
+      "zh": "Enter-6购物中心"
+    },
+    "만남의 광장": {
+      "en": "Meeting plaza",
+      "ja": "待ち合わせ広場",
+      "zh": "会合广场"
+    },
+    "고객 안전실": {
+      "en": "Customer service office",
+      "ja": "駅係員室",
+      "zh": "车站服务室"
+    },
+    "자전거 보관함": {
+      "en": "Bicycle locker",
+      "ja": "自転車ロッカー",
+      "zh": "自行车储存柜"
+    }
+  },
+  "relations": {
+    "앞": {
+      "en": "In front of {x}",
+      "ja": "{x}の前",
+      "zh": "{x}前"
+    },
+    "옆": {
+      "en": "Beside {x}",
+      "ja": "{x}の横",
+      "zh": "{x}旁"
+    },
+    "주변": {
+      "en": "Near {x}",
+      "ja": "{x}付近",
+      "zh": "{x}附近"
+    },
+    "인근": {
+      "en": "Near {x}",
+      "ja": "{x}付近",
+      "zh": "{x}附近"
+    },
+    "근처": {
+      "en": "Near {x}",
+      "ja": "{x}付近",
+      "zh": "{x}附近"
+    },
+    "부근": {
+      "en": "Near {x}",
+      "ja": "{x}付近",
+      "zh": "{x}附近"
+    },
+    "인접": {
+      "en": "Next to {x}",
+      "ja": "{x}に隣接",
+      "zh": "紧邻{x}"
+    },
+    "맞은편": {
+      "en": "Opposite {x}",
+      "ja": "{x}の向かい",
+      "zh": "{x}对面"
+    },
+    "내부": {
+      "en": "Inside {x}",
+      "ja": "{x}内",
+      "zh": "{x}内"
+    },
+    "안쪽": {
+      "en": "Inside {x}",
+      "ja": "{x}内側",
+      "zh": "{x}内侧"
+    },
+    "내": {
+      "en": "Inside {x}",
+      "ja": "{x}内",
+      "zh": "{x}内"
+    },
+    "외부": {
+      "en": "Outside {x}",
+      "ja": "{x}外",
+      "zh": "{x}外"
+    },
+    "밖": {
+      "en": "Outside {x}",
+      "ja": "{x}外",
+      "zh": "{x}外"
+    },
+    "측": {
+      "en": "{x} side",
+      "ja": "{x}側",
+      "zh": "{x}侧"
+    },
+    "쪽": {
+      "en": "{x} side",
+      "ja": "{x}側",
+      "zh": "{x}侧"
+    },
+    "사이": {
+      "en": "Between {x}",
+      "ja": "{x}の間",
+      "zh": "{x}之间"
+    },
+    "방면": {
+      "en": "Toward {x}",
+      "ja": "{x}方面",
+      "zh": "往{x}"
+    },
+    "방향": {
+      "en": "Toward {x}",
+      "ja": "{x}方向",
+      "zh": "往{x}"
+    },
+    "뒤편": {
+      "en": "Behind {x}",
+      "ja": "{x}の後ろ",
+      "zh": "{x}后方"
+    },
+    "뒷편": {
+      "en": "Behind {x}",
+      "ja": "{x}の後ろ",
+      "zh": "{x}后方"
+    },
+    "좌측": {
+      "en": "Left of {x}",
+      "ja": "{x}の左側",
+      "zh": "{x}左侧"
+    },
+    "우측": {
+      "en": "Right of {x}",
+      "ja": "{x}の右側",
+      "zh": "{x}右侧"
+    },
+    "아래": {
+      "en": "Below {x}",
+      "ja": "{x}の下",
+      "zh": "{x}下方"
+    },
+    "밑": {
+      "en": "Below {x}",
+      "ja": "{x}の下",
+      "zh": "{x}下方"
+    },
+    "근접": {
+      "en": "Next to {x}",
+      "ja": "{x}に隣接",
+      "zh": "紧邻{x}"
+    },
+    "건너편": {
+      "en": "Opposite {x}",
+      "ja": "{x}の向かい",
+      "zh": "{x}对面"
+    },
+    "왼쪽": {
+      "en": "Left of {x}",
+      "ja": "{x}の左側",
+      "zh": "{x}左侧"
+    },
+    "오른쪽": {
+      "en": "Right of {x}",
+      "ja": "{x}の右側",
+      "zh": "{x}右侧"
+    },
+    "맞은 편": {
+      "en": "Opposite {x}",
+      "ja": "{x}の向かい",
+      "zh": "{x}对面"
+    },
+    "하단": {
+      "en": "Below {x}",
+      "ja": "{x}の下",
+      "zh": "{x}下方"
+    },
+    "측면": {
+      "en": "{x} side",
+      "ja": "{x}側",
+      "zh": "{x}侧"
+    },
+    "정면": {
+      "en": "In front of {x}",
+      "ja": "{x}の前",
+      "zh": "{x}前"
+    },
+    "끝": {
+      "en": "End of {x}",
+      "ja": "{x}の端",
+      "zh": "{x}尽头"
+    },
+    "끝단": {
+      "en": "End of {x}",
+      "ja": "{x}の端",
+      "zh": "{x}尽头"
+    }
+  },
+  "patterns": {
+    "exit": {
+      "en": "Exit {n}",
+      "ja": "{n}番出口",
+      "zh": "{n}号出口"
+    },
+    "line": {
+      "en": "Line {n}",
+      "ja": "{n}号線",
+      "zh": "{n}号线"
+    },
+    "floor": {
+      "en": "{n}F",
+      "ja": "{n}階",
+      "zh": "{n}层"
+    },
+    "basement": {
+      "en": "B{n}",
+      "ja": "地下{n}階",
+      "zh": "地下{n}层"
+    }
+  }
+}
