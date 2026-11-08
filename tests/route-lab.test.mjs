@@ -305,9 +305,9 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
 });
 
 test('example destinations display and insert each of the four supported languages',()=>{
- const match=page.match(/const EXAMPLES=(\\[[\\s\\S]*?\\]);/);
- assert.ok(match,'multilingual examples are defined');
- const examples=vm.runInNewContext(match[1],{});
+ const exampleBlock=page.split('const EXAMPLES=')[1]?.split('];')[0];
+ assert.ok(exampleBlock,'multilingual examples are defined');
+ const examples=vm.runInNewContext('['+exampleBlock+']',{});
  assert.equal(examples.length,4);
  const names=['ko','en','ja','zh'];
  for(const example of examples){
@@ -323,6 +323,6 @@ test('example destinations display and insert each of the four supported languag
  for(const lang of ['en','ja','zh'])assert.ok(official.some(st=>st[lang]===examples[0][lang]),lang+' station example must match an official name');
  assert.equal(examples[1].en,'Lotte Hotel Seoul');
  assert.equal(examples[2].en,'Gyeongbokgung Palace');
- assert.match(page,/key=\\{ex\\.ko\\} type="button" title=\\{ex\\[lang\\]\\|\\|ex\\.ko\\}/);
+ assert.ok(page.includes('key={ex.ko} type="button" title={ex[lang]||ex.ko}'));
  assert.ok(!page.includes('changeQuery(ex.q)'));
 });
