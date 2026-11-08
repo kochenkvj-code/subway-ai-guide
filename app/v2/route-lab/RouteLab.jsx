@@ -101,7 +101,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    requestAnimationFrame(()=>resultRef.current?.scrollIntoView({block:'start',behavior:'smooth'}));
   }
  }
- async function perform(forcePlace=false){
+ async function perform(){
   const term=query.trim();
   if(!term||loading)return;
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;
@@ -109,7 +109,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
   const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
   try{
-   if(!forcePlace&&(picked||exact)){
+   if(picked||exact){
     await lookupRoute(picked||exact,ctrl.signal,null,term);
     return;
    }
@@ -154,7 +154,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      
      <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button>
-     {query.trim()&&!loading&&<button className="rl-as-place" type="button" onClick={()=>{setPicked(null);void perform(true);}}>✧ {t.searchPlace}</button>}
+     
     </form>
     <div className="rl-examples"><strong>{t.examples}</strong><div>{EXAMPLES.slice(0,3).map(ex=><button key={ex.q} type="button" onClick={()=>{changeQuery(ex.q);setFocused(false);}}>{ex.q}</button>)}</div></div>
    </section>
@@ -165,7 +165,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      <p className="rl-ai-answer">{renderRouteAnswer(place.answer||t.unknown)}</p>
      
      {place.status==='found'&&place.station?<><div className="rl-recommend"><small>{t.recommend}</small><div className="rl-recommend-station">{place.station.lines?.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}<strong>{stationLabel(place.station,lang)}</strong></div>{place.reason&&<p>{place.reason}</p>}</div>
-       <button className="rl-change-stop" type="button" onClick={()=>{setPlace(null);setRoute(null);setPicked(null);setFocused(true);if(embedded)saveNavigation('route:form',{place:null,route:null,picked:null});document.getElementById('rl-destination')?.focus();}}>{t.other} →</button>
+       
      </>:<div className="rl-unverified">{t.unknown}</div>}
      
    </section>}
