@@ -58,7 +58,6 @@
 .rl-route-options button[aria-pressed=true]{background:#e4f3e8;color:#246d4f;border-color:#afd6b7;font-weight:800}
 .rl-submit{width:100%;border:0;border-radius:11px;background:#1d8060;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;font-size:14px;font-weight:750;box-shadow:0 5px 12px #1d806026}
 .rl-submit>span{font-size:20px}
-.rl-as-place{display:block;margin:8px auto 0;min-height:37px;border:0;background:transparent;color:#377b63;font-size:12px;font-weight:700}
 .rl-examples{border-top:1px solid #eff3ee;margin-top:13px;padding-top:13px}
 .rl-examples>strong{font-size:10px;color:#7c9184}
 .rl-examples>div{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
@@ -80,7 +79,6 @@
 .rl-last-mile{border:1px solid #e1ebe4;border-radius:10px;padding:12px;display:grid;gap:5px;font-size:11px;line-height:1.65}
 .rl-last-mile strong{color:#477b61}
 .rl-last-mile>span{color:#547064}
-.rl-change-stop{border:0;background:transparent;color:#45896b;font-size:11px;font-weight:700;min-height:34px;margin-top:4px}
 .rl-unverified{border:1px solid #e8d9c3;color:#806a4a;background:#fff9ec;font-size:12px;line-height:1.6;padding:11px;border-radius:10px}
 .rl-sources{margin-top:14px;border-top:1px solid #e8efea;padding-top:12px;display:grid;gap:7px}
 .rl-sources strong{font-size:11px;color:#7e9084}
@@ -174,7 +172,6 @@
 .route-lab .rl-route-options>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
 .route-lab .rl-route-options button{min-width:0;min-height:38px;padding:7px 2px;font-size:11px;line-height:1.25;white-space:nowrap;border-radius:8px}
 .route-lab .rl-submit{min-height:45px;border-radius:10px;font-size:13px}
-.route-lab .rl-as-place{min-height:31px;margin:4px auto 0;font-size:11px}
 .route-lab .rl-examples{display:flex;align-items:center;gap:7px;min-width:0;margin-top:9px;padding-top:9px}
 .route-lab .rl-examples>strong{font-size:9px;white-space:nowrap;flex:none}
 .route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap;margin-top:0}
@@ -187,7 +184,6 @@
 .route-lab .rl-recommend .rl-recommend-station{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:7px 0}
 .route-lab .rl-recommend .rl-route-line.rl-line-short{min-width:23px;min-height:23px;font-size:12px;border-radius:7px}
 .route-lab .rl-recommend strong{font-size:16px}
-.route-lab .rl-change-stop{min-height:30px;font-size:10px;margin-top:2px}
 .route-lab .rl-route-head{padding:10px;border-radius:11px}
 .route-lab .rl-stats{gap:6px;margin:10px 0 13px}
 .route-lab .rl-stats>div{padding:9px 10px;gap:4px;border-radius:9px}
@@ -215,8 +211,7 @@
  .route-lab .rl-examples button{font-size:9px}
 }
 
-/* Remove decorative nesting; V2 has its own page title and main scrollbar. */
-.route-lab.rl-embedded .rl-top-embedded{display:none}
+/* Simplify itinerary without hiding the route introduction in V2. */
 .route-lab.rl-embedded .rl-shell{padding-top:10px}
 .route-lab .rl-step{border:0;border-bottom:1px solid #e8efea;border-radius:0;box-shadow:none;background:transparent;padding:9px 2px}
 .route-lab .rl-step:last-child{border-bottom:0}
