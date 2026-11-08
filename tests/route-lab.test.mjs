@@ -72,13 +72,15 @@ test('natural prose and valid trailing optional station metadata return a route'
  assert.equal(oneTag.station.ko,'서울역');
 });
 
-test('raw route_station value is preserved even when official route mapping rejects it',()=>{
+test('raw route_station value is preserved independently of multilingual mapping',()=>{
  const ja='ホテルへ向かう場合はこちらです。\n<route_station>乙支路入口</route_station>\n<menu_recommendation>route</menu_recommendation>';
  const debug=inspectRouteStationMetadata(ja,'STOP');
  assert.deepEqual(Array.from(debug.rawRouteStationValues),['乙支路入口']);
  assert.equal(debug.rawRouteStationTagSeen,true);
  assert.equal(debug.geminiFinishReason,'STOP');
- assert.equal(parsePlaceAnswer(ja).status,'unverified');
+ assert.equal(parsePlaceAnswer(ja).status,'found');
+ assert.equal(parsePlaceAnswer(ja).station.ko,'을지로입구');
+ assert.equal(parsePlaceAnswer(ja).station.code,'0202');
  const multiline=inspectRouteStationMetadata('案内\n<route_station> 을지로입구\n </route_station>');
  assert.deepEqual(Array.from(multiline.rawRouteStationValues),[' 을지로입구\n ']);
  assert.equal(inspectRouteStationMetadata('回答のみ').rawRouteStationTagSeen,false);
@@ -383,4 +385,49 @@ test('all V2 destination examples localize the display and submitted search with
  assert.ok(page.includes('>{ex[lang]||ex.ko}</button>'));
  assert.ok(!page.includes('changeQuery(ex.q)'));
  assert.ok(!css.includes('.route-lab .rl-examples button{flex:1;min-width:0;padding:6px 4px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'));
+});
+
+
+test('official names in all four languages link to the same route code',()=>{
+ for(const name of ['을지로입구','을지로입구역','Euljiro 1(il)-ga','Euljiro 1(il)-ga Station','ウルチロイック','ウルチロイック駅','乙支路入口','乙支路入口站']){
+  const result=parsePlaceAnswer(`Hotel access.\n<route_station>${name}</route_station>\n<menu_recommendation>route</menu_recommendation>`);
+  assert.equal(result.status,'found',name);assert.equal(result.station.ko,'을지로입구',name);assert.equal(result.station.code,'0202',name);
+  assert.equal(result.routeStationFailure,null);
+  assert.equal(inspectRouteStationMetadata(`<route_station>${name}</route_station>`).rawRouteStationValues[0],name);
+ }
+ for(const [name,ko] of [['Gangnam','강남'],['Gyeongbokgung','경복궁'],['キョンボックン','경복궁'],['景福宫','경복궁']])assert.equal(resolveOfficialStop(name)?.ko,ko,name);
+});
+test('whitespace between trailing metadata does not lose a verified station or walking hint',()=>{
+ const answer='乙支路入口駅からお越しください。';
+ const text=`${answer}\n\n  <walk_hint>案内板を確認してください。</walk_hint>  \n \n <route_station>  乙支路入口站  </route_station> \n\n <menu_recommendation>route</menu_recommendation>\n \n`;
+ const result=parsePlaceAnswer(text);assert.equal(result.status,'found');assert.equal(result.station.code,'0202');assert.equal(result.answer,answer);assert.equal(result.walk,'案内板を確認してください。');
+ assert.equal(parsePlaceAnswer(answer+'\n<route_station>乙支路入口</route_station>\n\n').station.code,'0202');
+});
+test('mixed spelling, multiple stops, invalid metadata and incomplete output never guess a route',()=>{
+ for(const name of ['乙支路입구','乙지로1가','乙支로1(일)가','을지로1가','을지로','Euljiro','乙支路入口 / 을지로입구','乙支路入口（ウルチロイック）','강남구청 2호선','0202']){
+  const result=parsePlaceAnswer(`Guide\n<route_station>${name}</route_station>\n<menu_recommendation>route</menu_recommendation>`);
+  assert.equal(result.station,null,name);assert.equal(result.routeStationFailure,'unknown_or_ambiguous_station',name);assert.equal(result.answer,'Guide');
+ }
+ assert.equal(parsePlaceAnswer(reply(),false).routeStationFailure,'incomplete_response');
+ assert.equal(parsePlaceAnswer('Guide only').routeStationFailure,'missing_station_tag');
+ assert.equal(parsePlaceAnswer('Guide\n<route_station>乙支路入口</route_station>\n\n<menu_recommendation>none</menu_recommendation>').routeStationFailure,'no_recommendation');
+ assert.equal(parsePlaceAnswer('Guide\n<route_station>乙支路入口</route_station>\n\n<route_station>경복궁</route_station>').routeStationFailure,'multiple_stations');
+ assert.equal(parsePlaceAnswer('Guide\n<route_station>乙支路入口</route_station>\nAdditional explanation').routeStationFailure,'invalid_metadata');
+});
+test('ambiguous multilingual aliases cannot silently select a different official station',async()=>{
+ for(const name of ['カンナム駅','江南站'])assert.equal(resolveOfficialStop(name),null,'conflicting official aliases: '+name);
+ const fixture=[{code:'0001',ko:'첫역',en:'Same Name',ja:'同名',line:'01호선'},{code:'0002',ko:'둘째역',en:'Same Name',ja:'同名',line:'02호선'}];
+ const ctx=vm.createContext({Map,Set,RegExp,String,Object,Array});const module=new vm.SourceTextModule(source,{context:ctx});
+ await module.link(async()=>new vm.SyntheticModule(['default'],function(){this.setExport('default',fixture);},{context:ctx}));await module.evaluate();
+ assert.equal(module.namespace.resolveOfficialStop('Same Name'),null);assert.equal(module.namespace.resolveOfficialStop('同名駅'),null);
+ assert.equal(module.namespace.resolveOfficialStop('첫역').code,'0001');
+});
+test('selected language rules explicitly exempt Korean route_station metadata',()=>{
+ const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
+ for(const lang of ['ko','en','ja','zh']){
+  const prompt=buildRoutePlacePrompt('Lotte Hotel Seoul',lang,station,'Language rule');
+  assert.match(prompt,/MACHINE METADATA LANGUAGE EXCEPTION/);assert.doesNotMatch(prompt,/Korean proper name may follow/);assert.match(prompt,/MUST NOT translate or rewrite route_station/);assert.match(prompt,/<route_station>을지로입구<\/route_station>/);
+ }
+ assert.match(api,/EXCEPTION: route_station MUST contain one exact official Korean station name/);
+ assert.match(api,/route_station MUST remain one exact official Korean station name/);
 });

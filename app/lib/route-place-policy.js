@@ -1,8 +1,10 @@
 import stations from '../data/seoulMetroOfficialStations.json';
 
-// Only exact official Korean station names can be sent to the subway route API.
+// Accept exact labels from the official multilingual dataset, then always
+// return the Korean name/code. Never guess mixed-script or misspelled labels.
 const normalize=value=>String(value||'').normalize('NFKC').trim()
- .replace(/[\s·・()（）]/g,'').replace(/역$/,'').toLocaleLowerCase('ko');
+ .replace(/[\s·・()（）]/g,'').toLocaleLowerCase('ko');
+const withoutSuffix=value=>String(value||'').trim().replace(/(?:역|駅|站|\s+station)$/i,'').trim();
 // Preserve Gemini's exact route_station contents independently of route validation.
 export function inspectRouteStationMetadata(raw,finishReason=null){
  const text=String(raw||'');
@@ -15,15 +17,26 @@ export function inspectRouteStationMetadata(raw,finishReason=null){
 const byName=new Map();
 for(const st of stations){
  if(st.code==='9005'&&st.line==='GTX-A')continue;
- const key=normalize(st.ko);
- const list=byName.get(key)||[];
- list.push(st);byName.set(key,list);
+ for(const label of [st.ko,st.en,st.ja,st.zh]){
+  if(!label)continue;
+  // A trailing parenthetical subtitle is an alias only if unambiguous.
+  const base=String(label).replace(/\s*[（(][^()（）]*[)）]\s*$/,'').trim();
+  for(const alias of [label,withoutSuffix(label),base,withoutSuffix(base)]){
+   const key=normalize(alias);if(!key)continue;
+   const list=byName.get(key)||[];
+   if(!list.includes(st))list.push(st);
+   byName.set(key,list);
+  }
+ }
 }
 function preferredStation(matches){
  return matches.find(s=>/^0[1-9]호선$/.test(s.line))||matches[0]||null;
 }
 export function resolveOfficialStop(name){
- const matches=byName.get(normalize(name))||[];
+ const matches=byName.get(normalize(name))||byName.get(normalize(withoutSuffix(name)))||[];
+ // A transfer station can have several codes; distinct station names cannot
+ // be silently resolved by taking the first match.
+ if(new Set(matches.map(st=>normalize(withoutSuffix(st.ko)))).size!==1)return null;
  const st=preferredStation(matches);
  return st?{code:st.code,ko:st.ko,en:st.en,ja:st.ja,zh:st.zh,lines:[...new Set(matches.map(x=>x.line))]}:null;
 }
@@ -67,16 +80,18 @@ export function parsePlaceAnswer(raw,complete=true){
   visible.push(line);
  }
  let answer=visible.join('\n').trim().slice(0,2000);
- const last=lines.findLastIndex(line=>line.trim());
+ const nonempty=lines.map((line,index)=>line.trim()?index:null).filter(index=>index!==null);
+ const last=nonempty.at(-1);
  const routeEntries=metadata.filter(x=>x.kind==='route');
  const menuEntries=metadata.filter(x=>x.kind==='menu');
  const walkEntries=metadata.filter(x=>x.kind==='walk');
  const validMenu=menuEntries.length===0||
   (menuEntries.length===1&&menuEntries[0].index===last&&menuEntries[0].value==='route');
- const tail=menuEntries.length?last-1:last;
+ const tail=nonempty.at(menuEntries.length?-2:-1);
+ const walkTail=nonempty.at(menuEntries.length?-3:-2);
  const validRoute=complete&&answer&&metadata.length===routeEntries.length+menuEntries.length+walkEntries.length&&
   walkEntries.length<=1&&routeEntries.length===1&&validMenu&&routeEntries[0].index===tail&&
-  (!walkEntries.length||walkEntries[0].index===tail-1);
+  (!walkEntries.length||walkEntries[0].index===walkTail);
  let station=validRoute?resolveOfficialStop(routeEntries[0].value):null;
  // Never override malformed metadata or explicit menu_recommendation=none.
  // Incomplete responses cannot initiate an official route search.
@@ -84,7 +99,13 @@ export function parsePlaceAnswer(raw,complete=true){
   const fallback=trailingStationHint(answer);
   if(fallback){station=fallback.station;answer=fallback.answer;}
  }
- return {status:station?'found':'unverified',answer,place:'',station,
+ const routeStationFailure=station?null:!complete?'incomplete_response':
+  menuEntries.some(x=>x.value==='none')?'no_recommendation':
+  routeEntries.length>1?'multiple_stations':
+  metadata.some(x=>x.kind==='invalid')?'invalid_metadata':
+  !routeEntries.length?'missing_station_tag':
+  !validRoute?'invalid_metadata':'unknown_or_ambiguous_station';
+ return {status:station?'found':'unverified',routeStationFailure,answer,place:'',station,
   stations:station?[station]:[],reason:'',
   walk:station&&validRoute&&walkEntries.length===1?walkEntries[0].value:'',recommendedMenu:station?'route':null};
 }
