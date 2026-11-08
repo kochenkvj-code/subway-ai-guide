@@ -170,12 +170,12 @@
 .route-lab .rl-query-box input{height:45px;font-size:16px}
 .route-lab .rl-route-options{display:block;margin:11px 0 10px}
 .route-lab .rl-route-options>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
-.route-lab .rl-route-options button{min-width:0;min-height:38px;padding:7px 2px;font-size:11px;line-height:1.25;white-space:nowrap;border-radius:8px}
+.route-lab .rl-route-options button{min-width:0;min-height:40px;padding:7px 3px;font-size:11px;line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center;border-radius:8px}
 .route-lab .rl-submit{min-height:45px;border-radius:10px;font-size:13px}
-.route-lab .rl-examples{display:flex;align-items:center;gap:7px;min-width:0;margin-top:9px;padding-top:9px}
-.route-lab .rl-examples>strong{font-size:9px;white-space:nowrap;flex:none}
-.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap;margin-top:0}
-.route-lab .rl-examples button{flex:1;min-width:0;padding:6px 4px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.route-lab .rl-examples{display:block;min-width:0;margin-top:9px;padding-top:9px}
+.route-lab .rl-examples>strong{display:block;font-size:10px;line-height:1.35;white-space:normal}
+.route-lab .rl-examples>div{display:flex;align-items:stretch;gap:6px;min-width:0;flex-wrap:wrap;margin-top:6px}
+.route-lab .rl-examples button{flex:0 1 auto;max-width:100%;min-width:0;padding:7px 9px;font-size:10px;line-height:1.35;overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:break-word;text-align:center}
 .route-lab .rl-result-card h2{font-size:16px;letter-spacing:-.55px;margin:0 0 10px}
 .route-lab .rl-place-name{font-size:14px;margin:0 0 8px}
 .route-lab .rl-ai-answer{font-size:12px;line-height:1.65;margin:0 0 10px}
@@ -207,8 +207,8 @@
  .route-lab .rl-search-card,.route-lab .rl-result-card{padding:12px}
  .route-lab .rl-route-options>div{gap:4px}
  .route-lab .rl-route-options button{font-size:10px}
- .route-lab .rl-examples{gap:5px}
- .route-lab .rl-examples button{font-size:9px}
+ .route-lab .rl-examples>div{gap:5px}
+ .route-lab .rl-examples button{font-size:10px}
 }
 
 /* Simplify itinerary without hiding the route introduction in V2. */
