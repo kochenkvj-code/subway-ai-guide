@@ -274,7 +274,11 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(page.includes('className="rl-route-options"><div role="group" aria-label={t.options}>'));
  assert.ok(page.includes("EXAMPLES.slice(0,3).map"));
  assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'));
- assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap'));
+ assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:stretch;gap:6px;min-width:0;flex-wrap:wrap'));
+ assert.ok(css.includes('.route-lab .rl-examples button{flex:0 1 auto;max-width:100%;'));
+ assert.ok(css.includes('overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:break-word'));
+ assert.ok(css.includes('.route-lab .rl-route-options button{min-width:0;min-height:40px;'));
+ assert.ok(css.includes('line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
 });
 test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
@@ -329,4 +333,22 @@ test('route guidance ends with a translated new-destination action and feedback'
  assert.ok(page.includes("changeQuery('')"));
  assert.ok(page.includes('if(feedbackRef.current)return'));
  assert.ok(css.includes('.route-lab .rl-result-actions{display:grid'));
+});
+
+test('all V2 destination examples localize the display and submitted search without clipping',()=>{
+ const exampleBlock=page.split('const EXAMPLES=')[1]?.split('];')[0];
+ assert.ok(exampleBlock,'multilingual examples are defined');
+ const examples=vm.runInNewContext(exampleBlock+']',{});
+ assert.equal(examples.length,4);
+ for(const item of examples)for(const language of ['ko','en','ja','zh']){
+  assert.equal(typeof item[language],'string');
+  assert.ok(item[language].trim().length>0);
+ }
+ for(const language of ['en','ja','zh'])assert.ok(official.some(st=>st[language]===examples[0][language]),language+' station example must match official stations');
+ assert.equal(examples[1].en,'Lotte Hotel Seoul');
+ assert.equal(examples[2].en,'Gyeongbokgung Palace');
+ assert.ok(page.includes('changeQuery(ex[lang]||ex.ko)'));
+ assert.ok(page.includes('>{ex[lang]||ex.ko}</button>'));
+ assert.ok(!page.includes('changeQuery(ex.q)'));
+ assert.ok(!css.includes('.route-lab .rl-examples button{flex:1;min-width:0;padding:6px 4px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'));
 });
