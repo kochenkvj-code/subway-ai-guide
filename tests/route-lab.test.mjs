@@ -25,6 +25,7 @@ const standalone=await read('app/v2/route-lab/page.jsx');
 const v2=await read('app/v2/V2Guide.jsx');
 const api=await read('app/api/v2/route-place-test/route.js');
 const css=await read('app/v2/route-lab/route-lab.css');
+const lostCss=await read('app/v2/train-lost-redesign.css');
 
 test('wayfinding has a dedicated compact prompt; existing V2 facility chat is unchanged',()=>{
  const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
@@ -223,7 +224,7 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.doesNotMatch(css,/\.rl-all-stations-list[^\n]*max-height:260px/);
  assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
  assert.match(page,/compact\/>/);
- assert.match(page,/!stop\.end&&<span className="rl-all-stop-arrow"/);
+ assert.doesNotMatch(page,/rl-all-stop-arrow/);
  assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/\/api\/subway-route\?/);
 });
@@ -243,9 +244,10 @@ test('V2 route form and result are browser history entries',()=>{
  assert.ok(page.includes("saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route})"));
  assert.ok(page.includes("saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null})"));
 });
-test('transfer icon contrast and Google Maps fallback',()=>{
- assert.ok(page.includes('<svg width="16" height="16"'));
- assert.ok(css.includes('.rl-all-transfer-label{width:23px;height:23px'));
+test('simple transfer label and Google Maps fallback',()=>{
+ assert.ok(page.includes('{stop.transfer&&<span className="rl-all-transfer-label">{t.transfer}</span>}'));
+ assert.ok(css.includes('.rl-all-transfer-label{display:inline-flex'));
+ assert.doesNotMatch(page,/<svg width="16" height="16"/);
  assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
 });
 
@@ -282,4 +284,20 @@ test('recommended stop shows centered numeric line badges; station timeline scro
  assert.ok(css.includes('.route-lab .rl-all-stations-list{max-height:none;overflow:visible;overscroll-behavior:auto}'));
  assert.ok(!css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px 0;padding:13px 10px;max-height:260px;overflow-y:auto'));
  assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
+});
+
+test('compact V2 route removes connector arrows, redundant heading and nested step cards',()=>{
+ assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
+ assert.ok(css.includes('.route-lab .rl-steps{gap:0}'));
+ assert.ok(css.includes('.route-lab .rl-all-stations-list{gap:6px 5px;'));
+ assert.ok(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
+ assert.ok(!page.includes('className="rl-all-stop-arrow"'));
+ assert.ok(!css.includes('.rl-all-stop-arrow{'));
+ assert.ok(!css.includes('.rl-all-transfer-label svg{'));
+});
+
+test('lost-item stepper removes overlapping connector arrows',()=>{
+ assert.ok(lostCss.includes('.tl-stepbar button.tl-step::after{content:none}'));
+ assert.ok(!lostCss.includes(".tl-stepbar button.tl-step:not(:last-child)::after{content:'→'"));
+ assert.ok(!lostCss.includes(".tl-step:not(:last-child):after{content:''"));
 });
