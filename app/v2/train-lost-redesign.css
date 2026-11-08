@@ -117,7 +117,6 @@
 .tf-redesign.tl-three-stage .tl-hero p{font-size:11px}
 .tf-redesign.tl-three-stage .tl-stepbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:14px 0}
 .tf-redesign.tl-three-stage .tl-step{position:relative;min-width:0;justify-content:center;gap:5px;padding:6px 2px;font-size:11px;text-align:center}
-.tf-redesign.tl-three-stage .tl-step:not(:last-child):after{content:'';position:absolute;right:-6px;top:50%;height:1px;width:9px;background:#d3e1e4}
 .tf-redesign.tl-three-stage .tl-step b{flex-shrink:0;width:20px;height:20px}
 .tf-redesign.tl-three-stage .tl-input-panel{padding:15px 14px;margin:0 0 9px;border-radius:15px}
 .tf-redesign.tl-three-stage .tl-panel-title{font-size:14px;margin:0 0 13px}
@@ -238,8 +237,6 @@
 .tf-redesign.tl-three-stage .tl-stepbar{gap:9px;margin:7px 0 4px}
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step{min-height:34px;padding:3px 2px;font-size:10.5px;line-height:1.2;gap:4px}
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step b{width:18px;height:18px;font-size:10px}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:not(:last-child)::after{content:'→';top:50%;right:-10px;transform:translateY(-50%);width:12px;height:auto;background:transparent;color:#bac8c7;font-size:16px;font-weight:750;line-height:1}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.done:not(:last-child)::after{color:#0b9476}
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current{color:#163e50}
 .tf-redesign.tl-three-stage .tl-required-status{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:9px;font-size:10.5px;line-height:1.45;margin:1px 0 10px;font-weight:650}
 .tf-redesign.tl-three-stage .tl-required-status>span:first-child{display:grid;place-items:center;flex:none;width:15px;height:15px;border-radius:50%;font-size:10px;font-weight:850;margin-top:0}
@@ -252,6 +249,18 @@
 
 /* Once step 1 is filled, make step 2 read as the next available action. */
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete b{background:#d9f3e5;color:#087d5c}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.complete:not(:last-child)::after{color:#0b9476}
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready{background:#e8f6ee;color:#08795e;border-radius:9px;font-weight:800}
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready b{background:#0c9875;color:#fff}
+
+/* Step states communicate progress; pseudo-arrow connectors collided with adjacent buttons on iOS. */
+.tf-redesign.tl-three-stage .tl-stepbar{gap:6px}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
+ min-width:0;min-height:40px;padding:5px 3px;white-space:normal;
+ display:flex;align-items:center;justify-content:center;gap:4px;
+ overflow-wrap:break-word;text-wrap:balance;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step::after{content:none}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-step{font-size:10px;padding:4px 2px}
+}
