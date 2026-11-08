@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
+import {recordStat} from '../../lib/record-stat';
 import {getStationByCode,searchStationMaster} from '../../lib/station-master';
 import {officialStationMatches,officialStationName} from '../../lib/officialStations';
 import {stationName,lineName,directionName} from '../../lib/stationNameI18n';
@@ -13,6 +14,12 @@ const COPY={
  zh:{walkingTitle:'下车后步行指南',walkingUnknown:'未能确认出口或步行路线，请查看地图。',mapGoogle:'在 Google 地图查看位置',title:'前往目的地',subtitle:'车站、酒店、景点或地址，只需输入目的地。',lab:'V2 · NEW ROUTE LAB',origin:'出发站',change:'更改',chooseOrigin:'搜索出发站',dest:'您想去哪里？',placeholder:'车站、酒店、景点、建筑或地址',search:'查询路线',searchPlace:'使用AI搜索地点',searchingPlace:'正在确认地点及建议下车站…',searchingRoute:'正在查询官方地铁路线…',examples:'示例目的地',suggest:'匹配的车站',placeHint:'车站直接查询官方路线，其他地点由AI搜索',aiTitle:'AI目的地指南',recommend:'建议下车站',why:'推荐理由',walk:'出站后前往目的地',near:'正在查询前往建议车站的官方地铁路线。',sources:'地点来源',other:'选择其他车站',official:'官方地铁路线',duration:'预计时间',transfers:'换乘',fare:'交通卡票价',distance:'距离',ride:'乘车',transfer:'换乘',bound:'方向',stops:'站',allStops:'查看途经站',allStations:'查看全部途经站',path:'行程',options:'路线偏好',modes:['时间最短','距离最短','换乘最少'],retry:'重新搜索',unknown:'未能自动关联建议下车站。请参考上方AI指南，或直接选择地铁站。',sourceNote:'AI仅建议下车站，地铁路线和票价由官方API查询。',noData:'没有匹配结果。',invalid:'找不到车站。',fail:'查询失败。',apiOnly:'车站搜索无需AI。',testing:'独立测试页面 · V2原功能未改动',same:'出发站和目的站相同，请确认步行路线。',exitUnknown:'未经核实的出口和步行路线请使用地图确认。',minutes:'分钟',won:'韩元',count:'次',from:'出发',to:'下车'}
 };
 const EXAMPLES=[{q:'강남역',type:'station'},{q:'롯데호텔 서울',type:'place'},{q:'경복궁 관광지',type:'place'},{q:'코엑스',type:'place'}];
+const RESULT_ACTIONS={
+ ko:{again:'다른 목적지 검색',yes:'해결됨',no:'해결 안 됨',thanks:'피드백 감사합니다.',label:'이 안내로 해결됐나요?'},
+ en:{again:'Search another destination',yes:'Solved',no:'Not solved',thanks:'Thanks for your feedback.',label:'Did this solve it?'},
+ ja:{again:'別の目的地を検索',yes:'解決した',no:'解決しない',thanks:'ご協力ありがとうございます。',label:'解決しましたか？'},
+ zh:{again:'搜索其他目的地',yes:'已解决',no:'未解决',thanks:'感谢您的反馈。',label:'问题解决了吗？'}
+};
 const clean=x=>String(x||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s._·・･,，‘’'“”"\-‐–—:：()（）\[\]{}]/g,'');
 const normalizeStation=x=>clean(x).replace(/역$/,'').replace(/station$/,'');
 const colors={'1호선':'#24559b','2호선':'#219052','3호선':'#ef8928','4호선':'#238cc4','5호선':'#9256ab','6호선':'#a77935','7호선':'#687a32','8호선':'#d13e78','9호선':'#ae8c35'};
@@ -38,13 +45,22 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const [mode,setMode]=useState('duration'),[place,setPlace]=useState(null),[route,setRoute]=useState(null);
  const [loading,setLoading]=useState(''),[error,setError]=useState('');
  const [aiMs,setAiMs]=useState(null);
+ const [feedback,setFeedback]=useState(null);
+ const feedbackRef=useRef(false);
+ function resetFeedback(){feedbackRef.current=false;setFeedback(null);}
+ function submitFeedback(result){
+  if(feedbackRef.current)return;
+  feedbackRef.current=true;
+  setFeedback(result);
+  recordStat('feedback',result,lang);
+ }
  const requestRef=useRef(null),resultRef=useRef(null);
  const navigationRef=useRef(null);
  navigationRef.current=embedded&&active?onNavigationStep:null;
  function saveNavigation(key,overrides={}){
   navigationRef.current?.(key,{routeState:{originCode,query,picked,mode,place,route,aiMs,...overrides}});
  }
- const t=COPY[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
+ const t=COPY[lang],actions=RESULT_ACTIONS[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
  const originMatches=useMemo(()=>searchStationMaster(originQuery,'',{initials:true}).slice(0,12),[originQuery]);
  useEffect(()=>{
@@ -63,14 +79,14 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!embedded||navigationSnapshot?.view!=='route')return;
   const saved=navigationSnapshot.data?.routeState;
   if(!saved||!getStationByCode(saved.originCode))return;
-  requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');setOriginOpen(false);
+  requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');setOriginOpen(false);resetFeedback();
   setOriginCode(saved.originCode);setQuery(saved.query||'');setPicked(saved.picked||null);
   setMode(saved.mode||'duration');setPlace(saved.place||null);setRoute(saved.route||null);setAiMs(saved.aiMs??null);
  },[embedded,navigationSnapshot?.serial]);
  useEffect(()=>{if(embedded&&!active){requestRef.current?.abort();requestRef.current=null;setLoading('');}},[embedded,active]);
  useEffect(()=>()=>requestRef.current?.abort(),[]);
  const setOrigin=station=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);
+  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();
   setOriginCode(station.stationCode);setOriginOpen(false);setOriginQuery('');setRoute(null);setPlace(null);setError('');
   if(embedded)saveNavigation('route:form',{originCode:station.stationCode,route:null,place:null,aiMs:null});
   else{const u=new URL(window.location.href);u.searchParams.set('station',station.stationCode);window.history.replaceState(window.history.state,'',u.pathname+u.search);}
@@ -81,11 +97,11 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   window.history.replaceState(window.history.state,'',u.pathname+u.search);
  };
  const changeQuery=value=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);setQuery(value);setPicked(null);setRoute(null);setPlace(null);setError('');
+  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(value);setPicked(null);setRoute(null);setPlace(null);setError('');
   if(embedded)saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null});
  };
  const choose=st=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);setQuery(st[lang]||st.ko);setPicked(st);setFocused(false);setRoute(null);setPlace(null);setError('');
+  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();setQuery(st[lang]||st.ko);setPicked(st);setFocused(false);setRoute(null);setPlace(null);setError('');
   if(embedded)saveNavigation('route:form',{query:st[lang]||st.ko,picked:st,route:null,place:null,aiMs:null});
  };
  async function lookupRoute(station,signal,placeResult=null,searchTerm=query){
@@ -105,7 +121,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   const term=query.trim();
   if(!term||loading)return;
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;
-  setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);
+  setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);resetFeedback();
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
   const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
   try{
@@ -130,6 +146,11 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   }catch(e){if(!ctrl.signal.aborted)setError(e.message||t.fail);}
   finally{if(requestRef.current===ctrl){requestRef.current=null;setLoading('');}}
  }
+ function searchAnotherDestination(){
+  changeQuery('');
+  setFocused(false);
+  requestAnimationFrame(()=>document.getElementById('rl-destination')?.focus());
+ }
  const routeStation=name=>officialStationName(name,lang,stationName);
  const fare=route?.fareWon==null?'—':Number(route.fareWon).toLocaleString('ko-KR')+' '+t.won;
  const allRouteStops=buildRouteStationTimeline(route);
@@ -152,7 +173,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      <div className="rl-query-box"><span className="rl-search-icon">⌕</span><input id="rl-destination" value={query} onChange={e=>changeQuery(e.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setTimeout(()=>setFocused(false),180)} placeholder={t.placeholder} maxLength={100} autoComplete="off"/>{query&&<button type="button" onClick={()=>changeQuery('')} aria-label="Clear">×</button>}</div>
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-list" role="listbox" aria-label={t.suggest}><div className="rl-match-head">{t.suggest}</div>{stationMatches.slice(0,6).map(s=><button key={s.code} type="button" role="option" aria-selected="false" onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><span className="rl-match-icon">🚇</span><span><strong>{stationLabel(s,lang)}</strong><small>{s.lines?.join(' · ')||s.line}</small></span><span className="rl-match-arrow">↗</span></button>)}</div>}
      
-     <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
+     <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);resetFeedback();if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button>
      
     </form>
@@ -208,6 +229,15 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
        <a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place.place||query.trim())} target="_blank" rel="noopener noreferrer">⌖ {t.mapGoogle} ↗</a>
      </div>
    </section>}
+   {(route||place)&&<div className="rl-result-actions">
+    <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
+    <div className="rl-result-feedback" role="group" aria-label={actions.label} aria-live="polite">
+     {feedback?<span>{actions.thanks}</span>:<>
+      <button type="button" onClick={()=>submitFeedback('solved')}>✓ {actions.yes}</button>
+      <button type="button" onClick={()=>submitFeedback('not_solved')}>✕ {actions.no}</button>
+     </>}
+    </div>
+   </div>}
    {!embedded&&<footer className="rl-footer"><p>{t.sourceNote}</p><p>{t.testing}</p></footer>}
   </div>
  </Root>;
