@@ -258,3 +258,15 @@ test('embedded-only header and footer JSX are closed correctly',()=>{
  assert.ok(page.includes("</div>}\n    <div className=\"rl-title-icon\""));
  assert.ok(page.includes("</footer>}\n  </div>\n </Root>"));
 });
+
+test('compact route UI has one document scroll and removes nonessential labels',()=>{
+ assert.match(page,/className="rl-origin-row"/);
+ assert.match(page,/className="rl-route-options" role="group" aria-label=\{t.options\}/);
+ assert.match(page,/className="rl-recommend-station"/);
+ for(const removed of ['GEMINI · GOOGLE SEARCH','OFFICIAL SUBWAY ROUTE API','WALKING · WEB MAP','className="rl-timing"','className="rl-sources"','className="rl-route-note"','className="rl-title-icon"']) {
+  assert.equal(page.includes(removed),false,removed);
+ }
+ assert.equal(css.includes('max-height:260px'),false);
+ assert.match(css,/\.rl-all-stations-list\{[^}]*max-height:none;overflow:visible/);
+ assert.match(css,/\.rl-route-options\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+});
