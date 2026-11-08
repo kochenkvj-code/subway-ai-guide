@@ -95,7 +95,7 @@ test('freeform answer survives absent tags, invalid station, ambiguous answer, o
 
 test('station and place inputs route through existing official API, with AI answer retained',()=>{
  assert.match(page,/officialStationMatches/);
- assert.match(page,/searchStationMaster/);
+ assert.match(page,/getStationByCode/);
  assert.match(page,/\/api\/v2\/route-place-test/);
  assert.match(page,/\/api\/subway-route\?/);
  assert.match(page,/toCode:destination\.code/);
