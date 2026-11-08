@@ -48,10 +48,11 @@ export function parsePlaceAnswer(raw,complete=true){
    else if(fence===boundary[1][0])fence=null;
    visible.push(line);continue;
   }
-  if(!fence&&!trim.startsWith('>')&&/^<\/?(?:route_station|menu_recommendation)\b/i.test(trim)){
+  if(!fence&&!trim.startsWith('>')&&/^<\/?(?:route_station|menu_recommendation|walk_hint)\b/i.test(trim)){
    const route=trim.match(/^<route_station>([^<>]{1,65})<\/route_station>$/);
    const menu=trim.match(/^<menu_recommendation>(route|none)<\/menu_recommendation>$/);
-   metadata.push({index:i,kind:route?'route':menu?'menu':'invalid',value:route?.[1]?.trim()||menu?.[1]||null});
+   const walk=trim.match(/^<walk_hint>([^<>]{1,180})<\/walk_hint>$/);
+   metadata.push({index:i,kind:route?'route':menu?'menu':walk?'walk':'invalid',value:route?.[1]?.trim()||menu?.[1]||walk?.[1]?.trim()||null});
    continue;
   }
   visible.push(line);
@@ -60,11 +61,13 @@ export function parsePlaceAnswer(raw,complete=true){
  const last=lines.findLastIndex(line=>line.trim());
  const routeEntries=metadata.filter(x=>x.kind==='route');
  const menuEntries=metadata.filter(x=>x.kind==='menu');
+ const walkEntries=metadata.filter(x=>x.kind==='walk');
  const validMenu=menuEntries.length===0||
   (menuEntries.length===1&&menuEntries[0].index===last&&menuEntries[0].value==='route');
  const tail=menuEntries.length?last-1:last;
- const validRoute=complete&&answer&&metadata.length===routeEntries.length+menuEntries.length&&
-  routeEntries.length===1&&validMenu&&routeEntries[0].index===tail;
+ const validRoute=complete&&answer&&metadata.length===routeEntries.length+menuEntries.length+walkEntries.length&&
+  walkEntries.length<=1&&routeEntries.length===1&&validMenu&&routeEntries[0].index===tail&&
+  (!walkEntries.length||walkEntries[0].index===tail-1);
  let station=validRoute?resolveOfficialStop(routeEntries[0].value):null;
  // Never override malformed metadata or explicit menu_recommendation=none.
  // Incomplete responses cannot initiate an official route search.
@@ -73,5 +76,6 @@ export function parsePlaceAnswer(raw,complete=true){
   if(fallback){station=fallback.station;answer=fallback.answer;}
  }
  return {status:station?'found':'unverified',answer,place:'',station,
-  stations:station?[station]:[],reason:'',walk:'',recommendedMenu:station?'route':null};
+  stations:station?[station]:[],reason:'',
+  walk:station&&validRoute&&walkEntries.length===1?walkEntries[0].value:'',recommendedMenu:station?'route':null};
 }

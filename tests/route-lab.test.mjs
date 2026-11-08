@@ -150,3 +150,32 @@ test('explicit route hint is preferred over other stations mentioned in prose',(
  assert.equal(result.station.ko,'경복궁');
  assert.equal(result.stations.length,1);
 });
+
+test('optional walking hint is a safe, single-response extension',()=>{
+ const withWalk='고른햇살은 안암역 인근에 있습니다.\n<walk_hint>안암역 2번 출구를 이용하세요.</walk_hint>\n<route_station>안암역</route_station>\n<menu_recommendation>route</menu_recommendation>';
+ const found=parsePlaceAnswer(withWalk);
+ assert.equal(found.status,'found');
+ assert.equal(found.station.ko,'안암');
+ assert.equal(found.walk,'안암역 2번 출구를 이용하세요.');
+ assert.doesNotMatch(found.answer,/walk_hint|route_station/);
+ assert.equal(parsePlaceAnswer(withWalk,false).walk,'');
+ const noWalk=parsePlaceAnswer('국립고궁박물관은 경복궁역 부근입니다.\n<route_station>경복궁역</route_station>\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(noWalk.status,'found');
+ assert.equal(noWalk.walk,'');
+ const badWalk=parsePlaceAnswer('안암역 인근입니다.\n<walk_hint>1번 출구</walk_hint>\n<walk_hint>2번 출구</walk_hint>\n<route_station>안암역</route_station>\n<menu_recommendation>route</menu_recommendation>');
+ assert.equal(badWalk.walk,'');
+ assert.equal(badWalk.station,null);
+ const none=parsePlaceAnswer('장소가 모호합니다.\n<walk_hint>미확인 정보</walk_hint>\n<menu_recommendation>none</menu_recommendation>');
+ assert.equal(none.walk,'');
+});
+
+test('last-mile map links use browser URLs without a map API or fabricated route',()=>{
+ assert.match(page,/m\.map\.kakao\.com\/scheme\/search\?q=/);
+ assert.match(page,/google\.com\/maps\/search\/\?api=1&query=/);
+ assert.match(page,/encodeURIComponent\(place\.place\)/);
+ assert.match(page,/place\.walk\|\|t\.walkingUnknown/);
+ assert.match(page,/rl-walk-guide/);
+ assert.doesNotMatch(page,/kakaomap:\/\/|by=foot|\/v2\/routing\/walk/);
+ assert.match(css,/rl-walk-actions/);
+ assert.match(buildRoutePlacePrompt('고른햇살','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean'),/<walk_hint>/);
+});

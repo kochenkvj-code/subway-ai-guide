@@ -12,6 +12,9 @@ Give a concise, practical answer about the destination and a suitable alighting 
 Do not invent locations, subway stations, exits or directions. The official subway route API separately calculates the itinerary, transfers, travel time and fare.
 
 After the passenger-facing answer, return a machine-readable recommendation of ONE alighting station when supported. Use the exact official Korean station name, without a line number or other qualifiers, regardless of the selected answer language:
+Optionally, if reliable location evidence supports a nearby subway exit and/or brief walking instruction, add exactly ONE separate line immediately BEFORE the route_station line:
+<walk_hint>Concise supported exit or walking guidance in the selected answer language</walk_hint>
+Omit walk_hint when the exit or walking information is unverified. Do not estimate walking minutes or distance without reliable evidence. Avoid repeating the walk hint in the natural answer.
 <route_station>official Korean subway station name</route_station>
 <menu_recommendation>route</menu_recommendation>
 If no alighting station can be supported, return only:
