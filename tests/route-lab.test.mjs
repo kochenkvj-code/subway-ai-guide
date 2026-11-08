@@ -273,6 +273,8 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(page.includes('aria-expanded={originOpen}'));
  assert.ok(page.includes('className="rl-route-options"><div role="group" aria-label={t.options}>'));
  assert.ok(page.includes("EXAMPLES.slice(0,3).map"));
+ assert.ok(page.includes("changeQuery(ex[lang]||ex.ko)"));
+ assert.ok(page.includes(">{ex[lang]||ex.ko}</button>"));
  assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'));
  assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
@@ -300,4 +302,27 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
  assert.ok(lostCss.includes('.tl-stepbar button.tl-step::after{content:none}'));
  assert.ok(!lostCss.includes(".tl-stepbar button.tl-step:not(:last-child)::after{content:'→'"));
  assert.ok(!lostCss.includes(".tl-step:not(:last-child):after{content:''"));
+});
+
+test('example destinations display and insert each of the four supported languages',()=>{
+ const match=page.match(/const EXAMPLES=(\\[[\\s\\S]*?\\]);/);
+ assert.ok(match,'multilingual examples are defined');
+ const examples=vm.runInNewContext(match[1],{});
+ assert.equal(examples.length,4);
+ const names=['ko','en','ja','zh'];
+ for(const example of examples){
+  for(const lang of names){
+   assert.equal(typeof example[lang],'string',lang+' is missing');
+   assert.ok(example[lang].length>0,lang+' has empty text');
+  }
+ }
+ assert.equal(examples[0].ko,'강남역');
+ assert.equal(examples[0].en,'Gangnam');
+ assert.equal(examples[0].ja,'カンナム');
+ assert.equal(examples[0].zh,'江南');
+ for(const lang of ['en','ja','zh'])assert.ok(official.some(st=>st[lang]===examples[0][lang]),lang+' station example must match an official name');
+ assert.equal(examples[1].en,'Lotte Hotel Seoul');
+ assert.equal(examples[2].en,'Gyeongbokgung Palace');
+ assert.match(page,/key=\\{ex\\.ko\\} type="button" title=\\{ex\\[lang\\]\\|\\|ex\\.ko\\}/);
+ assert.ok(!page.includes('changeQuery(ex.q)'));
 });
