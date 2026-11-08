@@ -215,7 +215,13 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  for(const label of ['경유역 전체보기','Show all stations','全経由駅を見る','查看全部途经站'])assert.ok(page.includes(label),label);
  assert.match(page,/normalizeLine=x=>String\(x\|\|''\)\.replace\(/);
  assert.match(css,/\.rl-all-stations-list\{/);
- assert.match(css,/\.rl-all-transfer \.rl-all-stop-dot/);
+ assert.match(css,/\.rl-all-stations-list\{display:flex;align-items:center;flex-wrap:wrap/);
+ assert.match(css,/\.rl-all-stop-chip\{display:inline-flex/);
+ assert.match(css,/\.rl-all-transfer \.rl-all-stop-chip/);
+ assert.match(css,/max-height:260px/);
+ assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
+ assert.match(page,/compact\/>/);
+ assert.match(page,/!stop\.end&&<span className="rl-all-stop-arrow"/);
  assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/\/api\/subway-route\?/);
 });

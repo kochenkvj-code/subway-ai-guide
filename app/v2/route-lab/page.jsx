@@ -20,7 +20,7 @@ const normalizeLine=x=>String(x||'').replace(/^0([1-9])호선$/,'$1호선');
 const lineColor=x=>colors[normalizeLine(x)]||'#536c80';
 const secondsToMinutes=x=>Math.max(0,Math.round(Number(x||0)/60));
 function StationIcon({line}){return <span className="rl-line" style={{background:lineColor(Number(line)+'호선')}}>{String(line).replace(/^0/,'')}</span>}
-function LineBadge({line,lang}){return <span className="rl-route-line" style={{background:lineColor(line)}}>{lineName(normalizeLine(line),lang)||normalizeLine(line)}</span>}
+function LineBadge({line,lang,compact=false}){const normalized=normalizeLine(line),label=lineName(normalized,lang)||normalized,short=normalized.match(/^([1-9])호선$/);return <span className={'rl-route-line'+(compact?' rl-line-short':'')} style={{background:lineColor(line)}} title={label} aria-label={label}>{compact&&short?short[1]:label}</span>}
 function stationLabel(s,lang){return s?.[lang]||s?.ko||'—';}
 function buildRouteUrl(origin,destination,mode){
  const params=new URLSearchParams({station:origin,to:destination.ko,toCode:destination.code,mode});
@@ -151,12 +151,14 @@ export default function UnifiedRouteLab(){
      {allRouteStops.length>0&&<details className="rl-all-stations">
        <summary><span className="rl-all-stations-title">{t.allStations} <small>({allRouteStops.length})</small></span><span className="rl-all-stations-chevron" aria-hidden="true">⌄</span></summary>
        <div className="rl-all-stations-list" role="list" aria-label={t.allStations}>
-        {allRouteStops.map((stop,i)=><div className={'rl-all-stop'+(stop.transfer?' rl-all-transfer':'')+(stop.start?' rl-all-start':'')+(stop.end?' rl-all-end':'')} role="listitem" key={i} style={{'--rl-stop-color':lineColor(stop.lines.at(-1)||stop.lines[0]),'--rl-stop-prev-color':lineColor(stop.lines[0])}}>
-         <div className="rl-all-stop-track" aria-hidden="true"><span className="rl-all-stop-dot"/>{!stop.end&&<span className="rl-all-stop-rail"/>}</div>
-         <div className="rl-all-stop-content"><div className="rl-all-stop-heading"><strong>{routeStation(stop.name)}</strong>{stop.transfer&&<span className="rl-all-transfer-label">⇄ {t.transfer}</span>}</div>
-          {stop.lines.length>0&&<div className="rl-all-stop-lines">{stop.lines.map(line=><LineBadge key={line} line={line} lang={lang}/>)}</div>}
-         </div>
-        </div>)}
+        {allRouteStops.map((stop,i)=><span className={'rl-all-stop'+(stop.transfer?' rl-all-transfer':'')+(stop.start?' rl-all-start':'')+(stop.end?' rl-all-end':'')} role="listitem" key={i}>
+         <span className="rl-all-stop-chip">
+          {stop.lines.length>0&&<span className="rl-all-stop-lines">{stop.lines.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}</span>}
+          <span className="rl-all-stop-name">{routeStation(stop.name)}</span>
+          {stop.transfer&&<span className="rl-all-transfer-label" title={t.transfer} aria-label={t.transfer}>⇄</span>}
+         </span>
+         {!stop.end&&<span className="rl-all-stop-arrow" aria-hidden="true">→</span>}
+        </span>)}
        </div>
      </details>}
      {place&&<p className="rl-route-note">{t.exitUnknown}</p>}
