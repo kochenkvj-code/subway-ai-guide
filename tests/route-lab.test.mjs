@@ -251,9 +251,9 @@ test('simple transfer label and Google Maps fallback',()=>{
  assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
 });
 
-test('changing a route option or searching another stop creates a V2 form back-history state',()=>{
+test('changing a route option or destination preserves V2 back-history',()=>{
  assert.ok(page.includes("saveNavigation('route:form',{mode:x,route:null})"));
- assert.ok(page.includes("saveNavigation('route:form',{place:null,route:null,picked:null})"));
+ assert.ok(page.includes("saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null})"));
 });
 
 test('embedded-only header and footer JSX are closed correctly',()=>{
@@ -273,10 +273,12 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(page.includes('aria-expanded={originOpen}'));
  assert.ok(page.includes('className="rl-route-options"><div role="group" aria-label={t.options}>'));
  assert.ok(page.includes("EXAMPLES.slice(0,3).map"));
- assert.ok(page.includes("changeQuery(ex[lang]||ex.ko)"));
- assert.ok(page.includes(">{ex[lang]||ex.ko}</button>"));
  assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'));
- assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:center;gap:4px;flex:1;min-width:0;flex-wrap:nowrap'));
+ assert.ok(css.includes('.route-lab .rl-examples>div{display:flex;align-items:stretch;gap:6px;min-width:0;flex-wrap:wrap'));
+ assert.ok(css.includes('.route-lab .rl-examples button{flex:0 1 auto;max-width:100%;'));
+ assert.ok(css.includes('overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:break-word'));
+ assert.ok(css.includes('.route-lab .rl-route-options button{min-width:0;min-height:40px;'));
+ assert.ok(css.includes('line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
 });
 test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
@@ -288,8 +290,10 @@ test('recommended stop shows centered numeric line badges; station timeline scro
  assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
 });
 
-test('compact V2 route removes connector arrows, redundant heading and nested step cards',()=>{
- assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
+test('compact V2 route keeps its introduction and removes connector arrows',()=>{
+ assert.ok(page.includes('<h1>{t.title}</h1><p>{t.subtitle}</p>'));
+ assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{padding-top:11px;padding-bottom:13px}'));
+ assert.ok(!css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
  assert.ok(css.includes('.route-lab .rl-steps{gap:0}'));
  assert.ok(css.includes('.route-lab .rl-all-stations-list{gap:6px 5px;'));
  assert.ok(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
@@ -304,25 +308,47 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
  assert.ok(!lostCss.includes(".tl-step:not(:last-child):after{content:''"));
 });
 
-test('example destinations display and insert each of the four supported languages',()=>{
+test('single search button automatically handles station names and AI places',()=>{
+ assert.ok(page.includes('async function perform(){'));
+ assert.ok(page.includes('if(picked||exact){'));
+ assert.ok(page.includes("fetch('/api/v2/route-place-test'"));
+ assert.ok(page.includes('void perform(false)'));
+ assert.ok(!page.includes('className="rl-as-place"'));
+ assert.ok(!page.includes('className="rl-change-stop"'));
+ assert.ok(!page.includes('void perform(true)'));
+ assert.ok(!css.includes('.rl-as-place{'));
+ assert.ok(!css.includes('.rl-change-stop{'));
+});
+
+test('route guidance ends with a translated new-destination action and feedback',()=>{
+ for(const label of ['다른 목적지 검색','Search another destination','別の目的地を検索','搜索其他目的地'])assert.ok(page.includes(label),label);
+ for(const label of ['해결됨','해결 안 됨','Solved','Not solved'])assert.ok(page.includes(label),label);
+ assert.ok(page.includes("(route||place)&&<div className=\"rl-result-actions\""));
+ assert.ok(page.includes('className="rl-new-destination"'));
+ assert.ok(page.includes('className="rl-result-feedback"'));
+ assert.ok(page.includes("recordStat('feedback',result,lang)"));
+ assert.ok(page.includes("submitFeedback('solved')"));
+ assert.ok(page.includes("submitFeedback('not_solved')"));
+ assert.ok(page.includes("requestAnimationFrame(()=>document.getElementById('rl-destination')?.focus())"));
+ assert.ok(page.includes("changeQuery('')"));
+ assert.ok(page.includes('if(feedbackRef.current)return'));
+ assert.ok(css.includes('.route-lab .rl-result-actions{display:grid'));
+});
+
+test('all V2 destination examples localize the display and submitted search without clipping',()=>{
  const exampleBlock=page.split('const EXAMPLES=')[1]?.split('];')[0];
  assert.ok(exampleBlock,'multilingual examples are defined');
  const examples=vm.runInNewContext(exampleBlock+']',{});
  assert.equal(examples.length,4);
- const names=['ko','en','ja','zh'];
- for(const example of examples){
-  for(const lang of names){
-   assert.equal(typeof example[lang],'string',lang+' is missing');
-   assert.ok(example[lang].length>0,lang+' has empty text');
-  }
+ for(const item of examples)for(const language of ['ko','en','ja','zh']){
+  assert.equal(typeof item[language],'string');
+  assert.ok(item[language].trim().length>0);
  }
- assert.equal(examples[0].ko,'강남역');
- assert.equal(examples[0].en,'Gangnam');
- assert.equal(examples[0].ja,'カンナム');
- assert.equal(examples[0].zh,'江南');
- for(const lang of ['en','ja','zh'])assert.ok(official.some(st=>st[lang]===examples[0][lang]),lang+' station example must match an official name');
+ for(const language of ['en','ja','zh'])assert.ok(official.some(st=>st[language]===examples[0][language]),language+' station example must match official stations');
  assert.equal(examples[1].en,'Lotte Hotel Seoul');
  assert.equal(examples[2].en,'Gyeongbokgung Palace');
- assert.ok(page.includes('key={ex.ko} type="button" title={ex[lang]||ex.ko}'));
+ assert.ok(page.includes('changeQuery(ex[lang]||ex.ko)'));
+ assert.ok(page.includes('>{ex[lang]||ex.ko}</button>'));
  assert.ok(!page.includes('changeQuery(ex.q)'));
+ assert.ok(!css.includes('.route-lab .rl-examples button{flex:1;min-width:0;padding:6px 4px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'));
 });
