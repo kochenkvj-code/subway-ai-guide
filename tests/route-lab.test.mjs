@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {buildV2Prompt} from '../app/lib/v2-chat-policy.js';
 import {buildRoutePlacePrompt} from '../app/lib/route-place-prompt.js';
+import {buildRouteStationTimeline} from '../app/lib/route-station-timeline.js';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const official=JSON.parse(await read('app/data/seoulMetroOfficialStations.json'));
@@ -181,4 +182,40 @@ test('last-mile uses one Google Maps browser link in all four UI languages',()=>
  assert.equal((page.match(/google\.com\/maps\/search\/\?api=1&query=/g)||[]).length,1);
  for(const lang of ['ko','en','ja','zh'])assert.match(page,new RegExp(lang+":\\{walkingTitle:.*?mapGoogle:"));
  assert.match(buildRoutePlacePrompt('고른햇살','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean'),/<walk_hint>/);
+});
+
+
+test('full-route timeline labels every visited station using official ride lines and transfer segments',()=>{
+ const route={allStations:['종로5가','종로3가','안국','경복궁'],itinerary:[
+  {type:'ride',line:'1호선',from:'종로5가',to:'종로3가',stations:['종로5가','종로3가']},
+  {type:'transfer',station:'종로3가',fromLine:'1호선',toLine:'3호선'},
+  {type:'ride',line:'3호선',from:'종로3가',to:'경복궁',stations:['종로3가','안국','경복궁']}
+ ]};
+ const timeline=buildRouteStationTimeline(route);
+ assert.deepEqual(timeline.map(s=>s.name),route.allStations);
+ assert.deepEqual(timeline.map(s=>s.lines),[['1호선'],['1호선','3호선'],['3호선'],['3호선']]);
+ assert.deepEqual(timeline.map(s=>s.transfer),[false,true,false,false]);
+ assert.equal(timeline[0].start,true);assert.equal(timeline.at(-1).end,true);
+ assert.equal(timeline[1].end,false);
+});
+test('full-route timeline does not fabricate lines from station names when route segment is missing',()=>{
+ const timeline=buildRouteStationTimeline({allStations:['역A','역B'],itinerary:[]});
+ assert.deepEqual(timeline.map(s=>s.lines),[[],[]]);
+ assert.deepEqual(timeline.map(s=>s.transfer),[false,false]);
+ assert.deepEqual(buildRouteStationTimeline(null),[]);
+ const once=buildRouteStationTimeline({allStations:['삼성','선릉'],itinerary:[{type:'ride',line:'2호선',stations:['삼성','선릉','선릉']}]});
+ assert.deepEqual(once.map(s=>s.lines),[['2호선'],['2호선']]);
+});
+test('route lab has a translated full-route toggle with line-colored stops and transfer highlights',()=>{
+ assert.match(page,/buildRouteStationTimeline\(route\)/);
+ assert.match(page,/allRouteStops\.length>0&&<details className="rl-all-stations"/);
+ assert.match(page,/allRouteStops\.map\(\(stop,i\)=>/);
+ assert.match(page,/stop\.lines\.map\(line=><LineBadge/);
+ assert.match(page,/stop\.transfer&&<span className="rl-all-transfer-label"/);
+ for(const label of ['경유역 전체보기','Show all stations','全経由駅を見る','查看全部途经站'])assert.ok(page.includes(label),label);
+ assert.match(page,/normalizeLine=x=>String\(x\|\|''\)\.replace\(/);
+ assert.match(css,/\.rl-all-stations-list\{/);
+ assert.match(css,/\.rl-all-transfer \.rl-all-stop-dot/);
+ assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
+ assert.match(page,/\/api\/subway-route\?/);
 });

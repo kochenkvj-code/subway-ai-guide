@@ -123,3 +123,26 @@
 .rl-walk-summary{background:#f6faf7;border:1px solid #e2eee5;border-radius:10px;padding:13px 14px;font-size:13px;line-height:1.7;color:#405f4d;white-space:pre-wrap;margin:0 0 12px}
 .rl-walk-actions{display:grid;grid-template-columns:1fr;gap:8px}
 .rl-walk-actions a{min-height:45px;display:flex;justify-content:center;align-items:center;padding:10px 8px;border-radius:10px;border:1px solid #d3e5d8;background:#fff;color:#276d4b;font-size:12px;font-weight:700;text-decoration:none;line-height:1.4;text-align:center}
+
+/* Full-route vertical station timeline. Line colours come from actual ridden segments. */
+.rl-all-stations{margin-top:14px;border:1px solid #dce9df;border-radius:13px;background:#fff;overflow:hidden}
+.rl-all-stations>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:13px 15px;cursor:pointer;list-style:none;color:#276346;background:#f5faf6;font-size:13px;font-weight:800}
+.rl-all-stations>summary::-webkit-details-marker{display:none}
+.rl-all-stations-title{display:inline-flex;align-items:center;gap:5px}
+.rl-all-stations-title small{font-size:11px;font-weight:600;color:#718977}
+.rl-all-stations-chevron{font-size:22px;line-height:1;transition:transform .18s ease}
+.rl-all-stations[open] .rl-all-stations-chevron{transform:rotate(180deg)}
+.rl-all-stations-list{padding:14px 12px 12px;max-height:62vh;overflow-y:auto;overscroll-behavior:contain}
+.rl-all-stop{display:grid;grid-template-columns:25px minmax(0,1fr);gap:10px;min-height:53px;--rl-stop-color:#64786e;--rl-stop-prev-color:#64786e}
+.rl-all-stop-track{display:flex;align-items:center;flex-direction:column;padding-top:10px;gap:0;min-width:25px}
+.rl-all-stop-dot{display:block;flex:none;width:15px;height:15px;border-radius:50%;background:var(--rl-stop-color);border:3px solid #fff;box-shadow:0 0 0 2px var(--rl-stop-color)}
+.rl-all-stop-rail{display:block;flex:1;min-height:24px;width:4px;background:var(--rl-stop-color);opacity:.5;margin-top:5px}
+.rl-all-stop-content{min-width:0;padding:7px 7px 13px 2px}
+.rl-all-stop-heading{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.rl-all-stop-heading strong{font-size:13px;color:#314b3d;line-height:1.45}
+.rl-all-stop-lines{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.rl-all-stop-lines .rl-route-line{font-size:10px;padding:4px 7px;border-radius:6px}
+.rl-all-transfer .rl-all-stop-content{background:#f0f8f2;border:1px solid #e0ede3;border-radius:9px;padding:8px 10px;margin:0 0 10px -7px}
+.rl-all-transfer .rl-all-stop-dot{background:linear-gradient(135deg,var(--rl-stop-prev-color) 50%,var(--rl-stop-color) 50%)}
+.rl-all-transfer-label{font-size:10px;font-weight:800;color:#287750;background:#dcefe3;padding:3px 6px;border-radius:6px;white-space:nowrap}
+.rl-all-start .rl-all-stop-heading strong,.rl-all-end .rl-all-stop-heading strong{font-weight:850;color:#174b31}
