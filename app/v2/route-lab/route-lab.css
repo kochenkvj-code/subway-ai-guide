@@ -232,3 +232,11 @@
  .route-lab .rl-stats small{font-size:9px;line-height:1.35}
  .route-lab .rl-stats strong{font-size:12px;line-height:1.3;overflow-wrap:anywhere}
 }
+
+/* End-of-guidance actions, matching the existing route feedback pattern. */
+.route-lab .rl-result-actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:7px;align-items:stretch;margin-top:11px}
+.route-lab .rl-new-destination{width:100%;min-width:0;min-height:66px;padding:9px;border:1px solid #bddbcf;border-radius:10px;background:#f0f9f6;color:#176b50;font-size:12px;font-weight:800;line-height:1.35}
+.route-lab .rl-result-feedback{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;min-height:66px}
+.route-lab .rl-result-feedback button{width:100%;min-height:30px;padding:5px 3px;border:1px solid #cbded5;border-radius:8px;background:#fff;color:#286d54;font-size:10px;font-weight:750;line-height:1.25;text-align:center;white-space:normal}
+.route-lab .rl-result-feedback>span{display:flex;align-items:center;justify-content:center;min-height:66px;color:#197656;font-size:11px;font-weight:750;text-align:center;line-height:1.4}
+@media(max-width:370px){.route-lab .rl-new-destination{font-size:11px}.route-lab .rl-result-feedback button{font-size:9px}}
