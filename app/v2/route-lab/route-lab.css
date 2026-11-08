@@ -121,8 +121,5 @@
 .rl-walk-places{display:flex;align-items:center;flex-wrap:wrap;gap:9px;font-size:14px;color:#40584c;margin:6px 0 12px}
 .rl-walk-places strong{color:#1f513b}
 .rl-walk-summary{background:#f6faf7;border:1px solid #e2eee5;border-radius:10px;padding:13px 14px;font-size:13px;line-height:1.7;color:#405f4d;white-space:pre-wrap;margin:0 0 12px}
-.rl-walk-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rl-walk-actions{display:grid;grid-template-columns:1fr;gap:8px}
 .rl-walk-actions a{min-height:45px;display:flex;justify-content:center;align-items:center;padding:10px 8px;border-radius:10px;border:1px solid #d3e5d8;background:#fff;color:#276d4b;font-size:12px;font-weight:700;text-decoration:none;line-height:1.4;text-align:center}
-.rl-walk-actions a:last-child{background:#eaf6ee}
-.rl-walk-map-note{font-size:11px;color:#718778;line-height:1.6;margin:11px 0 0}
-@media(max-width:370px){.rl-walk-actions{grid-template-columns:1fr}}

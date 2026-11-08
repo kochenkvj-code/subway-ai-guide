@@ -169,13 +169,16 @@ test('optional walking hint is a safe, single-response extension',()=>{
  assert.equal(none.walk,'');
 });
 
-test('last-mile map links use browser URLs without a map API or fabricated route',()=>{
- assert.match(page,/m\.map\.kakao\.com\/scheme\/search\?q=/);
+test('last-mile uses one Google Maps browser link in all four UI languages',()=>{
  assert.match(page,/google\.com\/maps\/search\/\?api=1&query=/);
  assert.match(page,/encodeURIComponent\(place\.place\)/);
  assert.match(page,/place\.walk\|\|t\.walkingUnknown/);
  assert.match(page,/rl-walk-guide/);
  assert.doesNotMatch(page,/kakaomap:\/\/|by=foot|\/v2\/routing\/walk/);
  assert.match(css,/rl-walk-actions/);
+ assert.match(css,/grid-template-columns:1fr/);
+ assert.doesNotMatch(page,/KakaoMap|카카오맵|カカオマップ|m\.map\.kakao\.com|mapKakao|mapGuide/);
+ assert.equal((page.match(/google\.com\/maps\/search\/\?api=1&query=/g)||[]).length,1);
+ for(const lang of ['ko','en','ja','zh'])assert.match(page,new RegExp(lang+":\\{walkingTitle:.*?mapGoogle:"));
  assert.match(buildRoutePlacePrompt('고른햇살','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'Korean'),/<walk_hint>/);
 });
