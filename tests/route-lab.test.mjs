@@ -307,7 +307,7 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
 test('example destinations display and insert each of the four supported languages',()=>{
  const exampleBlock=page.split('const EXAMPLES=')[1]?.split('];')[0];
  assert.ok(exampleBlock,'multilingual examples are defined');
- const examples=vm.runInNewContext('['+exampleBlock+']',{});
+ const examples=vm.runInNewContext(exampleBlock+']',{});
  assert.equal(examples.length,4);
  const names=['ko','en','ja','zh'];
  for(const example of examples){
