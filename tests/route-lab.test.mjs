@@ -270,7 +270,10 @@ test('V2 route cards drop decorative kickers, AI timings and location source UI'
 });
 test('compact form has a single departure station row, 3 equal path options, and one row of examples',()=>{
  assert.ok(page.includes('className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"'));
- assert.ok(page.includes('aria-expanded={originOpen}'));
+ assert.ok(!page.includes('setOriginOpen'));
+ assert.ok(!page.includes('rl-origin-picker'));
+ assert.ok(!page.includes('searchStationMaster'));
+ assert.ok(page.includes('stationContext.stationCode:saved.originCode'));
  assert.ok(page.includes('className="rl-route-options"><div role="group" aria-label={t.options}>'));
  assert.ok(page.includes("EXAMPLES.slice(0,3).map"));
  assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'));
@@ -290,13 +293,18 @@ test('recommended stop shows centered numeric line badges; station timeline scro
  assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
 });
 
-test('compact V2 route keeps its introduction and removes connector arrows',()=>{
+test('V2 route restores original result cards and keeps the intro and arrow fixes',()=>{
  assert.ok(page.includes('<h1>{t.title}</h1><p>{t.subtitle}</p>'));
  assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{padding-top:11px;padding-bottom:13px}'));
  assert.ok(!css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
- assert.ok(css.includes('.route-lab .rl-steps{gap:0}'));
+ assert.ok(css.includes('.route-lab .rl-steps{gap:7px}'));
+ assert.ok(css.includes('.route-lab .rl-step{padding:10px;gap:9px;border-radius:11px}'));
+ assert.ok(!css.includes('.route-lab .rl-step{border:0;border-bottom:1px'));
+ assert.ok(css.includes('.route-lab .rl-stats>div{padding:9px 10px;gap:4px;border-radius:9px}'));
+ assert.ok(!css.includes('.route-lab .rl-stats{grid-template-columns:repeat(4'));
+ assert.ok(page.includes('className="rl-route-head"'));
+ assert.ok(page.includes('className="rl-stats"'));
  assert.ok(css.includes('.route-lab .rl-all-stations-list{gap:6px 5px;'));
- assert.ok(css.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
  assert.ok(!page.includes('className="rl-all-stop-arrow"'));
  assert.ok(!css.includes('.rl-all-stop-arrow{'));
  assert.ok(!css.includes('.rl-all-transfer-label svg{'));

@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {recordStat} from '../../lib/record-stat';
-import {getStationByCode,searchStationMaster} from '../../lib/station-master';
+import {getStationByCode} from '../../lib/station-master';
 import {officialStationMatches,officialStationName} from '../../lib/officialStations';
 import {stationName,lineName,directionName} from '../../lib/stationNameI18n';
 import {buildRouteStationTimeline} from '../../lib/route-station-timeline';
@@ -45,7 +45,6 @@ function buildRouteUrl(origin,destination,mode){
 export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,navigationSnapshot=null}){
  const [standaloneLang,setStandaloneLang]=useState('ko'),[originCode,setOriginCode]=useState(stationContext?.stationCode||'0154');
  const lang=embedded&&COPY[language]?language:standaloneLang;
- const [originOpen,setOriginOpen]=useState(false),[originQuery,setOriginQuery]=useState('');
  const [query,setQuery]=useState(''),[picked,setPicked]=useState(null),[focused,setFocused]=useState(false);
  const [mode,setMode]=useState('duration'),[place,setPlace]=useState(null),[route,setRoute]=useState(null);
  const [loading,setLoading]=useState(''),[error,setError]=useState('');
@@ -67,7 +66,6 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  }
  const t=COPY[lang],actions=RESULT_ACTIONS[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
- const originMatches=useMemo(()=>searchStationMaster(originQuery,'',{initials:true}).slice(0,12),[originQuery]);
  useEffect(()=>{
   if(embedded)return;
   const p=new URLSearchParams(window.location.search);
@@ -84,18 +82,12 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!embedded||navigationSnapshot?.view!=='route')return;
   const saved=navigationSnapshot.data?.routeState;
   if(!saved||!getStationByCode(saved.originCode))return;
-  requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');setOriginOpen(false);resetFeedback();
-  setOriginCode(saved.originCode);setQuery(saved.query||'');setPicked(saved.picked||null);
+  requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');resetFeedback();
+  setOriginCode(embedded&&getStationByCode(stationContext?.stationCode)?stationContext.stationCode:saved.originCode);setQuery(saved.query||'');setPicked(saved.picked||null);
   setMode(saved.mode||'duration');setPlace(saved.place||null);setRoute(saved.route||null);setAiMs(saved.aiMs??null);
  },[embedded,navigationSnapshot?.serial]);
  useEffect(()=>{if(embedded&&!active){requestRef.current?.abort();requestRef.current=null;setLoading('');}},[embedded,active]);
  useEffect(()=>()=>requestRef.current?.abort(),[]);
- const setOrigin=station=>{
-  requestRef.current?.abort();setLoading('');setAiMs(null);resetFeedback();
-  setOriginCode(station.stationCode);setOriginOpen(false);setOriginQuery('');setRoute(null);setPlace(null);setError('');
-  if(embedded)saveNavigation('route:form',{originCode:station.stationCode,route:null,place:null,aiMs:null});
-  else{const u=new URL(window.location.href);u.searchParams.set('station',station.stationCode);window.history.replaceState(window.history.state,'',u.pathname+u.search);}
- };
  const setLanguage=value=>{
   if(embedded)return;
   setStandaloneLang(value);const u=new URL(window.location.href);u.searchParams.set('lang',value);
@@ -169,9 +161,8 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
     <h1>{t.title}</h1><p>{t.subtitle}</p>
    </header>
    <section className="rl-search-card">
-    <div className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"><StationIcon line={origin.line}/><strong>{origin.names[lang]}</strong></div><button type="button" onClick={()=>setOriginOpen(v=>!v)} aria-expanded={originOpen}>{t.change} <span aria-hidden="true">⌄</span></button></div>
+    <div className="rl-field-head"><label>{t.origin}</label><div className="rl-station-box"><StationIcon line={origin.line}/><strong>{origin.names[lang]}</strong></div></div>
     
-    {originOpen&&<div className="rl-origin-picker"><input aria-label={t.chooseOrigin} autoFocus placeholder={t.chooseOrigin} value={originQuery} onChange={e=>setOriginQuery(e.target.value)}/><div className="rl-origin-options">{originMatches.map(s=><button key={s.stationCode} type="button" onClick={()=>setOrigin(s)}><StationIcon line={s.line}/><span>{s.names[lang]}</span><small>{s.line}</small></button>)}</div></div>}
     
     <form onSubmit={e=>{e.preventDefault();void perform(false);}}>
      <label htmlFor="rl-destination">{t.dest}</label>

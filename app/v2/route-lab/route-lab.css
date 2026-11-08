@@ -165,7 +165,6 @@
 .route-lab .rl-station-box{display:flex;align-items:center;gap:7px;min-height:34px;flex:1;min-width:0;border:0;background:transparent;padding:0}
 .route-lab .rl-station-box strong{font-size:13px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .route-lab .rl-line{width:21px;height:21px;font-size:10px}
-.route-lab .rl-field-head button{font-size:10px;min-width:44px;min-height:35px;padding:6px;background:#f0f6ef}
 .route-lab .rl-query-box{margin-top:6px;min-height:48px;padding:0 10px}
 .route-lab .rl-query-box input{height:45px;font-size:16px}
 .route-lab .rl-route-options{display:block;margin:11px 0 10px}
@@ -211,27 +210,8 @@
  .route-lab .rl-examples button{font-size:10px}
 }
 
-/* Simplify itinerary without hiding the route introduction in V2. */
+/* The original bordered official subway route result cards are retained. */
 .route-lab.rl-embedded .rl-shell{padding-top:10px}
-.route-lab .rl-step{border:0;border-bottom:1px solid #e8efea;border-radius:0;box-shadow:none;background:transparent;padding:9px 2px}
-.route-lab .rl-step:last-child{border-bottom:0}
-.route-lab .rl-transfer{background:transparent}
-.route-lab .rl-step-pin{width:24px;height:24px;border-radius:7px;font-size:11px}
-.route-lab .rl-step strong{font-size:12px;line-height:1.4}
-.route-lab .rl-step p{margin:3px 0}
-.route-lab .rl-steps{gap:0}
-.route-lab .rl-all-stations{border-radius:9px}
-.route-lab .rl-all-stations-list{gap:6px 5px;padding:9px 8px;max-height:none;overflow:visible}
-.route-lab .rl-all-stop{max-width:100%}
-.route-lab .rl-all-stop-chip{min-height:27px;gap:4px;padding:4px 6px}
-.route-lab .rl-all-transfer-label{font-size:9px;line-height:1.25;padding:2px 4px;min-width:0;min-height:0;border-radius:4px;box-shadow:none}
-@media(min-width:360px){
- .route-lab .rl-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:10px 0 12px}
- .route-lab .rl-stats>div{padding:6px 4px;gap:4px;text-align:center;border-radius:0;background:transparent;border-right:1px solid #e5ede7}
- .route-lab .rl-stats>div:last-child{border-right:0}
- .route-lab .rl-stats small{font-size:9px;line-height:1.35}
- .route-lab .rl-stats strong{font-size:12px;line-height:1.3;overflow-wrap:anywhere}
-}
 
 /* End-of-guidance actions, matching the existing route feedback pattern. */
 .route-lab .rl-result-actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:7px;align-items:stretch;margin-top:11px}
