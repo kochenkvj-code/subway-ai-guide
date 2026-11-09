@@ -30,8 +30,8 @@ test('ordinary 1–10 train-car buttons stay without relative car counting',()=>
 
 test('lost item and item placement share one row in separate equal-width columns',()=>{
  assert.match(ui,/className="tl-item-place-row"/);
- assert.match(ui,/className="tl-item-field"/);
- assert.match(ui,/className="tl-place-field"/);
+ assert.match(ui,/className="tl-field tl-item-field"/);
+ assert.match(ui,/className="tl-field tl-place-field"/);
  assert.match(styles,/\.tl-item-place-row\{\s*display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(styles,/\.tl-item-place-row \.tl-mini-list\{\s*display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(ui,/setPlace\(place===id\?'':id\)/);
