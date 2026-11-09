@@ -24,7 +24,7 @@ test('B preserves the former general transport policy without new route nudges',
  assert.ok(b.includes('LINE-SPECIFIC STATION IDENTITY'));
  assert.ok(b.includes('SEARCH COVERAGE'));
  assert.ok(!b.includes('When a passenger mentions'));
- assert.ok(b.includes('different station or line'));
+ assert.ok(b.includes('If a different subject station/line is explicit'));
  assert.ok(b.includes('종오지하쇼핑센터'));
  assert.ok(b.includes('<route_query>'));
  assert.ok(b.includes('<menu_recommendation>'));
@@ -63,6 +63,8 @@ test('B retains original V2 facility ownership policy without changing general d
    assert.ok(b.includes("A verified facility at another line's station may still be a useful alternative"));
    assert.ok(b.includes('explicitly name that LINE + STATION'));
    assert.ok(b.includes('SEARCH COVERAGE, within this single grounded response'));
+   assert.ok(b.includes('A facility question alone does NOT justify the facility button'));
+   assert.ok(b.includes('Also omit a station-bound recommendation when your answer directs the passenger to a facility on another line'));
    assert.ok(b.includes('For questions unrelated to local amenities, remain helpful about the station and public transportation'));
    assert.ok(!b.includes('When a passenger mentions a station, hotel'));
  }

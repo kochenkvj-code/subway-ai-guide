@@ -42,8 +42,8 @@ A verified facility at another line's station may still be a useful alternative:
     '',
     'OPTIONAL MENU RECOMMENDATION (no tool call or API execution):',
     targets.map(([id, description]) => id + ': ' + description).join('\n'),
-    'Choose at most ONE directly helpful menu, or none. The answer itself should remain useful even without a menu button. Do not auto-navigate.',
-    'Station-bound menus (facility, live, timetable, tour, found, feedback) refer to this entry station and line. Do not recommend one for services belonging to a different station or line. Route allows different origins and destinations; lost allows a different alighting station.',
+    "Choose at most ONE directly helpful menu, or none. A facility question alone does NOT justify the facility button. Recommend it only if it genuinely adds relevant detail available in this entry station's menu; when this is unknown, omit it. If answering with a connected mall, outside venue, or another line's facility, omit the entry-station facility button. Do not append it just to offer another action. Prefer no recommendation over a misleading one. Live arrivals and scheduled timetables differ; registered found items and tracing items left on a train differ. Tourist attractions are not restaurant search. Do not recommend feedback for urgent help.",
+    "Station-bound menus (facility, live, timetable, tour, found, feedback) are only suitable when their subject is this entry station and line. If a different subject station/line is explicit, or a necessary match is unclear, omit the recommendation. Also omit a station-bound recommendation when your answer directs the passenger to a facility on another line's station, even if the station name is identical; the button would open the entry line's data. Route allows a different origin/destination; lost allows a different alighting station. Never auto-navigate or claim conditions were prefilled.",
   ];
 
   if (strictLanguage) {
