@@ -15,7 +15,7 @@ test('original header and station/line form are restored',()=>{
  assert.match(ui,/className="tl-station-line-select"/);
  assert.match(ui,/onClick={closeStation}/);
  assert.doesNotMatch(ui,/tl-hero-compact|tl-station-mini|tl-station-picker-mini/);
- assert.match(ui,/className=\\{'tl-required-status'/);
+ assert.ok(ui.includes("className={'tl-required-status'"));
 });
 
 test('ordinary 1–10 train-car buttons stay without relative car counting',()=>{
