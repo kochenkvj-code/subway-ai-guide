@@ -28,13 +28,16 @@ test('ordinary 1–10 train-car buttons stay without relative car counting',()=>
  assert.match(ui,/!door&&v\.requiredDoor/);
 });
 
-test('lost item and item placement share one row in separate equal-width columns',()=>{
+test('lost item and four compact location choices share one row without wrapping',()=>{
  assert.match(ui,/className="tl-item-place-row"/);
  assert.match(ui,/className="tl-field tl-item-field"/);
  assert.match(ui,/className="tl-field tl-place-field"/);
- assert.match(styles,/\.tl-item-place-row\{\s*display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(styles,/\.tl-item-place-row \.tl-mini-list\{\s*display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(styles,/\.tl-item-place-row\{\s*display:grid;grid-template-columns:minmax\(0,1fr\) minmax\(0,1\.5fr\)/);
+ assert.match(styles,/\.tl-item-place-row \.tl-mini-list\{\s*display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
  assert.match(ui,/setPlace\(place===id\?'':id\)/);
+ assert.match(ui,/aria-label=\{u\[id\]\}/);
+ for(const label of ['문근처','Rack','ドア','车门'])assert.ok(ui.includes(label),label);
+ assert.match(styles,/white-space:nowrap;overflow:hidden/);
  assert.doesNotMatch(ui,/className="tl-location-grid"/);
 });
 
