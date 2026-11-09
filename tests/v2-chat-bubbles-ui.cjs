@@ -30,8 +30,34 @@ assert.ok(compactLayout.bubbleWidth-compactLayout.indicatorWidth<34,JSON.stringi
 assert.ok(compactLayout.bubbleRightGap>=0&&compactLayout.bubbleRightGap<17,JSON.stringify(compactLayout));
 assert.ok(compactLayout.dotsLeft>=compactLayout.labelRight&&compactLayout.rowAligned,JSON.stringify(compactLayout));
 assert.ok(compactLayout.bubbleWidth<compactLayout.screenWidth*.8,JSON.stringify(compactLayout));
+// The pending row and the resolved answer must be one continuous visual turn.
+// Before this fix, the completion handler scrolled the answer to the top.
+const beforeReply=await p.evaluate(()=>{
+  const chat=document.querySelector('.v2-chat-pane .sag-chat');
+  const rows=chat.querySelectorAll('.sag-row');
+  const question=rows[rows.length-2].getBoundingClientRect();
+  const pendingRow=rows[rows.length-1].getBoundingClientRect();
+  const viewport=chat.getBoundingClientRect();
+  return {questionTop:question.top-viewport.top,replyTop:pendingRow.top-viewport.top,scrollTop:chat.scrollTop,
+    keepsReplySpace:chat.classList.contains('sag-chat-turn-active')};
+});
+assert.ok(beforeReply.keepsReplySpace,'V2 reserves the same scroll space while waiting');
 await p.locator('.v2-chat-pane .sag-menu-recommendation').waitFor();
 assert.equal(await pending.count(),0,'animated indicator vanishes after answer is delivered');
+const afterReply=await p.evaluate(()=>{
+  const chat=document.querySelector('.v2-chat-pane .sag-chat');
+  const rows=chat.querySelectorAll('.sag-row');
+  const question=rows[rows.length-2].getBoundingClientRect();
+  const reply=rows[rows.length-1].getBoundingClientRect();
+  const viewport=chat.getBoundingClientRect();
+  return {questionTop:question.top-viewport.top,replyTop:reply.top-viewport.top,scrollTop:chat.scrollTop,
+    keepsReplySpace:chat.classList.contains('sag-chat-turn-active')};
+});
+assert.ok(afterReply.keepsReplySpace,'the resolved answer retains reply space');
+assert.ok(Math.abs(afterReply.questionTop-beforeReply.questionTop)<4,
+  'the user question must not jump when the AI response arrives: '+JSON.stringify({beforeReply,afterReply}));
+assert.ok(Math.abs(afterReply.replyTop-beforeReply.replyTop)<4,
+  'the AI answer must grow from the pending bubble, not teleport to the top: '+JSON.stringify({beforeReply,afterReply}));
 // Regression: Safari keyboard raised from the *home composer*, unlike a
 // quick example or bottom-tab tap, must settle before mounting fixed chat.
 // Simulate a closed keyboard whose visual viewport still retains offsetTop.
