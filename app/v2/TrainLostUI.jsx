@@ -98,11 +98,13 @@ export default function TrainLostUI(p){
     {!neighbors.length&&<p className="tf-warning">{u.stationUnavailable}</p>}
     <div className="tl-field tl-direction-field"><div className="tl-label">{u.direction}<span className="tl-required">{u.required}</span></div><div className={'tl-directions'+(neighbors.length===1?' tl-directions-single':'')} role="group" aria-label={u.direction}>{neighbors.map((st,i)=><button type="button" className="tl-choice" key={st} aria-pressed={next===st} aria-label={localized(st,selection.line,lang)+' · '+u.directionSub} onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}><span className="tl-direction-arrow" aria-hidden="true">{i===0?'←':i===1?'→':'↗'}</span><strong>{localized(st,selection.line,lang)}</strong><small>{u.directionSub}</small>{next===st&&<span className="tl-direction-check" aria-hidden="true">✓</span>}</button>)}</div>{next&&requiredDirection===null&&<p className="tf-warning">{u.needDirection}</p>}{neighbors.length>2&&<p className="tl-note">{u.branches}</p>}</div>
     <div className="tl-field tl-time-field">
+     <div className="tl-time-meter">
      <div className="tl-time-topline">
       <div className="tl-time-prompt"><span className="tl-time-question">{w.prompt}</span><span className="tl-time-range">{w.range}</span><span className="tl-required" aria-label={u.required}>*</span></div>
       <strong className="tl-time-value" aria-live="off">{quickMin===null?w.manualSelected:quickMin===0?w.now:quickMin+u.mins}</strong>
      </div>
      <input className="tl-time-slider" type="range" min="0" max="30" step="1" value={sliderMinutes} style={{'--tl-slider-fill':sliderMinutes/30*100+'%'}} aria-label={u.elapsed} aria-valuetext={quickMin===null?w.manualSelected:sliderMinutes===0?w.now:sliderMinutes+u.mins} onChange={e=>pickElapsed(Number(e.target.value))}/>
+     </div>
      <div className="tl-times">{[3,5,10,15].map(n=><button type="button" className="tl-chip" key={n} aria-pressed={quickMin===n} onClick={()=>pickElapsed(n)}>{n}{u.mins}</button>)}<button type="button" className="tl-chip tl-chip-manual" aria-pressed={quickMin===null} aria-expanded={quickMin===null} onClick={()=>setQuickMin(null)}>{w.manual}</button></div>
      {quickMin===null&&<label className="tl-time-summary tl-time-edit"><span>{w.exact}</span><span className="tl-time-edit-control"><input type="time" required aria-label={v.timeExact} value={when.time} onChange={e=>{if(!e.target.value)return;setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></span></label>}
     </div>

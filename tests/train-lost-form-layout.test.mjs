@@ -78,3 +78,24 @@ test('slider retains 0–30 one-minute increments and quick choices including op
  assert.match(styles,/\.tl-time-field \.tl-times\{\s*display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
  for(const label of ['시각 입력','Set time','時刻入力','输入时间'])assert.ok(ui.includes(label),label);
 });
+
+test('elapsed-time value and slider share a dedicated meter above the quick choices',()=>{
+ const start=ui.indexOf('className="tl-time-meter"');
+ const header=ui.indexOf('className="tl-time-topline"',start);
+ const slider=ui.indexOf('className="tl-time-slider"',header);
+ const meterEnd=ui.indexOf('</div>',slider);
+ const choices=ui.indexOf('className="tl-times"',slider);
+ assert.ok(start!==-1&&header>start&&slider>header&&meterEnd>slider&&choices>meterEnd,
+  'header and slider should be grouped directly above shortcuts');
+ assert.match(styles,/\.tl-time-field \.tl-time-meter\{\s*display:flex;flex-direction:column;/);
+ assert.match(styles,/\.tl-time-field \.tl-time-slider\{\s*margin:10px 0 0/);
+});
+
+test('exactly the selected train-lost stage receives the strong active styling',()=>{
+ assert.match(ui,/className=\{'tl-step'\+\(i\+1===stageNumber\?' current'/);
+ assert.match(ui,/aria-current=\{i\+1===stageNumber\?'step':undefined\}/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step\.current,\s*\.tf-redesign\.tl-three-stage \.tl-stepbar button\.tl-step\.current:not\(:disabled\):hover\{\s*background:#176c50;border-color:#176c50;color:#fff;/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step\.done\{\s*background:#eff8f2/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step\.next-ready\{\s*background:#f1f9f4/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step:disabled:not\(\.current\)\{/);
+});
