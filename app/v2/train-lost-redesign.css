@@ -367,3 +367,70 @@
  .tf-redesign.tl-three-stage .tl-time-field .tl-chip{font-size:10.5px;padding:4px 1px}
  .tf-redesign.tl-three-stage .tl-time-field .tl-chip-manual{font-size:10px;letter-spacing:-.45px}
 }
+
+
+/* Current step must read unmistakably as the active screen. Keep the next
+   available step visibly clickable but secondary, not another "current". */
+.tf-redesign.tl-three-stage .tl-stepbar{
+ align-items:stretch;gap:6px;margin:9px 0 8px
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
+ display:flex;align-items:center;justify-content:center;gap:5px;
+ min-height:46px;padding:7px 4px;border:1px solid #e0e9e5;
+ border-radius:10px;background:#f8faf9;color:#81938a;
+ font-weight:700;font-size:11px;line-height:1.3;
+ box-shadow:none;transition:background-color .15s,border-color .15s,color .15s
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step b{
+ width:20px;height:20px;flex:none;border-radius:50%;
+ background:#e8eeeb;color:#7b8c84;font-size:10.5px;font-weight:800
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.done{
+ background:#eff8f2;border-color:#d0e7d8;color:#4a7c60
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.done b{
+ background:#c9ead5;color:#17613b
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready{
+ background:#f1f9f4;border-color:#badac8;color:#347c53;font-weight:750
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.next-ready b{
+ background:#d2ebdb;color:#34734f
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current,
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current:not(:disabled):hover{
+ background:#176c50;border-color:#176c50;color:#fff;
+ font-weight:850;box-shadow:0 2px 6px rgba(13,92,63,.18);
+ opacity:1
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current b,
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.current.complete b{
+ background:#fff;color:#176c50
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:disabled:not(.current){
+ opacity:1;color:#98a59e;background:#f7f9f8;border-color:#e7ece9
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step:disabled:not(.current) b{
+ background:#e8eeeb;color:#98a59e
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
+  min-height:45px;padding:7px 2px;gap:3px;font-size:10px
+ }
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-step b{
+  width:18px;height:18px;font-size:10px
+ }
+}
+
+/* Put the drag control immediately beneath the selected elapsed-time value,
+   with the five discrete choices as the next, separate row. */
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-meter{
+ display:flex;flex-direction:column;gap:3px;min-width:0;margin:0 0 13px
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-topline{
+ margin:0
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-slider{
+ margin:10px 0 0
+}
