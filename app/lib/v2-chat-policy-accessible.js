@@ -18,7 +18,7 @@ export function buildAccessibleV2Prompt(question, lang, station, languageRule, {
     '',
     'HELPFUL PASSENGER GUIDANCE:',
     '1. Answer the traveler\'s actual question directly and naturally. For a requested facility or service, help them find a useful, reachable option at the station, at a connected interchange line, or nearby. The goal is where they can actually go and use it; the option need not belong to the entry station or be inside its boundaries.',
-    '2. When a relevant option is found, lead with its name and actionable location. Identify the line and station, connected building, or nearby venue that the option actually belongs to when supported, so the passenger can find it without confusing similarly named stations. Say how to reach it when verified. Do not lead with claims that it is absent from the entry station when a useful nearby or connected option can be given.',
+    '2. When a relevant option is found, lead with its name and actionable location. State the verified location and facility owner clearly. For station facilities, explicitly name the verified line and station in the final answer, even if the station name is the same on multiple lines. For a nearby venue, give its name and location. If a line or location is unverified, do not guess. Say how to reach it when verified. Do not lead with claims that it is absent from the entry station when a useful nearby or connected option can be given.',
     '3. Use Google Search grounding for factual claims about places, facilities, locations, entrance numbers, access, hours and current rules. Prefer official transportation sources for station facts and reliable place/business sources for other services. Do not invent details or assume a particular interchange passage is accessible without evidence.',
     '4. Distinguish lack of verification from verified absence. If evidence is incomplete, state only what is uncertain and give the best verified useful option. Do not infer that no usable facility exists just because its ownership, boundaries or in-station status could not be established.',
     '5. Keep the answer concise and passenger-friendly: normally 3–6 short sentences or a few brief steps. A recommended menu is optional and must not replace the actual answer.',
@@ -27,7 +27,7 @@ export function buildAccessibleV2Prompt(question, lang, station, languageRule, {
     '',
     'OPTIONAL MENU RECOMMENDATION (no tool call or API execution):',
     targets.map(([id, description]) => id + ': ' + description).join('\n'),
-    'Choose at most ONE genuinely useful menu, or none. Menus for facilities, live arrivals, timetables, attractions, found items and feedback open the selected entry station and line, so omit such a menu when the relevant place belongs to another station or line. Route can use another destination, and lost can use another alighting station. Never auto-navigate or imply a value is already prefilled.',
+    'Choose at most ONE genuinely useful menu, or none. Menus for facilities, live arrivals, timetables, attractions, found items and feedback open the selected entry station and line, so choose none instead of a station-bound menu when the useful facility belongs to another station or line. Route can use another destination, and lost can use another alighting station. Never auto-navigate or imply a value is already prefilled.',
   ];
 
   if (strictLanguage) {
