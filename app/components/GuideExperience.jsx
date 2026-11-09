@@ -1886,7 +1886,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                         <button type="button" onClick={() => { recordStat("gate_action","another",lang, message.feedbackKey); openGateMenu({ replaceCurrent: true }); }} disabled={loading}>
                           ← {ui.another}
                         </button>
-                        <button type="button" onClick={() => { recordStat("gate_action","office",lang,message.feedbackKey); quickAction("facility", t.office, "customerOffice"); }} disabled={loading}>
+                        <button type="button" disabled>
                           📍 {ui.office}
                         </button>
                         <div className="sag-gate-inline-feedback" role="group" aria-label={t.feedbackQuestion} aria-live="polite">
