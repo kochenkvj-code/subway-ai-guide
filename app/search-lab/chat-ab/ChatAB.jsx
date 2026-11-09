@@ -18,12 +18,12 @@ const avg=(runs,variant,field)=>{const a=runs.map(x=>x[variant]?.[field]).filter
 const isHttp=url=>{try{return ['http:','https:'].includes(new URL(url).protocol);}catch{return false;}};
 
 function ResultCard({type,data}){
-  const isA=type==='A';
+  const labels={A:['이전 V2 · 원본 보존','과거 상세 정책'],B:['현재 운영 · B안','현행 개선 프롬프트'],C:['C안 · 접근성 우선','가까운 시설과 실제 위치 중심']};
   return <article className={'cab-result cab-result-'+type.toLowerCase()}>
     <div className="cab-result-head">
       <div className="cab-result-ident">
         <span className="cab-letter">{type}</span>
-        <div><h3>{isA?'현재 V2 · 원본 고정':'간소화 후보'}</h3><p>{isA?'2026.11.09 원본 프롬프트':'이전 improvedPrompt 중심'}</p></div>
+        <div><h3>{labels[type][0]}</h3><p>{labels[type][1]}</p></div>
       </div>
       {data?<span className={'cab-status '+(data.ok?'cab-ok':'cab-fail')}>{data.ok?'응답 완료':'오류'}</span>:<span className="cab-status">미실행</span>}
     </div>
@@ -79,7 +79,8 @@ export default function ChatAB(){
   const selected=runs[roundIndex]||null;
   const aAvg=avg(runs,'A','responseMs');
   const bAvg=avg(runs,'B','responseMs');
-  const completedPairs=runs.filter(r=>r.A?.ok&&r.B?.ok).length;
+  const cAvg=avg(runs,'C','responseMs');
+  const completedTriples=runs.filter(r=>r.A?.ok&&r.B?.ok&&r.C?.ok).length;
   const activeHistory=contextQuestion.trim()&&contextAnswer.trim();
   async function execute(){
     if(busy)return;
@@ -95,7 +96,8 @@ export default function ChatAB(){
     let stop=false;
     try{
       for(let round=0;round<repeat&&!stop;round++){
-        const order=round%2===0?['A','B']:['B','A'];
+        const orders=[['A','B','C'],['B','C','A'],['C','A','B']];
+        const order=orders[round%3];
         for(const variant of order){
           if(aborter.signal.aborted){stop=true;break;}
           try{
@@ -128,13 +130,13 @@ export default function ChatAB(){
     }finally{setBusy(false);controllerRef.current=null;}
   }
   function download(){
-    const data={exportedAt:new Date().toISOString(),configuration:{stationCode,station:cleanName(station),lang,question,repeat,contextIncluded:!!activeHistory,model:'gemini-3.5-flash-lite',thinking:'LOW',maxOutputTokens:1200,googleSearch:true},runs};
+    const data={exportedAt:new Date().toISOString(),configuration:{stationCode,station:cleanName(station),lang,question,repeat,variants:['A','B','C'],contextIncluded:!!activeHistory,model:'gemini-3.5-flash-lite',thinking:'LOW',maxOutputTokens:1200,googleSearch:true},runs};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download='chat-policy-ab-'+Date.now()+'.json';
+    a.href=url;a.download='chat-policy-abc-'+Date.now()+'.json';
     document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
-  return <main className="cab-page">
+  return <main className="cab-page cab-page-abc">
     <div className="cab-shell">
       <header className="cab-header">
         <div className="cab-brand"><div className="cab-logo">M<span>↗</span></div><div><strong>SUBWAY AI GUIDE</strong><small>Experiment / Prompt Policy</small></div></div>
@@ -142,42 +144,42 @@ export default function ChatAB(){
       </header>
       <section className="cab-hero">
         <div className="cab-kicker"><span className="cab-live-dot"></span> PROMPT COMPARISON · v1.2</div>
-        <h1>일반 채팅 <em>응답 정책 A/B 실험실</em></h1>
-        <p>현재 V2 원본과 간소화 후보를 <strong>같은 모델·검색·시스템 지침·언어·파서</strong>로 비교합니다. 운영 채팅은 변경하지 않습니다.</p>
+        <h1>일반 채팅 <em>응답 정책 A/B/C 실험실</em></h1>
+        <p>기존 A·현재 운영 B·제약을 줄인 C를 <strong>같은 모델·검색·시스템 지침·언어·파서</strong>로 비교합니다. 운영 채팅은 변경하지 않습니다.</p>
         <div className="cab-hero-meta"><span>Gemini 3.5 Flash-Lite</span><span>LOW</span><span>1,200 tokens</span><span>Google Search</span><span>교차 순서 A→B / B→A</span></div>
       </section>
 
       <section className="cab-config">
-        <div className="cab-section-title"><span className="cab-section-num">01</span><div><h2>실험 조건 설정</h2><p>A/B에 완전히 동일하게 적용됩니다.</p></div></div>
+        <div className="cab-section-title"><span className="cab-section-num">01</span><div><h2>실험 조건 설정</h2><p>A/B/C에 완전히 동일하게 적용됩니다.</p></div></div>
         <div className="cab-form-grid">
           <label className="cab-field"><span>기준역 <small>{station?station.line+'호선 · '+station.stationCode:''}</small></span><input type="text" value={filter} onChange={e=>setFilter(e.target.value)} placeholder="역명으로 선택지 필터링" aria-label="역명 검색" /><select value={stationCode} onChange={e=>setStationCode(e.target.value)} aria-label="기준역 선택">{!options.some(s=>s.stationCode===stationCode)&&station&&<option value={stationCode}>{station.line}호선 {cleanName(station)} · {station.stationCode}</option>}{options.map(s=><option key={s.stationCode} value={s.stationCode}>{s.line}호선 {cleanName(s)} · {s.stationCode}</option>)}</select></label>
           <div className="cab-field"><span>답변 언어</span><div className="cab-language">{LANGUAGES.map(([id,label])=><button type="button" key={id} className={lang===id?'active':''} onClick={()=>setLang(id)}>{label}</button>)}</div><span className="cab-field-hint">답변·검색어 다국어 품질도 함께 확인</span></div>
           <label className="cab-field cab-wide"><span>승객 질문</span><textarea value={question} onChange={e=>setQuestion(e.target.value)} rows={2} maxLength={500} placeholder="실제 일반 채팅에 입력할 질문" /><div className="cab-presets">{PRESETS.map(p=><button key={p.label} type="button" onClick={()=>setQuestion(p.query)}>{p.label}</button>)}</div></label>
-          <label className="cab-field"><span>반복 비교 <small>각 회차에 A와 B 모두 호출</small></span><select value={repeat} onChange={e=>setRepeat(Number(e.target.value))}><option value={1}>1회 · 총 2호출</option><option value={3}>3회 · 총 6호출</option><option value={5}>5회 · 총 10호출</option></select><span className="cab-field-hint">검색 출처는 호출마다 달라질 수 있습니다.</span></label>
+          <label className="cab-field"><span>반복 비교 <small>각 회차에 A와 B 모두 호출</small></span><select value={repeat} onChange={e=>setRepeat(Number(e.target.value))}><option value={1}>1회 · 총 3호출</option><option value={3}>3회 · 총 9호출</option><option value={5}>5회 · 총 15호출</option></select><span className="cab-field-hint">검색 출처는 호출마다 달라질 수 있습니다.</span></label>
           <div className="cab-field cab-context"><span>선택: 이전 대화 맥락 <small>빈칸이면 양쪽 모두 이력 없음</small></span><input value={contextQuestion} onChange={e=>setContextQuestion(e.target.value)} maxLength={500} placeholder="이전 사용자 질문 (선택)" /><textarea value={contextAnswer} onChange={e=>setContextAnswer(e.target.value)} rows={2} maxLength={2500} placeholder="이전 AI 답변 (선택)" /></div>
         </div>
         <div className="cab-runbar">
-          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/B는 프롬프트 외 동일한 조건으로 비교합니다.</div>
-          <div className="cab-run-actions">{busy&&<button type="button" className="cab-secondary" onClick={()=>controllerRef.current?.abort()}>남은 호출 중단</button>}<button type="button" className="cab-primary" disabled={busy||!question.trim()} onClick={execute}>{busy?'실험 진행 중 · '+completed+'/'+(repeat*2):'A/B 비교 실행'} <span>→</span></button></div>
+          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/B/C는 프롬프트 외 동일한 조건으로 비교합니다.</div>
+          <div className="cab-run-actions">{busy&&<button type="button" className="cab-secondary" onClick={()=>controllerRef.current?.abort()}>남은 호출 중단</button>}<button type="button" className="cab-primary" disabled={busy||!question.trim()} onClick={execute}>{busy?'실험 진행 중 · '+completed+'/'+(repeat*3):'A/B/C 비교 실행'} <span>→</span></button></div>
         </div>
         {notice&&<div role="alert" className="cab-notice">{notice}</div>}
       </section>
 
       <section className="cab-results-section">
         <div className="cab-results-top">
-          <div className="cab-section-title"><span className="cab-section-num">02</span><div><h2>응답 비교 결과</h2><p>승객 답변·검색·메타데이터를 나란히 확인합니다.</p></div></div>
+          <div className="cab-section-title"><span className="cab-section-num">02</span><div><h2>응답 비교 결과</h2><p>승객 답변·검색·메타데이터를 세 안에서 나란히 확인합니다.</p></div></div>
           <div className="cab-results-actions">{runs.length>0&&<><label>회차 <select value={Math.min(roundIndex,runs.length-1)} onChange={e=>setRoundIndex(Number(e.target.value))}>{runs.map((r,i)=><option key={i} value={i}>{i+1}회 · {r.order}</option>)}</select></label><button type="button" onClick={download} className="cab-export">JSON 결과 저장 ↓</button></>}</div>
         </div>
-        <div className="cab-compare-head"><div><span>A</span> CURRENT V2 / FROZEN</div><div><span>B</span> SIMPLIFIED / CANDIDATE</div></div>
-        <div className="cab-result-grid"><ResultCard type="A" data={selected?.A}/><ResultCard type="B" data={selected?.B}/></div>
+        <div className="cab-compare-head"><div><span>A</span> HISTORICAL V2 / FROZEN</div><div><span>B</span> CURRENT PRODUCTION</div><div><span>C</span> ACCESSIBLE / CANDIDATE</div></div>
+        <div className="cab-result-grid"><ResultCard type="A" data={selected?.A}/><ResultCard type="B" data={selected?.B}/><ResultCard type="C" data={selected?.C}/></div>
         {runs.length>0&&<div className="cab-summary">
-          <div className="cab-summary-title"><h3>반복 실험 요약</h3><p>실제로 Gemini가 완료된 호출만 평균에 반영 · 성공한 완전한 A/B 쌍 {completedPairs}회</p></div>
+          <div className="cab-summary-title"><h3>반복 실험 요약</h3><p>실제로 Gemini가 완료된 호출만 평균에 반영 · 성공한 완전한 A/B/C 세트 {completedTriples}회</p></div>
           <div className="cab-summary-cards">
             <div><span>A 평균 응답시간</span><strong>{ms(aAvg)}</strong></div>
-            <div><span>B 평균 응답시간</span><strong>{ms(bAvg)}</strong></div>
-            <div><span>B − A 평균 차이</span><strong>{aAvg!=null&&bAvg!=null?((bAvg-aAvg)/1000>0?'+':'')+((bAvg-aAvg)/1000).toFixed(2)+'초':'—'}</strong></div>
+            <div><span>B 평균 응답시간</span><strong>{ms(bAvg)}</strong></div><div><span>C 평균 응답시간</span><strong>{ms(cAvg)}</strong></div>
+            <div><span>C − B 평균 차이</span><strong>{bAvg!=null&&cAvg!=null?((cAvg-bAvg)/1000>0?'+':'')+((cAvg-bAvg)/1000).toFixed(2)+'초':'—'}</strong></div>
           </div>
-          <div className="cab-table-wrap"><table><thead><tr><th>회차</th><th>순서</th><th>A 응답</th><th>B 응답</th><th>A 추천</th><th>B 추천</th></tr></thead><tbody>{runs.map((r,i)=><tr key={i}><td>{i+1}</td><td>{r.order}</td><td>{r.A?.ok?ms(r.A.responseMs):r.A?'오류':'—'}</td><td>{r.B?.ok?ms(r.B.responseMs):r.B?'오류':'—'}</td><td>{r.A?.recommendedMenu||'—'}</td><td>{r.B?.recommendedMenu||'—'}</td></tr>)}</tbody></table></div>
+          <div className="cab-table-wrap"><table><thead><tr><th>회차</th><th>순서</th><th>A 응답</th><th>B 응답</th><th>C 응답</th><th>A 추천</th><th>B 추천</th><th>C 추천</th></tr></thead><tbody>{runs.map((r,i)=><tr key={i}><td>{i+1}</td><td>{r.order}</td><td>{r.A?.ok?ms(r.A.responseMs):r.A?'오류':'—'}</td><td>{r.B?.ok?ms(r.B.responseMs):r.B?'오류':'—'}</td><td>{r.C?.ok?ms(r.C.responseMs):r.C?'오류':'—'}</td><td>{r.A?.recommendedMenu||'—'}</td><td>{r.B?.recommendedMenu||'—'}</td><td>{r.C?.recommendedMenu||'—'}</td></tr>)}</tbody></table></div>
         </div>}
       </section>
 

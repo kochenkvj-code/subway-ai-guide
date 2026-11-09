@@ -5,6 +5,7 @@ import {validateChatHistory} from '../../../lib/chat-history.js';
 import {getStationByCode} from '../../../lib/station-master.js';
 import {buildV2Prompt as buildFrozenPrompt, parseChatRecommendation, recommendationTargets} from '../../../lib/v2-chat-policy-baseline.js';
 import {buildCompactV2Prompt} from '../../../lib/v2-chat-policy-compact.js';
+import {buildAccessibleV2Prompt} from '../../../lib/v2-chat-policy-accessible.js';
 
 // Isolated comparison endpoint: production /api/v2/chat is unchanged.
 export const runtime = 'nodejs';
@@ -54,14 +55,14 @@ export async function POST(request) {
     catch{return json({ok:false,error:'잘못된 JSON 요청입니다.'},400);}
     if(!body || typeof body.question!=='string' || !body.question.trim() || body.question.trim().length>500)
       return json({ok:false,error:'질문은 1~500자로 입력해 주세요.'},400);
-    if(!['A','B'].includes(body.variant))return json({ok:false,error:'A/B 중 하나를 선택해 주세요.'},400);
+    if(!['A','B','C'].includes(body.variant))return json({ok:false,error:'A/B/C 중 하나를 선택해 주세요.'},400);
     const station=getStationByCode(body.stationCode===undefined?'0154':body.stationCode);
     if(!station)return json({ok:false,error:'지원하지 않는 기준역 코드입니다.'},400);
     const lang=Object.hasOwn(LANGUAGE,body.lang)?body.lang:'ko';
     let history;
     try{history=validateChatHistory(body.history,body.historyCompletedAt);}
     catch{return json({ok:false,error:'대화 기록 형식이 올바르지 않습니다.'},400);}
-    const promptBuilder=body.variant==='A'?buildFrozenPrompt:buildCompactV2Prompt;
+    const promptBuilder={A:buildFrozenPrompt,B:buildCompactV2Prompt,C:buildAccessibleV2Prompt}[body.variant];
     const prompt=promptBuilder(body.question.trim(),lang,station,languageOutputRule(lang),{strictLanguage:true});
     const accessToken=await getGoogleAccessToken();
     const googleStarted=Date.now();
@@ -100,7 +101,7 @@ export async function POST(request) {
       sources:(grounding.groundingChunks||[]).filter(c=>c.web?.uri).map(c=>({title:c.web.title||'검색 결과',url:c.web.uri,domain:c.web.domain||''})),
       supportCount:(grounding.groundingSupports||[]).length,
       // This source is a frozen comparison baseline, never production chat.
-      promptKind:body.variant==='A'?'frozen-current-v2':'simplified-improvedPrompt'
+      promptKind:{A:'frozen-legacy-v2',B:'current-production-b',C:'accessible-nearby-c'}[body.variant]
     });
   }catch(error){
     console.error('[chat-prompt-ab]',error?.name||'Error');

@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import {buildV2Prompt as livePrompt} from '../app/lib/v2-chat-policy.js';
 import {buildV2Prompt as frozenPrompt} from '../app/lib/v2-chat-policy-baseline.js';
 import {buildCompactV2Prompt} from '../app/lib/v2-chat-policy-compact.js';
+import {buildAccessibleV2Prompt} from '../app/lib/v2-chat-policy-accessible.js';
 
 const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
 test('A is an exact frozen copy of current production prompt',async()=>{
@@ -40,16 +41,16 @@ async function fixture(raw='안내입니다.\n<route_query>신라호텔</route_q
  async function load(file){
    if(cache.has(file))return cache.get(file);
    const source=await fs.readFile(file,'utf8');
-   const m=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(source));},{context}):new vm.SourceTextModule(source,{context});
+   const m=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(source));},{context,identifier:file}):new vm.SourceTextModule(source,{context,identifier:file});
    cache.set(file,m);
-   await m.link(async name=>{
-     if(name.startsWith('.'))return load(path.resolve(path.dirname(file),/\.(json|js)$/.test(name)?name:name+'.js'));
-     const exports=name==='@vercel/oidc'?{getVercelOidcToken:async()=> 'fixture'}:{ExternalAccountClient:{fromJSON:()=>({getAccessToken:async()=>({token:'fixture'})})}};
-     return new vm.SyntheticModule(Object.keys(exports),function(){for(const[k,v]of Object.entries(exports))this.setExport(k,v);},{context});
-   });
    return m;
  }
  const m=await load(path.resolve('app/api/search-lab/chat-ab/route.js'));
+ await m.link(async (name,parent)=>{
+   if(name.startsWith('.'))return load(path.resolve(path.dirname(parent.identifier),/\.(json|js)$/.test(name)?name:name+'.js'));
+   const exports=name==='@vercel/oidc'?{getVercelOidcToken:async()=> 'fixture'}:{ExternalAccountClient:{fromJSON:()=>({getAccessToken:async()=>({token:'fixture'})})}};
+   return new vm.SyntheticModule(Object.keys(exports),function(){for(const[k,v]of Object.entries(exports))this.setExport(k,v);},{context});
+ });
  await m.evaluate();
  return {calls,env,run:(variant,opts={})=>m.namespace.POST(new Request('https://app.test/api/search-lab/chat-ab',{method:'POST',body:JSON.stringify({question:'신라호텔',stationCode:'0154',lang:'ja',history:[],historyCompletedAt:null,variant,...opts.body})}))};
 }
@@ -74,6 +75,59 @@ test('B retains original V2 facility ownership policy without changing general d
  const hotel=buildCompactV2Prompt('신라호텔','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'언어규칙',{strictLanguage:true});
  assert.ok(hotel.includes('The traveler asks: "신라호텔"'));
  assert.ok(hotel.includes('not a restriction on unrelated destination questions'));
+});
+test('C answers reachable facilities without station-interior eligibility tests',()=>{
+ const one={stationCode:'0159',line:'1',names:{ko:'동묘앞'}};
+ const six={stationCode:'2637',line:'6',names:{ko:'동묘앞'}};
+ const c1=buildAccessibleV2Prompt('수유실 어디에 있나요?','ko',one,'언어 정책',{strictLanguage:true});
+ const c6=buildAccessibleV2Prompt('수유실 어디에 있나요?','ko',six,'언어 정책',{strictLanguage:true});
+ for(const prompt of [c1,c6]){
+  assert.ok(prompt.includes('useful, reachable option'));
+  assert.ok(prompt.includes('Identify the line and station'));
+  assert.ok(prompt.includes('connected interchange line, or nearby'));
+  assert.ok(prompt.includes('Do not lead with claims that it is absent from the entry station'));
+  assert.ok(prompt.includes('lack of verification from verified absence'));
+  assert.ok(prompt.includes('<route_query>destination search term</route_query>'));
+  assert.ok(prompt.includes('<menu_recommendation>ID</menu_recommendation>'));
+  assert.ok(!prompt.includes('LINE-SPECIFIC STATION IDENTITY (mandatory)'));
+  assert.ok(!prompt.includes('SEARCH COVERAGE, within this single grounded response'));
+  assert.ok(!prompt.includes('ENTRY-STATION SEARCH LEADS'));
+ }
+ assert.ok(c1.includes('1호선 동묘앞역'));
+ assert.ok(c6.includes('6호선 동묘앞역'));
+ assert.notEqual(c1,c6);
+ const hotel=buildAccessibleV2Prompt('신라호텔','en',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'ENGLISH',{strictLanguage:true});
+ assert.ok(hotel.includes('The traveler asks: "신라호텔"'));
+ assert.ok(hotel.includes('ENGLISH'));
+});
+test('A/B/C use identical model, search, language, history and parser',async()=>{
+ const f=await fixture();
+ const responses=[];
+ for(const variant of ['A','B','C'])responses.push(await(await f.run(variant)).json());
+ assert.ok(responses.every(r=>r.ok));
+ assert.equal(f.calls.length,3);
+ const [a,b,c]=f.calls.map(x=>x.body);
+ for(const other of [b,c]){
+  assert.deepEqual(other.systemInstruction,a.systemInstruction);
+  assert.deepEqual(other.tools,a.tools);
+  assert.deepEqual(other.generationConfig,a.generationConfig);
+  assert.equal(other.contents.length,a.contents.length);
+ }
+ assert.deepEqual(a.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
+ assert.equal(new Set(f.calls.map(x=>x.url)).size,1);
+ assert.equal(new Set(f.calls.map(x=>x.body.contents.at(-1).parts[0].text)).size,3);
+ for(const [i,variant] of ['A','B','C'].entries()){
+  assert.equal(responses[i].variant,variant);
+  assert.equal(responses[i].recommendedMenu,'route');
+  assert.equal(responses[i].routeQuery,'신라호텔');
+  assert.equal(responses[i].usage.totalTokenCount,547);
+  assert.equal(responses[i].sources[0].url,'https://example.com');
+  assert.equal(responses[i].finishReason,'STOP');
+ }
+ assert.equal(responses[0].promptKind,'frozen-legacy-v2');
+ assert.equal(responses[1].promptKind,'current-production-b');
+ assert.equal(responses[2].promptKind,'accessible-nearby-c');
+ assert.ok(c.contents.at(-1).parts[0].text.includes('useful, reachable option'));
 });
 test('A/B use identical provider options, search, system rules and parser',async()=>{
  const f=await fixture();
