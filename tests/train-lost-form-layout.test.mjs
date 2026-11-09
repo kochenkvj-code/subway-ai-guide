@@ -53,3 +53,28 @@ test('four languages retain car, door and item-place labels',()=>{
  assert.match(ui,/lang==='en'\?'Car '\+carNumber/);
  assert.match(ui,/lang==='zh'\?'第'\+carNumber/);
 });
+
+test('elapsed-time toolbar stays on one line, with one value and no duplicate end labels',()=>{
+ assert.match(ui,/className="tl-time-topline"/);
+ assert.match(ui,/className="tl-time-prompt"/);
+ assert.match(ui,/className="tl-time-range"/);
+ assert.match(ui,/className="tl-time-value"/);
+ assert.match(ui,/w\.prompt/);
+ assert.match(ui,/w\.range/);
+ assert.doesNotMatch(ui,/className="tl-slider-head"/);
+ assert.doesNotMatch(ui,/className="tl-slider-ends"/);
+ assert.match(styles,/\.tl-time-field \.tl-time-topline\{\s*display:flex;align-items:center;justify-content:space-between;/);
+ assert.match(styles,/\.tl-time-field \.tl-time-prompt\{\s*display:flex;align-items:center;/);
+ assert.match(styles,/\.tl-time-field \.tl-time-value\{\s*flex:none;/);
+});
+test('slider retains 0–30 one-minute increments and quick choices including optional exact time',()=>{
+ assert.match(ui,/className="tl-time-slider" type="range" min="0" max="30" step="1"/);
+ assert.match(ui,/\[3,5,10,15\]\.map/);
+ assert.match(ui,/className="tl-chip tl-chip-manual"/);
+ assert.match(ui,/aria-pressed=\{quickMin===null\}/);
+ assert.match(ui,/onClick=\{\(\)=>setQuickMin\(null\)\}/);
+ assert.match(ui,/\{quickMin===null&&<label className="tl-time-summary tl-time-edit"/);
+ assert.match(ui,/setWhen\(\{date:kstAlightDateForTime\(e\.target\.value\),time:e\.target\.value\}\)/);
+ assert.match(styles,/\.tl-time-field \.tl-times\{\s*display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+ for(const label of ['시각 입력','Set time','時刻入力','输入时间'])assert.ok(ui.includes(label),label);
+});
