@@ -194,7 +194,7 @@ test('branch candidates and navigation use the same directional topology',async(
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
 });
 
-test('a distant branched train is a cautious estimate, not verified past travel',()=>{
+test('a distant branched train is a cautious estimate, not verified past travel',async()=>{
  const result=findLiveCandidates([{
   trainNo:'B124',line:'1',station:'역곡',
   direction:expectedLiveDirection('1','종로3가','종각'),
