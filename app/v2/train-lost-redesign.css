@@ -408,3 +408,36 @@
  .tf-redesign.tl-three-stage .tl-location-grid .tl-door-options button,
  .tf-redesign.tl-three-stage .tl-location-grid .tl-mini-list button{font-size:10px;min-height:43px;padding:4px 2px}
 }
+
+/* The train review and handoff stages share the same restrained visual rhythm. */
+.tf-redesign.tl-three-stage .tl-search-context{
+ display:flex;flex-wrap:wrap;gap:5px 10px;align-items:center;
+ margin:0 0 10px;padding:11px 12px;border:1px solid #e2eae7;
+ background:#fff;border-radius:11px;color:#536d64
+}
+.tf-redesign.tl-three-stage .tl-search-context strong{color:#287050;font-size:12px;font-weight:750}
+.tf-redesign.tl-three-stage .tl-search-context .tl-link{margin-left:auto;color:#33795f;font-weight:700}
+.tf-redesign.tl-three-stage .tl-live-candidate-header{margin:12px 3px 7px}
+.tf-redesign.tl-three-stage .tl-live-candidate-header strong{font-size:12px;color:#36564a}
+.tf-redesign.tl-three-stage .tl-candidate-chip{
+ border:1px solid #e0e8e4;box-shadow:none;border-radius:10px;
+ padding:9px 10px;color:#355b4e
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip strong{color:#274d40;font-size:16px}
+.tf-redesign.tl-three-stage .tl-candidate-chip[aria-pressed="true"]{border-color:#63a886;background:#eef8f1;box-shadow:0 0 0 1px #63a886 inset}
+.tf-redesign.tl-three-stage .tl-live-map-main{border:1px solid #e2eae7;background:#fff;border-radius:12px;box-shadow:none;padding:10px}
+.tf-redesign.tl-three-stage .tl-live-map-title strong{color:#34574b;font-size:12px}
+.tf-redesign.tl-three-stage .tl-next-panel{
+ margin:10px 0 0;padding:13px 12px;background:#fff;
+ border:1px solid #e2eae7;border-radius:12px;box-shadow:none
+}
+.tf-redesign.tl-three-stage .tl-handoff{
+ border:1px solid #e2eae7;background:#fff;border-radius:12px;box-shadow:none;padding:15px 13px
+}
+.tf-redesign.tl-three-stage .tl-handoff-head h3{font-size:14px;font-weight:750;color:#284c3e}
+.tf-redesign.tl-three-stage .tl-handoff-cell{background:#f7faf8;border-color:#e6eee8;border-radius:9px}
+.tf-redesign.tl-three-stage .tl-handoff-cell strong{color:#2e5546;font-weight:700}
+.tf-redesign.tl-three-stage .tl-message{background:#fbfcfb;border-color:#e1e9e5;color:#3e6051}
+.tf-redesign.tl-three-stage .tl-send-options .tl-copy{background:#205e47}
+.tf-redesign.tl-three-stage .tl-send-options .tl-sms{background:#edf6f0;color:#286a4c;border-color:#d8e9dc}
+.tf-redesign.tl-three-stage .tl-caution{background:#f9faf7;border-left-color:#aabbb0;color:#728377}
