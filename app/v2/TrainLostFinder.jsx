@@ -79,8 +79,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
  const [destinationHints,setDestinationHints]=useState({});
  const [thing,setThing]=useState('');
- const [carMode,setCarMode]=useState('number'),[carNumber,setCarNumber]=useState('');
- const [relativeSide,setRelativeSide]=useState('앞'),[door,setDoor]=useState(''),[place,setPlace]=useState('');
+ const [carNumber,setCarNumber]=useState('');
+ const [door,setDoor]=useState(''),[place,setPlace]=useState('');
  const [stage,setStage]=useState('input'),[handoffUnknown,setHandoffUnknown]=useState(false);
  const [searchRun,setSearchRun]=useState(0);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
@@ -224,9 +224,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const where=current?.station||'';
  const canRecommend=Boolean(chosen&&current&&!current.express&&!chosen.express&&chosen.corroborated&&String(current.direction)===requiredDirection);
  const recommended=canRecommend?futureStops(selection.line,selection.name,next,where):{stations:[],reason:'NO_POSITION'};
- const carPosition=carNumber?(carMode==='number'
-   ?({ko:carNumber+'호차',en:'Car '+carNumber,ja:carNumber+'号車',zh:'第'+carNumber+'车厢'})[lang]
-   :({ko:'열차 맨 '+relativeSide+'에서 '+carNumber+'번째 칸',en:(relativeSide==='앞'?'From front, car ':'From rear, car ')+carNumber,ja:(relativeSide==='앞'?'先頭':'最後尾')+'から'+carNumber+'両目',zh:'从'+(relativeSide==='앞'?'车头':'车尾')+'数第'+carNumber+'节车厢'})[lang]):'';
+ const carPosition=carNumber?({ko:carNumber+'호차',en:'Car '+carNumber,ja:carNumber+'号車',zh:'第'+carNumber+'车厢'})[lang]:'';
  const placeNames={
    ko:{seat:'좌석',rack:'선반',nearDoor:'출입문 근처',floor:'바닥'},
    en:{seat:'Seat',rack:'Overhead rack',nearDoor:'Near door',floor:'Floor'},
@@ -240,9 +238,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    zh:{title:'[列车内遗失物品查找请求]',line:'线路',lineUnit:'号线',station:'下车站',time:'下车时间',direction:'列车行驶方向',train:'列车编号',position:'最近报告位置',boarding:'乘车位置',item:'遗失物品',place:'物品放置位置',stationUnit:'站',toward:'方向',timeSuffix:'左右',estimated:'根据实时位置推测',unknown:'待确认',unavailable:'未查到位置',door:n=>'第'+n+'号车门',closingChosen:'列车编号根据实时位置推测，尚不能确认实际乘坐的列车。请核实后协助查找遗失物品。',closingUnknown:'请先确认乘坐列车，再协助查找遗失物品。'}
  };
  const z=messageFields[lang]||messageFields.ko;
- const boardingPosition=carMode==='number'
-   ?carNumber+'-'+door+' ('+carPosition+' '+z.door(door)+')'
-   :carPosition+' · '+z.door(door);
+ const boardingPosition=carNumber+'-'+door+' ('+carPosition+' '+z.door(door)+')';
  const message=(chosen||handoffUnknown)?[
    z.title,
    z.line+': '+selection.line+z.lineUnit,
@@ -273,8 +269,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    busy={busy} error={error} candidates={candidates} chosen={chosen} current={current} searched={searched}
    lookupStats={lookupStats} directionWarning={directionWarning} pick={pick} livePositions={livePositions}
    liveFetchedAt={liveFetchedAt} onLiveSnapshot={onLiveSnapshot} onSearch={startSearch} onBack={returnToForm}
-   onNone={chooseUnknown} onContinue={confirmCandidate} onBackToResults={returnToResults} carMode={carMode} setCarMode={setCarMode} carNumber={carNumber}
-   setCarNumber={setCarNumber} relativeSide={relativeSide} setRelativeSide={setRelativeSide}
+   onNone={chooseUnknown} onContinue={confirmCandidate} onBackToResults={returnToResults} carNumber={carNumber}
+   setCarNumber={setCarNumber}
    thing={thing} setThing={setThing} door={door} setDoor={setDoor} place={place} setPlace={setPlace}
    stage={stage} onStageChange={changeStage} handoffUnknown={handoffUnknown} message={message} sms={sms}
    copyMessage={copyMessage} copyStatus={copyStatus} recommended={recommended} liveInfo={liveInfo}
