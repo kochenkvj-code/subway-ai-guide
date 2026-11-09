@@ -8,6 +8,7 @@ import { iconPaths } from './icons';
 import './v2.css';
 import './design-refresh.css';
 import {keyboardWorkspaceHeight} from './keyboard-viewport';
+import {HOME_CHAT_HANDOFF_KEY,HOME_CHAT_HANDOFF_PARAM,isIOSPhone,stageHomeChatHandoff,takeHomeChatHandoff} from './home-chat-handoff';
 import usePositionArrivals from './usePositionArrivals';
 import { PositionTrainSummary, PositionArrivalDetails } from './PositionArrivals';
 import './position-arrivals.css';
@@ -70,7 +71,21 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   useEffect(()=>{
     if(started.current)return;started.current=true;
     const initial=readView();activate(initial);window.history.replaceState({...(window.history.state||{}),sagV2:true,sagV2Depth:0},'',window.location.href);
-    recordStat('page_view','visit',initialLanguage);
+    // A fresh page is used only to reset iPhone WebKit after the home keyboard.
+    // This is the same visit, not a second visit for analytics.
+    if(!new URLSearchParams(window.location.search).has(HOME_CHAT_HANDOFF_PARAM))recordStat('page_view','visit',initialLanguage);
+  },[]);
+  useEffect(()=>{
+    // Consume the exact question once after the iPhone's full-page navigation.
+    // The URL only contains a nonce; the user's text is never placed in it.
+    const url=new URL(window.location.href);
+    const token=url.searchParams.get(HOME_CHAT_HANDOFF_PARAM);
+    if(!token)return;
+    url.searchParams.delete(HOME_CHAT_HANDOFF_PARAM);
+    window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+    let text=null;
+    try{text=takeHomeChatHandoff(window.sessionStorage,token);}catch{}
+    if(text&&readView()==='chat')setChatRequest({id:++requestSequence.current,text});
   },[]);
   useEffect(()=>{const onPop=()=>{const next=readView();activate(next);setDetail(!!window.history.state?.sagDetail);setRestoration({view:next,data:window.history.state?.sagData,serial:Date.now()+Math.random()});};window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
   useEffect(()=>startActivityTracking(),[]);
@@ -103,6 +118,28 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function send(text,{fromHomeComposer=false}={}){
     const clean=text.trim();
     if(!clean||chatBusy||homeSubmitPending.current)return;
+    if(fromHomeComposer&&isIOSPhone(window.navigator.userAgent)){
+      // Unlike tabs/quick-menu entry, the home input has just opened the
+      // iPhone keyboard. Repeated scroll fixes cannot reset the hit-test map
+      // on affected Safari builds, but a new document can. Preserve the
+      // question privately and navigate to the normal chat URL.
+      const token=window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2);
+      try{
+        stageHomeChatHandoff(window.sessionStorage,token,clean);
+        const url=new URL(window.location.href);
+        url.searchParams.delete('place');
+        url.searchParams.set('view','chat');
+        url.searchParams.set(HOME_CHAT_HANDOFF_PARAM,token);
+        homeSubmitPending.current=true;
+        document.activeElement?.blur?.();
+        window.location.assign(url.pathname+url.search+url.hash);
+        return;
+      }catch{
+        homeSubmitPending.current=false;
+        try{window.sessionStorage.removeItem(HOME_CHAT_HANDOFF_KEY);}catch{}
+        // Storage blocked: retain the existing same-document fallback.
+      }
+    }
     const deliver=()=>{
       homeSubmitPending.current=false;
       homeSubmitCancel.current=null;
