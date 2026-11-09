@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {positionGroups} from '../app/arrival-test/position/groups.js';
 import {positionMessage} from '../app/arrival-test/position/message.js';
+import {normalizePositionPayload} from '../app/v2/normalizePositionPayload.js';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const graph=JSON.parse(await read('app/data/trainLostGraph.json'));
 const directions=JSON.parse(await read('app/data/trainLostDirection.json'));
@@ -27,8 +28,8 @@ test('V2 home summary and live details reuse the tested position-based component
 test('V2 uses the raw Seoul realtimePosition endpoint, never old arrival ETA API',()=>{
  assert.match(hook,/\/api\/arrival-test\/position\?line=/);
  assert.doesNotMatch(hook,/\/api\/train-arrivals/);
- assert.match(hook,/realtimePositionList/);
- assert.match(hook,/POSITION_LINE_MISMATCH/);
+ assert.match(hook,/normalizePositionPayload\(data,station\.line,response\.ok\)/);
+ assert.match(component,/v2-position-detail-grid/);
  assert.match(hook,/30000/);
  assert.match(component,/JSON\.stringify\(row,null,2\)/);
  assert.match(component,/positionStation\(row\.statnNm,lang,stationName\)/);
@@ -66,4 +67,32 @@ test('compact states are N stops, previous departed, entering, arrived',()=>{
  assert.equal(msg(0,'3'),'전역 출발');
  assert.equal(msg(0,'0'),'진입');
  assert.equal(msg(0,'1'),'도착');
+});
+
+test('INFO-200 in nested provider result becomes an empty, successful snapshot',()=>{
+ const sample={line:'1',raw:{realtimePosition:{RESULT:{CODE:'INFO-200',MESSAGE:'No data'}}}};
+ const normalized=normalizePositionPayload(sample,'1',true);
+ assert.deepEqual(normalized.raw.realtimePositionList,[]);
+ assert.equal(normalized.raw.realtimePosition.RESULT.CODE,'INFO-200');
+ assert.equal(sample.raw.realtimePositionList,undefined,'do not mutate upstream payload');
+ const other={line:'2',raw:{errorMessage:{code:'INFO-200'}}};
+ assert.deepEqual(normalizePositionPayload(other,'2',true).raw.realtimePositionList,[]);
+ const root={line:'3',raw:{RESULT:{CODE:'INFO-200'}}};
+ assert.deepEqual(normalizePositionPayload(root,'3',true).raw.realtimePositionList,[]);
+});
+test('valid live positions remain unchanged and real response faults remain distinguishable internally',()=>{
+ const rows=[row('종로3가','1','0123','인천')];
+ const normal={line:'1',raw:{realtimePositionList:rows}};
+ assert.equal(normalizePositionPayload(normal,'1',true),normal);
+ assert.throws(()=>normalizePositionPayload(normal,'2',true),/POSITION_LINE_MISMATCH/);
+ assert.throws(()=>normalizePositionPayload(normal,'1',false),/POSITION_ERROR/);
+ assert.throws(()=>normalizePositionPayload({line:'1',raw:{RESULT:{CODE:'ERROR-301'}}},'1',true),/ERROR-301/);
+ assert.throws(()=>normalizePositionPayload({line:'1',raw:{}},'1',true),/INVALID_POSITION_DATA/);
+});
+test('passenger summary and details show dashes without technical error banners',()=>{
+ assert.doesNotMatch(component,/className="v2-summary-notice"/);
+ assert.doesNotMatch(component,/className="v2-arrival-message"/);
+ assert.match(component,/if\(!item\)return <div className="v2-position-empty" key=\{i\}>—<\/div>/);
+ assert.match(component,/all\.length>0&&<details className="v2-position-diagnostics"/);
+ assert.match(component,/item\?positionMessage\(item,lang\):'—'/);
 });

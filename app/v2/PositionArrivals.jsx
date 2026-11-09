@@ -27,12 +27,6 @@ function heading(group,station,lang,t){
  if(line==='6'&&station?.names?.ko==='응암')return stationName(group.dir==='0'?'역촌':'새절',lang);
  return group.next.length?group.next.map(n=>stationName(n,lang)).join(' · '):direction(group,line,t);
 }
-function notice(state,supported,t){
- if(state.error)return t.error+': '+state.error;
- if(!state.data)return t.loading;
- if(!supported)return t.unsupported;
- return '';
-}
 function stateText(row,t){
  return ({'0':t.entry,'1':t.arrived,'2':t.left,'3':t.previousLeft})[String(row.trainSttus)]||'—';
 }
@@ -44,8 +38,7 @@ function Arrow({right=false}){
 }
 export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext}){
  const ui=labels[lang]||labels.ko,station=stationContext;
- const {groups,supported}=rowsFor(state,station);
- const message=notice(state,supported,ui);
+ const {groups}=rowsFor(state,station);
  return <section className="v2-trains v2-position-trains" aria-label={t.next}>
   <div className="v2-summary-board">{groups.map((group,index)=><div className="v2-summary-direction" key={group.dir}>
    <button className="v2-summary-heading" title={heading(group,station,lang,ui)} aria-label={heading(group,station,lang,ui)+' · '+t.detail} onClick={onDetails}>
@@ -59,24 +52,22 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
     </button>;
    })}
   </div>)}</div>
-  {message&&<div className="v2-summary-notice" role="status"><span>{message}</span><button onClick={state.refresh} disabled={state.loading} aria-label={ui.refresh}>↻</button></div>}
  </section>;
 }
 export function PositionArrivalDetails({state,lang='ko',t,stationContext}){
  const ui=labels[lang]||labels.ko,station=stationContext;
- const {groups,supported,all}=rowsFor(state,station),message=notice(state,supported,ui);
+ const {groups,all}=rowsFor(state,station);
  return <section className="v2-arrival-details v2-position-arrivals">
   <div className="v2-arrival-detail-head">
    <div><small>{ui.source}</small><h2>{station?.names?.[lang]||t.station} · {t.next}</h2></div>
    <button onClick={state.refresh} disabled={state.loading}>{state.loading?ui.loading:ui.refresh}</button>
   </div>
   <p className="v2-arrival-caption">{ui.automatic}</p>
-  {message&&<p role="status" className="v2-arrival-message">{message}</p>}
   <div className="v2-position-detail-grid">{groups.map(group=><section className="v2-arrival-group v2-position-detail-column" key={group.dir}>
     <h3>{heading(group,station,lang,ui)} · {direction(group,station?.line,ui)}</h3>
     {[0,1].map(i=>{
      const item=!state.error&&group.trains[i];
-     if(!item)return <div className="v2-position-empty" key={i}>{ui.empty}</div>;
+     if(!item)return <div className="v2-position-empty" key={i}>—</div>;
      const row=item.row,d=destination(row,lang,station);
      return <article className="v2-arrival-train v2-position-detail-card" key={row.trainNo+'-'+i}>
       <div className="v2-position-card-top"><strong>{positionMessage(item,lang)}</strong><span>{stateText(row,ui)}</span></div>
@@ -90,6 +81,6 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext}){
      </article>;
     })}
   </section>)}</div>
-  <details className="v2-position-diagnostics"><summary>{ui.raw} ({all.length})</summary><pre>{JSON.stringify(state.data?.raw||{},null,2)}</pre></details>
+  {all.length>0&&<details className="v2-position-diagnostics"><summary>{ui.raw} ({all.length})</summary><pre>{JSON.stringify(state.data?.raw||{},null,2)}</pre></details>}
  </section>;
 }
