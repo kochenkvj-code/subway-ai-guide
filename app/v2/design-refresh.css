@@ -202,7 +202,12 @@
 /* Text-entry workspaces own the viewport. Safari 100dvh can remain stuck at
    the keyboard-reduced height after Done; V2Guide restores inline height. */
 .v2-design-refresh.v2-chat-active,.v2-design-refresh.v2-keyboard-active,.v2-design-refresh.v2-workspace-active{min-height:0}
-.v2-design-refresh .v2-keyboard-workspace{position:fixed;inset:0 0 auto;width:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;transition:none}
+/* Keep the station workspace in the normal document flow.
+   iOS WebKit can restore fixed elements visually after keyboard Done while
+   continuing to hit-test taps at their old keyboard-shifted coordinates.
+   Give the root a tiny natural scroll range so WebKit can resynchronize. */
+.v2-design-refresh.v2-workspace-active{min-height:calc(100lvh + 2px)}
+.v2-design-refresh .v2-keyboard-workspace{position:relative;inset:auto;width:100%;height:100lvh;overflow:hidden;overscroll-behavior:auto;transition:none}
 .v2-design-refresh .v2-chat-pane .sag-chat{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap{flex-shrink:0}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap input{font-size:16px}

@@ -182,7 +182,20 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       // WebKit can dispatch the final viewport resize after focusout, or
       // omit it entirely. Repeat the restore while its keyboard animates.
       for(const delay of [80,250,550]){
-        const timer=window.setTimeout(()=>{timeouts.delete(timer);schedule();if(!shell.contains(document.activeElement))window.scrollTo(0,0);},delay);
+        const timer=window.setTimeout(()=>{
+          timeouts.delete(timer);
+          schedule();
+          if(shell.contains(document.activeElement))return;
+          // Reset iOS WebKit's native hit-testing viewport, not just the
+          // visual position of the bottom bar. A fixed full-screen shell
+          // prevented this small root scroll from taking effect.
+          const root=document.scrollingElement;
+          if(root){
+            root.scrollTop=1;
+            root.scrollTop=0;
+          }
+          window.scrollTo(0,0);
+        },delay);
         timeouts.add(timer);
       }
     };
