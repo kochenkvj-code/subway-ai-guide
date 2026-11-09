@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {followStops,stationNeighbors,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
+import {followStops,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import {stationName} from '../lib/stationNameI18n';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
@@ -12,13 +12,14 @@ const words={
  zh:{title:'实时列车位置',hint:'查看候选列车的位置，然后选择。',opposite:'反方向',forward:'所选方向',alighted:'下车站',candidate:'候选',selected:'已选择',manual:'刷新',refresh:'每20秒更新',pending:'更新中…',error:'实时更新失败，显示上次位置。',last:'更新于',noTrains:'此区间暂无列车。',uncertain:'位置按车站更新，并非GPS定位或历史经过记录。',unknown:'分支线路可能无法完整显示。'}
 };
 
-function mapStations(line,station,next){
- // One-way diagram: start at the station where the passenger got off and
- // extend in the direction that the passenger actually selected.
- // Candidate search can return trains >16 stations from the origin (up to
- // 30 minutes ago). The map must cover the same 38-stop route as the matcher.
+function mapStations(line,station,next,focusStation){
+ // When the candidate is past a fork (Guro, Gangdong, etc.), render its actual
+ // directional branch rather than ending the diagram at the junction.
  const forward=followStops(line,station,next,38);
- return {stops:[trainStationKey(line,station),...forward.stops],ambiguous:forward.ambiguous};
+ const base={stops:[trainStationKey(line,station),...forward.stops],ambiguous:forward.ambiguous};
+ if(!focusStation)return base;
+ const throughFork=directionalPathToStation(line,station,next,focusStation,38);
+ return throughFork.length>1?{stops:throughFork,ambiguous:forward.ambiguous}:base;
 }
 function latestTrains(positions,line){
  const map=new Map();
@@ -45,21 +46,23 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const positionsRef=useRef(positions);
  useEffect(()=>{positionsRef.current=positions;},[positions]);
  useEffect(()=>{onSnapshotRef.current=onSnapshot;},[onSnapshot]);
- const path=useMemo(()=>mapStations(line,station,next),[line,station,next]);
  const direction=expectedLiveDirection(line,station,next);
  const trains=useMemo(()=>latestTrains(positions,line).filter(p=>String(p.direction)===String(direction)),[positions,line,direction]);
  const candidateByNumber=useMemo(()=>new Map(candidates.map(c=>[trainKey(c.number),c])),[candidates]);
  const selectedNo=selected?trainKey(selected.number):null;
  const trackedStation=selectedNo?trains.find(p=>trainKey(p.trainNo)===selectedNo)?.station:null;
+ // Navigation includes every fresh candidate on a valid directionally reachable
+ // branch, not only those on the initial no-fork diagram.
+ const visibleCandidates=useMemo(()=>candidates.map(c=>
+   trains.find(p=>trainKey(p.trainNo)===trainKey(c.number))
+ ).filter(p=>p&&directionalPathToStation(line,station,next,p.station,38).length>0),
+ [candidates,trains,line,station,next]);
+ const focusedPosition=visibleCandidates.find(p=>trainKey(p.trainNo)===focusedTrain)||
+   visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||visibleCandidates[0];
+ const focusedStation=focusedPosition?.station||'';
+ const path=useMemo(()=>mapStations(line,station,next,focusedStation),[line,station,next,focusedStation]);
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
- // Only candidates actually present in the current, direction-filtered
- // snapshot are navigable. A stale candidate must not be shown as live.
- // Preserve candidate ranking rather than picking the leftmost train every
- // time. Only stations currently present in the directional rail are jumpable.
- const visibleCandidates=useMemo(()=>candidates.map(c=>
-   trains.find(p=>trainKey(p.trainNo)===trainKey(c.number)&&displayed.has(clean(p.station)))
- ).filter(Boolean),[candidates,trains,displayed]);
  // Scroll the horizontal rail AND the train stack inside an individual
  // station. A compact station may contain more trains than its vertical bay
  // can display; moving only sideways can leave the chosen train invisible.
@@ -94,29 +97,32 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  },[line,station,next]);
  useEffect(()=>{
   if(!trackedStation||!selectedNo)return;
-  const viewport=viewportRef.current;
-  // Focus the exact selected train, not just the station: multiple trains
-  // can be stacked in the same narrow bay on mobile.
-  const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
-   .find(node=>node.dataset.tfTrainNo===selectedNo);
-  if(!viewport||!target)return;
-  centerTarget(target);
+  // A candidate selected from the list may require switching branch first.
   setFocusedTrain(selectedNo);
  },[trackedStation,selectedNo,line,station,next]);
+ // After React renders the active branch, scroll to the exact candidate chip,
+ // including candidates beyond a junction and vertically stacked train chips.
+ useEffect(()=>{
+  const activeNo=focusedTrain||selectedNo;
+  if(!activeNo)return;
+  const viewport=viewportRef.current;
+  const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
+   .find(node=>node.dataset.tfTrainNo===activeNo);
+  if(target)centerTarget(target);
+ },[focusedTrain,selectedNo,focusedStation,path]);
  // On entering the live-train screen, focus the top-ranked candidate once.
- // Merely centering it must NOT confirm that the passenger rode that train.
+ // Centering a candidate is not a confirmation of boarding.
  useEffect(()=>{
   if(selectedNo||autoFocusedRef.current||!visibleCandidates.length)return;
-  const viewport=viewportRef.current;
-  if(!viewport)return;
   const key=trainKey(visibleCandidates[0].trainNo);
-  const target=[...viewport.querySelectorAll('[data-tf-train-no]')]
+  const viewport=viewportRef.current;
+  const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
    .find(node=>node.dataset.tfTrainNo===key);
   if(target&&centerTarget(target)){
     autoFocusedRef.current=true;
     setFocusedTrain(key);
   }
- },[selectedNo,visibleCandidates,line,station,next]);
+ },[selectedNo,visibleCandidates,line,station,next,path]);
  const pollRef=useRef(null);
  const advanceDemo=()=>{
   const at=new Date().toISOString();
@@ -183,7 +189,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    className={'tf-train tf-train-pick'+(isSelected?' tf-train-picked':'')+(focusedTrain===number?' tf-train-focused':'')}
    data-tf-train-no={number}
    aria-pressed={isSelected} aria-label={destinationLabel+' '+p.trainNo+' · '+t.candidate+' · '+clean(p.station)}
-   onClick={()=>onPick(cand)}>{content}</button>:
+   onClick={()=>{setFocusedTrain(number);onPick(cand);}}>{content}</button>:
    <div key={number+'-'+p.direction} title={tooltip} className="tf-train tf-train-other">{content}</div>;
  };
  const toCandidates=()=>{
@@ -206,18 +212,14 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   }
   const position=visibleCandidates[nextIndex];
   const key=trainKey(position.trainNo);
-  const target=[...viewport.querySelectorAll('[data-tf-train-no]')]
-   .find(node=>node.dataset.tfTrainNo===key);
-  if(centerTarget(target)){
-   candidateJumpIndex.current=nextIndex+1;
-   setFocusedTrain(key);
-   setJumpStatus((lang==='ko'?'확인 중 · 후보 ':'Candidate ')+position.trainNo+' · '+
-     (stationName(position.station,lang)||position.station)+
-     (visibleCandidates.length>1
-       ?' ('+(nextIndex+1)+'/'+visibleCandidates.length+')':''));
-  }else{
-   setJumpStatus(lang==='ko'?'후보 열차 위치를 확인할 수 없어요. 새로고침해 주세요.':'Candidate location unavailable. Please refresh.');
-  }
+  // The target may be on a different branch and therefore absent from the
+  // current DOM. Switch the rail first; the effect above centers it afterwards.
+  candidateJumpIndex.current=nextIndex+1;
+  setFocusedTrain(key);
+  setJumpStatus((lang==='ko'?'확인 중 · 후보 ':'Candidate ')+position.trainNo+' · '+
+   (stationName(position.station,lang)||position.station)+
+   (visibleCandidates.length>1
+     ?' ('+(nextIndex+1)+'/'+visibleCandidates.length+')':''));
  };
 
  return <section className="tf-board-section" aria-label={t.title}>

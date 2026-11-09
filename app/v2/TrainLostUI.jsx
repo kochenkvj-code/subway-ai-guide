@@ -25,6 +25,10 @@ const shortPlaceLabels={
  ja:{seat:'座席',rack:'棚',nearDoor:'ドア',floor:'床'},
  zh:{seat:'座位',rack:'行李架',nearDoor:'车门',floor:'地板'},
 };
+const branchWarningLabel={
+ ko:'분기 경로 확인 필요',en:'Check branch route',
+ ja:'分岐経路の確認が必要',zh:'需确认支线路径'
+};
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 
 const flowCopy={
@@ -142,6 +146,7 @@ export default function TrainLostUI(p){
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small><strong>#{c.number}</strong><span>{localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
+      {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
    </div>}

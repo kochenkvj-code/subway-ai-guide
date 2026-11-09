@@ -18,7 +18,7 @@ await moduleUnderTest.link(specifier=>{
   return new SyntheticModule(['default'],function(){this.setExport('default',fixture);});
 });
 await moduleUnderTest.evaluate();
-const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey,followStops}=moduleUnderTest.namespace;
+const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey,followStops,directionalPathToStation}=moduleUnderTest.namespace;
 
 const now=Date.parse('2026-10-31T18:20:00+09:00');
 const date='2026-10-31',time='18:10',line='1',station='종로5가',next='동대문';
@@ -152,4 +152,59 @@ test('line 6 one-way loop directions are explicit and reject reversed choices',(
  assert.equal(stations.distances.get('구산').distance,4);
  const fromGusan=reachableTrainStations('6','구산','응암');
  assert.equal(fromGusan.distances.get('새절').distance,2);
+});
+
+
+test('Jongno 3-ga toward Jonggak can reach Yeokgok through the Guro Incheon branch',()=>{
+ const line='1',origin='종로3가',next='종각';
+ const reach=reachableTrainStations(line,origin,next);
+ assert.equal(reach.distances.get('역곡').distance,16);
+ assert.equal(reach.distances.get('역곡').branched,true);
+ const straight=followStops(line,origin,next,38);
+ assert.equal(straight.stops.at(-1),'구로');
+ assert.equal(straight.stops.includes('역곡'),false,'legacy rail stopped at the fork');
+ const path=directionalPathToStation(line,origin,next,'역곡');
+ assert.equal(path[0],origin);
+ assert.equal(path.at(-1),'역곡');
+ assert.deepEqual(path.slice(path.indexOf('구로'),path.indexOf('개봉')+1),['구로','구일','개봉']);
+ assert.ok(path.includes('온수'));
+ assert.ok(path.every((st,i)=>i===0||expectedLiveDirection(line,path[i-1],st)==='1'));
+});
+
+test('branch-specific rail cannot draw opposite, invalid or reversed paths',()=>{
+ assert.deepEqual(directionalPathToStation('1','종로3가','종각','청량리'),[]);
+ assert.deepEqual(directionalPathToStation('1','종로3가','종로5가','역곡'),[]);
+ assert.deepEqual(directionalPathToStation('1','종로3가','종각','없는역'),[]);
+ const incheon=directionalPathToStation('1','종로3가','종각','역곡');
+ const suwon=directionalPathToStation('1','종로3가','종각','금천구청');
+ assert.ok(incheon.includes('구일'));
+ assert.ok(!incheon.includes('가산디지털단지'));
+ assert.ok(suwon.includes('가산디지털단지'));
+ assert.ok(!suwon.includes('구일'));
+});
+
+test('branch candidates and navigation use the same directional topology',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/directionalPathToStation\(line,station,next,focusStation,38\)/);
+ assert.match(diagram,/directionalPathToStation\(line,station,next,p\.station,38\)/);
+ assert.match(diagram,/setFocusedTrain\(key\)/);
+ assert.match(diagram,/const focusedStation=focusedPosition\?\.station\|\|''/);
+ assert.match(diagram,/const path=useMemo\(\(\)=>mapStations\(line,station,next,focusedStation\)/);
+ assert.match(diagram,/the effect above centers it afterwards/);
+ assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
+});
+
+test('a distant branched train is a cautious estimate, not verified past travel',async()=>{
+ const result=findLiveCandidates([{
+  trainNo:'B124',line:'1',station:'역곡',
+  direction:expectedLiveDirection('1','종로3가','종각'),
+  receivedAt:new Date(now).toISOString(),express:false,status:'1'
+ }],{date:'2026-10-31',time:'17:52',line:'1',station:'종로3가',next:'종각',now});
+ assert.equal(result.candidates[0]?.station,'역곡');
+ assert.equal(result.candidates[0]?.branched,true);
+ assert.equal(result.candidates[0]?.confidence,'branch-uncertain');
+ assert.equal(result.candidates[0]?.corroborated,false);
+ const ui=await readFile(new URL('../app/v2/TrainLostUI.jsx',import.meta.url),'utf8');
+ assert.match(ui,/c\.branched&&<small className="tl-branch-caution"/);
+ assert.ok(ui.includes('분기 경로 확인 필요'));
 });
