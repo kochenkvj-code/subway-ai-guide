@@ -12,12 +12,6 @@ export const dynamic = 'force-dynamic';
 const LANGUAGE = {ko:'한국어', en:'English', ja:'日本語', zh:'简体中文'};
 const json = (data,status=200) => Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 
-function authorized(request) {
-  const configured = process.env.SEARCH_LAB_KEY || '';
-  const provided = request.headers.get('x-search-lab-key') || '';
-  return configured.length > 0 && provided.length > 0 && provided === configured;
-}
-
 function languageOutputRule(lang) {
   return passengerLanguageRule(lang) + '\nMachine metadata exception: menu_recommendation is an allowed menu ID or none; route_query is the passenger destination search term, not an alighting station. Tag names are never translated.';
 }
@@ -46,8 +40,6 @@ async function getGoogleAccessToken() {
 export async function POST(request) {
   const started=Date.now();
   try {
-    if(!process.env.SEARCH_LAB_KEY)return json({ok:false,error:'실험용 접근 키가 설정되지 않았습니다.'},503);
-    if(!authorized(request))return json({ok:false,error:'실험용 접근 키를 확인해 주세요.'},401);
     const reader=request.body?.getReader();
     if(!reader)return json({ok:false,error:'질문을 입력해 주세요.'},400);
     const parts=[];let bytes=0;

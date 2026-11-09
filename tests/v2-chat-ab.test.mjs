@@ -34,7 +34,7 @@ test('B preserves the former general transport policy without new route nudges',
 });
 async function fixture(raw='안내입니다.\n<route_query>신라호텔</route_query>\n<menu_recommendation>route</menu_recommendation>'){
  const calls=[];
- const env={SEARCH_LAB_KEY:'fixture-secret',GCP_PROJECT_ID:'fixture',GCP_PROJECT_NUMBER:'1',GCP_SERVICE_ACCOUNT_EMAIL:'test@example.com',GCP_WORKLOAD_IDENTITY_POOL_ID:'pool',GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID:'provider'};
+ const env={GCP_PROJECT_ID:'fixture',GCP_PROJECT_NUMBER:'1',GCP_SERVICE_ACCOUNT_EMAIL:'test@example.com',GCP_WORKLOAD_IDENTITY_POOL_ID:'pool',GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID:'provider'};
  const context=vm.createContext({Response,Request,URL,URLSearchParams,Buffer,AbortSignal,console,Date,process:{env},fetch:async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:raw}]},groundingMetadata:{webSearchQueries:['test query'],groundingChunks:[{web:{title:'official',uri:'https://example.com'}}],groundingSupports:[{segment:{endIndex:5}}]}}],usageMetadata:{promptTokenCount:456,candidatesTokenCount:78,thoughtsTokenCount:13,totalTokenCount:547}});}});
  const cache=new Map();
  async function load(file){
@@ -51,7 +51,7 @@ async function fixture(raw='안내입니다.\n<route_query>신라호텔</route_q
  }
  const m=await load(path.resolve('app/api/search-lab/chat-ab/route.js'));
  await m.evaluate();
- return {calls,env,run:(variant,opts={})=>m.namespace.POST(new Request('https://app.test/api/search-lab/chat-ab',{method:'POST',headers:{'x-search-lab-key':opts.key??'fixture-secret'},body:JSON.stringify({question:'신라호텔',stationCode:'0154',lang:'ja',history:[],historyCompletedAt:null,variant,...opts.body})}))};
+ return {calls,env,run:(variant,opts={})=>m.namespace.POST(new Request('https://app.test/api/search-lab/chat-ab',{method:'POST',body:JSON.stringify({question:'신라호텔',stationCode:'0154',lang:'ja',history:[],historyCompletedAt:null,variant,...opts.body})}))};
 }
 test('A/B use identical provider options, search, system rules and parser',async()=>{
  const f=await fixture();
@@ -78,14 +78,13 @@ test('A/B use identical provider options, search, system rules and parser',async
  assert.ok(x.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
  assert.ok(y.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
 });
-test('lab API fails closed without a valid access key and validates requests before model calls',async()=>{
+test('lab API allows keyless valid requests and rejects invalid inputs before paid provider calls',async()=>{
  const f=await fixture();
- assert.equal((await f.run('A',{key:'wrong'})).status,401);
  assert.equal((await f.run('not-a-variant')).status,400);
  assert.equal((await f.run('A',{body:{stationCode:'9999'}})).status,400);
  assert.equal((await f.run('A',{body:{history:[{role:'model',text:'bad'}]}})).status,400);
  assert.equal(f.calls.length,0);
- f.env.SEARCH_LAB_KEY='';
- assert.equal((await f.run('A')).status,503);
- assert.equal(f.calls.length,0);
+ const response=await f.run('A');
+ assert.equal(response.status,200);
+ assert.equal(f.calls.length,1);
 });
