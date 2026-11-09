@@ -21,8 +21,8 @@ test('B preserves the former general transport policy without new route nudges',
  const b=buildCompactV2Prompt('둔촌역','ko',station,'언어규칙',{strictLanguage:true});
  assert.ok(b.includes('For questions unrelated to local amenities, remain helpful about the station and public transportation'));
  assert.ok(b.includes('The traveler asks: "둔촌역"'));
- assert.ok(!b.includes('LINE-SPECIFIC STATION IDENTITY'));
- assert.ok(!b.includes('SEARCH COVERAGE'));
+ assert.ok(b.includes('LINE-SPECIFIC STATION IDENTITY'));
+ assert.ok(b.includes('SEARCH COVERAGE'));
  assert.ok(!b.includes('When a passenger mentions'));
  assert.ok(b.includes('different station or line'));
  assert.ok(b.includes('종오지하쇼핑센터'));
@@ -53,6 +53,26 @@ async function fixture(raw='안내입니다.\n<route_query>신라호텔</route_q
  await m.evaluate();
  return {calls,env,run:(variant,opts={})=>m.namespace.POST(new Request('https://app.test/api/search-lab/chat-ab',{method:'POST',body:JSON.stringify({question:'신라호텔',stationCode:'0154',lang:'ja',history:[],historyCompletedAt:null,variant,...opts.body})}))};
 }
+test('B retains original V2 facility ownership policy without changing general destination guidance',()=>{
+ const b1=buildCompactV2Prompt('수유실 어디에 있나요?','ko',{stationCode:'0159',line:'1',names:{ko:'동묘앞'}},'언어규칙',{strictLanguage:true});
+ const b6=buildCompactV2Prompt('수유실 어디에 있나요?','ko',{stationCode:'2637',line:'6',names:{ko:'동묘앞'}},'언어규칙',{strictLanguage:true});
+ for(const b of [b1,b6]){
+   assert.ok(b.includes('LINE-SPECIFIC STATION IDENTITY (mandatory):'));
+   assert.ok(b.includes('Stations sharing a name on different lines are separate station entities'));
+   assert.ok(b.includes('Verify which line each source describes'));
+   assert.ok(b.includes("A verified facility at another line's station may still be a useful alternative"));
+   assert.ok(b.includes('explicitly name that LINE + STATION'));
+   assert.ok(b.includes('SEARCH COVERAGE, within this single grounded response'));
+   assert.ok(b.includes('For questions unrelated to local amenities, remain helpful about the station and public transportation'));
+   assert.ok(!b.includes('When a passenger mentions a station, hotel'));
+ }
+ assert.ok(b1.includes('1호선 동묘앞 수유실'));
+ assert.ok(b6.includes('6호선 동묘앞 수유실'));
+ assert.notEqual(b1,b6);
+ const hotel=buildCompactV2Prompt('신라호텔','ko',{stationCode:'0154',line:'1',names:{ko:'종로5가'}},'언어규칙',{strictLanguage:true});
+ assert.ok(hotel.includes('The traveler asks: "신라호텔"'));
+ assert.ok(hotel.includes('not a restriction on unrelated destination questions'));
+});
 test('A/B use identical provider options, search, system rules and parser',async()=>{
  const f=await fixture();
  const a=await(await f.run('A')).json(),b=await(await f.run('B')).json();

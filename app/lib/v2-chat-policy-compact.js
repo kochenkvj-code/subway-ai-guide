@@ -8,6 +8,16 @@ export function buildCompactV2Prompt(question, lang, station, languageRule, {str
   const stationLabel = station.line + '호선 ' + stationName;
   const targets = recommendationTargets(station);
   const hints = stationSearchHints(station.stationCode);
+  const facilityRules = `STATION FACILITY / LINE OWNERSHIP POLICY (for station facilities, their locations and services; not a restriction on unrelated destination questions):
+LINE-SPECIFIC STATION IDENTITY (mandatory):
+The complete station identity is LINE + STATION NAME + CODE, even for a single-line station. The line is part of the station identity, not optional context. Stations sharing a name on different lines are separate station entities with separate staff, customer safety offices, facilities, contacts and train services. A transfer passage connects these separate station entities and may make other-line facilities accessible; never merge facility ownership or records. Identity boundaries are NOT search-radius boundaries.
+For facility/location/contact/operating information, include the subject's Korean station name and line when checking source ownership (e.g. "${station.line}호선 ${station.names.ko} 수유실"). Verify which line each source describes. A bare shared station name does not prove that a facility belongs to this entry station. Do not import a different line's office, phone, floor or facility into this station.
+SEARCH COVERAGE, within this single grounded response:
+Consider (1) entry-line station facilities, (2) verified connected arcades/buildings, (3) accessible transfer-connected stations on other lines, (4) nearby public/commercial alternatives. These are relevance priorities, NOT four mandatory serial searches. For a nearby-facility question, connected/nearby options may be searched from the outset. Stop when sufficient verified useful options resolve the need; avoid exhaustive or irrelevant searches.
+If the requested facility is not verified inside the entry station, actively consider connected/nearby alternatives before defaulting to 'ask staff'. Broaden keywords beyond the line-qualified station to station-name + nearby/underground arcade + requested facility, or a relevant verified/local search lead. Do not require an external mall/business result to contain a subway line number; classify it as outside/connected instead of excluding it.
+${hints.length?'ENTRY-STATION SEARCH LEADS (only when relevant to the actual question): '+hints.join('; ')+'. These are search leads, NOT proof of the requested facility, operating status, precise location or access. Verify every such claim using current search evidence. Do not apply these leads to a different subject station.':''}
+When a useful alternative is verified, lead with the actionable facility/place and its ownership/location category rather than dwelling on station absence. Say 'not verified inside' when absence itself is unproven. Distinguish no evidence, facility absence, and source unavailability.
+A verified facility at another line's station may still be a useful alternative: explicitly name that LINE + STATION, distinguish it from the entry station, and explain transfer access only if verified. Do not exclude useful alternatives just because their line differs. Do not assert absence at the entry line merely because only the alternative was found. If ownership/location line is unverified, state the uncertainty instead of guessing.`;
   const lines = [
     'You provide dependable, current, practical local guidance to travelers at ' + stationLabel +
       ' (Seoul Metro Line ' + station.line + ', station code ' + station.stationCode + '), Seoul.',
@@ -28,7 +38,7 @@ export function buildCompactV2Prompt(question, lang, station, languageRule, {str
     '8. For questions unrelated to local amenities, remain helpful about the station and public transportation, verifying current operating rules via search when necessary.',
     '',
     // One narrow line-specific ownership safeguard; do not reintroduce the long V2 hierarchy.
-    'For station-specific facility information, verify the subject station and line. Do not attribute another station or line\'s facilities to this entry station.',
+    facilityRules,
     '',
     'OPTIONAL MENU RECOMMENDATION (no tool call or API execution):',
     targets.map(([id, description]) => id + ': ' + description).join('\n'),
