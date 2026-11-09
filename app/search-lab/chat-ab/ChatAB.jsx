@@ -114,7 +114,6 @@ export default function ChatAB(){
             });
             setRoundIndex(round);
             setCompleted(v=>v+1);
-            if(response.status===429){setNotice('호출 제한에 도달했습니다. 10분 기준 최대 30회까지 가능하니 잠시 뒤 다시 실행해 주세요.');stop=true;break;}
           }catch(error){
             if(aborter.signal.aborted){stop=true;break;}
             setRuns(previous=>{
@@ -142,7 +141,7 @@ export default function ChatAB(){
         <a className="cab-home" href="/">운영 V2로 돌아가기 <span>↗</span></a>
       </header>
       <section className="cab-hero">
-        <div className="cab-kicker"><span className="cab-live-dot"></span> RATE-LIMITED EXPERIMENT · v1.1</div>
+        <div className="cab-kicker"><span className="cab-live-dot"></span> PROMPT COMPARISON · v1.2</div>
         <h1>일반 채팅 <em>응답 정책 A/B 실험실</em></h1>
         <p>현재 V2 원본과 간소화 후보를 <strong>같은 모델·검색·시스템 지침·언어·파서</strong>로 비교합니다. 운영 채팅은 변경하지 않습니다.</p>
         <div className="cab-hero-meta"><span>Gemini 3.5 Flash-Lite</span><span>LOW</span><span>1,200 tokens</span><span>Google Search</span><span>교차 순서 A→B / B→A</span></div>
@@ -158,7 +157,7 @@ export default function ChatAB(){
           <div className="cab-field cab-context"><span>선택: 이전 대화 맥락 <small>빈칸이면 양쪽 모두 이력 없음</small></span><input value={contextQuestion} onChange={e=>setContextQuestion(e.target.value)} maxLength={500} placeholder="이전 사용자 질문 (선택)" /><textarea value={contextAnswer} onChange={e=>setContextAnswer(e.target.value)} rows={2} maxLength={2500} placeholder="이전 AI 답변 (선택)" /></div>
         </div>
         <div className="cab-runbar">
-          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/B 호출 조건은 같으며, 10분당 30회로 자동 제한됩니다.</div>
+          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/B는 프롬프트 외 동일한 조건으로 비교합니다.</div>
           <div className="cab-run-actions">{busy&&<button type="button" className="cab-secondary" onClick={()=>controllerRef.current?.abort()}>남은 호출 중단</button>}<button type="button" className="cab-primary" disabled={busy||!question.trim()} onClick={execute}>{busy?'실험 진행 중 · '+completed+'/'+(repeat*2):'A/B 비교 실행'} <span>→</span></button></div>
         </div>
         {notice&&<div role="alert" className="cab-notice">{notice}</div>}
