@@ -12,10 +12,10 @@ const dictionary={
 };
 const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
 const sliderWords={
- ko:{now:'방금',drag:'좌우로 밀어 시간 선택'},
- en:{now:'Just now',drag:'Drag to set the time'},
- ja:{now:'たった今',drag:'左右に動かして時刻を選択'},
- zh:{now:'刚刚',drag:'左右拖动选择时间'}
+ ko:{now:'방금',prompt:'내린 지 얼마나 지났나요?',range:'(0~30분)',manual:'시각 입력',manualSelected:'직접 입력',exact:'정확한 하차 시각'},
+ en:{now:'Just now',prompt:'Time since exit?',range:'(0–30 min)',manual:'Set time',manualSelected:'Set time',exact:'Exact exit time'},
+ ja:{now:'たった今',prompt:'降車から何分ですか？',range:'(0〜30分)',manual:'時刻入力',manualSelected:'時刻入力',exact:'正確な降車時刻'},
+ zh:{now:'刚刚',prompt:'下车多久了？',range:'(0~30分钟)',manual:'输入时间',manualSelected:'输入时间',exact:'准确下车时间'}
 };
 // Compact display labels for four choices in a single mobile row. The full
 // localized wording is retained for accessibility and handoff messages.
@@ -97,13 +97,14 @@ export default function TrainLostUI(p){
     </div>
     {!neighbors.length&&<p className="tf-warning">{u.stationUnavailable}</p>}
     <div className="tl-field tl-direction-field"><div className="tl-label">{u.direction}<span className="tl-required">{u.required}</span></div><div className={'tl-directions'+(neighbors.length===1?' tl-directions-single':'')} role="group" aria-label={u.direction}>{neighbors.map((st,i)=><button type="button" className="tl-choice" key={st} aria-pressed={next===st} aria-label={localized(st,selection.line,lang)+' · '+u.directionSub} onClick={()=>{if(next!==st){setNext(st);resetMatches();}}}><span className="tl-direction-arrow" aria-hidden="true">{i===0?'←':i===1?'→':'↗'}</span><strong>{localized(st,selection.line,lang)}</strong><small>{u.directionSub}</small>{next===st&&<span className="tl-direction-check" aria-hidden="true">✓</span>}</button>)}</div>{next&&requiredDirection===null&&<p className="tf-warning">{u.needDirection}</p>}{neighbors.length>2&&<p className="tl-note">{u.branches}</p>}</div>
-    <div className="tl-field tl-time-field"><div className="tl-label">{u.elapsed}<span className="tl-required">{u.required}</span></div>
-     <div className="tl-slider-head"><strong>{quickMin===null?u.custom:quickMin===0?w.now:quickMin+u.mins}</strong><span>{w.drag}</span></div>
-     <input className="tl-time-slider" type="range" min="0" max="30" step="1" value={sliderMinutes} style={{'--tl-slider-fill':sliderMinutes/30*100+'%'}} aria-label={u.elapsed} aria-valuetext={sliderMinutes===0?w.now:sliderMinutes+u.mins} onChange={e=>pickElapsed(Number(e.target.value))}/>
-     <div className="tl-slider-ends"><span>{w.now}</span><span>30{u.mins}</span></div>
-     <div className="tl-times">{[3,5,10,15].map(n=><button type="button" className="tl-chip" key={n} aria-pressed={quickMin===n} onClick={()=>pickElapsed(n)}>{n}{u.mins}</button>)}</div>
-     <label className="tl-time-summary tl-time-edit"><span>◷ {v.time}</span><span className="tl-time-edit-control"><input type="time" required aria-label={v.timeExact} value={when.time} onChange={e=>{if(!e.target.value)return;setQuickMin(null);setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/><span aria-hidden="true">✎</span></span></label>
-
+    <div className="tl-field tl-time-field">
+     <div className="tl-time-topline">
+      <div className="tl-time-prompt"><span className="tl-time-question">{w.prompt}</span><span className="tl-time-range">{w.range}</span><span className="tl-required" aria-label={u.required}>*</span></div>
+      <strong className="tl-time-value" aria-live="off">{quickMin===null?w.manualSelected:quickMin===0?w.now:quickMin+u.mins}</strong>
+     </div>
+     <input className="tl-time-slider" type="range" min="0" max="30" step="1" value={sliderMinutes} style={{'--tl-slider-fill':sliderMinutes/30*100+'%'}} aria-label={u.elapsed} aria-valuetext={quickMin===null?w.manualSelected:sliderMinutes===0?w.now:sliderMinutes+u.mins} onChange={e=>pickElapsed(Number(e.target.value))}/>
+     <div className="tl-times">{[3,5,10,15].map(n=><button type="button" className="tl-chip" key={n} aria-pressed={quickMin===n} onClick={()=>pickElapsed(n)}>{n}{u.mins}</button>)}<button type="button" className="tl-chip tl-chip-manual" aria-pressed={quickMin===null} aria-expanded={quickMin===null} onClick={()=>setQuickMin(null)}>{w.manual}</button></div>
+     {quickMin===null&&<label className="tl-time-summary tl-time-edit"><span>{w.exact}</span><span className="tl-time-edit-control"><input type="time" required aria-label={v.timeExact} value={when.time} onChange={e=>{if(!e.target.value)return;setWhen({date:kstAlightDateForTime(e.target.value),time:e.target.value});resetMatches();}}/></span></label>}
     </div>
    </section>
    <section className="tl-panel tl-input-panel">
