@@ -306,3 +306,9 @@
 
 .v2-chat-pane .sag-menu-recommendation .sag-route-name{display:block;font-size:inherit;line-height:1.5;overflow-wrap:anywhere}
 .v2-chat-pane .sag-menu-recommendation .sag-route-origin{display:block;margin-top:3px;font-size:10px;line-height:1.4;font-weight:400;color:#7c9383}
+
+/* Use the complete V2 content area for embedded tools on tablet/desktop.
+   Standalone tool pages retain their own width constraints. */
+.v2-design-refresh .v2-feature-pane .lf-shell{width:100%;max-width:none}
+.v2-design-refresh .v2-route-pane .route-lab.rl-embedded .rl-shell{width:100%;max-width:none}
+.v2-design-refresh .sf-pane .sf-inner{width:100%;max-width:none}
