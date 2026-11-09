@@ -83,7 +83,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(!token)return;
     url.searchParams.delete(HOME_CHAT_HANDOFF_PARAM);
     window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
-    const text=takeHomeChatHandoff(window.sessionStorage,token);
+    let text=null;
+    try{text=takeHomeChatHandoff(window.sessionStorage,token);}catch{}
     if(text&&readView()==='chat')setChatRequest({id:++requestSequence.current,text});
   },[]);
   useEffect(()=>{const onPop=()=>{const next=readView();activate(next);setDetail(!!window.history.state?.sagDetail);setRestoration({view:next,data:window.history.state?.sagData,serial:Date.now()+Math.random()});};window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
