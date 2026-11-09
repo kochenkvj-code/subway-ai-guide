@@ -1157,6 +1157,9 @@ export default function GuideExperience({ embedded = false, initialAction = null
   const t = TEXT[lang];
   const lastMessage = messages[messages.length - 1];
   const answerReady = Boolean(lastMessage?.role === "assistant" && lastMessage?.text && lastMessage?.feedbackKey && !lastMessage.pending && !lastMessage.error);
+  // Only the V2 free-chat panel uses a continuous question/answer viewport.
+  // Embedded ticket/facility/route guide cards retain their original scrolling.
+  const isV2ChatConversation = Boolean(embedded && !initialAction && chatStation);
   const gateScreenActive = Boolean(lastMessage?.gateMenu || lastMessage?.gateResult);
   // Treat normal chat, the gate picker and each gate resolution as distinct
   // scroll views.  Re-mounting the scroll container prevents iOS Safari from
@@ -1302,6 +1305,22 @@ export default function GuideExperience({ embedded = false, initialAction = null
         updateScrollIndicator();
       });
       return ()=>cancelAnimationFrame(frame);
+    }
+    if (isV2ChatConversation && (lastMessage?.pending || lastMessage?.chatTurn)) {
+      if (lastMessage?.pending) {
+        // On submit, show the user's question with the pending reply directly
+        // below it. When the response replaces that SAME row, keep the viewport
+        // stationary; never jump the finished answer to the top of the screen.
+        const rows = el.querySelectorAll(".sag-row");
+        const questionRow = rows[rows.length - 2];
+        if (questionRow?.classList.contains("user")) {
+          const offset = questionRow.getBoundingClientRect().top - el.getBoundingClientRect().top;
+          el.scrollTop = Math.max(0, el.scrollTop + offset - 12);
+        }
+      }
+      // Respect manual scrolling while the AI request is in flight.
+      updateScrollIndicator();
+      return;
     }
     // Scroll to the actual final message. Reserve room after long cards so
     // the browser can align their heading at the top even at the end of history.
@@ -1489,6 +1508,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
         const message = {
           role: "assistant",
           text: data.answer,
+          arriving: isV2ChatConversation,
           recommendedMenu: chatStation ? data.recommendedMenu : null,
           routeQuery: chatStation && data.recommendedMenu === "route" && typeof data.routeQuery === "string" ? data.routeQuery : null,
           chatTurn: true,
@@ -1517,6 +1537,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
         const message = {
           role: "assistant",
           text: t.error,
+          arriving: isV2ChatConversation,
           error: true,
           chatTurn: true,
           contextScope,
@@ -1786,13 +1807,13 @@ export default function GuideExperience({ embedded = false, initialAction = null
 
           <div
             key={chatViewKey}
-            className={`sag-chat ${(answerReady || lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""}`}
+            className={`sag-chat ${(answerReady || lastMessage?.routeCard || lastMessage?.facilityMap || lastMessage?.nearbyCard || lastMessage?.exchangeCard || lastMessage?.gateMenu || lastMessage?.gateResult || lastMessage?.fareProduct || lastMessage?.menuPhase === "selection") ? "sag-chat-card-active" : ""} ${isV2ChatConversation && (lastMessage?.pending || lastMessage?.chatTurn) ? "sag-chat-turn-active" : ""}`}
             ref={chatRef}
             onScroll={updateScrollIndicator}
           >
           {messages.map((message, index) => (
             <div key={index} className={`sag-row ${message.role} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-row" : message.exchangeCard ? "exchange-row" : ""}`}>
-              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
+              <div className={`sag-bubble ${message.role} ${message.pending ? "pending" : ""} ${isV2ChatConversation && message.arriving ? "sag-answer-entering" : ""} ${(message.options || message.gateMenu || message.gateResult) ? "has-options" : ""} ${(message.routeCard || message.nearbyCard || message.facilityMap) ? "route-card-bubble" : ""} ${message.exchangeCard ? "full-width-assistant" : ""}`}>
                 {message.routeCard && <SubwayRouteCard key={resetToken} stationContext={routeStation} navigationSnapshot={index===messages.length-1?navigationSnapshot:null} onNavigationStep={onNavigationStep&&index===messages.length-1?((key,routeState)=>onNavigationStep(key,{messages:messageHistoryRef.current,routeState})):null} lang={lang} onNewSearch={openAnotherRouteSearch} />}
                 {message.nearbyCard && <NearbyPlacesCard lang={lang} />}
                 {message.exchangeCard && <ExchangeCard lang={lang} />}
