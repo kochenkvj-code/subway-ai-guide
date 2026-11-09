@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseMenuRecommendation as parse,buildV2Prompt,recommendationTargets} from '../app/lib/v2-chat-policy.js';
+import {parseMenuRecommendation as parse,parseChatRecommendation,buildV2Prompt,recommendationTargets} from '../app/lib/v2-chat-policy.js';
 const allowed=['route','facility','live'];
 test('only one complete final standalone valid menu is accepted',()=>{
  for(const [raw,answer,id]of [
@@ -40,4 +40,13 @@ test('broader search leads preserve ownership without narrowing alternative disc
  for(const rule of ['NOT search-radius boundaries','NOT four mandatory serial searches','from the outset','actively consider connected/nearby','Do not require an external mall','NOT proof','when this is unknown, omit','connected mall, outside venue'])assert.ok(j.includes(rule),rule);
  for(const hint of ['종오지하쇼핑센터','종로5가지하도상가']){assert.ok(j.includes(hint));assert.ok(!d.includes(hint));assert.ok(!other.includes(hint));}
  assert.ok(d.includes('6호선 동묘앞역'));assert.ok(!j.includes('여자화장실 왼편'));
+});
+
+test('chat handoff keeps the requested place, not a suggested alighting stop',()=>{
+ const raw='신라호텔 안내입니다.\n<route_query>신라호텔</route_query>\n<menu_recommendation>route</menu_recommendation>';
+ assert.deepEqual(parseChatRecommendation(raw,allowed),{answer:'신라호텔 안내입니다.',recommendedMenu:'route',routeQuery:'신라호텔'});
+ for(const query of ['둔촌동역','The Shilla Seoul','新羅ホテル','首尔新罗酒店'])assert.equal(parseChatRecommendation('Answer\n<route_query>'+query+'</route_query>\n<menu_recommendation>route</menu_recommendation>',allowed).routeQuery,query);
+ for(const bad of [raw.replace('route_query>신라호텔','route_query>'),raw.replace('</route_query>',''),raw.replace('<menu_recommendation>route','<menu_recommendation>facility'),raw.replace('<menu_recommendation>route','<route_query>다른곳</route_query>\n<menu_recommendation>route'),raw.replace('</route_query>','</route_query>\nOther text'),raw.replace('신라호텔</route_query>','x'.repeat(101)+'</route_query>')])assert.equal(parseChatRecommendation(bad,allowed).routeQuery,null);
+ assert.equal(parseChatRecommendation(raw,allowed,false).routeQuery,null);
+ assert.equal(parseChatRecommendation('Answer\n<menu_recommendation>route</menu_recommendation>',allowed).routeQuery,null);
 });

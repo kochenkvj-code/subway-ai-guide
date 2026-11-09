@@ -358,8 +358,8 @@ test('lost-item stepper removes overlapping connector arrows',()=>{
 });
 
 test('single search button automatically handles station names and AI places',()=>{
- assert.ok(page.includes('async function perform(){'));
- assert.ok(page.includes('if(picked||exact){'));
+ assert.ok(page.includes('async function perform(requestedTerm=null){'));
+ assert.ok(page.includes('if(selected||exact){'));
  assert.ok(page.includes("fetch('/api/v2/route-place-test'"));
  assert.ok(page.includes('void perform(false)'));
  assert.ok(!page.includes('className="rl-as-place"'));

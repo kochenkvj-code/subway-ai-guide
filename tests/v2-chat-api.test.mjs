@@ -19,3 +19,10 @@ test('station-bound labels use selected station while common menu labels stay sh
 });
 
 export {api as v2ChatFixture};
+
+test('one chat call returns a clean answer plus a destination query for existing wayfinding',async()=>{
+ const a=await api('案内です。\n<route_query>新羅ホテル</route_query>\n<menu_recommendation>route</menu_recommendation>');
+ const d=await(await a.run({question:'新羅ホテル',lang:'ja',stationCode:'0154'})).json();
+ assert.equal(d.answer,'案内です。');assert.equal(d.routeQuery,'新羅ホテル');assert.equal(d.recommendedMenu,'route');assert.equal(a.calls.length,1);
+ assert.ok(a.calls[0].body.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
+});

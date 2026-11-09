@@ -31,13 +31,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const feedbackStation=stationContext?FEEDBACK_STATIONS[stationContext.stationCode]:station;
   const tourStation=stationContext||station;
   const foundStation=stationContext?lostFoundStation(stationContext.stationCode):station;
-  const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false);
+  const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false),[routeRequest,setRouteRequest]=useState(null);
   const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const chatWorkspace=useRef(null);
   const [languageOpen,setLanguageOpen]=useState(false);
   const languageTrigger=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
+  const routeHandoffRef=useRef(false);
+  useEffect(()=>{if(view==='chat')routeHandoffRef.current=false;},[view]);
   const viewRef=useRef(view);viewRef.current=view;
   const publishStep=useCallback((key,data)=>{
     const current=window.history.state||{};
@@ -79,7 +81,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     const frame=requestAnimationFrame(()=>{if(view==='home')window.scrollTo(0,homeScroll.current);else{window.scrollTo(0,0);titleRef.current?.focus({preventScroll:true});}});
     return()=>cancelAnimationFrame(frame);
   },[view]);
-  function navigate(next,{keepHomeScroll=false}={}){
+  function navigate(next,{keepHomeScroll=false,routeQuery=null}={}){
+    if(next==='route'&&routeQuery){if(routeHandoffRef.current)return;routeHandoffRef.current=true;}
     if(next===view)return;
     // A different navigation cancels a home composer submission that is
     // waiting for iOS Safari to finish dismissing the software keyboard.
@@ -87,13 +90,14 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(view==='home'&&!keepHomeScroll)homeScroll.current=window.scrollY;
     if(next!=='home'&&next!=='chat'&&next!=='feedback')setVisits(prev=>({...prev,[next]:(prev[next]||0)+1}));
     setRestoration(null);setDetail(false);
+    if(next==='route')setRouteRequest(routeQuery?{id:window.crypto.randomUUID(),query:routeQuery,returnDepth:window.history.state?.sagV2Depth||0}:null);
     const item=menuItems.find(x=>x.id===next);
     if(['timetable','tour','found','facility','lost','feedback','live'].includes(next))recordStat('quick_menu',next,lang);
     if(item?.action && (mounted[next]||next==='route'))recordStat('quick_menu',item.action,lang);
     const url=new URL(window.location.href);url.searchParams.delete('place');if(next==='home')url.searchParams.delete('view');else url.searchParams.set('view',next);
     window.history.pushState({...(window.history.state||{}),sagV2:true,sagKey:null,sagData:null,sagDetail:false,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
   }
-  function back(){if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
+  function back(){if(view==='route'&&routeRequest){const steps=(window.history.state?.sagV2Depth||0)-routeRequest.returnDepth;if(steps>0){window.history.go(-steps);return;}}if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
 
   useEffect(()=>setLang(initialLanguage),[initialLanguage]);
   function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
@@ -235,7 +239,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace v2-keyboard-workspace':view==='lost'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
       {['chat',...menuItems.filter(x=>x.action&&x.id!=='route').map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
-      {mounted.route&&<div className="v2-feature-pane v2-route-pane" hidden={view!=='route'}><UnifiedRouteLab key={(visits.route||0)+'-'+(stationContext?.stationCode||'0154')} embedded stationContext={stationContext} language={lang} active={view==='route'} onNavigationStep={view==='route'?publishStep:null} navigationSnapshot={restoration?.view==='route'?restoration:null}/></div>}
+      {mounted.route&&<div className="v2-feature-pane v2-route-pane" hidden={view!=='route'}><UnifiedRouteLab routeRequest={routeRequest} key={(visits.route||0)+'-'+(stationContext?.stationCode||'0154')} embedded stationContext={stationContext} language={lang} active={view==='route'} onNavigationStep={view==='route'?publishStep:null} navigationSnapshot={restoration?.view==='route'?restoration:null}/></div>}
        {mounted.tour&&<NearbyTour key={(visits.tour||0)+'-'+(tourStation.stationCode||tourStation.id)} station={tourStation} lang={lang} active={view==='tour'}/>}
       {mounted.timetable&&<div className="v2-feature-pane" hidden={view!=='timetable'}><TrainTimetable key={visits.timetable||0} lang={lang} active={view==='timetable'} stationContext={stationContext}/></div>}
       {mounted.found&&foundStation&&<div className="v2-feature-pane" hidden={view!=='found'}><CompactLostFound key={(visits.found||0)+'-'+foundStation.id} embedded station={foundStation} lang={lang} active={view==='found'} onNavigationStep={view==='found'?publishStep:null} navigationSnapshot={restoration?.view==='found'?restoration:null}/></div>}

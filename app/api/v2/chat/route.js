@@ -3,13 +3,13 @@ import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 import {validateChatHistory} from '../../../lib/chat-history';
 import {getStationByCode} from '../../../lib/station-master';
-import {buildV2Prompt,parseMenuRecommendation,recommendationTargets} from '../../../lib/v2-chat-policy';
+import {buildV2Prompt,parseChatRecommendation,recommendationTargets} from '../../../lib/v2-chat-policy';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const LANGUAGE={ko:'한국어',en:'English',ja:'日本語',zh:'简体中文'};
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 function languageOutputRule(lang) {
- return passengerLanguageRule(lang)+'\nMachine metadata exception: menu_recommendation must be one allowed menu ID or none, never translated.';
+ return passengerLanguageRule(lang)+'\nMachine metadata exception: menu_recommendation is an allowed menu ID or none; route_query is the passenger destination search term, not an alighting station. Tag names are never translated.';
 }
 
 async function getGoogleAccessToken() {
@@ -61,7 +61,7 @@ export async function POST(request){
   if(!response.ok)return json({ok:false,error:'AI 연결에 실패했습니다.'},502);
   const candidate=data.candidates?.[0];
   const raw=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim()||'';
-  const parsed=parseMenuRecommendation(raw,recommendationTargets(station).map(([id])=>id),candidate?.finishReason==='STOP');
+  const parsed=parseChatRecommendation(raw,recommendationTargets(station).map(([id])=>id),candidate?.finishReason==='STOP');
   if(!parsed.answer.trim())return json({ok:false,error:'답변을 생성하지 못했습니다.'},502);
   const grounding=candidate?.groundingMetadata||{};
   return json({ok:true,...parsed,stationCode:station.stationCode,sources:(grounding.groundingChunks||[]).filter(c=>c.web?.uri).map(c=>({title:c.web.title||'검색 결과',url:c.web.uri,domain:c.web.domain||''})),googleSearchQueries:grounding.webSearchQueries||[],groundingSupports:raw.startsWith(parsed.answer)?(grounding.groundingSupports||[]).filter(s=>Number.isInteger(s.segment?.endIndex)&&s.segment.endIndex<=parsed.answer.length):[],searchSuggestion:grounding.searchEntryPoint?.renderedContent||null});

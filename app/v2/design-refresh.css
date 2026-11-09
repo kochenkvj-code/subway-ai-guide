@@ -307,3 +307,6 @@
 .v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i:nth-child(3){animation-delay:.32s}
 @keyframes v2-ai-thinking-dot{0%,70%,100%{opacity:.3;transform:translateY(0) scale(.88)}35%{opacity:1;transform:translateY(-3px) scale(1.06)}}
 @media(prefers-reduced-motion:reduce){.v2-design-refresh .v2-chat-pane .sag-ai-loading-dots i{animation:none;opacity:.8;transform:none}}
+
+.v2-chat-pane .sag-menu-recommendation .sag-route-name{display:block;font-size:inherit;line-height:1.5;overflow-wrap:anywhere}
+.v2-chat-pane .sag-menu-recommendation .sag-route-origin{display:block;margin-top:3px;font-size:10px;line-height:1.4;font-weight:400;color:#7c9383}

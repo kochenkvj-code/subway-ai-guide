@@ -1,7 +1,7 @@
 "use client";
 
 import {recommendationTargets} from '../lib/v2-chat-policy';
-import {recommendationLabel} from '../v2/recommendation-labels';
+import {recommendationLabel,routeRecommendationLabel,routeRecommendationOrigin} from '../v2/recommendation-labels';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { captureLanguageScroll, restoreLanguageScroll } from "../lib/language-scroll";
 import { buildChatHistory } from "../lib/chat-history";
@@ -1490,6 +1490,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
           role: "assistant",
           text: data.answer,
           recommendedMenu: chatStation ? data.recommendedMenu : null,
+          routeQuery: chatStation && data.recommendedMenu === "route" && typeof data.routeQuery === "string" ? data.routeQuery : null,
           chatTurn: true,
           answerLang: lang,
           contextScope,
@@ -2011,7 +2012,7 @@ export default function GuideExperience({ embedded = false, initialAction = null
                   </>
                 )}
 
-                {chatStation && onRecommendMenu && message.recommendedMenu && recommendationTargets(chatStation).some(([id])=>id===message.recommendedMenu) && !message.pending && !message.error && <button type="button" className="sag-menu-recommendation" onClick={()=>onRecommendMenu(message.recommendedMenu)}><span>{['facility','tour','timetable','live','found','feedback'].includes(message.recommendedMenu)&&<b className="sag-recommend-line" style={{background:chatStation.color}}>{chatStation.line}</b>}{recommendationLabel(message.recommendedMenu,lang,chatStation)}</span> <span aria-hidden="true">→</span></button>}
+                {chatStation && onRecommendMenu && message.recommendedMenu && recommendationTargets(chatStation).some(([id])=>id===message.recommendedMenu) && !message.pending && !message.error && <button type="button" className="sag-menu-recommendation" onClick={()=>onRecommendMenu(message.recommendedMenu,message.routeQuery?{routeQuery:message.routeQuery}:undefined)}><span>{['facility','tour','timetable','live','found','feedback'].includes(message.recommendedMenu)&&<b className="sag-recommend-line" style={{background:chatStation.color}}>{chatStation.line}</b>}{message.recommendedMenu==='route'&&message.routeQuery?<><strong className="sag-route-name">{routeRecommendationLabel(message.routeQuery,lang)}</strong><small className="sag-route-origin">{routeRecommendationOrigin(chatStation,lang)}</small></>:recommendationLabel(message.recommendedMenu,lang,chatStation)}</span> <span aria-hidden="true">→</span></button>}
 
                 {message.searchSuggestion && (
                   <div

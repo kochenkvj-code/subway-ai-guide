@@ -10,3 +10,12 @@ export function recommendationLabel(id,lang,station=null){
  const label=id==='live'?t.liveTitle:t.menu[menuItems.findIndex(item=>item.id===id)];
  return ({ko:`${label} 보기`,en:`Open ${label}`,ja:`${label}を見る`,zh:`查看${label}`})[lang]||label;
 }
+
+export function routeRecommendationLabel(query,lang='ko'){
+ return ({ko:`${query} 길찾기`,en:`Directions to ${query}`,ja:`${query}への行き方`,zh:`前往${query}的路线`})[lang]||`${query} 길찾기`;
+}
+
+export function routeRecommendationOrigin(station,lang='ko'){
+ const name=station.names[lang]||station.names.ko;
+ return ({ko:`${name} 출발`,en:`From ${name}`,ja:`${name}から出発`,zh:`从${name}出发`})[lang]||name;
+}

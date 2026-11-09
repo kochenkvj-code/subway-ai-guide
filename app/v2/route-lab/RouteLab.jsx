@@ -48,7 +48,8 @@ function buildRouteUrl(origin,destination,mode){
  const params=new URLSearchParams({station:origin,to:destination.ko,toCode:destination.code,mode});
  return '/api/subway-route?'+params;
 }
-export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,navigationSnapshot=null}){
+function matchesForQuery(query,lang){const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];}
+export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,routeRequest=null,navigationSnapshot=null}){
  const [standaloneLang,setStandaloneLang]=useState('ko'),[originCode,setOriginCode]=useState(stationContext?.stationCode||'0154');
  const lang=embedded&&COPY[language]?language:standaloneLang;
  const [query,setQuery]=useState(''),[picked,setPicked]=useState(null),[focused,setFocused]=useState(false);
@@ -73,7 +74,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const t=COPY[lang],actions=RESULT_ACTIONS[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const originName=origin.names[lang]||origin.names.ko;
  const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
- const stationMatches=useMemo(()=>{const q=query.trim();if(!q)return [];const first=officialStationMatches(q,lang,8);if(first.length)return first;const withoutSuffix=q.replace(/역$/,'').replace(/\s+station$/i,'');return withoutSuffix!==q?officialStationMatches(withoutSuffix,lang,8):[];},[query,lang]);
+ const stationMatches=useMemo(()=>matchesForQuery(query,lang),[query,lang]);
  useEffect(()=>{
   if(embedded)return;
   const p=new URLSearchParams(window.location.search);
@@ -137,16 +138,26 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    if(embedded)saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route});
   }
  }
- async function perform(){
-  const term=query.trim();
+ const processedRouteRequest=useRef(null);
+ useEffect(()=>{
+  if(!embedded||!active||!routeRequest?.id||processedRouteRequest.current===routeRequest.id)return;
+  processedRouteRequest.current=routeRequest.id;
+  const term=typeof routeRequest.query==='string'?routeRequest.query.trim():'';
+  if(!term||term.length>100)return;
+  setQuery(term);setPicked(null);void perform(term);
+ },[embedded,active,routeRequest?.id]);
+ async function perform(requestedTerm=null){
+  const term=(typeof requestedTerm==='string'?requestedTerm:query).trim();
   if(!term||loading)return;
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;scrollPendingRef.current=true;
   setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);resetFeedback();
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
-  const exact=stationMatches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
+  const matches=typeof requestedTerm==='string'?matchesForQuery(term,lang):stationMatches;
+  const selected=typeof requestedTerm==='string'?null:picked;
+  const exact=matches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
   try{
-   if(picked||exact){
-    await lookupRoute(picked||exact,ctrl.signal,null,term);
+   if(selected||exact){
+    await lookupRoute(selected||exact,ctrl.signal,null,term);
     return;
    }
    setLoading('place');
