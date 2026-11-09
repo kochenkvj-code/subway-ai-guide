@@ -23,3 +23,13 @@ test('malformed JSON is rejected as 400 instead of repeatedly retried as a datab
 test('date report filters by original event time, with created_at fallback only for legacy rows',async()=>{
  const f=await fixture('app/api/stats/report/route.js');const res=await f.api.GET({url:'https://fixture.local/api/stats/report?start=2026-11-01&end=2026-11-01'});assert.equal(res.status,200);const params=new URL('https://fixture.local/'+f.writes[0].path).searchParams;assert.equal(params.get('or'),'(and(occurred_at.gte.2026-10-31T15:00:00.000Z,occurred_at.lt.2026-11-01T15:00:00.000Z),and(occurred_at.is.null,created_at.gte.2026-10-31T15:00:00.000Z,created_at.lt.2026-11-01T15:00:00.000Z))');assert.equal(params.has('and'),false);
 });
+
+test('V2 production menus are accepted alongside existing legacy menu events',async()=>{
+ for(const name of ['timetable','found','lost','feedback','route','gate','fares','tour','facility']){
+  const f=await fixture('app/api/stats/event/route.js');
+  const response=await f.api.POST(request({...data,event_type:'quick_menu',event_name:name,context:null,language:'ja'}));
+  assert.equal(response.status,204,name);
+  const stored=JSON.parse(f.writes[0].options.body);
+  assert.equal(stored.event_name,name);assert.equal(stored.language,'ja');
+ }
+});

@@ -1,5 +1,5 @@
-import GuideExperience from "./components/GuideExperience";
+import StationEntry from './v2/StationEntry';
 
 export default function Home() {
-  return <GuideExperience />;
+  return <StationEntry basePath="/" selectorEnabled={process.env.V2_DEVELOPMENT_STATION_SELECTOR !== 'off'} />;
 }

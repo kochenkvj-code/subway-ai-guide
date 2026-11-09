@@ -70,7 +70,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   useEffect(()=>{
     if(started.current)return;started.current=true;
     const initial=readView();activate(initial);window.history.replaceState({...(window.history.state||{}),sagV2:true,sagV2Depth:0},'',window.location.href);
-    recordStat('page_view','visit','ko');
+    recordStat('page_view','visit',initialLanguage);
   },[]);
   useEffect(()=>{const onPop=()=>{const next=readView();activate(next);setDetail(!!window.history.state?.sagDetail);setRestoration({view:next,data:window.history.state?.sagData,serial:Date.now()+Math.random()});};window.addEventListener('popstate',onPop);return()=>window.removeEventListener('popstate',onPop);},[]);
   useEffect(()=>startActivityTracking(),[]);
@@ -88,8 +88,8 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(next!=='home'&&next!=='chat'&&next!=='feedback')setVisits(prev=>({...prev,[next]:(prev[next]||0)+1}));
     setRestoration(null);setDetail(false);
     const item=menuItems.find(x=>x.id===next);
-    if(['timetable','tour','found','facility','lost'].includes(next))recordStat('quick_menu',next,lang);
-    if(item?.action && mounted[next])recordStat('quick_menu',item.action,lang);
+    if(['timetable','tour','found','facility','lost','feedback','live'].includes(next))recordStat('quick_menu',next,lang);
+    if(item?.action && (mounted[next]||next==='route'))recordStat('quick_menu',item.action,lang);
     const url=new URL(window.location.href);url.searchParams.delete('place');if(next==='home')url.searchParams.delete('view');else url.searchParams.set('view',next);
     window.history.pushState({...(window.history.state||{}),sagV2:true,sagKey:null,sagData:null,sagDetail:false,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
   }
