@@ -49,6 +49,33 @@ const minuteDate=(date,time)=>{
   return Number.isFinite(timestamp)?timestamp:NaN;
 };
 
+// Find a display path to a particular real-time candidate through directionally
+// valid branches. Unlike followStops(), a fork is not the end of the map when
+// the candidate's actual reported station identifies which arm to show.
+// This is a topological path, NOT evidence that the train was ridden.
+export function directionalPathToStation(line,origin,next,target,limit=38){
+  const start=trainStationKey(line,origin);
+  const first=trainStationKey(line,next);
+  const destination=trainStationKey(line,target);
+  const direction=expectedLiveDirection(line,start,first);
+  if(direction===null||!destination)return [];
+  if(destination===start)return [start];
+  const graphKey=Number(line)+'호선';
+  const queue=[{station:first,path:[start,first]}];
+  const visited=new Set([start,first]);
+  while(queue.length){
+    const {station,path}=queue.shift();
+    if(station===destination)return path;
+    if(path.length-1>=limit)continue;
+    for(const onward of stationNeighbors(line,station)){
+      if(visited.has(onward)||directions[graphKey]?.[station]?.[onward]!==direction)continue;
+      visited.add(onward);
+      queue.push({station:onward,path:[...path,onward]});
+    }
+  }
+  return [];
+}
+
 // All subsequent edges must agree with the operator's confirmed live API
 // direction code, not just the first edge. This also models multiple branches
 // instead of discarding every candidate once followStops() reaches a fork.
