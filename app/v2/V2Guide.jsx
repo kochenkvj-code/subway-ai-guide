@@ -152,17 +152,17 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     check();
   }
   useLayoutEffect(()=>{
-    if(view!=='chat'&&view!=='lost')return;
+    if(view==='home')return;
     const shell=chatWorkspace.current;
     if(!shell)return;
     const viewport=window.visualViewport;
     let frame=0;
     const timeouts=new Set();
-    // Chat and the train-lost form both use a fixed, independently scrolling
-    // workspace. iOS Safari sometimes leaves a 100dvh flex shell at its
-    // keyboard-shrunken height after tapping Done, leaving a huge blank area.
-    // Use the visual viewport only while typing, otherwise restore the full
-    // layout viewport immediately (even if visualViewport resize is delayed).
+    // Every non-home view shares a single fixed workspace and bottom tab bar.
+    // A destination field can open iOS Safari's keyboard, after which 100dvh
+    // may remain temporarily shrunk and the tab hit area can drift. Restore the
+    // layout viewport on blur and whenever the view changes, not only in chat
+    // or the train-lost view. Only use visualViewport while a field is edited.
     const sync=()=>{
       frame=0;
       const focused=document.activeElement;
@@ -209,7 +209,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       {languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>changeLanguage(code)}>{label}</button>)}
     </div>
   </nav>;}
-  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(view==='lost'?' v2-keyboard-active':'')} lang={lang==='zh'?'zh-CN':lang}>
+  return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(view==='lost'?' v2-keyboard-active':'')+(view!=='home'?' v2-workspace-active':'')} lang={lang==='zh'?'zh-CN':lang}>
     <div className="v2-home" hidden={view!=='home'}>
       <PositionTrainSummary stationContext={stationContext} state={arrivals} lang={lang} t={t} onDetails={()=>navigate('live')}/>
 
@@ -224,7 +224,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
       {bottomTabs()}
     </div>
-    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace v2-keyboard-workspace':view==='lost'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
+    <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace ':'')+(view!=='home'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
       {['chat',...menuItems.filter(x=>x.action&&x.id!=='route').map(x=>x.id)].map(id=>mounted[id]&&<section className={'v2-pane '+(id==='chat'?'v2-chat-pane':'v2-guide-pane')} hidden={view!==id} key={id} aria-label={id==='chat'?t.chat:t.menu[menuItems.findIndex(x=>x.id===id)]}><GuideExperience embedded showPrivacyNotice={id!=='chat'} chatStation={stationContext} onRecommendMenu={id==='chat'?navigate:null} routeStation={id==='route'?stationContext:null} resetToken={visits[id]||0} navigationSnapshot={restoration?.view===id?restoration:null} onNavigationStep={id===view&&id!=='chat'?publishStep:null} initialAction={menuItems.find(x=>x.id===id)?.action||null} language={lang} active={view===id} chatRequest={id==='chat'?chatRequest:null} onBusyChange={id==='chat'?setChatBusy:null}/></section>)}
       {mounted.route&&<div className="v2-feature-pane v2-route-pane" hidden={view!=='route'}><UnifiedRouteLab routeRequest={routeRequest} key={(visits.route||0)+'-'+(stationContext?.stationCode||'0154')} embedded stationContext={stationContext} language={lang} active={view==='route'} onNavigationStep={view==='route'?publishStep:null} navigationSnapshot={restoration?.view==='route'?restoration:null}/></div>}

@@ -70,7 +70,7 @@
 .v2-design-refresh .v2-view-header{border:0;min-height:60px;padding-bottom:7px}
 .v2-design-refresh .v2-view-header h1{color:#244a3a}
 .v2-design-refresh .v2-view-header>button{color:#52715e;border-color:#dce7e1;background:white;min-height:44px}
-.v2-design-refresh .v2-workspace .v2-bottom-tabs{position:static}
+.v2-design-refresh .v2-workspace .v2-bottom-tabs{position:static;backdrop-filter:none;-webkit-backdrop-filter:none}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap{padding:9px 14px 8px}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap button[type=submit]{background:#245e47}
 .v2-design-refresh .v2-chat-pane .sag-privacy-notice{font-size:10px;line-height:1.6}
@@ -201,7 +201,7 @@
 
 /* Text-entry workspaces own the viewport. Safari 100dvh can remain stuck at
    the keyboard-reduced height after Done; V2Guide restores inline height. */
-.v2-design-refresh.v2-chat-active,.v2-design-refresh.v2-keyboard-active{min-height:0}
+.v2-design-refresh.v2-chat-active,.v2-design-refresh.v2-keyboard-active,.v2-design-refresh.v2-workspace-active{min-height:0}
 .v2-design-refresh .v2-keyboard-workspace{position:fixed;inset:0 0 auto;width:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;transition:none}
 .v2-design-refresh .v2-chat-pane .sag-chat{overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap{flex-shrink:0}
