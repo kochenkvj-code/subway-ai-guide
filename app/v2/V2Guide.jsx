@@ -177,29 +177,44 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       if(height!==null)shell.style.height=height+'px';
     };
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(sync);};
+    // On iPadOS, a fixed dock can visually recover while WebKit's touch hit
+    // map still uses the keyboard-shrunken viewport. The root must really
+    // scroll (a nonzero scroll range), then settle back to zero next frame.
+    const restoreHitMap=()=>{
+      const root=document.scrollingElement;
+      if(!root)return;
+      root.scrollTop=1;
+      requestAnimationFrame(()=>{
+        root.scrollTop=0;
+        window.scrollTo(0,0);
+      });
+    };
+    const onViewportResize=()=>{
+      schedule();
+      // Some iPad keyboard Done paths close without blurring the input.
+      // Check the viewport one frame after resize, not the focus state.
+      requestAnimationFrame(()=>{
+        const layout=Math.max(window.innerHeight,document.documentElement.clientHeight);
+        if(viewport?.height>=layout-72)restoreHitMap();
+      });
+    };
     const onFocusOut=()=>{
       schedule();
-      // WebKit can dispatch the final viewport resize after focusout, or
-      // omit it entirely. Repeat the restore while its keyboard animates.
+      // The viewport may finish resizing after blur. Restore repeatedly
+      // through Safari's keyboard animation, only when no field is editing.
       for(const delay of [80,250,550]){
         const timer=window.setTimeout(()=>{
           timeouts.delete(timer);
           schedule();
-          if(shell.contains(document.activeElement))return;
-          // Reset iOS WebKit's native hit-testing viewport, not just the
-          // visual position of the bottom bar. A fixed full-screen shell
-          // prevented this small root scroll from taking effect.
-          const root=document.scrollingElement;
-          if(root){
-            root.scrollTop=1;
-            root.scrollTop=0;
-          }
-          window.scrollTo(0,0);
+          const active=document.activeElement;
+          const editing=!!active&&shell.contains(active)&&
+            active.matches?.('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable="true"]');
+          if(!editing)restoreHitMap();
         },delay);
         timeouts.add(timer);
       }
     };
-    viewport?.addEventListener('resize',schedule);
+    viewport?.addEventListener('resize',onViewportResize);
     viewport?.addEventListener('scroll',schedule);
     window.addEventListener('resize',schedule);
     document.addEventListener('focusin',schedule);
@@ -208,7 +223,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     return()=>{
       cancelAnimationFrame(frame);
       for(const timer of timeouts)window.clearTimeout(timer);
-      viewport?.removeEventListener('resize',schedule);
+      viewport?.removeEventListener('resize',onViewportResize);
       viewport?.removeEventListener('scroll',schedule);
       window.removeEventListener('resize',schedule);
       document.removeEventListener('focusin',schedule);

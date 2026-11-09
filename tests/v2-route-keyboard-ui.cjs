@@ -13,7 +13,12 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     for(let i=0;i<200&&!logs.includes('Ready');i++)await sleep(100);
     assert.ok(logs.includes('Ready'),logs.slice(-800));
     browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:3});
+    // Run in iPhone and iPad dimensions; an iPad-only WebKit regression
+    // previously left the dock floating or its physical touch targets stale.
+    const ipad=process.env.V2_TEST_IPAD==='1';
+    const viewportHeight=ipad?768:844;
+    const keyboardHeight=ipad?420:480;
+    const page=await browser.newPage({viewport:{width:ipad?1024:390,height:viewportHeight},isMobile:true,hasTouch:true,deviceScaleFactor:3});
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/api/**',async route=>route.fulfill({status:200,json:{ok:true,categories:[],items:[],results:[]}}));
@@ -29,9 +34,9 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
         const hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
         return {position:getComputedStyle(shell).position,height:shell.getBoundingClientRect().height,bottom:nav.getBoundingClientRect().bottom,hit:hit===button||button.contains(hit)};
       });
-      assert.equal(data.position,'relative',view+' should NOT be full-screen fixed (WebKit stale-hit-target regression)');
-      assert.ok(Math.abs(data.height-844)<=2,view+' height '+JSON.stringify(data));
-      assert.ok(Math.abs(data.bottom-844)<=2,view+' nav '+JSON.stringify(data));
+      assert.equal(data.position,'fixed',view+' must keep its bottom dock anchored through keyboard close');
+      assert.ok(Math.abs(data.height-viewportHeight)<=2,view+' height '+JSON.stringify(data));
+      assert.ok(Math.abs(data.bottom-viewportHeight)<=2,view+' nav '+JSON.stringify(data));
       assert.equal(data.hit,true,view+' visible tab is not a click target');
       // Tap the visible center via the mobile touch API, not just hit-testing
       // through document.elementFromPoint (iOS can make those disagree).
@@ -40,21 +45,21 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     await assertDock('route before keyboard');
 
     await page.locator('#rl-destination').focus();
-    await page.evaluate(()=>{
-      Object.defineProperty(window.visualViewport,'height',{configurable:true,value:480});
+    await page.evaluate((height)=>{
+      Object.defineProperty(window.visualViewport,'height',{configurable:true,value:height});
       window.visualViewport.dispatchEvent(new Event('resize'));
-    });
+    },keyboardHeight);
     // Desktop WebKit's synthetic viewport resize can lag until the next
     // animation frame(s); wait for layout, then assert the rendered height.
-    await page.waitForTimeout(550);
-    assert.ok(Math.abs(await page.locator('.v2-workspace').evaluate(el=>el.getBoundingClientRect().height)-480)<=2,'keyboard should shrink workspace while editing');
+    await page.waitForTimeout(850);
+    assert.ok(Math.abs(await page.locator('.v2-workspace').evaluate(el=>el.getBoundingClientRect().height)-keyboardHeight)<=2,'keyboard should shrink workspace while editing');
     await page.evaluate(()=>{
       document.activeElement.blur();
       // Simulate iOS Safari retaining the keyboard-shrunken visual viewport
       // for several frames after the Done button has been pressed.
       window.visualViewport.dispatchEvent(new Event('resize'));
     });
-    await page.waitForFunction(()=>Math.abs(document.querySelector('.v2-workspace').getBoundingClientRect().height-844)<=2,null,{polling:100});
+    await page.waitForFunction((height)=>Math.abs(document.querySelector('.v2-workspace').getBoundingClientRect().height-height)<=2,viewportHeight,{polling:100});
     await assertDock('route after Done');
     // Verify actual touchscreen taps on controls that were displaced on iOS.
     const tapCenter=async element=>{
