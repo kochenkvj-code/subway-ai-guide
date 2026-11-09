@@ -17,6 +17,14 @@ const sliderWords={
  ja:{now:'たった今',drag:'左右に動かして時刻を選択'},
  zh:{now:'刚刚',drag:'左右拖动选择时间'}
 };
+// Compact display labels for four choices in a single mobile row. The full
+// localized wording is retained for accessibility and handoff messages.
+const shortPlaceLabels={
+ ko:{seat:'좌석',rack:'선반',nearDoor:'문근처',floor:'바닥'},
+ en:{seat:'Seat',rack:'Rack',nearDoor:'Door',floor:'Floor'},
+ ja:{seat:'座席',rack:'棚',nearDoor:'ドア',floor:'床'},
+ zh:{seat:'座位',rack:'行李架',nearDoor:'车门',floor:'地板'},
+};
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 
 const flowCopy={
@@ -107,7 +115,7 @@ export default function TrainLostUI(p){
      </div>
      <div className="tl-field tl-place-field">
       <div className="tl-label">{u.place}<span className="tl-optional">{u.optional}</span></div>
-      <div className="tl-mini-list" role="group" aria-label={u.place}>{['seat','rack','nearDoor','floor'].map(id=><button type="button" key={id} aria-pressed={place===id} onClick={()=>setPlace(place===id?'':id)}>{u[id]}</button>)}</div>
+      <div className="tl-mini-list" role="group" aria-label={u.place}>{['seat','rack','nearDoor','floor'].map(id=><button type="button" key={id} aria-label={u[id]} aria-pressed={place===id} onClick={()=>setPlace(place===id?'':id)}>{shortPlaceLabels[lang]?.[id]||u[id]}</button>)}</div>
      </div>
     </div>
     <div className="tl-field tl-car-door-field">
