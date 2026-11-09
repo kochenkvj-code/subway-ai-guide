@@ -35,8 +35,6 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const chatWorkspace=useRef(null);
-  const [languageOpen,setLanguageOpen]=useState(false);
-  const languageTrigger=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
   const routeHandoffRef=useRef(false);
   useEffect(()=>{if(view==='chat')routeHandoffRef.current=false;},[view]);
@@ -205,20 +203,10 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       shell.style.removeProperty('height');
     };
   },[view]);
-  useEffect(()=>{setLanguageOpen(false);},[view]);
-  useEffect(()=>{
-    if(!languageOpen)return;
-    const frame=requestAnimationFrame(()=>document.querySelector('.v2-language-popover button[aria-pressed=true]')?.focus());
-    const outside=e=>{if(!e.target.closest('.v2-language-picker'))setLanguageOpen(false);};
-    const escape=e=>{if(e.key==='Escape'){e.preventDefault();setLanguageOpen(false);languageTrigger.current?.focus();}};
-    document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);
-    return()=>{cancelAnimationFrame(frame);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape);};
-  },[languageOpen]);
-  function bottomTabs(home=false){const n=navigationCopy[lang],open=languageOpen&&(home?view==='home':view!=='home'),popupId=home?'v2-home-language-popup':'v2-workspace-language-popup';return <nav className="v2-bottom-tabs" aria-label={n.guide}>
+  function bottomTabs(){const n=navigationCopy[lang];return <nav className="v2-bottom-tabs" aria-label={n.guide}>
     {[['home','home',n.guide],['chat','spark',n.ai]].map(([id,icon,label])=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>navigate(id)}><Icon name={icon}/><span>{label}</span></button>)}
-    <div className="v2-language-picker">
-      <button className="v2-language-toggle" aria-haspopup="dialog" aria-expanded={open} aria-controls={open?popupId:undefined} onClick={e=>{languageTrigger.current=e.currentTarget;setLanguageOpen(v=>!v);}}><Icon name="globe"/><span>{t.language}</span></button>
-      {open&&<div id={popupId} className="v2-language-popover" role="dialog" aria-label={t.language}><p>{t.language}</p><div>{languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>{changeLanguage(code);setLanguageOpen(false);languageTrigger.current?.focus();}}>{label}</button>)}</div></div>}
+    <div className="v2-bottom-languages" role="group" aria-label={t.language}>
+      {languages.map(([code,label])=><button key={code} aria-pressed={lang===code} lang={code==='zh'?'zh-CN':code} onClick={()=>changeLanguage(code)}>{label}</button>)}
     </div>
   </nav>;}
   return <main className={"v2-app v2-design-refresh"+(view==='chat'?' v2-chat-active':'')+(view==='lost'?' v2-keyboard-active':'')} lang={lang==='zh'?'zh-CN':lang}>
@@ -234,7 +222,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
       <nav className="v2-grid" aria-label={t.quick}>{menuItems.map((item,index)=><button key={item.id} onClick={()=>navigate(item.id)}><span className={'v2-icon v2-icon-'+item.id}><Icon name={item.icon}/>{item.id==='feedback'&&feedbackCount>0&&<span className="sf-badge" aria-label={feedbackCopy[lang].badge+': '+feedbackCount}>{feedbackCount}</span>}</span><strong>{t.menu[index]}</strong>{!item.action&&!['timetable','tour','found','facility','lost','feedback'].includes(item.id)&&<small>{t.pending}</small>}</button>)}</nav>
       <button className="v2-discover" onClick={()=>navigate('tour')}><span className="v2-market" aria-hidden="true"><svg viewBox="0 0 80 80"><circle cx="64" cy="16" r="7" fill="#dce8c2"/><rect x="15" y="35" width="49" height="33" rx="2" fill="#f3f7f0"/><path d="m17 21-8 19h60l-8-19Z" fill="#65947b"/><path d="M23 51h12v10H23Z" fill="#d4e3d7"/><path d="M45 49h11v19H45Z" fill="#abc8b4"/></svg></span><span><small>{t.outside}</small><strong>{t.discover}</strong><span>{t.discoverSub}</span></span><b>↗</b></button>
-      {bottomTabs(true)}
+      {bottomTabs()}
     </div>
     <div className={"v2-workspace "+(view==='chat'?'v2-chat-workspace v2-keyboard-workspace':view==='lost'?'v2-keyboard-workspace':'')} ref={chatWorkspace} hidden={view==='home'}>
       <header className="v2-view-header"><button className="v2-back-button" onClick={back} aria-label={t.back}><Icon name="back"/></button><h1 ref={titleRef} tabIndex={-1}>{title}</h1>{view==='chat'&&<p className="v2-chat-privacy" title={t.privacy} aria-label={t.privacy}>{chatWarning[lang].map((line,i)=><span key={i}>{line}</span>)}</p>}<button className="v2-home-button" onClick={()=>navigate('home')} aria-label={t.home} title={t.home}><Icon name="house"/></button></header>
