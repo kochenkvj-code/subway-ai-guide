@@ -193,3 +193,18 @@ test('branch candidates and navigation use the same directional topology',async(
  assert.match(diagram,/the effect above centers it afterwards/);
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
 });
+
+test('a distant branched train is a cautious estimate, not verified past travel',()=>{
+ const result=findLiveCandidates([{
+  trainNo:'B124',line:'1',station:'역곡',
+  direction:expectedLiveDirection('1','종로3가','종각'),
+  receivedAt:new Date(now).toISOString(),express:false,status:'1'
+ }],{date:'2026-10-31',time:'17:52',line:'1',station:'종로3가',next:'종각',now});
+ assert.equal(result.candidates[0]?.station,'역곡');
+ assert.equal(result.candidates[0]?.branched,true);
+ assert.equal(result.candidates[0]?.confidence,'branch-uncertain');
+ assert.equal(result.candidates[0]?.corroborated,false);
+ const ui=await readFile(new URL('../app/v2/TrainLostUI.jsx',import.meta.url),'utf8');
+ assert.match(ui,/c\.branched&&<small className="tl-branch-caution"/);
+ assert.ok(ui.includes('분기 경로 확인 필요'));
+});
