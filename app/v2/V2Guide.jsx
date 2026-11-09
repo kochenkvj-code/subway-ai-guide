@@ -32,7 +32,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const tourStation=stationContext||station;
   const foundStation=stationContext?lostFoundStation(stationContext.stationCode):station;
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false),[routeRequest,setRouteRequest]=useState(null);
-  const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
+  const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),homeComposerResync=useRef(false),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const chatWorkspace=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
@@ -106,6 +106,10 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     const deliver=()=>{
       homeSubmitPending.current=false;
       homeSubmitCancel.current=null;
+      // This transition is unique: the home input loses focus before the
+      // non-home keyboard listeners exist. Resync touch hit testing after the
+      // fixed chat workspace has actually mounted (not just after blur).
+      if(fromHomeComposer)homeComposerResync.current=true;
       setChatRequest({id:++requestSequence.current,text:clean});
       setQuestion('');
       navigate('chat',{keepHomeScroll:fromHomeComposer});
@@ -148,7 +152,10 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     viewport.addEventListener('resize',check);
     viewport.addEventListener('scroll',check);
     window.addEventListener('resize',check);
-    timeout=window.setTimeout(finish,1100);
+    // A slow keyboard animation must not force the fixed chat UI to mount
+    // while WebKit still reports a keyboard-shrunken visual viewport.
+    // The post-mount touch-map resync also covers this safety fallback.
+    timeout=window.setTimeout(finish,2200);
     check();
   }
   useLayoutEffect(()=>{
@@ -189,6 +196,27 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
         window.scrollTo(0,0);
       });
     };
+    if(view==='chat'&&homeComposerResync.current){
+      homeComposerResync.current=false;
+      // The home input's focusout happens before this listener is mounted.
+      // On iOS that can leave fixed buttons drawn in the right place but
+      // touch-targeted at their OLD keyboard-shifted positions. Safari needs
+      // a real root scroll after the fixed workspace is mounted.
+      // Repeat around the final frames of its keyboard-close animation.
+      for(const delay of [0,100,300,650]){
+        const timer=window.setTimeout(()=>{
+          timeouts.delete(timer);
+          const active=document.activeElement;
+          const editing=!!active&&shell.contains(active)&&
+            active.matches?.('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable="true"]');
+          if(!editing){
+            schedule();
+            restoreHitMap();
+          }
+        },delay);
+        timeouts.add(timer);
+      }
+    }
     const onViewportResize=()=>{
       schedule();
       // Some iPad keyboard Done paths close without blurring the input.

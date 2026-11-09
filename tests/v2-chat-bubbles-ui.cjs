@@ -67,6 +67,16 @@ const homeComposer=p.locator('.v2-home:not([hidden]) .v2-ask input');
 await homeComposer.focus();
 await homeComposer.fill('신라호텔 가는법');
 await p.evaluate(()=>{
+  // Count real document-root scroll nudges, not only scrollTo(0,0).
+  // The home input's focusout happens BEFORE the fixed chat shell mounts.
+  const root=document.scrollingElement;
+  const descriptor=Object.getOwnPropertyDescriptor(Element.prototype,'scrollTop');
+  window.__homeRootScrollWrites=[];
+  if(descriptor?.get&&descriptor?.set)Object.defineProperty(root,'scrollTop',{
+    configurable:true,
+    get(){return descriptor.get.call(root);},
+    set(v){window.__homeRootScrollWrites.push(v);descriptor.set.call(root,v);}
+  });
   Object.defineProperties(visualViewport,{
     height:{configurable:true,value:450},
     offsetTop:{configurable:true,value:60}
@@ -97,6 +107,19 @@ await p.waitForFunction(()=>{
     window.scrollY===0;
 });
 assert.ok(await chatDock.isVisible(),'chat dock remains visible after home keyboard submission');
+await p.waitForFunction(()=>window.__homeRootScrollWrites?.includes(1),{timeout:2500});
+await p.waitForFunction(()=>document.scrollingElement.scrollTop===0,{timeout:2500});
+const homeToChatHits=await p.evaluate(()=>{
+ return ['.v2-chat-pane .sag-input-wrap input','.v2-chat-pane .sag-input-wrap button[type="submit"]',
+   '.v2-chat-workspace .v2-bottom-tabs button',
+   '.v2-chat-workspace .v2-bottom-languages button'].map(selector=>{
+    const button=document.querySelector(selector),r=button?.getBoundingClientRect();
+    const hit=r&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+    return {selector,ok:!!button&&!!r&&(button===hit||button.contains(hit))};
+   });
+});
+assert.ok(homeToChatHits.every(x=>x.ok),
+ 'chat input, send, bottom tab and languages must hit-test at their visible centers: '+JSON.stringify(homeToChatHits));
 await p.locator('.v2-chat-workspace .v2-bottom-tabs button').first().click();
 await p.locator('.v2-home:not([hidden])').waitFor();
 await p.locator('.v2-home .v2-bottom-tabs button').nth(1).click();
