@@ -34,7 +34,8 @@ export default function TrainLostUI(p){
  const u=dictionary[lang]||dictionary.ko;
  const v=flowCopy[lang]||flowCopy.ko;
  const w=sliderWords[lang]||sliderWords.ko;
- const carLabel=carNumber?carNumber+u.carUnit:'';
+ const carLabel=carNumber?(lang==='en'?'Car '+carNumber:lang==='zh'?'第'+carNumber+'车厢':carNumber+u.carUnit):'';
+ const doorLabel=lang==='en'?u.doorUnit+' '+door:door+u.doorUnit;
  const missingRequired=[
   !neighbors.length&&u.station,
   (!when.date||!when.time)&&v.time,
@@ -130,7 +131,7 @@ export default function TrainLostUI(p){
     <div className="tl-handoff-head"><span className="tl-handoff-icon">↗</span><div><h3>{u.handoff}</h3><p>{u.handoffSub}</p></div></div>
     <div className="tl-handoff-grid">
      <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div>
-     <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+door+u.doorUnit+')'}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</strong></div>
      <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
      <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong></div>
     </div>
