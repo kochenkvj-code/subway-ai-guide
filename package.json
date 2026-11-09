@@ -13,7 +13,7 @@
     "test:feedback": "node --experimental-vm-modules --test tests/feedback.test.mjs",
     "test:feedback-flow": "node tests/feedback-flow.cjs",
     "test:keyboard-viewport": "node --test tests/v2-keyboard-viewport.test.mjs",
-    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs tests/train-lost-arrival.test.mjs",
+    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs tests/train-lost-arrival.test.mjs tests/train-lost-form-layout.test.mjs",
     "test:train-lost-ui": "node --experimental-vm-modules tests/train-lost-station-ui.cjs",
     "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
     "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs",
