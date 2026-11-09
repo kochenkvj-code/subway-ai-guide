@@ -308,3 +308,62 @@
  }
  .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options{gap:5px}
 }
+
+
+/* Lost-on-train first step: a single time toolbar, then the original 0–30 min
+   range slider and five quick-choice buttons. Keep the other form intact. */
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-topline{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:6px;min-width:0;margin:0 0 5px;white-space:nowrap
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-prompt{
+ display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 auto;
+ white-space:nowrap
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-question{
+ min-width:0;overflow:hidden;text-overflow:ellipsis;
+ color:#39554e;font-size:11.5px;font-weight:750;line-height:1.4
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-range{
+ flex:none;font-size:10px;color:#84958f;font-weight:550
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-required{
+ flex:none;font-size:10px
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-value{
+ flex:none;min-width:0;font-size:15px;font-weight:800;color:#227653;
+ font-variant-numeric:tabular-nums;letter-spacing:-.25px;text-align:right
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-slider{
+ margin:12px 0 11px
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-times{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ gap:5px;margin:0
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-chip{
+ min-width:0;min-height:44px;padding:5px 2px;font-size:11px;
+ line-height:1.2;border-radius:9px;white-space:nowrap
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-chip-manual{
+ font-size:10.5px;letter-spacing:-.25px
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-edit{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ margin:10px 0 0;padding:8px 10px;
+ border:1px solid #e0eae5;border-radius:9px;background:#f7faf8;
+ font-size:11px;line-height:1.35
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-edit input{
+ min-height:42px;font-size:16px
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-topline{gap:4px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-prompt{gap:3px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-question{font-size:10.5px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-range{font-size:9px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-value{font-size:13px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-times{gap:4px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-chip{font-size:10.5px;padding:4px 1px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-chip-manual{font-size:10px;letter-spacing:-.45px}
+}
