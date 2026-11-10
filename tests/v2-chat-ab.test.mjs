@@ -19,8 +19,17 @@ test('new A uses Gemini knowledge directly without facility search/evidence mand
  assert.ok(a1.includes('1호선 동묘앞역'));
  assert.ok(a6.includes('6호선 동묘앞역'));
  assert.ok(a1.includes(q));
- assert.ok(a1.includes('Use your own knowledge and reasoning'));
- assert.ok(a1.includes('Google Search grounding is available as an OPTIONAL aid'));
+ assert.ok(a1.includes('Combine your own knowledge and reasoning with relevant Google Search results'));
+ assert.ok(a1.includes('Use Google Search when it can help verify up-to-date facts or exact locations'));
+ assert.ok(a1.includes('Search is a tool for improving accuracy, not a mandatory prerequisite'));
+ assert.ok(a1.includes('weigh them alongside what you know'));
+ assert.ok(a1.includes('do not automatically discard useful knowledge you already have'));
+ assert.ok(a1.includes('qualify only specific details you are unsure about'));
+ assert.ok(a1.includes('Search when updated information is important'));
+ assert.ok(a1.includes('for stable, familiar information, answer directly'));
+ assert.ok(!a1.includes('Google Search grounding is available as an OPTIONAL aid'));
+ assert.ok(!a1.includes('If reliable evidence is missing, say'));
+
  assert.ok(a1.includes('help them find a useful, reachable option'));
  assert.ok(a1.includes('at a connected interchange line, or nearby'));
  assert.ok(a1.includes('3–6 informative sentences'));
