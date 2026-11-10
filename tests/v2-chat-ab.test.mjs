@@ -192,7 +192,7 @@ test('A/B use identical provider options, search, system rules and parser',async
  assert.deepEqual(x.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
  assert.equal(x.contents.length,y.contents.length);
  assert.notEqual(x.contents.at(-1).parts[0].text,y.contents.at(-1).parts[0].text);
- assert.ok(x.contents.at(-1).parts[0].text.includes('Use your own knowledge and reasoning'));
+ assert.ok(x.contents.at(-1).parts[0].text.includes('Combine your own knowledge and reasoning with relevant Google Search results'));
  assert.ok(y.contents.at(-1).parts[0].text.includes('For questions unrelated to local amenities'));
  assert.ok(x.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
  assert.ok(y.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
