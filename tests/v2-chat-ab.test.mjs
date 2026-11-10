@@ -126,7 +126,7 @@ test('C answers reachable facilities without station-interior eligibility tests'
  const c6=buildAccessibleV2Prompt('수유실 어디에 있나요?','ko',six,'언어 정책',{strictLanguage:true});
  for(const prompt of [c1,c6]){
   assert.ok(prompt.includes('useful, reachable option'));
-  assert.ok(prompt.includes('Identify the line and station'));
+  assert.ok(prompt.includes('explicitly name the verified line and station'));
   assert.ok(prompt.includes('connected interchange line, or nearby'));
   assert.ok(prompt.includes('Do not lead with claims that it is absent from the entry station'));
   assert.ok(prompt.includes('lack of verification from verified absence'));
