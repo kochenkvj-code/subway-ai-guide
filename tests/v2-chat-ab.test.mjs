@@ -33,6 +33,16 @@ test('new A uses Gemini knowledge directly without facility search/evidence mand
  assert.ok(a1.includes('help them find a useful, reachable option'));
  assert.ok(a1.includes('at a connected interchange line, or nearby'));
  assert.ok(a1.includes('3–6 informative sentences'));
+ assert.ok(a1.includes('solve that exact information need before expanding to alternatives'));
+ assert.ok(a1.includes('subject station name + line + facility in Korean'));
+ assert.ok(a1.includes('Do not give a generic statement that the station has escalators'));
+ assert.ok(a1.includes('direct location, relevant exit numbers'));
+ assert.ok(a1.includes('practical floor, entrance, or approach detail'));
+ assert.ok(a1.includes('one or two genuinely useful related mobility options'));
+ assert.ok(a1.includes('Distinguish installation/location from real-time operation'));
+ assert.ok(a1.includes('Make the first sentence answer the main question'));
+ assert.ok(a1.includes('For unrelated questions, keep the answer directly relevant'));
+ assert.ok(!a1.includes('1·2·3번 출구'));
  assert.ok(a1.includes('Avoid perfunctory, vague or one-line answers'));
  assert.ok(a1.includes('Do not default to generic advice to check signs'));
  assert.ok(c.includes('Use Google Search grounding for factual claims'));
@@ -49,7 +59,7 @@ test('new A uses Gemini knowledge directly without facility search/evidence mand
  for(const restrictive of ['Do not rely on memory alone','If reliable evidence is missing','Use Google Search grounding','LINE-SPECIFIC STATION IDENTITY (mandatory)','SEARCH COVERAGE, within this single grounded response'])
   assert.ok(!a1.includes(restrictive),restrictive);
  assert.ok(a1.length<b.length,'new A keeps C-level guidance while shortening B');
- assert.ok(Math.abs(a1.length-c.length)<1200,'new A should be derived from C, not a stripped-down substitute');
+ assert.ok(Math.abs(a1.length-c.length)<2500,'new A should retain C policy rather than becoming a stripped-down substitute');
 });
 test('B preserves the former general transport policy without new route nudges',()=>{
  const b=buildCompactV2Prompt('둔촌역','ko',station,'언어규칙',{strictLanguage:true});
