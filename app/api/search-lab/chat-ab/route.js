@@ -3,7 +3,8 @@ import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 import {validateChatHistory} from '../../../lib/chat-history.js';
 import {getStationByCode} from '../../../lib/station-master.js';
-import {buildV2Prompt as buildFrozenPrompt, parseChatRecommendation, recommendationTargets} from '../../../lib/v2-chat-policy-baseline.js';
+import {parseChatRecommendation, recommendationTargets} from '../../../lib/v2-chat-policy-baseline.js';
+import {buildNativeV2Prompt} from '../../../lib/v2-chat-policy-native.js';
 import {buildCompactV2Prompt} from '../../../lib/v2-chat-policy-compact.js';
 import {buildAccessibleV2Prompt} from '../../../lib/v2-chat-policy-accessible.js';
 
@@ -62,7 +63,7 @@ export async function POST(request) {
     let history;
     try{history=validateChatHistory(body.history,body.historyCompletedAt);}
     catch{return json({ok:false,error:'대화 기록 형식이 올바르지 않습니다.'},400);}
-    const promptBuilder={A:buildFrozenPrompt,B:buildCompactV2Prompt,C:buildAccessibleV2Prompt}[body.variant];
+    const promptBuilder={A:buildNativeV2Prompt,B:buildCompactV2Prompt,C:buildAccessibleV2Prompt}[body.variant];
     const prompt=promptBuilder(body.question.trim(),lang,station,languageOutputRule(lang),{strictLanguage:true});
     const accessToken=await getGoogleAccessToken();
     const googleStarted=Date.now();
@@ -100,8 +101,8 @@ export async function POST(request) {
       googleSearchQueries:grounding.webSearchQueries||[],
       sources:(grounding.groundingChunks||[]).filter(c=>c.web?.uri).map(c=>({title:c.web.title||'검색 결과',url:c.web.uri,domain:c.web.domain||''})),
       supportCount:(grounding.groundingSupports||[]).length,
-      // This source is a frozen comparison baseline, never production chat.
-      promptKind:{A:'frozen-legacy-v2',B:'current-production-b',C:'accessible-nearby-c'}[body.variant]
+      // Isolated A variant; production /api/v2/chat is unchanged.
+      promptKind:{A:'gemini-native-a',B:'current-production-b',C:'accessible-nearby-c'}[body.variant]
     });
   }catch(error){
     console.error('[chat-prompt-ab]',error?.name||'Error');

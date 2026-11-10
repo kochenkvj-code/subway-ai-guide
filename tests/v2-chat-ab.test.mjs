@@ -3,20 +3,31 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
-import {buildV2Prompt as livePrompt} from '../app/lib/v2-chat-policy.js';
-import {buildV2Prompt as frozenPrompt} from '../app/lib/v2-chat-policy-baseline.js';
+import {buildNativeV2Prompt} from '../app/lib/v2-chat-policy-native.js';
 import {buildCompactV2Prompt} from '../app/lib/v2-chat-policy-compact.js';
 import {buildAccessibleV2Prompt} from '../app/lib/v2-chat-policy-accessible.js';
 
 const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
-test('A is an exact frozen copy of current production prompt',async()=>{
- const a=await fs.readFile('app/lib/v2-chat-policy.js','utf8');
- const b=await fs.readFile('app/lib/v2-chat-policy-baseline.js','utf8');
- assert.equal(b,a);
- for(const question of ['신라호텔','둔촌역','종로3가역 화장실'])assert.equal(
-   frozenPrompt(question,'ko',station,'언어규칙',{strictLanguage:true}),
-   livePrompt(question,'ko',station,'언어규칙',{strictLanguage:true})
- );
+test('new A uses Gemini knowledge directly without facility search/evidence mandates',()=>{
+ const one={stationCode:'0159',line:'1',names:{ko:'동묘앞'}};
+ const six={stationCode:'2637',line:'6',names:{ko:'동묘앞'}};
+ const q='동묘앞역 1호선 에스컬레이터는 몇 번 출구에 있나요?';
+ const a1=buildNativeV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
+ const a6=buildNativeV2Prompt(q,'ko',six,'한국어 전용',{strictLanguage:true});
+ const b=buildCompactV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
+ assert.ok(a1.includes('1호선 동묘앞역'));
+ assert.ok(a6.includes('6호선 동묘앞역'));
+ assert.ok(a1.includes(q));
+ assert.ok(a1.includes('Use your own knowledge and reasoning'));
+ assert.ok(a1.includes('Google Search is available as an OPTIONAL aid'));
+ assert.ok(a1.includes('Lead with the most useful specific information'));
+ assert.ok(a1.includes('never invent an exit number'));
+ assert.ok(a1.includes('한국어 전용'));
+ assert.ok(a1.includes('<route_query>destination search term</route_query>'));
+ assert.ok(a1.includes('<menu_recommendation>ID</menu_recommendation>'));
+ for(const restrictive of ['Do not rely on memory alone','If reliable evidence is missing','Use Google Search grounding','LINE-SPECIFIC STATION IDENTITY (mandatory)','SEARCH COVERAGE, within this single grounded response'])
+  assert.ok(!a1.includes(restrictive),restrictive);
+ assert.ok(a1.length<b.length*0.65);
 });
 test('B preserves the former general transport policy without new route nudges',()=>{
  const b=buildCompactV2Prompt('둔촌역','ko',station,'언어규칙',{strictLanguage:true});
@@ -124,7 +135,7 @@ test('A/B/C use identical model, search, language, history and parser',async()=>
   assert.equal(responses[i].sources[0].url,'https://example.com');
   assert.equal(responses[i].finishReason,'STOP');
  }
- assert.equal(responses[0].promptKind,'frozen-legacy-v2');
+ assert.equal(responses[0].promptKind,'gemini-native-a');
  assert.equal(responses[1].promptKind,'current-production-b');
  assert.equal(responses[2].promptKind,'accessible-nearby-c');
  assert.ok(c.contents.at(-1).parts[0].text.includes('useful, reachable option'));
@@ -149,7 +160,7 @@ test('A/B use identical provider options, search, system rules and parser',async
  assert.deepEqual(x.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
  assert.equal(x.contents.length,y.contents.length);
  assert.notEqual(x.contents.at(-1).parts[0].text,y.contents.at(-1).parts[0].text);
- assert.ok(x.contents.at(-1).parts[0].text.includes('LINE-SPECIFIC STATION IDENTITY'));
+ assert.ok(x.contents.at(-1).parts[0].text.includes('Use your own knowledge and reasoning'));
  assert.ok(y.contents.at(-1).parts[0].text.includes('For questions unrelated to local amenities'));
  assert.ok(x.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
  assert.ok(y.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
