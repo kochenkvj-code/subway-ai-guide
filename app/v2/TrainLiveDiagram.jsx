@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {followStops,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
+import {trainDisplayPath,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import {stationName} from '../lib/stationNameI18n';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
@@ -12,15 +12,6 @@ const words={
  zh:{title:'实时列车位置',hint:'查看候选列车的位置，然后选择。',opposite:'反方向',forward:'所选方向',alighted:'下车站',candidate:'候选',selected:'已选择',manual:'刷新',refresh:'每20秒更新',pending:'更新中…',error:'实时更新失败，显示上次位置。',last:'更新于',noTrains:'此区间暂无列车。',uncertain:'位置按车站更新，并非GPS定位或历史经过记录。',unknown:'分支线路可能无法完整显示。'}
 };
 
-function mapStations(line,station,next,focusStation){
- // When the candidate is past a fork (Guro, Gangdong, etc.), render its actual
- // directional branch rather than ending the diagram at the junction.
- const forward=followStops(line,station,next,38);
- const base={stops:[trainStationKey(line,station),...forward.stops],ambiguous:forward.ambiguous};
- if(!focusStation)return base;
- const throughFork=directionalPathToStation(line,station,next,focusStation,38);
- return throughFork.length>1?{stops:throughFork,ambiguous:forward.ambiguous}:base;
-}
 function latestTrains(positions,line){
  const map=new Map();
  for(const p of positions||[]){
@@ -60,7 +51,10 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const focusedPosition=visibleCandidates.find(p=>trainKey(p.trainNo)===focusedTrain)||
    visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||visibleCandidates[0];
  const focusedStation=focusedPosition?.station||'';
- const path=useMemo(()=>mapStations(line,station,next,focusedStation),[line,station,next,focusedStation]);
+ const focusedDestination=String(focusedPosition?.destination||'').replace(/(?:방면|행)$/,'').trim();
+ // Candidate position is the scroll target, never the end of the rendered line.
+ // Extend onward to the terminus or the next unresolved branch.
+ const path=useMemo(()=>trainDisplayPath(line,station,next,focusedStation,focusedDestination),[line,station,next,focusedStation,focusedDestination]);
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
  // Scroll the horizontal rail AND the train stack inside an individual
