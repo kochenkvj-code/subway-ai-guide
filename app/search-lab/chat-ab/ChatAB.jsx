@@ -19,7 +19,7 @@ const avg=(runs,variant,field)=>{const a=runs.map(x=>x[variant]?.[field]).filter
 const isHttp=url=>{try{return ['http:','https:'].includes(new URL(url).protocol);}catch{return false;}};
 
 function ResultCard({type,data}){
-  const labels={A:['새 A안 · C 기반 개선','실용적 안내 유지 · 검색 강제 해제'],B:['현재 운영 · B안','현행 개선 프롬프트'],C:['C안 · 접근성 우선','가까운 시설과 실제 위치 중심']};
+  const labels={A:['A안 · C 프롬프트 · MEDIUM','C와 동일한 정책 · 추론 MEDIUM'],B:['현재 운영 · B안 · LOW','현행 운영 프롬프트'],C:['C안 · 접근성 우선 · LOW','A와 동일한 정책 · 추론 LOW']};
   return <article className={'cab-result cab-result-'+type.toLowerCase()}>
     <div className="cab-result-head">
       <div className="cab-result-ident">
@@ -38,6 +38,7 @@ function ResultCard({type,data}){
       <div className="cab-answer-label">승객에게 보이는 답변</div>
       <div className="cab-answer">{data.answer}</div>
       <div className="cab-meta-grid">
+        <div><span>추론 수준</span><strong>{data.thinkingLevel|| (type==='A'?'MEDIUM':'LOW')}</strong></div>
         <div><span>추천 메뉴</span><strong>{data.recommendedMenu||'없음'}</strong></div>
         <div><span>목적지 검색어</span><strong>{data.routeQuery||'없음'}</strong></div>
         <div><span>종료 사유</span><strong>{data.finishReason||'—'}</strong></div>
@@ -131,7 +132,7 @@ export default function ChatAB(){
     }finally{setBusy(false);controllerRef.current=null;}
   }
   function download(){
-    const data={exportedAt:new Date().toISOString(),configuration:{stationCode,station:cleanName(station),lang,question,repeat,variants:['A','B','C'],contextIncluded:!!activeHistory,model:'gemini-3.5-flash-lite',thinking:'LOW',maxOutputTokens:1200,googleSearch:true},runs};
+    const data={exportedAt:new Date().toISOString(),configuration:{stationCode,station:cleanName(station),lang,question,repeat,variants:['A','B','C'],contextIncluded:!!activeHistory,model:'gemini-3.5-flash-lite',thinking:{A:'MEDIUM',B:'LOW',C:'LOW'},maxOutputTokens:1200,googleSearch:true},runs};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=url;a.download='chat-policy-abc-'+Date.now()+'.json';
@@ -146,12 +147,12 @@ export default function ChatAB(){
       <section className="cab-hero">
         <div className="cab-kicker"><span className="cab-live-dot"></span> PROMPT COMPARISON · v1.2</div>
         <h1>일반 채팅 <em>응답 정책 A/B/C 실험실</em></h1>
-        <p>새 A(C안 기반 · 검증 의무 완화)·현재 운영 B·기존 C를 <strong>같은 모델·검색·시스템 지침·언어·파서</strong>로 비교합니다. 운영 채팅은 변경하지 않습니다.</p>
-        <div className="cab-hero-meta"><span>Gemini 3.5 Flash-Lite</span><span>LOW</span><span>1,200 tokens</span><span>Google Search</span><span>교차 순서 A→B / B→A</span></div>
+        <p>A와 C는 <strong>완전히 같은 C안 프롬프트</strong>로, A는 추론 MEDIUM·C는 LOW로 비교합니다. B는 기존 운영 프롬프트·LOW입니다. 운영 채팅은 변경하지 않습니다.</p>
+        <div className="cab-hero-meta"><span>Gemini 3.5 Flash-Lite</span><span>A MEDIUM · B/C LOW</span><span>1,200 tokens</span><span>Google Search</span><span>교차 순서 A→B / B→A</span></div>
       </section>
 
       <section className="cab-config">
-        <div className="cab-section-title"><span className="cab-section-num">01</span><div><h2>실험 조건 설정</h2><p>A/B/C에 완전히 동일하게 적용됩니다.</p></div></div>
+        <div className="cab-section-title"><span className="cab-section-num">01</span><div><h2>실험 조건 설정</h2><p>역·질문·언어·검색 도구·모델은 동일하며, 추론 수준만 A와 B/C가 다릅니다.</p></div></div>
         <div className="cab-form-grid">
           <label className="cab-field"><span>기준역 <small>{station?station.line+'호선 · '+station.stationCode:''}</small></span><input type="text" value={filter} onChange={e=>setFilter(e.target.value)} placeholder="역명으로 선택지 필터링" aria-label="역명 검색" /><select value={stationCode} onChange={e=>setStationCode(e.target.value)} aria-label="기준역 선택">{!options.some(s=>s.stationCode===stationCode)&&station&&<option value={stationCode}>{station.line}호선 {cleanName(station)} · {station.stationCode}</option>}{options.map(s=><option key={s.stationCode} value={s.stationCode}>{s.line}호선 {cleanName(s)} · {s.stationCode}</option>)}</select></label>
           <div className="cab-field"><span>답변 언어</span><div className="cab-language">{LANGUAGES.map(([id,label])=><button type="button" key={id} className={lang===id?'active':''} onClick={()=>setLang(id)}>{label}</button>)}</div><span className="cab-field-hint">답변·검색어 다국어 품질도 함께 확인</span></div>
@@ -160,7 +161,7 @@ export default function ChatAB(){
           <div className="cab-field cab-context"><span>선택: 이전 대화 맥락 <small>빈칸이면 양쪽 모두 이력 없음</small></span><input value={contextQuestion} onChange={e=>setContextQuestion(e.target.value)} maxLength={500} placeholder="이전 사용자 질문 (선택)" /><textarea value={contextAnswer} onChange={e=>setContextAnswer(e.target.value)} rows={2} maxLength={2500} placeholder="이전 AI 답변 (선택)" /></div>
         </div>
         <div className="cab-runbar">
-          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/B/C는 프롬프트 외 동일한 조건으로 비교합니다.</div>
+          <div className="cab-run-caption"><span className="cab-lock">⌁</span> 별도 키 입력 없이 실행됩니다. A/C는 동일 프롬프트에서 MEDIUM과 LOW를 비교합니다. B는 운영 프롬프트입니다.</div>
           <div className="cab-run-actions">{busy&&<button type="button" className="cab-secondary" onClick={()=>controllerRef.current?.abort()}>남은 호출 중단</button>}<button type="button" className="cab-primary" disabled={busy||!question.trim()} onClick={execute}>{busy?'실험 진행 중 · '+completed+'/'+(repeat*3):'A/B/C 비교 실행'} <span>→</span></button></div>
         </div>
         {notice&&<div role="alert" className="cab-notice">{notice}</div>}
@@ -171,7 +172,7 @@ export default function ChatAB(){
           <div className="cab-section-title"><span className="cab-section-num">02</span><div><h2>응답 비교 결과</h2><p>승객 답변·검색·메타데이터를 세 안에서 나란히 확인합니다.</p></div></div>
           <div className="cab-results-actions">{runs.length>0&&<><label>회차 <select value={Math.min(roundIndex,runs.length-1)} onChange={e=>setRoundIndex(Number(e.target.value))}>{runs.map((r,i)=><option key={i} value={i}>{i+1}회 · {r.order}</option>)}</select></label><button type="button" onClick={download} className="cab-export">JSON 결과 저장 ↓</button></>}</div>
         </div>
-        <div className="cab-compare-head"><div><span>A</span> C-BASED / OPTIONAL SEARCH</div><div><span>B</span> CURRENT PRODUCTION</div><div><span>C</span> ACCESSIBLE / CANDIDATE</div></div>
+        <div className="cab-compare-head"><div><span>A</span> C PROMPT / MEDIUM</div><div><span>B</span> CURRENT / LOW</div><div><span>C</span> C PROMPT / LOW</div></div>
         <div className="cab-result-grid"><ResultCard type="A" data={selected?.A}/><ResultCard type="B" data={selected?.B}/><ResultCard type="C" data={selected?.C}/></div>
         {runs.length>0&&<div className="cab-summary">
           <div className="cab-summary-title"><h3>반복 실험 요약</h3><p>실제로 Gemini가 완료된 호출만 평균에 반영 · 성공한 완전한 A/B/C 세트 {completedTriples}회</p></div>
