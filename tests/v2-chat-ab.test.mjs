@@ -3,64 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
-import {buildNativeV2Prompt} from '../app/lib/v2-chat-policy-native.js';
 import {buildCompactV2Prompt} from '../app/lib/v2-chat-policy-compact.js';
 import {buildAccessibleV2Prompt} from '../app/lib/v2-chat-policy-accessible.js';
 
 const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
-test('new A uses Gemini knowledge directly without facility search/evidence mandates',()=>{
- const one={stationCode:'0159',line:'1',names:{ko:'동묘앞'}};
- const six={stationCode:'2637',line:'6',names:{ko:'동묘앞'}};
- const q='동묘앞역 1호선 에스컬레이터는 몇 번 출구에 있나요?';
- const a1=buildNativeV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
- const a6=buildNativeV2Prompt(q,'ko',six,'한국어 전용',{strictLanguage:true});
- const b=buildCompactV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
- const c=buildAccessibleV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
- assert.ok(a1.includes('1호선 동묘앞역'));
- assert.ok(a6.includes('6호선 동묘앞역'));
- assert.ok(a1.includes(q));
- assert.ok(a1.includes('Combine your own knowledge and reasoning with relevant Google Search results'));
- assert.ok(a1.includes('Use Google Search when it can help verify up-to-date facts or exact locations'));
- assert.ok(a1.includes('Search is a tool for improving accuracy, not a mandatory prerequisite'));
- assert.ok(a1.includes('weigh them alongside what you know'));
- assert.ok(a1.includes('do not automatically discard useful knowledge you already have'));
- assert.ok(a1.includes('qualify only specific details you are unsure about'));
- assert.ok(a1.includes('Search when updated information is important'));
- assert.ok(a1.includes('for stable, familiar information, answer directly'));
- assert.ok(!a1.includes('Google Search grounding is available as an OPTIONAL aid'));
- assert.ok(!a1.includes('If reliable evidence is missing, say'));
-
- assert.ok(a1.includes('help them find a useful, reachable option'));
- assert.ok(a1.includes('at a connected interchange line, or nearby'));
- assert.ok(a1.includes('3–6 informative sentences'));
- assert.ok(a1.includes('solve that exact information need before expanding to alternatives'));
- assert.ok(a1.includes('subject station name + line + facility in Korean'));
- assert.ok(a1.includes('Do not give a generic statement that the station has escalators'));
- assert.ok(a1.includes('direct location, relevant exit numbers'));
- assert.ok(a1.includes('practical floor, entrance, or approach detail'));
- assert.ok(a1.includes('one or two genuinely useful related mobility options'));
- assert.ok(a1.includes('Distinguish installation/location from real-time operation'));
- assert.ok(a1.includes('Make the first sentence answer the main question'));
- assert.ok(a1.includes('For unrelated questions, keep the answer directly relevant'));
- assert.ok(!a1.includes('1·2·3번 출구'));
- assert.ok(a1.includes('Avoid perfunctory, vague or one-line answers'));
- assert.ok(a1.includes('Do not default to generic advice to check signs'));
- assert.ok(c.includes('Use Google Search grounding for factual claims'));
- assert.ok(!a1.includes('Use Google Search grounding for factual claims'));
- assert.ok(a1.includes('Choose at most ONE genuinely useful menu, or none.'));
- assert.ok(a1.includes('ROUTE SEARCH HANDOFF: Only when recommending route'));
- assert.ok(a1.includes('This is the passenger\'s entry station, not necessarily the location of every place mentioned'));
-
- assert.ok(a1.includes('lead with its name and actionable location'));
- assert.ok(a1.includes('Never invent precise exit numbers'));
- assert.ok(a1.includes('한국어 전용'));
- assert.ok(a1.includes('<route_query>destination search term</route_query>'));
- assert.ok(a1.includes('<menu_recommendation>ID</menu_recommendation>'));
- for(const restrictive of ['Do not rely on memory alone','If reliable evidence is missing','Use Google Search grounding','LINE-SPECIFIC STATION IDENTITY (mandatory)','SEARCH COVERAGE, within this single grounded response'])
-  assert.ok(!a1.includes(restrictive),restrictive);
- assert.ok(a1.length<b.length,'new A keeps C-level guidance while shortening B');
- assert.ok(Math.abs(a1.length-c.length)<2500,'new A should retain C policy rather than becoming a stripped-down substitute');
-});
 test('B preserves the former general transport policy without new route nudges',()=>{
  const b=buildCompactV2Prompt('둔촌역','ko',station,'언어규칙',{strictLanguage:true});
  assert.ok(b.includes('For questions unrelated to local amenities, remain helpful about the station and public transportation'));
@@ -143,7 +89,7 @@ test('C answers reachable facilities without station-interior eligibility tests'
  assert.ok(hotel.includes('The traveler asks: "신라호텔"'));
  assert.ok(hotel.includes('ENGLISH'));
 });
-test('A/B/C use identical model, search, language, history and parser',async()=>{
+test('A uses the exact C prompt with MEDIUM while B and C use LOW',async()=>{
  const f=await fixture();
  const responses=[];
  for(const variant of ['A','B','C'])responses.push(await(await f.run(variant)).json());
@@ -153,12 +99,16 @@ test('A/B/C use identical model, search, language, history and parser',async()=>
  for(const other of [b,c]){
   assert.deepEqual(other.systemInstruction,a.systemInstruction);
   assert.deepEqual(other.tools,a.tools);
-  assert.deepEqual(other.generationConfig,a.generationConfig);
   assert.equal(other.contents.length,a.contents.length);
+  assert.equal(other.generationConfig.maxOutputTokens,a.generationConfig.maxOutputTokens);
  }
- assert.deepEqual(a.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
+ assert.deepEqual(a.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'MEDIUM'}});
+ assert.deepEqual(b.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
+ assert.deepEqual(c.generationConfig,b.generationConfig);
+ assert.deepEqual(a.contents,c.contents,'A and C must use exactly the same C prompt and history');
+ assert.notDeepEqual(a.contents,b.contents,'B retains its current production prompt');
  assert.equal(new Set(f.calls.map(x=>x.url)).size,1);
- assert.equal(new Set(f.calls.map(x=>x.body.contents.at(-1).parts[0].text)).size,3);
+ assert.deepEqual(responses.map(r=>r.thinkingLevel),['MEDIUM','LOW','LOW']);
  for(const [i,variant] of ['A','B','C'].entries()){
   assert.equal(responses[i].variant,variant);
   assert.equal(responses[i].recommendedMenu,'route');
@@ -167,35 +117,30 @@ test('A/B/C use identical model, search, language, history and parser',async()=>
   assert.equal(responses[i].sources[0].url,'https://example.com');
   assert.equal(responses[i].finishReason,'STOP');
  }
- assert.equal(responses[0].promptKind,'gemini-native-a');
+ assert.equal(responses[0].promptKind,'accessible-c-medium-a');
  assert.equal(responses[1].promptKind,'current-production-b');
  assert.equal(responses[2].promptKind,'accessible-nearby-c');
- assert.ok(c.contents.at(-1).parts[0].text.includes('useful, reachable option'));
+ assert.ok(a.contents.at(-1).parts[0].text.includes('useful, reachable option'));
 });
-test('A/B use identical provider options, search, system rules and parser',async()=>{
+
+test('A/C provider payloads differ only in thinking level',async()=>{
  const f=await fixture();
- const a=await(await f.run('A')).json(),b=await(await f.run('B')).json();
- assert.equal(a.ok,true);assert.equal(b.ok,true);
- assert.deepEqual({answer:a.answer,recommendedMenu:a.recommendedMenu,routeQuery:a.routeQuery},{answer:b.answer,recommendedMenu:b.recommendedMenu,routeQuery:b.routeQuery});
+ const a=await(await f.run('A')).json(),c=await(await f.run('C')).json();
+ assert.equal(a.ok,true);
+ assert.equal(c.ok,true);
+ assert.deepEqual({answer:a.answer,recommendedMenu:a.recommendedMenu,routeQuery:a.routeQuery},{answer:c.answer,recommendedMenu:c.recommendedMenu,routeQuery:c.routeQuery});
  assert.equal(a.raw.includes('<route_query>'),true);
- assert.equal(a.usage.totalTokenCount,547);
- assert.equal(a.finishReason,'STOP');
- assert.equal(a.sources[0].url,'https://example.com');
  assert.equal(a.googleSearchQueries[0],'test query');
  assert.ok(typeof a.responseMs==='number');
  assert.equal(f.calls.length,2);
- const x=f.calls[0].body,y=f.calls[1].body;
- assert.equal(f.calls[0].url,f.calls[1].url);
- assert.deepEqual(x.systemInstruction,y.systemInstruction);
- assert.deepEqual(x.tools,y.tools);
- assert.deepEqual(x.generationConfig,y.generationConfig);
- assert.deepEqual(x.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
- assert.equal(x.contents.length,y.contents.length);
- assert.notEqual(x.contents.at(-1).parts[0].text,y.contents.at(-1).parts[0].text);
- assert.ok(x.contents.at(-1).parts[0].text.includes('Combine your own knowledge and reasoning with relevant Google Search results'));
- assert.ok(y.contents.at(-1).parts[0].text.includes('For questions unrelated to local amenities'));
- assert.ok(x.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
- assert.ok(y.contents.at(-1).parts[0].text.includes('ROUTE SEARCH HANDOFF'));
+ const x=f.calls[0],y=f.calls[1];
+ assert.equal(x.url,y.url);
+ assert.deepEqual(x.body.systemInstruction,y.body.systemInstruction);
+ assert.deepEqual(x.body.contents,y.body.contents);
+ assert.deepEqual(x.body.tools,y.body.tools);
+ assert.deepEqual(x.body.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'MEDIUM'}});
+ assert.deepEqual(y.body.generationConfig,{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}});
+ assert.ok(x.body.contents.at(-1).parts[0].text.includes('Use Google Search grounding for factual claims'));
 });
 test('lab API allows keyless valid requests and rejects invalid inputs before paid provider calls',async()=>{
  const f=await fixture();
