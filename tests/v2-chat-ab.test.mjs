@@ -15,19 +15,32 @@ test('new A uses Gemini knowledge directly without facility search/evidence mand
  const a1=buildNativeV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
  const a6=buildNativeV2Prompt(q,'ko',six,'한국어 전용',{strictLanguage:true});
  const b=buildCompactV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
+ const c=buildAccessibleV2Prompt(q,'ko',one,'한국어 전용',{strictLanguage:true});
  assert.ok(a1.includes('1호선 동묘앞역'));
  assert.ok(a6.includes('6호선 동묘앞역'));
  assert.ok(a1.includes(q));
  assert.ok(a1.includes('Use your own knowledge and reasoning'));
- assert.ok(a1.includes('Google Search is available as an OPTIONAL aid'));
- assert.ok(a1.includes('Lead with the most useful specific information'));
- assert.ok(a1.includes('never invent an exit number'));
+ assert.ok(a1.includes('Google Search grounding is available as an OPTIONAL aid'));
+ assert.ok(a1.includes('help them find a useful, reachable option'));
+ assert.ok(a1.includes('at a connected interchange line, or nearby'));
+ assert.ok(a1.includes('3–6 informative sentences'));
+ assert.ok(a1.includes('Avoid perfunctory, vague or one-line answers'));
+ assert.ok(a1.includes('Do not default to generic advice to check signs'));
+ assert.ok(c.includes('Use Google Search grounding for factual claims'));
+ assert.ok(!a1.includes('Use Google Search grounding for factual claims'));
+ assert.ok(a1.includes('Choose at most ONE genuinely useful menu, or none.'));
+ assert.ok(a1.includes('ROUTE SEARCH HANDOFF: Only when recommending route'));
+ assert.ok(a1.includes('This is the passenger\'s entry station, not necessarily the location of every place mentioned'));
+
+ assert.ok(a1.includes('lead with its name and actionable location'));
+ assert.ok(a1.includes('Never invent precise exit numbers'));
  assert.ok(a1.includes('한국어 전용'));
  assert.ok(a1.includes('<route_query>destination search term</route_query>'));
  assert.ok(a1.includes('<menu_recommendation>ID</menu_recommendation>'));
  for(const restrictive of ['Do not rely on memory alone','If reliable evidence is missing','Use Google Search grounding','LINE-SPECIFIC STATION IDENTITY (mandatory)','SEARCH COVERAGE, within this single grounded response'])
   assert.ok(!a1.includes(restrictive),restrictive);
- assert.ok(a1.length<b.length*0.65);
+ assert.ok(a1.length<b.length,'new A keeps C-level guidance while shortening B');
+ assert.ok(Math.abs(a1.length-c.length)<1200,'new A should be derived from C, not a stripped-down substitute');
 });
 test('B preserves the former general transport policy without new route nudges',()=>{
  const b=buildCompactV2Prompt('둔촌역','ko',station,'언어규칙',{strictLanguage:true});
