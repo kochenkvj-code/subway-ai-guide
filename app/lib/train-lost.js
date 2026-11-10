@@ -76,6 +76,40 @@ export function directionalPathToStation(line,origin,next,target,limit=38){
   return [];
 }
 
+// Build a continuous, horizontally scrollable diagram for the selected
+// alighting direction. A train at a live-reported station is a *focus*, not the
+// last station in the rail. Resolve a branch only if its reported position or
+// destination provides a directionally valid path; never guess a fork.
+export function trainDisplayPath(line,origin,next,focusStation='',trainDestination='',limit=120){
+  const start=trainStationKey(line,origin),first=trainStationKey(line,next);
+  const direction=expectedLiveDirection(line,start,first);
+  if(direction===null)return {stops:[],ambiguous:true};
+  const focus=trainStationKey(line,focusStation);
+  const destination=trainStationKey(line,trainDestination);
+  const focusPath=focus?directionalPathToStation(line,start,first,focus,limit):[];
+  const destinationPath=destination?directionalPathToStation(line,start,first,destination,limit):[];
+  // The destination only resolves a branch if that path also passes the
+  // candidate's observed station (when a candidate exists).
+  let route=destinationPath.length>1&&(!focus||destinationPath.includes(focus))
+    ?destinationPath:focusPath.length>1?focusPath:[start,first];
+  const visited=new Set(route);
+  let ambiguous=false;
+  // Continue *past* the focused candidate, using the same live direction.
+  // For circular lines stop before revisiting an already shown station.
+  while(route.length<limit+1){
+    const at=route[route.length-1];
+    const onward=stationNeighbors(line,at).filter(s=>
+      !visited.has(s)&&expectedLiveDirection(line,at,s)===direction
+    );
+    if(onward.length===0)break;
+    if(onward.length>1){ambiguous=true;break;}
+    const nextStop=onward[0];
+    route.push(nextStop);
+    visited.add(nextStop);
+  }
+  return {stops:route,ambiguous};
+}
+
 // All subsequent edges must agree with the operator's confirmed live API
 // direction code, not just the first edge. This also models multiple branches
 // instead of discarding every candidate once followStops() reaches a fork.
