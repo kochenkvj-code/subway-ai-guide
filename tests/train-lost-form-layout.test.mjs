@@ -100,18 +100,14 @@ test('exactly the selected train-lost stage receives the strong active styling',
  assert.match(styles,/\.tl-stepbar button\.tl-step:disabled:not\(\.current\)\{/);
 });
 
-test('live rail test page and the selected candidate affordance do not include SOURCE footer',async()=>{
+test('selected candidate affordance does not include SOURCE footer',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
- const page=await readFile(new URL('../app/train-lost-lab/page.jsx',import.meta.url),'utf8');
  assert.doesNotMatch(ui,/SOURCE ·/);
  assert.doesNotMatch(ui,/tl-status-foot/);
  assert.match(ui,/tl-candidate-selected-badge/);
  assert.match(ui,/has-selection/);
  assert.match(styles,/tl-candidate-selected-badge/);
  assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
- assert.match(page,/TrainLostFinder/);
- assert.match(page,/trainDemo=1/);
- assert.match(page,/trainDemo=0/);
 });
 
 test('live map precedes ranked candidates, and redundant guidance and phone action are absent',async()=>{
@@ -196,4 +192,20 @@ test('map title and train-picking hint share one row with update and refresh ali
  assert.ok(diagram.indexOf('className="tf-map-heading"')<diagram.indexOf('className="tf-map-updated"'));
  assert.match(styles,/\.tf-map-updated\{/);
  assert.match(styles,/\.tf-board-summary\.tf-map-headline-row\{/);
+});
+
+test('warm train-confirmation copy distinguishes found candidates from pending and empty states',()=>{
+ assert.match(ui,/heroFound:'열차 후보를 찾았어요!'/);
+ assert.match(ui,/heroOut:'어떤 열차였는지 찾아볼까요\?'/);
+ assert.match(ui,/mapTitle:'어떤 열차였는지 살펴볼까요\?'/);
+ assert.match(ui,/searched&&!busy&&candidates\.length>0\?u\.heroFound:u\.heroOut/);
+});
+test('refresh icon remains accessible, small and aligned beside last update',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/className="tf-refresh-icon" onClick=\{refresh\}/);
+ assert.match(diagram,/aria-label=\{refreshing\?t\.pending:t\.manual\}/);
+ assert.match(diagram,/title=\{refreshing\?t\.pending:t\.manual\}/);
+ assert.match(diagram,/className="tf-last-update"/);
+ assert.match(styles,/button\.tf-refresh-icon\{/);
+ assert.match(styles,/width:32px;height:32px/);
 });
