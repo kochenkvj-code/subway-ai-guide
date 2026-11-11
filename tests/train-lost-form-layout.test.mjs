@@ -310,7 +310,7 @@ test('handoff keeps original 2-by-2 summary, with next-station direction but no 
 test('SMS message orders alighting time, station, direction, train, position, boarding, item',async()=>{
  const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
  const start=model.indexOf(' const message=(chosen||handoffUnknown)?[');
- const end=model.indexOf(" ].join('\\n'):'',",start);
+ const end=model.indexOf(" ].join('\\n'):",start);
  assert.ok(start>0&&end>start);
  const msg=model.slice(start,end);
  const patterns=["z.time+': '","z.station+': '","z.direction+': '","z.train+': '","z.position+': '","z.boarding+': '","z.item+': '"];
