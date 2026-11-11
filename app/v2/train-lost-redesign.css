@@ -455,3 +455,22 @@
   max-width:58%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .tf-redesign.tl-three-stage .tl-candidate-chip:focus-visible{outline:3px solid #087e65;outline-offset:2px}
+
+/* Preview results: map first, followed by the candidate cards and one concise
+   explanation of the last-reported (not GPS-confirmed) station location. */
+.tf-redesign.tl-three-stage .tl-candidate-strip{margin-bottom:0}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-location{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  max-width:100%;width:100%;overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-location small{
+  color:#6d8895;font-size:9px;font-weight:750;line-height:1.3;
+}
+.tf-redesign.tl-three-stage .tl-candidate-location b{
+  display:block;width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;color:#27576a;font-size:12px;line-height:1.3;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-candidate-location-note{
+  font-size:10px;line-height:1.55;color:#647f8a;padding:0 3px;
+  margin:7px 0 11px;
+}
