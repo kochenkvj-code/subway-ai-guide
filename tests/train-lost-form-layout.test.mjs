@@ -225,8 +225,8 @@ test('preview auto-selects ranked first candidate and protects subsequent user c
  assert.match(model,/if\(previewPrefill\)\{window\.alert/);
  assert.match(page,/previewPrefill=\{true\}/);
  assert.match(page,/trainDemo=1/);
- assert.match(page,/lang=ko/);
- assert.match(page,/lang=en/);
+ assert.match(page,/href=\{url\('ko',mode\)\}/);
+ assert.match(page,/href=\{url\('en',mode\)\}/);
 });
 test('all three stages share concise headers, with third stage review heading and detailed SMS instruction',()=>{
  assert.match(ui,/heroIn:'분실 정보를 알려주세요'/);
