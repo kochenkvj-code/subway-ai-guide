@@ -244,7 +244,7 @@ test('all three stages share concise headers, with third stage review heading an
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
  assert.match(ui,/className="tl-step-trip-detail"/);
  assert.match(ui,/className="tl-step-trip-origin"/);
- assert.match(ui,/className="tl-step-trip-destination"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-candidate-identity"/);
  assert.match(styles,/\.tl-step-trip-origin,/);
  assert.match(styles,/\.tl-candidate-identity\{/);
@@ -299,7 +299,7 @@ test('second step nests line-colored trip details inside the first information t
  assert.match(ui,/className="tl-step-trip-detail"/);
  assert.match(ui,/className="tl-step-trip-line"/);
  assert.match(ui,/className="tl-step-trip-origin"/);
- assert.match(ui,/className="tl-step-trip-destination"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-step-trip-clock"/);
  assert.match(ui,/pickerLineColor\(selection\.line\)/);
  assert.match(ui,/aria-label=\{showTrip\?label\+'\u0020·\u0020'\+tripText\+'\u0020·\u0020'\+u\.change:undefined\}/);
@@ -309,6 +309,9 @@ test('second step nests line-colored trip details inside the first information t
  assert.doesNotMatch(results,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.tl-step-with-trip\{/);
  assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{/);
+ assert.match(styles,/grid-template-columns:minmax\(0,1\.45fr\) repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(styles,/height:56px;min-height:56px;max-height:56px/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{\s*display:flex;flex-direction:row/);
 });
 test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
  assert.doesNotMatch(ui,/className="tl-chosen-car"/);
