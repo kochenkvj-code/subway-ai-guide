@@ -246,7 +246,7 @@ test('English compact route and candidate selection are never forced into clippe
  assert.match(ui,/className="tl-step-trip-origin"/);
  assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-step-trip-origin,/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-origin\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
