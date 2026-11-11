@@ -39,3 +39,48 @@
  .v2-position-trains .v2-summary-destination{font-size:11px}
  .v2-position-trains .v2-summary-train b{font-size:12px}
 }
+
+/* V2 live train details: compact three-by-two grid, with debugging fields folded away. */
+.v2-position-arrivals .v2-arrival-detail-head{margin-bottom:10px}
+.v2-position-arrivals .v2-arrival-detail-head>div{flex:1;min-width:0}
+.v2-position-arrivals .v2-arrival-detail-head h2{
+ font-size:clamp(12px,3.6vw,16px);font-weight:700;line-height:1.4;letter-spacing:-.5px;
+ margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.v2-position-arrivals .v2-arrival-detail-head button{flex:none;padding:6px 9px;min-height:36px}
+.v2-position-arrivals .v2-position-detail-grid{gap:6px}
+.v2-position-arrivals .v2-position-detail-column{
+ grid-template-rows:auto repeat(3,minmax(0,1fr));gap:6px;
+}
+.v2-position-arrivals .v2-position-detail-column h3{
+ min-height:0;padding-bottom:1px;line-height:1.35;font-size:12px;
+}
+.v2-position-arrivals .v2-position-detail-card{padding:9px 8px;border-radius:11px}
+.v2-position-arrivals .v2-position-detail-card dl{
+ margin:7px 0 5px;row-gap:3px;column-gap:4px;
+}
+.v2-position-arrivals .v2-position-raw{
+ margin-top:auto;padding-top:5px;border-top:1px solid #edf1f3;
+}
+.v2-position-arrivals .v2-position-raw summary{
+ min-height:25px;padding:5px 0 2px;font-size:9px;
+ color:#728296;overflow-wrap:anywhere;cursor:pointer;
+}
+.v2-position-arrivals .v2-position-raw-meta{
+ padding:7px 0 4px;font-size:10px;color:#58718b;overflow-wrap:anywhere;
+}
+.v2-position-arrivals .v2-position-raw pre{
+ margin:5px 0 0;padding:7px;border-radius:6px;background:#f4f7fa;
+}
+@media(max-width:370px){
+ .v2-position-arrivals .v2-position-detail-grid{gap:5px}
+ .v2-position-arrivals .v2-position-detail-column{gap:5px}
+ .v2-position-arrivals .v2-position-detail-card{padding:8px 6px}
+ .v2-position-arrivals .v2-position-detail-column h3{font-size:11px}
+}
+
+/* Direction headers mirror the existing home left/right arrow icons. */
+.v2-position-arrivals .v2-position-detail-column h3{display:flex;align-items:center;gap:4px;justify-content:flex-start}
+.v2-position-arrivals .v2-position-detail-column h3>span{min-width:0;overflow-wrap:anywhere}
+.v2-position-arrivals .v2-position-detail-column h3>svg{width:13px;height:13px;flex:none;fill:none;stroke:#607f69;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.v2-position-arrivals .v2-position-detail-column:nth-child(2) h3{justify-content:flex-end;text-align:right}

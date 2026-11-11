@@ -34,11 +34,14 @@ test('V2 uses the raw Seoul realtimePosition endpoint, never old arrival ETA API
  assert.match(component,/JSON\.stringify\(row,null,2\)/);
  assert.match(component,/positionStation\(row\.statnNm,lang,stationName\)/);
 });
-test('V2 retains two columns with two trains per direction and responsive card styles',()=>{
- assert.match(component,/groups\.map\(\(group,index\)=>/);
+test('V2 home retains two trains, while detail displays three per direction in two columns',()=>{
+ assert.match(component,/shownGroups\.map\(\(group,index\)=>/);
  assert.match(component,/\[0,1\]\.map\(i=>/);
+ assert.match(component,/\[0,1,2\]\.map\(i=>/);
+ assert.match(component,/group\.candidates\[i\]/);
  assert.match(component,/v2-position-detail-grid/);
  assert.match(styles,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(styles,/grid-template-rows:auto repeat\(3,minmax\(0,1fr\)\)/);
  assert.match(component,/station\?\.names\?\.ko==='응암'/);
  assert.match(component,/group\.dir==='0'/); // direction grouping stays provider-owned
 });
@@ -93,6 +96,42 @@ test('passenger summary and details show dashes without technical error banners'
  assert.doesNotMatch(component,/className="v2-summary-notice"/);
  assert.doesNotMatch(component,/className="v2-arrival-message"/);
  assert.match(component,/if\(!item\)return <div className="v2-position-empty" key=\{i\}>—<\/div>/);
- assert.match(component,/all\.length>0&&<details className="v2-position-diagnostics"/);
+ assert.doesNotMatch(component,/v2-position-diagnostics/);
  assert.match(component,/item\?positionMessage\(item,lang\):'—'/);
+});
+
+test('summary and detail reverse only column presentation, without mutating direction data',()=>{
+ assert.equal((component.match(/const shownGroups=\[\.\.\.groups\]\.reverse\(\);/g)||[]).length,2);
+ assert.match(component,/shownGroups\.map\(\(group,index\)=>/);
+ assert.match(component,/shownGroups\.map\(\(group,index\)=>/);
+ assert.match(component,/group\.candidates\[i\]/);
+});
+test('train detail heading is one short friendly line and refresh remains present',()=>{
+ assert.match(component,/lead:'다음 열차, 어디쯤 왔을까요\?'/);
+ assert.match(component,/<h2 title=\{ui\.lead\}>\{ui\.lead\}<\/h2>/);
+ assert.match(component,/onClick=\{state\.refresh\}/);
+ assert.doesNotMatch(component,/<small>\{ui\.source\}<\/small>/);
+ assert.doesNotMatch(component,/<p className="v2-arrival-caption">\{ui\.automatic\}<\/p>/);
+ assert.match(styles,/white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
+});
+test('destination, train number and location remain visible; time and raw JSON share one disclosure',()=>{
+ assert.match(component,/<dt>\{ui\.destination\}<\/dt>/);
+ assert.match(component,/<dt>\{ui\.train\}<\/dt>/);
+ assert.match(component,/<dt>\{ui\.location\}<\/dt>/);
+ assert.match(component,/<details className="v2-position-raw">/);
+ assert.match(component,/<summary>\{ui\.updated\} · \{ui\.raw\}<\/summary>/);
+ assert.match(component,/v2-position-raw-meta/);
+ assert.match(component,/JSON\.stringify\(row,null,2\)/);
+ assert.doesNotMatch(component,/<small>\{ui\.updated\}: \{row\.recptnDt/);
+ assert.doesNotMatch(component,/v2-position-diagnostics/);
+});
+
+test('details retain direction arrows, six cards and per-card raw disclosure',()=>{
+ assert.match(component,/shownGroups\.map\(\(group,index\)=>/);
+ assert.match(component,/<h3>\{index===0&&<Arrow\/>\}/);
+ assert.match(component,/\{index===1&&<Arrow right\/>\}<\/h3>/);
+ assert.match(component,/group\.candidates\[i\]/);
+ assert.match(component,/<summary>\{ui\.updated\} · \{ui\.raw\}<\/summary>/);
+ assert.doesNotMatch(component,/v2-position-diagnostics/);
+ assert.match(styles,/\.v2-position-detail-column:nth-child\(2\) h3/);
 });
