@@ -1,7 +1,7 @@
 // Test-only proxy: compare the existing production public JSON APIs in a
 // preview build without requiring preview-scoped copies of API secrets.
 // Fixed allowlist; no URL, key, or unrestricted upstream parameter is accepted.
-import {supportsStation} from '../../../lib/train-lost';
+import {supportsStation} from '../../lib/train-lost';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const UPSTREAM='https://subway-ai-guide.vercel.app';
