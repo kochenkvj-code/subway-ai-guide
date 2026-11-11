@@ -55,7 +55,7 @@ function validLocation(candidate,p,selection,next,when){
  const age=Date.now()-Date.parse(p.receivedAt);
  return age>=-60000&&age<=120000;
 }
-export default function TrainLostFinder({lang='ko',active=true,defaultStation='종로5가',defaultLine='1',defaultNames=null}){
+export default function TrainLostFinder({lang='ko',active=true,defaultStation='종로5가',defaultLine='1',defaultNames=null,previewPrefill=false}){
  const t={...(labels[lang]||labels.ko),...(liveWords[lang]||liveWords.ko)};
  const initial=()=>({name:String(defaultStation).trim().replace(/역$/,''),line:String(defaultLine)});
  const [selection,setSelection]=useState(initial);
@@ -66,7 +66,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    const p=new URLSearchParams(window.location.search);
    setDemoMode(p.get('trainDemo')==='1');
  },[]);
- const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState('');
+ const [query,setQuery]=useState(''),[editing,setEditing]=useState(false),[next,setNext]=useState(previewPrefill?'동대문':'');
  const [when,setWhen]=useState(()=>korea(5));
  const [quickMin,setQuickMin]=useState(5);
  const requestId=useRef(0);
@@ -78,9 +78,9 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const trackedTrainRef=useRef('');
  const [livePositions,setLivePositions]=useState([]),[liveFetchedAt,setLiveFetchedAt]=useState(null);
  const [destinationHints,setDestinationHints]=useState({});
- const [thing,setThing]=useState('');
- const [carNumber,setCarNumber]=useState('');
- const [door,setDoor]=useState(''),[place,setPlace]=useState('');
+ const [thing,setThing]=useState(previewPrefill?'검은색 가방':'');
+ const [carNumber,setCarNumber]=useState(previewPrefill?'4':'');
+ const [door,setDoor]=useState(previewPrefill?'2':''),[place,setPlace]=useState('');
  const [stage,setStage]=useState('input'),[handoffUnknown,setHandoffUnknown]=useState(false);
  const [searchRun,setSearchRun]=useState(0);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[candidates,setCandidates]=useState([]);
@@ -101,6 +101,15 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
 
  function resetMatches(){lookupAbort.current?.abort();trackedTrainRef.current='';arrivalEvidenceRef.current=[];requestId.current+=1;setBusy(false);setError('');setChosen(null);setHandoffUnknown(false);setCandidates([]);setCurrent(null);setSearched(false);setCopyStatus(false);setLivePositions([]);setLiveFetchedAt(null);setDestinationHints({});}
  function chooseStation(s){setSelection({name:s.name,line:s.line});setNext('');setEditing(false);setQuery('');resetMatches();setError('');}
+ function selectTopCandidate(list,positions){
+   // Suggest the first ranked train without treating it as confirmed boarding.
+   // Live position polling must never override a later manual selection.
+   const first=list[0]||null;
+   trackedTrainRef.current=first?compareNo(first.number):'';
+   setChosen(first);
+   setCurrent(first?(positions.find(p=>compareNo(p.trainNo)===compareNo(first.number)&&
+     String(p.direction)===String(requiredDirection))||first.live||null):null);
+ }
  async function lookup(){
    lookupAbort.current?.abort();const controller=new AbortController();lookupAbort.current=controller;
    const token=++requestId.current;
@@ -111,7 +120,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      setError('하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.');
      if(isCurrent()){setCandidates([]);setChosen(null);setSearched(true);}return;
    }
-   setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);setLookupStats(null);
+   trackedTrainRef.current='';setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);setLookupStats(null);
    if(demoMode){
      // Explicit visual-only preview for branch URLs without live API credentials.
      // Never mix synthetic train numbers with actual lost property reports.
@@ -133,7 +142,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
      });
      if(!isCurrent())return;
      setLivePositions(sample);setLiveFetchedAt(new Date(now).toISOString());
-     setCandidates(result.candidates);setDirectionWarning(false);setBusy(false);
+     setCandidates(result.candidates);selectTopCandidate(result.candidates,sample);setDirectionWarning(false);setBusy(false);
      return;
    }
    const getJSON=async url=>{try{const r=await fetch(url,{cache:'no-store',signal:controller.signal});return r.ok?await r.json():null;}catch{return null;}};
@@ -165,6 +174,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
        date:when.date,time:when.time,line:selection.line,station:selection.name,next,arrivalEvidence:evidence
      });
      setCandidates(result.candidates);
+     selectTopCandidate(result.candidates,enriched);
      setDirectionWarning(result.candidates.some(x=>!x.corroborated));
    }catch(ex){if(isCurrent())setError(ex.message||t.failure);}finally{if(isCurrent())setBusy(false);}
  }
@@ -255,6 +265,7 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  ].filter((line,index)=>line!==''||index===10).join('\n'):'';
  function sms(){
    if(!message)return;
+   if(previewPrefill){window.alert(lang==='ko'?'테스트페이지에서는 실제 접수 문자가 발송되지 않습니다.':'Demo only — no real text will be sent from this test page.');return;}
    // Opens a user-controlled SMS draft only. No SMS is sent by this site.
    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);
    window.location.href='sms:15771234'+(ios?'&':'?')+'body='+encodeURIComponent(message);
