@@ -24,3 +24,17 @@ test('copied QR URLs are canonical and reject unknown stations, arbitrary paths 
  const value=stationEntryUrl({origin:'https://app.test/v2?place=123&view=tour',basePath:'/',stationCode:'0154'});assert.equal(value,'https://app.test/?station=0154');
  for(const bad of [{stationCode:'9999'},{basePath:'/v2/station-master'},{language:'fr'}])assert.throws(()=>stationEntryUrl({origin:'https://app.test',basePath:'/v2',stationCode:'0154',...bad}));
 });
+
+test('station choice remains in selector with updated QR links until user explicitly closes it',()=>{
+ const source=fs.readFileSync('app/v2/StationEntry.jsx','utf8');
+ const start=source.indexOf(' function choose(station){');
+ const end=source.indexOf(' function changedLanguage',start);
+ assert.ok(start>=0&&end>start);
+ const handler=source.slice(start,end);
+ assert.match(handler,/setAddressesOpen\(true\)/);
+ assert.match(handler,/setEntry\(next\)/);
+ assert.doesNotMatch(handler,/setPanel\(null\)/);
+ assert.match(source,/onClick=\{\(\)=>setPanel\(null\)\} aria-label=\{t\.close\}/);
+ assert.match(source,/stationCode:entry\.code,language:entry\.language,gate/);
+ assert.match(source,/aria-expanded=\{addressesOpen\}/);
+});
