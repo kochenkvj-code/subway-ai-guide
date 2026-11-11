@@ -22,7 +22,7 @@ function latestTrains(positions,line){
  }
  return [...map.values()];
 }
-export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart}){
+export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart,sectionTitle,instruction}){
  const clean=value=>trainStationKey(line,value);
  const display=value=>stationName(trainStationDisplay(line,value),lang)||value;
  const t=words[lang]||words.ko;
@@ -188,9 +188,15 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     <div><h3>{t.title}</h3></div>
     <span className="tf-live-tag">{demo?'DEMO':t.refresh}</span>
    </div>
-   <div className="tf-board-summary">
-    <span className="tf-last-update">{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
-    <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
+   <div className="tf-board-summary tf-map-headline-row">
+    <div className="tf-map-heading">
+     <strong className="tf-map-title">◎ {sectionTitle||t.title}</strong>
+     {instruction&&<span className="tf-map-instruction">{instruction}</span>}
+    </div>
+    <div className="tf-map-updated">
+     <span className="tf-last-update">{t.last} <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
+     <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
+    </div>
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
