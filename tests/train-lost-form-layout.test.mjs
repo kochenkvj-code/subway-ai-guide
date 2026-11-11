@@ -141,7 +141,10 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
  assert.match(ui,/className="tl-message-heading"/);
  assert.match(ui,/className="tl-copy-compact"/);
  assert.match(ui,/className="tl-sms-primary"/);
- assert.match(ui,/sms:'1577-1234로 문자 작성'/);
+ assert.match(ui,/sms:'콜센터에 문자 접수하기'/);
+ assert.match(ui,/smsTarget:'1577-1234'/);
+ assert.match(ui,/className="tl-sms-primary-action"/);
+ assert.match(ui,/className="tl-sms-primary-recipient"/);
  assert.match(ui,/문자 앱에서 내용을 확인한 뒤 직접 전송하세요/);
  assert.doesNotMatch(ui,/문자 수신 여부는 확인되지/);
  assert.doesNotMatch(ui,/className="tl-send-options"/);
@@ -149,6 +152,8 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
  assert.ok(ui.indexOf('className="tl-sms-primary"')>ui.indexOf('className="tl-message"'));
  assert.match(styles,/\.tf-redesign \.tl-copy-compact\{/);
  assert.match(styles,/\.tf-redesign \.tl-sms-primary\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary-action\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary-recipient\{/);
  assert.match(finder,/window\.location\.href='sms:15771234'/);
  assert.match(finder,/Opens a user-controlled SMS draft only/);
 });
