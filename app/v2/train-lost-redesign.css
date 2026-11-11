@@ -931,3 +931,116 @@
  background:var(--tl-line-color,#536c80);
  color:#fff;
 }
+
+/* Equal-width three-step progress bar; first completed step shows only time.
+   Keep each cell exactly the same size, even on narrow mobile screens. */
+.tf-redesign.tl-three-stage .tl-stepbar{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;gap:5px;margin:9px 0 10px;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
+ width:100%;height:52px;min-height:52px;max-height:52px;
+ min-width:0;overflow:hidden;padding:5px 4px;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading{
+ display:flex;align-items:center;justify-content:center;
+ gap:3px;min-width:0;max-width:100%;width:100%;
+ font-size:inherit;font-weight:inherit;line-height:1.2;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading>span:not(.tl-step-pencil){
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{
+ display:flex;flex-direction:column;align-items:stretch;
+ justify-content:center;gap:3px;padding:4px 5px;
+ background:#eef7f2;border-color:#b7dac7;color:#246248;
+ cursor:pointer;text-align:left;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip:hover:not(:disabled){
+ background:#e0f2e6;border-color:#73b898;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{
+ justify-content:center;gap:3px;font-size:10px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-pencil{
+ margin-left:auto;flex:none;color:#128365;font-size:11px;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{
+ display:flex;align-items:center;justify-content:center;
+ width:100%;min-width:0;line-height:1.2;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{
+ display:block;color:#2d7359;
+ font-size:10px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{padding:4px 3px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{font-size:9.5px;gap:2px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{font-size:9.5px}
+}
+/* Selected train is a simple checkmark, not a wide 'Selected' pill. */
+.tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
+ position:relative;flex:0 0 132px;
+ min-width:132px;max-width:145px;padding:9px 9px;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-toprow{
+ padding-right:23px;max-width:100%;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity{
+ width:auto;max-width:100%;padding-right:2px;display:block;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity strong{
+ font-size:16px;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-check{
+ position:absolute;right:7px;top:7px;
+ display:grid;place-items:center;width:23px;height:23px;
+ border-radius:50%;background:#087b5a;color:#fff;
+ font-size:14px;font-weight:900;line-height:1;
+ overflow:visible;max-width:none;white-space:nowrap;
+ box-shadow:0 2px 5px rgba(7,100,74,.17);
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-location{
+ width:100%;max-width:100%;overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-location b{
+ overflow-wrap:anywhere;font-size:11px;
+}
+/* Consistent 12px field labels and a single-row door chooser. */
+.tf-redesign.tl-three-stage .tl-item-place-row .tl-label,
+.tf-redesign.tl-three-stage .tl-car-door-field>.tl-label,
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+ min-height:18px;margin-bottom:8px;
+ font-size:12px;font-weight:800;line-height:1.45;letter-spacing:-.1px;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block{
+ display:flex;align-items:center;gap:9px;
+ margin-top:12px;padding:10px 11px;
+ border-radius:11px;background:#f6faf8;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+ display:flex;align-items:center;justify-content:flex-start;gap:3px;
+ flex:0 0 auto;max-width:43%;margin:0;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options{
+ flex:1 1 auto;min-width:0;
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options button{
+ min-width:0;min-height:39px;padding:5px 1px;
+ font-size:11px;font-weight:800;border-radius:8px;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-item-place-row .tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field>.tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+  font-size:11.5px;
+ }
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block{gap:5px;padding:9px 7px}
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options{gap:3px}
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options button{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
+  flex-basis:122px;min-width:122px;max-width:132px;
+ }
+}
