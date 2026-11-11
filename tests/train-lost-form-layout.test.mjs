@@ -117,7 +117,7 @@ test('live map precedes ranked candidates, and redundant guidance and phone acti
  const candidateAt=ui.indexOf("className={'tl-candidate-strip'");
  const selectionActionAt=ui.indexOf('className="tl-next-panel"');
  assert.ok(mapAt>=0&&candidateAt>mapAt&&selectionActionAt>candidateAt,'map → candidate cards → action');
- assert.match(ui,/className="tl-candidate-location"/);
+ assert.match(ui,/tl-candidate-location/);
  assert.doesNotMatch(ui,/className="tl-candidate-location-note"/);
  assert.match(ui,/candidateRankLabel\(index,lang\)/);
  assert.match(ui,/tl-candidate-rank/);
@@ -367,7 +367,7 @@ test('restore compact train header labels and remove forced blank summary-card h
 test('handoff train summary shows train number and next-station direction, never estimated-train label',()=>{
  assert.match(ui,/String\(chosen\.number\)\.padStart\(4,'0'\)/);
  assert.match(ui,/selectedTrainSummary/);
- assert.match(ui,/lang==='ko'\?'방면'/);
+ assert.match(ui,/lang==='ko'\?' 방면'/);
  assert.doesNotMatch(ui,/\{chosen\?'#'\+chosen\.number\+' · '\+u\.candidate/);
  assert.match(styles,/\.tl-handoff-grid\{[\s\S]*?grid-auto-rows:1fr;/);
  assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
@@ -391,4 +391,23 @@ test('English destination shows two readable lines inside compact train with ful
 test('SMS message has exactly one blank line between title and alighting timestamp',async()=>{
  const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
  assert.match(model,/const message=\(chosen\|\|handoffUnknown\)\?\[\s*z\.title,\s*'',\s*z\.time/);
+});
+
+test('rank shows simple 1순위, 2순위 labels',()=>{
+ assert.match(ui,/\(index\+1\)\+'순위'/);
+ assert.doesNotMatch(ui,/추정 '\+\(index\+1\)\+'순위'/);
+});
+test('candidate cards label terminus and last reported location and retain fixed width',()=>{
+ assert.match(ui,/tl-candidate-meta/);
+ assert.match(ui,/candidateTerminus\(c\)/);
+ assert.match(ui,/candidatePosition\(c\)\?\.station/);
+ assert.match(ui,/lang==='ko'\?'종착역'/);
+ assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{[\s\S]*?flex:0 0 132px;width:132px;min-width:132px;max-width:132px/);
+});
+test('review separates chosen train destination from alighting direction in uniform typography',()=>{
+ assert.match(ui,/selectedTrainSummary=chosen/);
+ assert.match(ui,/chosenTerminus/);
+ assert.match(ui,/directionText=lang==='en'/);
+ assert.match(ui,/<strong className="tl-handoff-direction">\{directionText\}<\/strong>/);
+ assert.match(styles,/\.tl-handoff-cell \.tl-handoff-direction\{[\s\S]*?font:inherit;font-size:12px;font-weight:800/);
 });

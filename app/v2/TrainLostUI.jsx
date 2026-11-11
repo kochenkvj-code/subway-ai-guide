@@ -37,7 +37,7 @@ const branchWarningLabel={
  ja:'分岐経路の確認が必要',zh:'需确认支线路径'
 };
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
-const candidateRankLabel=(index,lang)=>lang==='ko'?'추정 '+(index+1)+'순위':lang==='ja'?'推定 第'+(index+1)+'候補':lang==='zh'?'推测第'+(index+1)+'候选':'Estimated #'+(index+1);
+const candidateRankLabel=(index,lang)=>lang==='ko'?(index+1)+'순위':lang==='ja'?(index+1)+'位':lang==='zh'?'第'+(index+1)+'位':'Rank '+(index+1);
 
 const flowCopy={
  ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치',mapInstruction:'다른 열차라면 아래 후보를 선택해 주세요.',confirm:'선택한 열차 정보로 계속하기',selectHint:'위의 후보 열차를 선택해 주세요.',positionExplain:'최근 확인 위치는 실시간 열차정보에 마지막으로 기록된 역입니다. 실제 위치와 차이가 있을 수 있으며, 후보는 탑승 열차로 확정되지 않았습니다.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
@@ -69,11 +69,18 @@ export default function TrainLostUI(p){
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
- // Keep the operator train number (including leading zeroes) and show the
- // passenger's selected next-station direction, not an unverified train label.
+ const candidatePosition=c=>livePositions.find(p=>compareNo(p.trainNo)===compareNo(c.number)&&String(p.direction)===String(requiredDirection))||c.live||null;
+ const candidateTerminus=c=>{
+  const live=candidatePosition(c);
+  const raw=String(live?.destination||c.destination||(chosen&&compareNo(c.number)===compareNo(chosen.number)?current?.destination:'')||'').replace(/(?:방면|행)$/,'').trim();
+  return raw?localized(raw,selection.line,lang):(lang==='en'?'Not confirmed':lang==='ja'?'未確認':lang==='zh'?'未确认':'종착역 미확인');
+ };
+ const chosenTerminus=chosen?candidateTerminus(chosen):'';
+ const terminusKnown=chosen&& !['Not confirmed','未確認','未确认','종착역 미확인'].includes(chosenTerminus);
  const selectedTrainSummary=chosen
-  ? String(chosen.number).padStart(4,'0')+' '+(lang==='en'?'toward '+way:way+(lang==='ko'?'방면':lang==='ja'?'方面':'方向'))
+  ? String(chosen.number).padStart(4,'0')+' '+chosenTerminus+(terminusKnown?(lang==='ko'?'행':lang==='ja'?'行':lang==='zh'?'方向':''):'')
   : u.unknown;
+ const directionText=lang==='en'?'toward '+way:way+(lang==='ko'?' 방면':lang==='ja'?'方面':' 方向');
  const displayTime=when.time;
  const stageNumber=stage==='input'?1:stage==='results'?2:3;
  const firstCandidate=Boolean(chosen&&candidates.length&&compareNo(chosen.number)===compareNo(candidates[0].number));
@@ -180,9 +187,13 @@ export default function TrainLostUI(p){
    </div>}
    {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
+     const here=selected&&current?.station?current.station:candidatePosition(c)?.station||c.station;
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <span className="tl-candidate-toprow"><span className={'tl-candidate-rank'+(index===0?' tl-candidate-rank-first':'')}>{candidateRankLabel(index,lang)}</span></span>
-      <span className="tl-candidate-identity"><strong>#{c.number}</strong></span>{selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}<span className="tl-candidate-location"><small>{u.position}</small><b>{localized(current&&selected?current.station:c.station,selection.line,lang)}</b></span>
+      <span className="tl-candidate-identity"><strong>{String(c.number).padStart(4,'0')}</strong></span>
+      {selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}
+      <span className="tl-candidate-meta"><small>{lang==='ko'?'종착역':lang==='ja'?'終着駅':lang==='zh'?'终点站':'Destination'}</small><b>{candidateTerminus(c)}</b></span>
+      <span className="tl-candidate-meta tl-candidate-location"><small>{u.position}</small><b>{here?localized(here,selection.line,lang):(lang==='ko'?'미확인':lang==='ja'?'未確認':lang==='zh'?'未确认':'Not available')}</b></span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
@@ -201,7 +212,7 @@ export default function TrainLostUI(p){
      <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{selectedTrainSummary}</strong></div>
      <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</strong></div>
      <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
-     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong><span className="tl-handoff-direction">{lang==='en'?'toward '+way:way+(lang==='ko'?' 방면':lang==='ja'?'方面':' 方向')}</span></div>
+     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong><strong className="tl-handoff-direction">{directionText}</strong></div>
     </div>
     {chosen&&recommended.stations.length>0&&<p className="tl-note">{u.stopsAhead}: {recommended.stations.map(st=>localized(st,selection.line,lang)).join(' · ')}</p>}
     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
