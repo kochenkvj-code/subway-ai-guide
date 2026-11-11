@@ -932,53 +932,6 @@
  color:#fff;
 }
 
-/* Equal-width three-step progress bar; first completed step shows only time.
-   Keep each cell exactly the same size, even on narrow mobile screens. */
-.tf-redesign.tl-three-stage .tl-stepbar{
- display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
- align-items:stretch;gap:5px;margin:9px 0 10px;
-}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
- width:100%;height:52px;min-height:52px;max-height:52px;
- min-width:0;overflow:hidden;padding:5px 4px;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading{
- display:flex;align-items:center;justify-content:center;
- gap:3px;min-width:0;max-width:100%;width:100%;
- font-size:inherit;font-weight:inherit;line-height:1.2;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading>span:not(.tl-step-pencil){
- min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{
- display:flex;flex-direction:column;align-items:stretch;
- justify-content:center;gap:3px;padding:4px 5px;
- background:#eef7f2;border-color:#b7dac7;color:#246248;
- cursor:pointer;text-align:left;
-}
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip:hover:not(:disabled){
- background:#e0f2e6;border-color:#73b898;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{
- justify-content:center;gap:3px;font-size:10px;font-weight:850;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-pencil{
- margin-left:auto;flex:none;color:#128365;font-size:11px;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{
- display:flex;align-items:center;justify-content:center;
- width:100%;min-width:0;line-height:1.2;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{
- display:block;color:#2d7359;
- font-size:10px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap;
-}
-@media(max-width:380px){
- .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
- .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{padding:4px 3px}
- .tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{font-size:9.5px;gap:2px}
- .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{font-size:9.5px}
-}
 /* Selected train is a simple checkmark, not a wide 'Selected' pill. */
 .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
  position:relative;flex:0 0 132px;
@@ -1043,4 +996,41 @@
  .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
   flex-basis:122px;min-width:122px;max-width:132px;
  }
+}
+
+/* Keep train-lost progress in its original equal three-cell layout. */
+.tf-redesign.tl-three-stage .tl-stepbar{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:6px;
+}
+/* Alighting question is a regular form label, not a smaller caption. */
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-question{
+ color:#243f4d;font-size:12px;font-weight:800;line-height:1.45;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-question,
+ .tf-redesign.tl-three-stage .tl-item-place-row .tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field>.tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+  font-size:12px;
+ }
+}
+/* Route direction comes first, then the selected alighting time in the map. */
+.tf-redesign.tl-three-stage .tf-h-topline .tf-alight-context{
+ display:flex;flex-direction:column;align-items:flex-start;
+ gap:3px;min-width:0;flex:1 1 auto;
+}
+.tf-redesign.tl-three-stage .tf-h-topline .tf-alight-route{
+ display:block;max-width:100%;font-size:12px;
+ font-weight:750;line-height:1.4;overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tf-h-topline .tf-alight-time{
+ display:block;max-width:100%;font-size:10.5px;
+ font-weight:750;color:#62818e;font-variant-numeric:tabular-nums;
+ line-height:1.35;
+}
+.tf-redesign.tl-three-stage .tl-handoff-cell .tl-handoff-direction{
+ display:block;margin-top:4px;font-size:11px;
+ font-weight:750;color:#527587;line-height:1.35;
+ overflow-wrap:anywhere;
 }
