@@ -932,14 +932,14 @@
  color:#fff;
 }
 
-/* Compact info step: two short rows, no enlarged stepper. The full
-   direction is available from the edit tile's accessible title. */
+/* Equal-width three-step progress bar; first completed step shows only time.
+   Keep each cell exactly the same size, even on narrow mobile screens. */
 .tf-redesign.tl-three-stage .tl-stepbar{
- display:grid;grid-template-columns:minmax(0,1.45fr) repeat(2,minmax(0,1fr));
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  align-items:stretch;gap:5px;margin:9px 0 10px;
 }
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
- width:100%;height:56px;min-height:56px;max-height:56px;
+ width:100%;height:52px;min-height:52px;max-height:52px;
  min-width:0;overflow:hidden;padding:5px 4px;
 }
 .tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading{
@@ -952,7 +952,7 @@
 }
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{
  display:flex;flex-direction:column;align-items:stretch;
- justify-content:center;gap:3px;padding:5px 5px;
+ justify-content:center;gap:3px;padding:4px 5px;
  background:#eef7f2;border-color:#b7dac7;color:#246248;
  cursor:pointer;text-align:left;
 }
@@ -960,38 +960,24 @@
  background:#e0f2e6;border-color:#73b898;
 }
 .tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{
- justify-content:flex-start;gap:3px;
- font-size:10px;font-weight:850;
+ justify-content:center;gap:3px;font-size:10px;font-weight:850;
 }
 .tf-redesign.tl-three-stage .tl-stepbar .tl-step-pencil{
  margin-left:auto;flex:none;color:#128365;font-size:11px;
 }
 .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{
- display:flex;flex-direction:row;align-items:center;
- gap:4px;width:100%;min-width:0;
- font-weight:800;font-size:10px;line-height:1.2;color:#355b4b;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-line{
- display:grid;place-items:center;flex:0 0 17px;
- width:17px;height:17px;border-radius:5px;
- background:var(--tl-line-color,#536c80);color:#fff;
- font-size:10px;font-weight:900;line-height:1;
-}
-.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-origin{
- display:block;flex:1 1 auto;min-width:0;overflow:hidden;
- text-overflow:ellipsis;white-space:nowrap;
+ display:flex;align-items:center;justify-content:center;
+ width:100%;min-width:0;line-height:1.2;
 }
 .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{
- flex:none;white-space:nowrap;font-size:9.5px;
- color:#3b7366;font-variant-numeric:tabular-nums;
+ display:block;color:#2d7359;
+ font-size:10px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap;
 }
 @media(max-width:380px){
  .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
  .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{padding:4px 3px}
  .tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{font-size:9.5px;gap:2px}
- .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{font-size:9.5px;gap:2px}
- .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{font-size:9px}
- .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-line{width:16px;height:16px;flex-basis:16px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{font-size:9.5px}
 }
 /* Selected train is a simple checkmark, not a wide 'Selected' pill. */
 .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
