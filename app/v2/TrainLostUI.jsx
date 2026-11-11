@@ -82,7 +82,7 @@ export default function TrainLostUI(p){
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
     const showTrip=stage==='results'&&i===0;
-    const tripText=lineName(selection.line+'호선',lang)+' · '+selectionLabel+' → '+way+' · '+v.time+' '+displayTime;
+    const tripText=v.time+' '+displayTime;
     return <button type="button" key={label}
      className={'tl-step'+(showTrip?' tl-step-with-trip':'')+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
      aria-current={i+1===stageNumber?'step':undefined}
@@ -90,9 +90,7 @@ export default function TrainLostUI(p){
      title={showTrip?tripText+' · '+u.change:undefined}
      disabled={busy||!available} onClick={goToStep}>
      <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
-     {showTrip&&<span className="tl-step-trip-detail" style={{'--tl-line-color':pickerLineColor(selection.line)}} aria-hidden="true">
-      <span className="tl-step-trip-line">{String(selection.line).replace(/^0/,'')}</span>
-      <span className="tl-step-trip-origin">{selectionLabel}</span>
+     {showTrip&&<span className="tl-step-trip-detail" aria-hidden="true">
       <span className="tl-step-trip-clock">{displayTime}</span>
      </span>}
     </button>;
