@@ -4,7 +4,7 @@ import { isFacilityContext } from "../../../lib/facility-stat";
 
 export const runtime = "nodejs";
 const types = {
-  page_view: ["visit"],
+  page_view: ["visit", "station_change"],
   quick_menu: ["route", "gate", "fares", "facility", "exchange", "nearby", "staff", "live", "tour", "timetable", "found", "lost", "feedback"],
   ai_question: ["request"],
   route_search: ["request", "success", "failure"],
@@ -28,7 +28,7 @@ export async function POST(request) {
     try {data=await request.json();}catch{return reject("invalid_json");}
     diagnostic={event_id:typeof data?.event_id==="string"&&uuid.test(data.event_id)?data.event_id:null};
     if (data?.event_id != null && (typeof data.event_id !== "string" || !uuid.test(data.event_id))) return reject("invalid_event_id");
-    const question = data?.event_type === "ai_question" && typeof data.question === "string" ? data.question.trim().slice(0,500) : null;
+    const question = (data?.event_type === "ai_question" || data?.event_type === "route_search" && data?.event_name === "request") && typeof data.question === "string" ? data.question.trim().slice(0,500) : null;
     if (!data || !Object.hasOwn(types, data.event_type) || !types[data.event_type].includes(data.event_name) || !["ko","en","ja","zh"].includes(data.language)) {
       return reject("unsupported_event_or_language");
     }
@@ -37,7 +37,8 @@ export async function POST(request) {
     const sessionId = typeof data.session_id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.session_id) ? data.session_id : null;
     const gateContext = typeof data.context === "string" && /^gate_(e01|e03|e04|e05|e06|e14|e33|e44|opposite|unknown)$/.test(data.context);
     const facilitySelection = isFacilityContext(data.context) && ((data.event_type === "quick_menu" && data.event_name === "facility") || data.event_type === "feedback");
-    const context = gateContext || facilitySelection ? data.context : null;
+    const stationContext = data.event_type === "page_view" && /^station:[0-9]{4}$/.test(data.context || "");
+    const context = gateContext || facilitySelection || stationContext ? data.context : null;
     const clientTime=typeof data.occurred_at === "string" ? Date.parse(data.occurred_at) : NaN;
     const occurred_at=Number.isFinite(clientTime) && Date.now()-clientTime<35*60*1000 && clientTime-Date.now()<300000 ? new Date(clientTime).toISOString() : new Date().toISOString();
     // Only coarse, non-identifying request metadata. Never persist IP or full user-agent. AI question text is restricted to the admin report.

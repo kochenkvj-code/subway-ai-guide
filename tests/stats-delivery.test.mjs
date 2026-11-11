@@ -44,3 +44,17 @@ test('queue is capped at 100 and has at most four in-flight requests',async()=>{
  const f=await fixture([],{defer:true});for(let i=0;i<110;i++)f.record('gate_action','e44','en');assert.equal(f.calls.length,4);assert.equal(f.peak(),4);assert.equal(JSON.parse(f.storage.get(KEY)).length,100);
  while(f.releases.length){f.releases.splice(0).forEach(r=>r());await f.settle();}assert.equal(f.calls.length,100);assert.equal(f.storage.has(KEY),false);
 });
+
+test('route request sends the entered destination, whereas route outcomes and visits send no free text',async()=>{
+ const f=await fixture([204,204,204,204]);
+ f.record('route_search','request','en',null,'Shilla Stay Guro');
+ f.record('route_search','success','en',null,'PRIVATE');
+ f.record('page_view','visit','ko','station:0154');
+ f.record('page_view','station_change','ko','station:0155');
+ await f.settle();
+ assert.equal(f.calls.length,4);
+ assert.equal(f.calls[0].question,'Shilla Stay Guro');
+ assert.equal(f.calls[1].question,null);
+ assert.equal(f.calls[2].context,'station:0154');
+ assert.equal(f.calls[3].context,'station:0155');
+});

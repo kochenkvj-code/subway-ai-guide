@@ -223,7 +223,7 @@ export default function SubwayRouteCard({ lang = "ko", onNewSearch, onNavigation
     setFeedback(null);
     feedbackRef.current=false;
     const controller=new AbortController();requestRef.current=controller;
-    recordStat("route_search", "request", lang);
+    recordStat("route_search", "request", lang, null, destination.trim());
     try {
       const params = new URLSearchParams({ to, mode });
       if (code) params.set("toCode", code);

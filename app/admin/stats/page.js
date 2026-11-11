@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ANALYTICS_EXCLUDED_KEY } from "../../lib/analytics-preference";
 import { FACILITY_LABELS, isFacilityContext } from "../../lib/facility-stat";
+import { getStationByCode } from "../../lib/station-master";
 
 const KST = "Asia/Seoul";
 const dateKst = (value) => new Intl.DateTimeFormat("en-CA", { timeZone: KST, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
@@ -22,6 +23,7 @@ const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"
 const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action"].includes(e.event_type);
 const gateActions = {e01:"E-01 카드 중복",e03:"E-03 하차 처리 누락",e04:"E-04 승차 처리 누락",e05:"E-05 이용시간 초과",e06:"E-06 카드 사용 불가",e14:"E-14 잔액 부족",e33:"E-33 당역 재승차",e44:"E-44 당역 재하차",opposite:"반대편 승강장",unknown:"오류 코드 모름",another:"다른 오류 선택",office:"고객안전실 위치",details_open:"오류 상세 안내 보기"};
 const eventTime = e => e.occurred_at || e.created_at;
+const baseStationLabel = context => {const code=typeof context==="string"&&context.startsWith("station:")?context.slice(8):"";const st=getStationByCode(code);return st?st.line+"호선 "+st.names.ko:null;};
 const screenTime = ms => { if(ms == null)return "미측정"; const seconds=Math.floor(ms/1000); return seconds<1?"1초 미만":[seconds>=3600?Math.floor(seconds/3600)+"시간":"",seconds>=60?Math.floor(seconds%3600/60)+"분":"",seconds%60?seconds%60+"초":""].filter(Boolean).join(" "); };
 const countryLabels = {KR:"한국",JP:"일본",HK:"홍콩",SG:"싱가포르",US:"미국",CN:"중국",TW:"대만"};
 const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date(value));
@@ -84,12 +86,12 @@ export default function StatsPage() {
   const stats=useMemo(()=>{
     const counts={},facilities={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
     for(const r of rows){const d=dateKst(r.created_at);const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(r.created_at));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
-      if(r.event_type==="page_view")visits++;
+      if(r.event_type==="page_view"&&r.event_name==="visit")visits++;
       if(r.event_type==="ai_question")questions++;
       if(r.event_type==="route_search"&&r.event_name==="request")routes++;
       if(r.event_type==="quick_menu"){if(r.event_name==="facility"&&isFacilityContext(r.context))facilities[r.context]=(facilities[r.context]||0)+1;else counts[r.event_name]=(counts[r.event_name]||0)+1;}
       if(r.event_type==="feedback"){feedback++;if(r.event_name==="solved")solved++;}
-      if(r.event_type==="page_view"||r.event_type==="quick_menu"||r.event_type==="ai_question")languages[r.language]=(languages[r.language]||0)+1;
+      if(r.event_type==="page_view"&&r.event_name==="visit"||r.event_type==="quick_menu"||r.event_type==="ai_question")languages[r.language]=(languages[r.language]||0)+1;
     }
     return {visits,questions,routes,counts,facilities,languages,hours,dates,feedback,solved};
   },[rows]);
@@ -152,7 +154,13 @@ export default function StatsPage() {
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",minWidth:180,verticalAlign:"top"}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
-                      const action=e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):e.event_type==="quick_menu"?(e.event_name==="facility"&&isFacilityContext(e.context)?"시설: "+FACILITY_LABELS[e.context]:(names[e.event_name]||e.event_name)):e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):e.event_type==="route_search"?"길찾기: "+({request:"요청",success:"성공",failure:"실패"}[e.event_name]||e.event_name):e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
+                      const stationLabel=baseStationLabel(e.context);
+                      const action=e.event_type==="page_view"?(e.event_name==="station_change"?"기준역 변경":"접속")+(stationLabel?": "+stationLabel:""):
+                        e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):
+                        e.event_type==="quick_menu"?(e.event_name==="facility"&&isFacilityContext(e.context)?"시설: "+FACILITY_LABELS[e.context]:(names[e.event_name]||e.event_name)):
+                        e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):
+                        e.event_type==="route_search"?(e.event_name==="request"?(e.question?"길찾기: "+e.question:"길찾기: 요청"):"길찾기: "+({success:"성공",failure:"실패"}[e.event_name]||e.event_name)):
+                        e.event_type==="feedback"?"피드백: "+({solved:"해결됨",not_solved:"미해결"}[e.event_name]||e.event_name):eventLabels[e.event_type]||e.event_type;
                       const contextLabel=e.event_type==="feedback"&&e.context?.startsWith("gate_")?gateActions[e.context.slice(5)]:e.event_type==="feedback"&&isFacilityContext(e.context)?FACILITY_LABELS[e.context]:null;
                       return <span key={e.id||i} title={timeKst(eventTime(e))+" · "+(langs[e.language]||e.language)} style={{display:"inline-block",background:"#eef5f3",color:"#285d52",borderRadius:6,padding:"2px 5px",whiteSpace:"nowrap",fontSize:11}}>{contextLabel?contextLabel+" · ":""}{action}</span>;
                     })}</div>

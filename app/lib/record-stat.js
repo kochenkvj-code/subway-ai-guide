@@ -119,7 +119,7 @@ export function recordStat(event_type,event_name,language,context=null,question=
     lastEventTime=Math.max(Date.now(),lastEventTime+1);
     const event_id=window.crypto.randomUUID();
     const body=JSON.stringify({event_id,event_type,event_name,language,session_id:getVisitSessionId(),context,
-      question:event_type==="ai_question"&&typeof question==="string"?question.slice(0,500):null,
+      question:(event_type==="ai_question"||event_type==="route_search"&&event_name==="request")&&typeof question==="string"?question.trim().slice(0,500):null,
       occurred_at:new Date(lastEventTime).toISOString()});
     pendingEvents.set(event_id,{body,queuedAt:Date.now(),nextAttemptAt:0,attempts:0,sending:false});
     // Persist before starting any network work, including when going offline.

@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import V2Guide from './V2Guide';
+import {recordStat} from '../lib/record-stat';
 import {searchStationMaster,stationMaster} from '../lib/station-master';
 import {readStationEntry,stationEntryUrl} from '../lib/station-entry';
 import './station-entry.css';
@@ -22,9 +23,11 @@ export default function StationEntry({basePath='/v2',selectorEnabled=true}){
  const t=ui[entry?.language||'ko'];
  function open(kind){setQuery('');setLine(entry?.station?.line||'');setNotice('');setAddressesOpen(false);setPanel(kind);}
  function choose(station){
+  if(station.stationCode===entry?.code){setPanel(null);return;}
+  recordStat('page_view','station_change',entry?.language||'ko','station:'+station.stationCode);
   const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:station.stationCode,language:language.current});
-  window.history.pushState({sagV2:true,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url);
-  const next=readStationEntry(url);setEntry(next);setNotice('');
+  window.history.pushState({sagV2:true,sagStationSwitch:true,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url);
+  const next=readStationEntry(url);setEntry(next);setNotice('');setPanel(null);
  }
  function changedLanguage(lang){language.current=lang;setEntry(previous=>({...previous,language:lang}));}
  async function copy(value,input){try{await navigator.clipboard.writeText(value);setNotice(t.copied);}catch{input?.focus();input?.select();setNotice(t.manual);}}

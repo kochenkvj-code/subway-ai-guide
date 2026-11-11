@@ -90,12 +90,12 @@ test('raw route_station value is preserved independently of multilingual mapping
  const duplicates=inspectRouteStationMetadata('<route_station>을지로입구</route_station>\n<route_station>市厅</route_station>');
  assert.deepEqual(Array.from(duplicates.rawRouteStationValues),['을지로입구','市厅']);
 });
-test('raw Gemini station diagnostics appear in V2 including failed searches',()=>{
+test('route station diagnostics remain available to parsing but are never shown to passengers',()=>{
  assert.match(api,/inspectRouteStationMetadata\(text,candidate\?\.finishReason\|\|null\)/);
  assert.match(api,/\.\.\.routeStationDebug/);
- assert.match(page,/rawRouteStationValues\?\.length/);
- assert.match(page,/rawRouteStationTagSeen/);
- assert.match(page,/rl-route-station-debug/);
+ assert.doesNotMatch(page,/rawRouteStationValues\?\.length/);
+ assert.doesNotMatch(page,/rawRouteStationTagSeen/);
+ assert.doesNotMatch(page,/className="rl-route-station-debug"/);
  assert.match(css,/\.rl-route-station-debug/);
 });
 test('freeform answer survives absent tags, invalid station, ambiguous answer, or truncation',()=>{
@@ -317,13 +317,11 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(css.includes('line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
 });
-test('Gemini route_station metadata shows exact raw value as centered full tags',()=>{
- assert.ok(page.includes('className="rl-route-station-tag"'));
- assert.ok(page.includes("{'<route_station>'}"));
- assert.ok(page.includes("{'</route_station>'}"));
- assert.ok(page.includes('value||RAW_STATION_COPY[lang].empty'));
- assert.ok(css.includes('.rl-route-station-debug{display:flex;flex-direction:column;align-items:center;justify-content:center;'));
- assert.ok(css.includes('.rl-route-station-tag{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;'));
+test('internal route_station diagnostics are not exposed below the recommended stop',()=>{
+ assert.ok(!page.includes('className="rl-route-station-tag"'));
+ assert.ok(!page.includes('className="rl-route-station-debug"'));
+ assert.ok(!page.includes('RAW_STATION_COPY'));
+ assert.ok(page.includes('className="rl-recommend-station"'));
 });
 test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
  assert.ok(page.includes('className="rl-recommend-station"'));
@@ -445,4 +443,11 @@ test('selected language rules explicitly exempt Korean route_station metadata',(
  }
  assert.match(api,/EXCEPTION: route_station MUST contain one exact official Korean station name/);
  assert.match(api,/route_station MUST remain one exact official Korean station name/);
+});
+
+test('wayfinding logs only the route request destination and success or failure outcomes',()=>{
+ assert.match(page,/recordStat\('route_search','request',lang,null,term\)/);
+ assert.match(page,/recordStat\('route_search','success',lang\)/);
+ assert.match(page,/recordStat\('route_search','failure',lang\)/);
+ assert.doesNotMatch(page,/RAW_STATION_COPY/);
 });
