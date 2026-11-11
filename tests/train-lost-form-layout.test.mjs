@@ -114,18 +114,24 @@ test('live rail test page and the selected candidate affordance do not include S
  assert.match(page,/trainDemo=0/);
 });
 
-test('live map precedes candidates, candidate locations are explained and redundant controls are absent',async()=>{
+test('live map precedes ranked candidates, and redundant guidance and phone action are absent',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  const mapAt=ui.indexOf('className="tl-live-map-main"');
  const candidateAt=ui.indexOf('className="tl-live-candidate-header"');
  const selectionActionAt=ui.indexOf('className="tl-next-panel"');
  assert.ok(mapAt>=0&&candidateAt>mapAt&&selectionActionAt>candidateAt,'map → candidate cards → action');
  assert.match(ui,/className="tl-candidate-location"/);
- assert.match(ui,/className="tl-candidate-location-note"/);
- assert.match(ui,/positionExplain/);
+ assert.doesNotMatch(ui,/className="tl-candidate-location-note"/);
+ assert.match(ui,/candidateRankLabel\(index,lang\)/);
+ assert.match(ui,/tl-candidate-rank/);
+ assert.match(styles,/tl-candidate-rank-first/);
+ assert.doesNotMatch(ui,/href="tel:15771234"/);
+ assert.doesNotMatch(ui,/className="tl-call"/);
+ assert.doesNotMatch(diagram,/className="tf-board-caption"/);
+ assert.doesNotMatch(diagram,/현재 위치는 역 단위 추정이며 실제 탑승 열차는 미확정입니다/);
  assert.doesNotMatch(ui,/className="tl-candidate-hint"/);
  assert.doesNotMatch(ui,/className="tl-selection-summary"/);
  assert.doesNotMatch(diagram,/후보 열차 위치로|Go to candidates|onClick=\{toCandidates\}/);
  assert.match(diagram,/onClick=\{\(\)=>\{setFocusedTrain\(number\);onPick\(cand\);\}\}/);
- assert.match(styles,/tl-candidate-location-note/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-rank/);
 });
