@@ -372,3 +372,23 @@ test('handoff train summary shows train number and next-station direction, never
  assert.match(styles,/\.tl-handoff-grid\{[\s\S]*?grid-auto-rows:1fr;/);
  assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
 });
+
+test('completed stages show checkmarks while current and upcoming stages retain numbers',()=>{
+ assert.match(ui,/i\+1<stageNumber\?'✓':i\+1/);
+ assert.match(ui,/aria-label=\{i\+1<stageNumber\?/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step\.done b\{[\s\S]*?background:#16865b/);
+});
+test('English destination shows two readable lines inside compact train with full label outside',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/compactDestination=lang==='en'&&translatedDestination/);
+ assert.match(diagram,/tf-train-destination-en/);
+ assert.match(diagram,/tf-focused-destination/);
+ assert.match(diagram,/Destination: \{focusedDestination/);
+ assert.match(styles,/\.tf-h-stop \.tf-train-destination-en\{/);
+ assert.match(styles,/-webkit-line-clamp:2/);
+ assert.doesNotMatch(styles,/\.tf-redesign\.tl-three-stage \.tf-h-stop \.tf-train\{[^}]*width:/);
+});
+test('SMS message has exactly one blank line between title and alighting timestamp',async()=>{
+ const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(model,/const message=\(chosen\|\|handoffUnknown\)\?\[\s*z\.title,\s*'',\s*z\.time/);
+});

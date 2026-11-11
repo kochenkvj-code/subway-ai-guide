@@ -168,11 +168,14 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const destinationLabel=translatedDestination?
     (lang==='ko'?translatedDestination+'행':lang==='ja'?translatedDestination+'行':lang==='zh'?translatedDestination+'方向':'To '+translatedDestination):
     (lang==='ko'?'행선 미확인':lang==='ja'?'行先不明':lang==='zh'?'终点未知':'Destination unknown');
+  // Short label inside compact English trains; the full destination stays
+  // available in the title/accessible label and the selected-train detail.
+  const compactDestination=lang==='en'&&translatedDestination?translatedDestination:destinationLabel;
   // Keep the provider's train number unchanged. Adding a K prefix without
   // verified source information could misidentify the train.
   const tooltip=destinationLabel+' · '+p.trainNo+' · '+getTime(p.receivedAt,lang);
-  const content=<span className="tf-train-inner">
-    <span className="tf-train-destination" title={destinationLabel}>{destinationLabel}</span>
+  const content=<span className={'tf-train-inner'+(lang==='en'?' tf-train-inner-en':'')}>
+    <span className={'tf-train-destination'+(lang==='en'?' tf-train-destination-en':'')} title={destinationLabel}>{compactDestination}</span>
     <strong className="tf-train-number">{p.trainNo}</strong>
   </span>;
   return cand?<button key={number+'-'+p.direction} type="button" title={tooltip}
@@ -233,6 +236,9 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
       </div>
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
+    {lang==='en'&&focusedPosition&&<div className="tf-focused-destination" aria-live="polite">
+     <strong>{focusedPosition.trainNo}</strong><span>Destination: {focusedDestination?'To '+display(focusedDestination):'Unknown'}</span>
+    </div>}
 
    </div>
  </section>;

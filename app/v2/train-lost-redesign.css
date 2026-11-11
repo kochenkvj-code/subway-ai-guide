@@ -1045,3 +1045,35 @@
 .tf-redesign.tl-three-stage .tl-handoff-grid .tl-handoff-cell{
  min-width:0;min-height:0;
 }
+
+/* Staged: completed step numbers become checkmarks; current keeps number. */
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.done b{
+ background:#16865b;color:#fff;font-size:13px;font-weight:900;
+}
+/* English terminus legibility in the ORIGINAL extra-compact 67–69px train.
+   Keep chip widths/heights and the rail untouched. */
+.tf-redesign.tl-three-stage .tf-h-stop .tf-train-inner-en{
+ padding:2px 10px 2px 5px;gap:0;justify-content:center;
+}
+.tf-redesign.tl-three-stage .tf-h-stop .tf-train-destination-en{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+ line-clamp:2;white-space:normal;overflow:hidden;text-overflow:clip;
+ overflow-wrap:anywhere;word-break:normal;
+ width:100%;max-height:2.25em;font-size:9.4px;line-height:1.11;
+ font-weight:800;flex:0 1 auto;
+}
+.tf-redesign.tl-three-stage .tf-h-stop .tf-train-inner-en .tf-train-number{
+ flex:none;font-size:11px;line-height:1.05;
+}
+.tf-redesign.tl-three-stage .tf-focused-destination{
+ display:flex;align-items:center;gap:7px;
+ border-top:1px solid #30445b;padding:8px 10px;
+ background:#1b2c40;color:#dfeafa;min-width:0;
+ font-size:11px;line-height:1.35;
+}
+.tf-redesign.tl-three-stage .tf-focused-destination strong{
+ flex:none;color:#9df2d4;font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tf-focused-destination span{
+ flex:1;min-width:0;overflow-wrap:anywhere;
+}

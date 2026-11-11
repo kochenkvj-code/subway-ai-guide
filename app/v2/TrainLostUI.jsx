@@ -100,8 +100,9 @@ export default function TrainLostUI(p){
     return <button type="button" key={label}
      className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
      aria-current={i+1===stageNumber?'step':undefined}
+     aria-label={i+1<stageNumber?label+' · '+(lang==='ko'?'완료':lang==='ja'?'完了':lang==='zh'?'已完成':'Completed'):label}
      disabled={busy||!available} onClick={goToStep}>
-     <b>{i+1}</b>{label}
+     <b aria-hidden="true">{i+1<stageNumber?'✓':i+1}</b>{label}
     </button>;
    })}
   </nav>
