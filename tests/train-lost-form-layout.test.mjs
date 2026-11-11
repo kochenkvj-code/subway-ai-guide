@@ -135,3 +135,20 @@ test('live map precedes ranked candidates, and redundant guidance and phone acti
  assert.match(diagram,/onClick=\{\(\)=>\{setFocusedTrain\(number\);onPick\(cand\);\}\}/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-rank/);
 });
+
+test('third-stage handoff emphasizes composing SMS to the verified operator number',async()=>{
+ const finder=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(ui,/className="tl-message-heading"/);
+ assert.match(ui,/className="tl-copy-compact"/);
+ assert.match(ui,/className="tl-sms-primary"/);
+ assert.match(ui,/sms:'1577-1234로 문자 작성'/);
+ assert.match(ui,/문자 앱에서 내용을 확인한 뒤 직접 전송하세요/);
+ assert.doesNotMatch(ui,/문자 수신 여부는 확인되지/);
+ assert.doesNotMatch(ui,/className="tl-send-options"/);
+ assert.ok(ui.indexOf('className="tl-copy-compact"')<ui.indexOf('className="tl-message"'));
+ assert.ok(ui.indexOf('className="tl-sms-primary"')>ui.indexOf('className="tl-message"'));
+ assert.match(styles,/\.tf-redesign \.tl-copy-compact\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary\{/);
+ assert.match(finder,/window\.location\.href='sms:15771234'/);
+ assert.match(finder,/Opens a user-controlled SMS draft only/);
+});
