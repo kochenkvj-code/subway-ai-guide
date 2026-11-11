@@ -30,6 +30,8 @@ const branchWarningLabel={
  ja:'分岐経路の確認が必要',zh:'需确认支线路径'
 };
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
+const candidateRankLabel=(index,lang)=>lang==='ko'?'추정 '+(index+1)+'순위':lang==='ja'?'推定 第'+(index+1)+'候補':lang==='zh'?'推测第'+(index+1)+'候选':'Estimated #'+(index+1);
+const selectedLabel={ko:'선택',en:'Selected',ja:'選択中',zh:'已选'};
 
 const flowCopy={
  ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'위의 후보 열차를 선택해 주세요.',positionExplain:'최근 확인 위치는 실시간 열차정보에 마지막으로 기록된 역입니다. 실제 위치와 차이가 있을 수 있으며, 후보는 탑승 열차로 확정되지 않았습니다.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
@@ -149,14 +151,12 @@ export default function TrainLostUI(p){
    {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
-      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small>
-      {selected&&<small className="tl-candidate-selected-badge">✓ {u.chosen}</small>}
+      <span className="tl-candidate-toprow"><span className={'tl-candidate-rank'+(index===0?' tl-candidate-rank-first':'')}>{candidateRankLabel(index,lang)}</span>{selected&&<small className="tl-candidate-selected-badge">✓ {selectedLabel[lang]||selectedLabel.ko}</small>}</span>
       <strong>#{c.number}</strong><span className="tl-candidate-location"><small>{u.position}</small><b>{localized(current&&selected?current.station:c.station,selection.line,lang)}</b></span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
    </div>}
-   {!busy&&searched&&!error&&candidates.length>0&&<p className="tl-candidate-location-note">{v.positionExplain}</p>}
    {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''} <p>{v.noCandidate}</p></div>}
    {directionWarning&&<p className="tl-note">{t.directionUnknown}</p>}
    {!busy&&<section className="tl-next-panel">
@@ -180,7 +180,7 @@ export default function TrainLostUI(p){
     {chosen&&recommended.stations.length>0&&<p className="tl-note">{u.stopsAhead}: {recommended.stations.map(st=>localized(st,selection.line,lang)).join(' · ')}</p>}
     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
     <div className="tl-label">{u.message}</div><div className="tl-message">{message}</div>
-    <div className="tl-send-options"><button type="button" className="tl-copy" onClick={copyMessage}>{copyStatus?'✓ '+u.copied:u.copy}</button><button type="button" className="tl-sms" onClick={sms}>{u.sms}</button></div><a className="tl-call" href="tel:15771234">☎ {u.call}</a>
+    <div className="tl-send-options"><button type="button" className="tl-copy" onClick={copyMessage}>{copyStatus?'✓ '+u.copied:u.copy}</button><button type="button" className="tl-sms" onClick={sms}>{u.sms}</button></div>
     <p className="tl-caution">{u.smsCaution}<br/>{u.operating}</p>
    </section>
    <div className="tl-reset-row"><button type="button" className="tl-secondary" onClick={onBackToResults}>{v.handoffBack}</button><button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button></div>
