@@ -495,3 +495,26 @@
 .tf-redesign.tl-three-stage .tl-candidate-chip[aria-pressed="true"] .tl-candidate-rank{
  background:#d7f2e3;border-color:#4baa8b;color:#076d52;
 }
+
+/* Handoff: one clear outbound SMS action; copying is a quiet secondary control
+   attached to the prepared message itself. */
+.tf-redesign .tl-message-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;margin:13px 0 7px;
+}
+.tf-redesign .tl-message-heading .tl-label{margin:0}
+.tf-redesign .tl-copy-compact{
+ display:inline-flex;align-items:center;justify-content:center;flex:none;
+ min-height:31px;padding:5px 10px;border:1px solid #cbdfe5;
+ border-radius:8px;background:#eff6f8;color:#326276;
+ font-size:10px;font-weight:800;cursor:pointer;
+}
+.tf-redesign .tl-copy-compact:focus-visible,
+.tf-redesign .tl-sms-primary:focus-visible{outline:3px solid #59bd9f;outline-offset:2px}
+.tf-redesign .tl-sms-primary{
+ display:flex;align-items:center;justify-content:center;gap:6px;
+ margin:12px 0 0;padding:12px 14px;width:100%;min-height:49px;
+ border:1px solid #087d65;border-radius:11px;background:#0d856b;
+ color:#fff;font-size:13px;font-weight:900;line-height:1.4;text-align:center;cursor:pointer;
+ box-shadow:0 4px 12px rgba(12,122,97,.14);
+}
+.tf-redesign .tl-sms-primary:hover{background:#0a725d}
