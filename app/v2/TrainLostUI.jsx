@@ -142,10 +142,12 @@ export default function TrainLostUI(p){
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
    {!busy&&searched&&!error&&<div className="tl-live-candidate-header"><strong>{v.candidateCount} {candidates.length}{u.trains}</strong><span>{v.secondary}</span></div>}
-   {!busy&&searched&&!error&&candidates.length>0&&<div className="tl-candidate-strip" role="group" aria-label={v.candidateCount}>
+   {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
-      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small><strong>#{c.number}</strong><span>{localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
+      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small>
+       {selected&&<small className="tl-candidate-selected-badge">✓ {u.chosen}</small>}
+       <strong>#{c.number}</strong><span>{localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
@@ -183,6 +185,6 @@ export default function TrainLostUI(p){
    </section>
    <div className="tl-reset-row"><button type="button" className="tl-secondary" onClick={onBackToResults}>{v.handoffBack}</button><button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button></div>
   </>}
-  <p className="tl-status-foot">SOURCE · {u.info}</p>
+  
  </div>;
 }
