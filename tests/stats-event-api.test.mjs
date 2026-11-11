@@ -33,3 +33,22 @@ test('V2 production menus are accepted alongside existing legacy menu events',as
   assert.equal(stored.event_name,name);assert.equal(stored.language,'ja');
  }
 });
+
+test('route queries and validated base-station context persist without saving arbitrary context',async()=>{
+ const f=await fixture('app/api/stats/event/route.js');
+ const req=await f.api.POST(request({...data,event_type:'route_search',event_name:'request',language:'ko',question:'신라스테이 구로',context:'PRIVATE'}));
+ assert.equal(req.status,204);
+ let stored=JSON.parse(f.writes[0].options.body);
+ assert.equal(stored.question,'신라스테이 구로');
+ assert.equal(stored.context,null);
+ assert.equal((await f.api.POST(request({...data,event_type:'page_view',event_name:'visit',context:'station:0154'}))).status,204);
+ stored=JSON.parse(f.writes[1].options.body);
+ assert.equal(stored.context,'station:0154');
+ assert.equal((await f.api.POST(request({...data,event_type:'page_view',event_name:'station_change',context:'station:0155'}))).status,204);
+ stored=JSON.parse(f.writes[2].options.body);
+ assert.equal(stored.context,'station:0155');
+ assert.equal((await f.api.POST(request({...data,event_type:'page_view',event_name:'station_change',context:'station:0155/private',question:'SECRET'}))).status,204);
+ stored=JSON.parse(f.writes[3].options.body);
+ assert.equal(stored.context,null);
+ assert.equal(stored.question,null);
+});
