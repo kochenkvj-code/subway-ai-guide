@@ -92,7 +92,7 @@ test('quick-time buttons sit above the slider so dragging never covers the short
 });
 
 test('exactly the selected train-lost stage receives the strong active styling',()=>{
- assert.match(ui,/className=\{'tl-step'\+\(showTrip\?' tl-step-with-trip':''\)\+\(i\+1===stageNumber\?' current'/);
+ assert.match(ui,/className=\{'tl-step'\+\(i\+1===stageNumber\?' current'/);
  assert.match(ui,/aria-current=\{i\+1===stageNumber\?'step':undefined\}/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.current,\s*\.tf-redesign\.tl-three-stage \.tl-stepbar button\.tl-step\.current:not\(:disabled\):hover\{\s*background:#176c50;border-color:#176c50;color:#fff;/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.done\{\s*background:#eff8f2/);
@@ -173,8 +173,8 @@ test('results emphasize choosing a train, with compact live refresh controls onl
 test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
  const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
- assert.doesNotMatch(results,/className="tl-search-context/);
- assert.match(ui,/className="tl-step-trip-detail"/);
+ assert.match(results,/className="tl-search-context tl-search-context-compact tl-search-context-stacked"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-detail"/);
  assert.doesNotMatch(handoff,/className="tl-search-context"/);
  assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
  assert.match(handoff,/className="tl-handoff-notices"/);
@@ -238,11 +238,10 @@ test('all three stages share concise headers, with third stage review heading an
  assert.match(styles,/\.tl-hero p\{/);
 });
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
- assert.match(ui,/className="tl-step-trip-detail"/);
- assert.match(ui,/className="tl-step-trip-clock"/);
- assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
+ assert.match(ui,/className="tl-route-summary"/);
+ assert.match(ui,/className="tl-time-summary-inline"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-stepbar \.tl-step-trip-clock\{/);
+ assert.match(styles,/\.tl-search-context-stacked \.tl-route-summary\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
@@ -288,21 +287,28 @@ test('selected train uses only an accessible checkmark and compact card width',(
  assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{/);
  assert.match(styles,/flex:0 0 132px/);
 });
-test('three equal-width steps retain only alighting time in compact editable first tile',()=>{
- assert.match(ui,/const showTrip=stage==='results'&&i===0/);
- assert.match(ui,/const tripText=v\.time\+' '\+displayTime/);
+test('equal-width steps keep plain labels, and result displays route then alighting time',()=>{
  assert.match(ui,/className="tl-step-heading"/);
- assert.match(ui,/className="tl-step-trip-detail"/);
- assert.match(ui,/className="tl-step-trip-clock"/);
- assert.doesNotMatch(ui,/className="tl-step-trip-line"/);
- assert.doesNotMatch(ui,/className="tl-step-trip-origin"/);
- assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
- assert.match(ui,/aria-label=\{showTrip\?label\+' · '\+tripText\+' · '\+u\.change:undefined\}/);
- assert.doesNotMatch(ui,/className="tl-stepbar-trip"/);
- assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
+ assert.doesNotMatch(ui,/const showTrip=stage==='results'/);
+ assert.doesNotMatch(ui,/tl-step-trip-detail/);
+ assert.match(ui,/className="tl-search-context tl-search-context-compact tl-search-context-stacked"/);
+ assert.match(ui,/className="tl-route-summary"/);
+ assert.match(ui,/className="tl-time-summary-inline"/);
+ assert.ok(ui.indexOf('className="tl-route-summary"')<ui.indexOf('className="tl-time-summary-inline"'));
  assert.match(styles,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
  assert.match(styles,/height:52px;min-height:52px;max-height:52px/);
- assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{\s*display:flex;align-items:center;justify-content:center/);
+});
+test('elapsed-time question matches 12px form labels on normal and small screens',()=>{
+ assert.match(styles,/color:#39554e;font-size:12px;font-weight:800/);
+ assert.match(styles,/\.tl-time-field \.tl-time-question\{font-size:12px\}/);
+ assert.doesNotMatch(styles,/\.tl-time-field \.tl-time-question\{font-size:10\.5px\}/);
+});
+test('handoff includes plain direction and outgoing message follows time, station, direction, train',()=>{
+ assert.match(ui,/className="tl-handoff-direction"/);
+ const message=model.slice(model.indexOf('const message=(chosen||handoffUnknown)?['));
+ const parts=["z.time+': '","z.station+': '","z.direction+': '","z.train+': '"];
+ const at=parts.map(part=>message.indexOf(part));
+ assert.ok(at.every(x=>x>=0)&&at.every((x,i)=>i===0||x>at[i-1]));
 });
 test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
  assert.doesNotMatch(ui,/className="tl-chosen-car"/);

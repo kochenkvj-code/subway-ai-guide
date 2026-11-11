@@ -68,6 +68,7 @@ export default function TrainLostUI(p){
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
+ const directionSummary=next?(lang==='en'?'toward '+way:way+(lang==='ja'?'方面':lang==='zh'?'方向':' 방면')):'';
  const displayTime=when.time;
  const stageNumber=stage==='input'?1:stage==='results'?2:3;
  const firstCandidate=Boolean(chosen&&candidates.length&&compareNo(chosen.number)===compareNo(candidates[0].number));
@@ -81,18 +82,11 @@ export default function TrainLostUI(p){
     const target=['input','results','handoff'][i];
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
-    const showTrip=stage==='results'&&i===0;
-    const tripText=v.time+' '+displayTime;
     return <button type="button" key={label}
-     className={'tl-step'+(showTrip?' tl-step-with-trip':'')+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
+     className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
      aria-current={i+1===stageNumber?'step':undefined}
-     aria-label={showTrip?label+' · '+tripText+' · '+u.change:undefined}
-     title={showTrip?tripText+' · '+u.change:undefined}
      disabled={busy||!available} onClick={goToStep}>
-     <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
-     {showTrip&&<span className="tl-step-trip-detail" aria-hidden="true">
-      <span className="tl-step-trip-clock">{displayTime}</span>
-     </span>}
+     <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span></span>
     </button>;
    })}
   </nav>
@@ -163,6 +157,10 @@ export default function TrainLostUI(p){
    <div className="tl-search-footer"><button type="button" className="tl-primary" disabled={!canSearch} onClick={onSearch}>{u.search} →</button><p className="tl-footer-hint">{canSearch?v.timeRef+': '+displayTime:u.inputHint}</p></div>
   </>}
   {stage==='results'&&<>
+   <div className="tl-search-context tl-search-context-compact tl-search-context-stacked">
+    <div className="tl-route-summary"><span className="tl-line-badge">{selection.line}</span><strong>{selectionLabel} → {directionSummary}</strong></div>
+    <div className="tl-time-summary-inline"><span>{v.time}</span><strong>{displayTime}</strong></div>
+   </div>
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
@@ -192,7 +190,7 @@ export default function TrainLostUI(p){
      <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div>
      <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</strong></div>
      <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
-     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong>{next&&<span className="tl-handoff-direction">{directionSummary}</span>}</div>
     </div>
     {chosen&&recommended.stations.length>0&&<p className="tl-note">{u.stopsAhead}: {recommended.stations.map(st=>localized(st,selection.line,lang)).join(' · ')}</p>}
     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}

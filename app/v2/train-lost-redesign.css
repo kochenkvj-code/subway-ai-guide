@@ -322,7 +322,7 @@
 }
 .tf-redesign.tl-three-stage .tl-time-field .tl-time-question{
  min-width:0;overflow:hidden;text-overflow:ellipsis;
- color:#39554e;font-size:11.5px;font-weight:750;line-height:1.4
+ color:#39554e;font-size:12px;font-weight:800;line-height:1.4
 }
 .tf-redesign.tl-three-stage .tl-time-field .tl-time-range{
  flex:none;font-size:10px;color:#84958f;font-weight:550
@@ -360,7 +360,7 @@
 @media(max-width:380px){
  .tf-redesign.tl-three-stage .tl-time-field .tl-time-topline{gap:4px}
  .tf-redesign.tl-three-stage .tl-time-field .tl-time-prompt{gap:3px}
- .tf-redesign.tl-three-stage .tl-time-field .tl-time-question{font-size:10.5px}
+ .tf-redesign.tl-three-stage .tl-time-field .tl-time-question{font-size:12px}
  .tf-redesign.tl-three-stage .tl-time-field .tl-time-range{font-size:9px}
  .tf-redesign.tl-three-stage .tl-time-field .tl-time-value{font-size:13px}
  .tf-redesign.tl-three-stage .tl-time-field .tl-times{gap:4px}
@@ -1043,4 +1043,27 @@
  .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
   flex-basis:122px;min-width:122px;max-width:132px;
  }
+}
+
+/* Unified question-label size, compact two-row train context and plain direction in review. */
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-question{overflow:visible;text-overflow:clip;white-space:normal}
+.tf-redesign.tl-three-stage .tl-search-context.tl-search-context-stacked{
+ display:flex;flex-direction:column;align-items:stretch;gap:5px;
+ margin:0 0 12px;padding:10px 12px;background:#f6faf8;
+ border:1px solid #dce9e4;border-radius:12px;
+}
+.tf-redesign.tl-three-stage .tl-search-context-stacked .tl-route-summary{
+ display:flex;align-items:center;gap:8px;min-width:0;color:#244a4a;font-size:13px;
+}
+.tf-redesign.tl-three-stage .tl-search-context-stacked .tl-route-summary strong{
+ min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.4;font-size:13px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-search-context-stacked .tl-time-summary-inline{
+ display:flex;align-items:center;gap:8px;padding-left:31px;color:#667e78;font-size:11px;line-height:1.4;
+}
+.tf-redesign.tl-three-stage .tl-search-context-stacked .tl-time-summary-inline strong{
+ color:#176e56;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tl-handoff-cell .tl-handoff-direction{
+ display:block;margin-top:4px;color:#13745b;font-size:12px;font-weight:750;line-height:1.4;
 }
