@@ -32,10 +32,10 @@ const branchWarningLabel={
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 
 const flowCopy={
- ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'열차 배치도 또는 위 후보에서 열차를 선택하세요.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
- en:{steps:['Enter details','Find the train','Handoff'],requiredMissing:'Required fields missing',requiredReady:'Ready · tap Find the train',requiredCar:'Car',requiredDirection:'Direction',requiredDoor:'Door',requiredItem:'Lost item',time:'Alighting time',timeGuide:'Relative time is recalculated when you start the search.',timeExact:'Edit exact alighting time',additional:'Where item was left (optional)',candidateCount:'Live candidates',candidateHelp:'Tap a candidate to focus it in the live train diagram.',mapTitle:'Live train positions',confirm:'Continue with this train',selectHint:'Choose a train above or in the live diagram.',chosenPosition:'Selected train last seen',fallback:'Handoff without a confirmed train',handoffBack:'← Back to live train view',quickEdit:'← Edit information',secondary:'A candidate is not a verified boarding record.',noCandidate:'You can still hand off details without a train number.',timeRef:'Alighting time used in search'},
- ja:{steps:['情報入力','列車確認','連絡内容'],requiredMissing:'必須項目が未入力',requiredReady:'入力完了 · 列車確認へ',requiredCar:'車両位置',requiredDirection:'進行方向',requiredDoor:'ドア',requiredItem:'忘れ物',time:'下車時刻',timeGuide:'「何分前」は検索時点で再計算されます。',timeExact:'正確な下車時刻を入力',additional:'忘れ物を置いた場所（任意）',candidateCount:'列車候補',candidateHelp:'候補を押すと下の列車位置図で強調します。',mapTitle:'リアルタイム列車位置',confirm:'この列車の情報で続ける',selectHint:'候補または列車位置図から選択してください。',chosenPosition:'選択列車の最新確認位置',fallback:'列車番号未確定で連絡',handoffBack:'← 列車位置に戻る',quickEdit:'← 情報を修正',secondary:'候補は乗車列車として確定していません。',noCandidate:'列車番号なしでも忘れ物情報を連絡できます。',timeRef:'検索に使用する下車時刻'},
- zh:{steps:['填写信息','确认列车','转交信息'],requiredMissing:'必填项未完成',requiredReady:'填写完成 · 点击确认列车',requiredCar:'车厢',requiredDirection:'行驶方向',requiredDoor:'车门',requiredItem:'遗失物品',time:'下车时间',timeGuide:'搜索时会重新计算“几分钟前”。',timeExact:'修改准确下车时间',additional:'物品放置位置（选填）',candidateCount:'实时候选',candidateHelp:'点击候选列车，在下方实时图中突出显示。',mapTitle:'实时列车位置',confirm:'用所选列车继续',selectHint:'请在候选列表或实时图中选择列车。',chosenPosition:'所选列车最近位置',fallback:'无法确认车次时转交',handoffBack:'← 返回实时列车图',quickEdit:'← 修改信息',secondary:'候选列车不代表实际乘车记录。',noCandidate:'没有车次也可以转交遗失信息。',timeRef:'搜索使用的下车时间'}
+ ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치 확인',confirm:'선택한 열차 정보로 계속하기',selectHint:'위의 후보 열차를 선택해 주세요.',positionExplain:'최근 확인 위치는 실시간 열차정보에 마지막으로 기록된 역입니다. 실제 위치와 차이가 있을 수 있으며, 후보는 탑승 열차로 확정되지 않았습니다.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
+ en:{steps:['Enter details','Find the train','Handoff'],requiredMissing:'Required fields missing',requiredReady:'Ready · tap Find the train',requiredCar:'Car',requiredDirection:'Direction',requiredDoor:'Door',requiredItem:'Lost item',time:'Alighting time',timeGuide:'Relative time is recalculated when you start the search.',timeExact:'Edit exact alighting time',additional:'Where item was left (optional)',candidateCount:'Live candidates',candidateHelp:'Tap a candidate to focus it in the live train diagram.',mapTitle:'Live train positions',confirm:'Continue with this train',selectHint:'Choose a candidate train above.',positionExplain:'Last reported position means the station most recently recorded by the live feed; the train may have moved. Candidates are not confirmed boarding records.',chosenPosition:'Selected train last seen',fallback:'Handoff without a confirmed train',handoffBack:'← Back to live train view',quickEdit:'← Edit information',secondary:'A candidate is not a verified boarding record.',noCandidate:'You can still hand off details without a train number.',timeRef:'Alighting time used in search'},
+ ja:{steps:['情報入力','列車確認','連絡内容'],requiredMissing:'必須項目が未入力',requiredReady:'入力完了 · 列車確認へ',requiredCar:'車両位置',requiredDirection:'進行方向',requiredDoor:'ドア',requiredItem:'忘れ物',time:'下車時刻',timeGuide:'「何分前」は検索時点で再計算されます。',timeExact:'正確な下車時刻を入力',additional:'忘れ物を置いた場所（任意）',candidateCount:'列車候補',candidateHelp:'候補を押すと下の列車位置図で強調します。',mapTitle:'リアルタイム列車位置',confirm:'この列車の情報で続ける',selectHint:'上の候補列車を選んでください。',positionExplain:'最新確認駅は列車位置情報に最後に記録された駅です。実際の位置とは異なる場合があり、乗車した列車と確定したわけではありません。',chosenPosition:'選択列車の最新確認位置',fallback:'列車番号未確定で連絡',handoffBack:'← 列車位置に戻る',quickEdit:'← 情報を修正',secondary:'候補は乗車列車として確定していません。',noCandidate:'列車番号なしでも忘れ物情報を連絡できます。',timeRef:'検索に使用する下車時刻'},
+ zh:{steps:['填写信息','确认列车','转交信息'],requiredMissing:'必填项未完成',requiredReady:'填写完成 · 点击确认列车',requiredCar:'车厢',requiredDirection:'行驶方向',requiredDoor:'车门',requiredItem:'遗失物品',time:'下车时间',timeGuide:'搜索时会重新计算“几分钟前”。',timeExact:'修改准确下车时间',additional:'物品放置位置（选填）',candidateCount:'实时候选',candidateHelp:'点击候选列车，在下方实时图中突出显示。',mapTitle:'实时列车位置',confirm:'用所选列车继续',selectHint:'请选择上方的候选列车。',positionExplain:'最近报告位置是实时数据最后记录的车站，列车可能已继续行驶。候选列车不代表已确认的乘车记录。',chosenPosition:'所选列车最近位置',fallback:'无法确认车次时转交',handoffBack:'← 返回实时列车图',quickEdit:'← 修改信息',secondary:'候选列车不代表实际乘车记录。',noCandidate:'没有车次也可以转交遗失信息。',timeRef:'搜索使用的下车时间'}
 };
 export default function TrainLostUI(p){
  const {lang='ko',t,active,demoMode,selection,selectionLabel,lines,neighbors,requiredDirection,matches,
@@ -141,26 +141,26 @@ export default function TrainLostUI(p){
    <section className="tl-search-context"><span>{lineName(selection.line+'호선',lang)} · {selectionLabel} → {way}</span><strong>◷ {v.time} {displayTime}</strong><button type="button" className="tl-link" onClick={onBack}>{u.change}</button></section>
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
-   {!busy&&searched&&!error&&<div className="tl-live-candidate-header"><strong>{v.candidateCount} {candidates.length}{u.trains}</strong><span>{v.secondary}</span></div>}
-   {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
-    {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
-     return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
-      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small>
-       {selected&&<small className="tl-candidate-selected-badge">✓ {u.chosen}</small>}
-       <strong>#{c.number}</strong><span>{localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
-      {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
-     </button>;
-    })}
-   </div>}
-   {!busy&&searched&&!error&&candidates.length>0&&<p className="tl-candidate-hint">{v.candidateHelp}</p>}
-   {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''} <p>{v.noCandidate}</p></div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
     <div className="tl-live-map-title"><strong>◎ {v.mapTitle}</strong><span>{u.refresh}</span></div>
     <TrainLiveDiagram line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
    </div>}
+   {!busy&&searched&&!error&&<div className="tl-live-candidate-header"><strong>{v.candidateCount} {candidates.length}{u.trains}</strong></div>}
+   {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
+    {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
+     return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
+      <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small>
+      {selected&&<small className="tl-candidate-selected-badge">✓ {u.chosen}</small>}
+      <strong>#{c.number}</strong><span>{u.position} · {localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
+      {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
+     </button>;
+    })}
+   </div>}
+   {!busy&&searched&&!error&&candidates.length>0&&<p className="tl-candidate-location-note">{v.positionExplain}</p>}
+   {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''} <p>{v.noCandidate}</p></div>}
    {directionWarning&&<p className="tl-note">{t.directionUnknown}</p>}
    {!busy&&<section className="tl-next-panel">
-    {chosen?<><div className="tl-selection-summary"><div><small>✓ {u.chosen}</small><strong>#{chosen.number}</strong></div><div><small>{v.chosenPosition}</small><strong>{current?localized(current.station,selection.line,lang):u.unknown}</strong></div></div><p className="tl-note">{v.secondary}</p><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
+    {chosen?<><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
     <><p className="tl-select-instruction">{candidates.length>0?v.selectHint:v.noCandidate}</p><button type="button" className="tl-primary tl-secondary-primary" onClick={onNone}>{v.fallback} →</button></>}
     <button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button>
     {chosen&&<button type="button" className="tl-text-option" onClick={onNone}>{v.fallback}</button>}
