@@ -190,7 +190,7 @@ test('branch candidates and navigation use the same directional topology',async(
  assert.match(diagram,/setFocusedTrain\(key\)/);
  assert.match(diagram,/const focusedStation=focusedPosition\?\.station\|\|''/);
  assert.match(diagram,/const path=useMemo\(\(\)=>trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
- assert.match(diagram,/the effect above centers it afterwards/);
+ assert.match(diagram,/if\(target\)centerTarget\(target\)/);
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
 });
 
