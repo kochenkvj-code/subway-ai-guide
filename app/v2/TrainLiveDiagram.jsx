@@ -189,8 +189,6 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     <span className="tf-live-tag">{demo?'DEMO':t.refresh}</span>
    </div>
    <div className="tf-board-summary">
-    <span><span className="tf-board-dot"/> {t.candidate} <strong>{candidates.length}</strong></span>
-    {selected&&<span>{lang==='ko'?'선택한 열차':t.selected}: <strong>#{selected.number}</strong></span>}
     <span className="tf-last-update">{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
     <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
    </div>
