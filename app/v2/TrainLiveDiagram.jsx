@@ -22,7 +22,7 @@ function latestTrains(positions,line){
  }
  return [...map.values()];
 }
-export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart,sectionTitle,instruction}){
+export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart,sectionTitle,instruction,alightingTime}){
  const clean=value=>trainStationKey(line,value);
  const display=value=>stationName(trainStationDisplay(line,value),lang)||value;
  const t=words[lang]||words.ko;
@@ -204,7 +204,10 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
     <div className="tf-h-topline">
-      <span><strong>{stationName(station,lang)||station}</strong> → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</span>
+      <span className="tf-alight-context">
+       <span className="tf-alight-route"><strong>{stationName(station,lang)||station}</strong> → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</span>
+       {alightingTime&&<small className="tf-alight-time">{lang==='ko'?'하차시각':lang==='en'?'Alighted at':lang==='ja'?'下車時刻':'下车时间'} {alightingTime}</small>}
+      </span>
       <span className="tf-h-swipe">← {lang==='ko'?'좌우로 밀어보기':lang==='en'?'Swipe sideways':lang==='ja'?'左右にスワイプ':'左右滑动'} →</span>
     </div>
     <div className="tf-board-viewport tf-board-horizontal" ref={viewportRef} tabIndex={0}>
