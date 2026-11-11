@@ -145,7 +145,7 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
  assert.match(ui,/smsTarget:'1577-1234'/);
  assert.match(ui,/className="tl-sms-primary-action"/);
  assert.match(ui,/className="tl-sms-primary-recipient"/);
- assert.match(ui,/문자 앱에서 내용을 확인한 뒤 직접 전송하세요/);
+ assert.match(ui,/문자 앱에서 내용을 확인한 뒤 전송해 주세요/);
  assert.doesNotMatch(ui,/문자 수신 여부는 확인되지/);
  assert.doesNotMatch(ui,/className="tl-send-options"/);
  assert.ok(ui.indexOf('className="tl-copy-compact"')<ui.indexOf('className="tl-message"'));
@@ -156,4 +156,29 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
  assert.match(styles,/\.tf-redesign \.tl-sms-primary-recipient\{/);
  assert.match(finder,/window\.location\.href='sms:15771234'/);
  assert.match(finder,/Opens a user-controlled SMS draft only/);
+});
+
+test('results emphasize choosing a train, with compact live refresh controls only',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/\{v\.candidatePrompt\}/);
+ assert.match(ui,/candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요'/);
+ assert.doesNotMatch(results,/<strong>\{v\.candidateCount\} \{candidates\.length\}/);
+ assert.doesNotMatch(results,/<span>\{u\.refresh\}<\/span>/);
+ assert.doesNotMatch(diagram,/tf-board-dot"\/> \{t\.candidate\}/);
+ assert.doesNotMatch(diagram,/\{selected&&<span>\{lang==='ko'\?'선택한 열차'/);
+ assert.match(diagram,/className="tf-last-update"/);
+ assert.match(diagram,/onClick=\{refresh\}/);
+ assert.match(styles,/\.tl-live-map-main \.tf-board-summary\{/);
+});
+test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/className="tl-search-context"/);
+ assert.doesNotMatch(handoff,/className="tl-search-context"/);
+ assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
+ assert.match(handoff,/className="tl-handoff-notices"/);
+ assert.match(handoff,/tl-handoff-notice-icon/);
+ assert.match(styles,/\.tl-handoff-notices\{/);
+ assert.match(ui,/실제 열차 수배·관제 협조는 담당 역 또는 콜센터에서 판단합니다/);
 });
