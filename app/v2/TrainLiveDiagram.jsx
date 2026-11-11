@@ -225,6 +225,5 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
 
    </div>
-   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {lang==='ko'?'현재 위치는 역 단위 추정이며 실제 탑승 열차는 미확정입니다.':t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
  </section>;
 }
