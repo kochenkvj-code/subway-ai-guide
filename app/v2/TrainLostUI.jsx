@@ -90,10 +90,10 @@ export default function TrainLostUI(p){
      title={showTrip?tripText+' · '+u.change:undefined}
      disabled={busy||!available} onClick={goToStep}>
      <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
-     {showTrip&&<span className="tl-step-trip-detail" style={{'--tl-line-color':pickerLineColor(selection.line)}}>
-      <span className="tl-step-trip-station"><span className="tl-step-trip-line">{String(selection.line).replace(/^0/,'')}</span><span className="tl-step-trip-origin">{selectionLabel}</span></span>
-      <span className="tl-step-trip-destination">→ {way}</span>
-      <span className="tl-step-trip-clock">◷ {displayTime}</span>
+     {showTrip&&<span className="tl-step-trip-detail" style={{'--tl-line-color':pickerLineColor(selection.line)}} aria-hidden="true">
+      <span className="tl-step-trip-line">{String(selection.line).replace(/^0/,'')}</span>
+      <span className="tl-step-trip-origin">{selectionLabel}</span>
+      <span className="tl-step-trip-clock">{displayTime}</span>
      </span>}
     </button>;
    })}
