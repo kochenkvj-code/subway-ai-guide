@@ -81,18 +81,11 @@ export default function TrainLostUI(p){
     const target=['input','results','handoff'][i];
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
-    const showTrip=stage==='results'&&i===0;
-    const tripText=v.time+' '+displayTime;
     return <button type="button" key={label}
-     className={'tl-step'+(showTrip?' tl-step-with-trip':'')+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
+     className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
      aria-current={i+1===stageNumber?'step':undefined}
-     aria-label={showTrip?label+' · '+tripText+' · '+u.change:undefined}
-     title={showTrip?tripText+' · '+u.change:undefined}
      disabled={busy||!available} onClick={goToStep}>
-     <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
-     {showTrip&&<span className="tl-step-trip-detail" aria-hidden="true">
-      <span className="tl-step-trip-clock">{displayTime}</span>
-     </span>}
+     <b>{i+1}</b>{label}
     </button>;
    })}
   </nav>
@@ -166,7 +159,7 @@ export default function TrainLostUI(p){
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
-    <TrainLiveDiagram sectionTitle={v.mapTitle} instruction={candidates.length?v.mapInstruction:''} line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
+    <TrainLiveDiagram sectionTitle={v.mapTitle} instruction={candidates.length?v.mapInstruction:''} alightingTime={displayTime} line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
    </div>}
    {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
@@ -192,7 +185,7 @@ export default function TrainLostUI(p){
      <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div>
      <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</strong></div>
      <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
-     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong><span className="tl-handoff-direction">{lang==='en'?'toward '+way:way+(lang==='ko'?' 방면':lang==='ja'?'方面':' 方向')}</span></div>
     </div>
     {chosen&&recommended.stations.length>0&&<p className="tl-note">{u.stopsAhead}: {recommended.stations.map(st=>localized(st,selection.line,lang)).join(' · ')}</p>}
     {liveInfo&&<p className="tf-warning">{liveInfo}</p>}
