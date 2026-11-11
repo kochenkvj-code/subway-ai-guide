@@ -151,7 +151,7 @@ export default function TrainLostUI(p){
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <small>{index===0?'①':index===1?'②':'#'+(index+1)} {u.candidate}</small>
       {selected&&<small className="tl-candidate-selected-badge">✓ {u.chosen}</small>}
-      <strong>#{c.number}</strong><span>{u.position} · {localized(current&&selected?current.station:c.station,selection.line,lang)}</span>
+      <strong>#{c.number}</strong><span className="tl-candidate-location"><small>{u.position}</small><b>{localized(current&&selected?current.station:c.station,selection.line,lang)}</b></span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
