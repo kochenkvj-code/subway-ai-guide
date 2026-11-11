@@ -13,12 +13,6 @@ const COPY={
  ja:{walkingTitle:'下車後の徒歩案内',walkingUnknown:'出口や徒歩経路は確認できませんでした。地図でご確認ください。',mapGoogle:'Google マップで場所を確認',title:'目的地への行き方',subtitle:'駅・ホテル・観光地・住所など、行き先を入力するだけ。',lab:'V2 · NEW ROUTE LAB',origin:'出発駅',change:'変更',chooseOrigin:'出発駅を検索',dest:'どちらへ行きますか？',placeholder:'駅名・ホテル・観光地・建物名・住所',search:'経路検索',searchPlace:'AIで場所を検索',searchingPlace:'目的地と降車駅を確認中…',searchingRoute:'公式地下鉄経路を検索中…',examples:'入力例',suggest:'駅の候補',placeHint:'駅名は公式経路、それ以外の場所はAI検索',aiTitle:'AI目的地案内',recommend:'おすすめ降車駅',why:'選んだ理由',walk:'駅から目的地まで',near:'おすすめ駅までの公式経路を検索します。',sources:'確認元',other:'別の駅を選ぶ',official:'公式地下鉄経路',duration:'所要時間',transfers:'乗換',fare:'交通カード運賃',distance:'移動距離',ride:'乗車',transfer:'乗換',bound:'方面',stops:'駅',allStops:'途中駅を見る',allStations:'全経由駅を見る',path:'乗車経路',options:'検索条件',modes:['最短時間','最短距離','最少乗換'],retry:'再検索',unknown:'おすすめ降車駅を自動連携できませんでした。上のAI案内を確認するか、駅を直接選択してください。',sourceNote:'AIは降車駅のみ提案します。地下鉄経路と運賃は公式APIを使用します。',noData:'候補がありません。',invalid:'駅が見つかりません。',fail:'検索に失敗しました。',apiOnly:'駅名検索ではAIを使いません。',testing:'独立テストページ · V2本体は変更なし',same:'出発駅と到着駅が同じです。徒歩移動をご確認ください。',exitUnknown:'出口や徒歩経路が未確認の場合は地図でご確認ください。',minutes:'分',won:'ウォン',count:'回',from:'出発',to:'到着'},
  zh:{walkingTitle:'下车后步行指南',walkingUnknown:'未能确认出口或步行路线，请查看地图。',mapGoogle:'在 Google 地图查看位置',title:'前往目的地',subtitle:'车站、酒店、景点或地址，只需输入目的地。',lab:'V2 · NEW ROUTE LAB',origin:'出发站',change:'更改',chooseOrigin:'搜索出发站',dest:'您想去哪里？',placeholder:'车站、酒店、景点、建筑或地址',search:'查询路线',searchPlace:'使用AI搜索地点',searchingPlace:'正在确认地点及建议下车站…',searchingRoute:'正在查询官方地铁路线…',examples:'示例目的地',suggest:'匹配的车站',placeHint:'车站直接查询官方路线，其他地点由AI搜索',aiTitle:'AI目的地指南',recommend:'建议下车站',why:'推荐理由',walk:'出站后前往目的地',near:'正在查询前往建议车站的官方地铁路线。',sources:'地点来源',other:'选择其他车站',official:'官方地铁路线',duration:'预计时间',transfers:'换乘',fare:'交通卡票价',distance:'距离',ride:'乘车',transfer:'换乘',bound:'方向',stops:'站',allStops:'查看途经站',allStations:'查看全部途经站',path:'行程',options:'路线偏好',modes:['时间最短','距离最短','换乘最少'],retry:'重新搜索',unknown:'未能自动关联建议下车站。请参考上方AI指南，或直接选择地铁站。',sourceNote:'AI仅建议下车站，地铁路线和票价由官方API查询。',noData:'没有匹配结果。',invalid:'找不到车站。',fail:'查询失败。',apiOnly:'车站搜索无需AI。',testing:'独立测试页面 · V2原功能未改动',same:'出发站和目的站相同，请确认步行路线。',exitUnknown:'未经核实的出口和步行路线请使用地图确认。',minutes:'分钟',won:'韩元',count:'次',from:'出发',to:'下车'}
 };
-const RAW_STATION_COPY={
- ko:{label:'Gemini <route_station> 원본',missing:'태그 없음',malformed:'태그 형식 오류',empty:'빈 값'},
- en:{label:'Gemini <route_station> (raw)',missing:'Tag missing',malformed:'Malformed tag',empty:'Empty value'},
- ja:{label:'Gemini <route_station> の原文',missing:'タグなし',malformed:'タグ形式エラー',empty:'空の値'},
- zh:{label:'Gemini <route_station> 原始值',missing:'无标签',malformed:'标签格式错误',empty:'空值'}
-};
 const EXAMPLES=[
  {ko:'강남역',en:'Gangnam',ja:'カンナム',zh:'江南',type:'station'},
  {ko:'롯데호텔 서울',en:'Lotte Hotel Seoul',ja:'ロッテホテルソウル',zh:'首尔乐天酒店',type:'place'},
@@ -128,13 +122,14 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  };
  async function lookupRoute(station,signal,placeResult=null,searchTerm=query){
   setLoading('route');setError('');setRoute(null);
-  if(normalizeStation(station.ko)===normalizeStation(origin.names.ko)){setError(t.same);setLoading('');return;}
+  if(normalizeStation(station.ko)===normalizeStation(origin.names.ko)){setError(t.same);setLoading('');recordStat('route_search','failure',lang);return;}
   const response=await fetch(buildRouteUrl(originCode,station,mode),{cache:'no-store',signal});
   const result=await response.json();
   if(!response.ok||!result.ok||!result.route)throw Error(result.error||t.fail);
   if(result.route.originCode!==originCode)throw Error('ORIGIN_MISMATCH');
   if(!signal.aborted){
    setRoute(result.route);
+   recordStat('route_search','success',lang);
    if(embedded)saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route});
   }
  }
@@ -149,6 +144,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  async function perform(requestedTerm=null){
   const term=(typeof requestedTerm==='string'?requestedTerm:query).trim();
   if(!term||loading)return;
+  recordStat('route_search','request',lang,null,term);
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;scrollPendingRef.current=true;
   setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);resetFeedback();
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
@@ -173,8 +169,8 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    setPlace(result);
    if(result.status==='found'&&result.station){
     await lookupRoute(result.station,ctrl.signal,result,term);
-   }
-  }catch(e){if(!ctrl.signal.aborted)setError(e.message||t.fail);}
+   }else recordStat('route_search','failure',lang);
+  }catch(e){if(!ctrl.signal.aborted){recordStat('route_search','failure',lang);setError(e.message||t.fail);}}
   finally{if(requestRef.current===ctrl){requestRef.current=null;setLoading('');}}
  }
  function searchAnotherDestination(){
@@ -218,12 +214,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      {place.status==='found'&&place.station?<><div className="rl-recommend"><small>{t.recommend}</small><div className="rl-recommend-station">{place.station.lines?.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}<strong>{stationLabel(place.station,lang)}</strong></div>{place.reason&&<p>{place.reason}</p>}</div>
        
      </>:<div className="rl-unverified">{t.unknown}</div>}
-     <div className="rl-route-station-debug">
-      {place.rawRouteStationValues?.length
-       ?place.rawRouteStationValues.map((value,index)=><code className="rl-route-station-tag" key={index}><span>{'<route_station>'}</span><strong>{value||RAW_STATION_COPY[lang].empty}</strong><span>{'</route_station>'}</span></code>)
-       :<span className="rl-route-tag-missing">{place.rawRouteStationTagSeen?RAW_STATION_COPY[lang].malformed:RAW_STATION_COPY[lang].missing}</span>}
-      {place.geminiFinishReason&&place.geminiFinishReason!=='STOP'&&<small>finishReason: {place.geminiFinishReason}</small>}
-     </div>
+ 
    </section>}
    {route&&<section ref={resultRef} className="rl-result-card rl-route-card" aria-live="polite">
      <h2>{t.official}</h2>
