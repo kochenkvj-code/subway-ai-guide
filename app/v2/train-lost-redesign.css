@@ -931,3 +931,118 @@
  background:var(--tl-line-color,#536c80);
  color:#fff;
 }
+
+/* 2026-11-11 UX lab: trip summary belongs to the 3-step progress control.
+   Keep normal navigation as three equal cells; compact trip details sit within
+   the same component instead of adding a separate results info card. */
+.tf-redesign.tl-three-stage .tl-stepbar{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;gap:6px;margin:9px 0 10px;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
+ width:100%;min-width:0;
+}
+.tf-redesign.tl-three-stage .tl-stepbar-trip{
+ grid-column:1/-1;min-width:0;display:flex;align-items:center;
+ gap:7px;padding:8px 9px;margin-top:0;
+ border:1px solid #dce9e4;border-left:3px solid var(--tl-line-color,#536c80);
+ border-radius:10px;background:#f8faf9;color:#466573;
+}
+.tf-redesign.tl-three-stage .tl-trip-line{
+ display:grid;place-items:center;flex:0 0 24px;
+ height:24px;width:24px;border-radius:7px;
+ background:var(--tl-line-color,#536c80);
+ color:#fff;font-size:12px;font-weight:900;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-trip-stations{
+ flex:1 1 auto;min-width:0;
+ overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+ font-size:11.5px;font-weight:800;color:#254454;
+}
+.tf-redesign.tl-three-stage .tl-trip-time{
+ flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;
+ font-size:10.5px;font-weight:750;color:#5d7985;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit{
+ display:flex;align-items:center;justify-content:center;gap:3px;
+ flex:0 0 auto;min-height:30px;padding:5px 8px;
+ border:1px solid #cfe3da;border-radius:8px;
+ background:#e8f5ef;color:#16755d;
+ font-size:10.5px;font-weight:850;line-height:1.2;cursor:pointer;
+}
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit:focus-visible{
+ outline:2px solid #087a61;outline-offset:2px;
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
+ .tf-redesign.tl-three-stage .tl-stepbar-trip{padding:7px 6px;gap:5px}
+ .tf-redesign.tl-three-stage .tl-trip-line{width:22px;height:22px;flex-basis:22px;font-size:11px}
+ .tf-redesign.tl-three-stage .tl-trip-stations{font-size:10.5px}
+ .tf-redesign.tl-three-stage .tl-trip-time{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit{padding:5px 6px;font-size:10px}
+}
+/* Selected train is a simple checkmark, not a wide 'Selected' pill. */
+.tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
+ position:relative;flex:0 0 132px;
+ min-width:132px;max-width:145px;padding:9px 9px;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-toprow{
+ padding-right:23px;max-width:100%;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity{
+ width:auto;max-width:100%;padding-right:2px;display:block;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity strong{
+ font-size:16px;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-check{
+ position:absolute;right:7px;top:7px;
+ display:grid;place-items:center;width:23px;height:23px;
+ border-radius:50%;background:#087b5a;color:#fff;
+ font-size:14px;font-weight:900;line-height:1;
+ overflow:visible;max-width:none;white-space:nowrap;
+ box-shadow:0 2px 5px rgba(7,100,74,.17);
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-location{
+ width:100%;max-width:100%;overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-location b{
+ overflow-wrap:anywhere;font-size:11px;
+}
+/* Consistent 12px field labels and a single-row door chooser. */
+.tf-redesign.tl-three-stage .tl-item-place-row .tl-label,
+.tf-redesign.tl-three-stage .tl-car-door-field>.tl-label,
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+ min-height:18px;margin-bottom:8px;
+ font-size:12px;font-weight:800;line-height:1.45;letter-spacing:-.1px;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block{
+ display:flex;align-items:center;gap:9px;
+ margin-top:12px;padding:10px 11px;
+ border-radius:11px;background:#f6faf8;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+ display:flex;align-items:center;justify-content:flex-start;gap:3px;
+ flex:0 0 auto;max-width:43%;margin:0;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options{
+ flex:1 1 auto;min-width:0;
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;
+}
+.tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options button{
+ min-width:0;min-height:39px;padding:5px 1px;
+ font-size:11px;font-weight:800;border-radius:8px;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-item-place-row .tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field>.tl-label,
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block>.tl-label{
+  font-size:11.5px;
+ }
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-block{gap:5px;padding:9px 7px}
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options{gap:3px}
+ .tf-redesign.tl-three-stage .tl-car-door-field .tl-door-options button{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
+  flex-basis:122px;min-width:122px;max-width:132px;
+ }
+}
