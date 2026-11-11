@@ -242,11 +242,11 @@ test('all three stages share concise headers, with third stage review heading an
  assert.match(styles,/\.tl-hero p\{/);
 });
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
- assert.match(ui,/className="tl-stepbar-trip"/);
- assert.match(ui,/className="tl-trip-stations"/);
- assert.match(ui,/className="tl-trip-line"/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
+ assert.match(ui,/className="tl-step-trip-origin"/);
+ assert.match(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-trip-stations\{/);
+ assert.match(styles,/\.tl-step-trip-origin,/);
  assert.match(styles,/\.tl-candidate-identity\{/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
@@ -292,18 +292,23 @@ test('selected train uses only an accessible checkmark and compact card width',(
  assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{/);
  assert.match(styles,/flex:0 0 132px/);
 });
-test('stepper includes a compact line-colored route and edit action instead of a duplicate results strip',()=>{
- assert.match(ui,/stage==='results'&&<div className="tl-stepbar-trip"/);
- assert.match(ui,/style=\{\{'--tl-line-color':pickerLineColor\(selection\.line\)\}\}/);
- assert.match(ui,/className="tl-trip-line"/);
- assert.match(ui,/className="tl-trip-stations"/);
- assert.match(ui,/className="tl-trip-time"/);
- assert.match(ui,/className="tl-trip-edit" onClick=\{onBack\}/);
+test('second step nests line-colored trip details inside the first information tile, with no extra row',()=>{
+ const start=ui.indexOf('const showTrip=stage===\u0027results\u0027&&i===0');
+ assert.ok(start>=0);
+ assert.match(ui,/className="tl-step-heading"/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
+ assert.match(ui,/className="tl-step-trip-line"/);
+ assert.match(ui,/className="tl-step-trip-origin"/);
+ assert.match(ui,/className="tl-step-trip-destination"/);
+ assert.match(ui,/className="tl-step-trip-clock"/);
+ assert.match(ui,/pickerLineColor\(selection\.line\)/);
+ assert.match(ui,/aria-label=\{showTrip\?label\+'\u0020·\u0020'\+tripText\+'\u0020·\u0020'\+u\.change:undefined\}/);
+ assert.doesNotMatch(ui,/className="tl-stepbar-trip"/);
  assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
  const results=ui.slice(ui.indexOf("{stage==='results'&&<>"),ui.indexOf("{stage==='handoff'&&<>"));
  assert.doesNotMatch(results,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
- assert.match(styles,/\.tl-stepbar-trip\{/);
- assert.match(styles,/grid-column:1\/-1/);
+ assert.match(styles,/\.tl-stepbar button\.tl-step\.tl-step-with-trip\{/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{/);
 });
 test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
  assert.doesNotMatch(ui,/className="tl-chosen-car"/);
@@ -311,4 +316,15 @@ test('car-door confirmation duplicates are removed; labels are aligned and door 
  assert.match(styles,/\.tl-car-door-field \.tl-door-block\{\s*display:flex;align-items:center/);
  assert.match(styles,/\.tl-car-door-field \.tl-door-options\{\s*flex:1 1 auto;min-width:0;/);
  assert.match(styles,/\.tl-item-place-row \.tl-label,\s*\.tf-redesign\.tl-three-stage \.tl-car-door-field>\.tl-label/);
+});
+
+test('timetable footer avoids API and provider-format jargon in four languages',async()=>{
+ const timetable=await readFile(new URL('../app/v2/TrainTimetable.jsx',import.meta.url),'utf8');
+ const footerStart=timetable.indexOf("note:'서울교통공사 제공 예정 운행시각");
+ assert.ok(footerStart>0);
+ assert.match(timetable,/week:'주말·공휴일에는 운행시각이 다를 수 있으니 이용 전 확인해 주세요\.'/);
+ assert.doesNotMatch(timetable,/토요일·공휴일 구분은 이 API에 별도로 없습니다/);
+ assert.doesNotMatch(timetable,/The provider groups weekend trains together/);
+ assert.doesNotMatch(timetable,/提供元の週末時刻表を使用します/);
+ assert.doesNotMatch(timetable,/运营方统一提供周末时刻表/);
 });
