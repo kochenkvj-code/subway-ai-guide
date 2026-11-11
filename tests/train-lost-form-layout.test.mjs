@@ -113,3 +113,19 @@ test('live rail test page and the selected candidate affordance do not include S
  assert.match(page,/trainDemo=1/);
  assert.match(page,/trainDemo=0/);
 });
+
+test('live map precedes candidates, candidate locations are explained and redundant controls are absent',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const mapAt=ui.indexOf('className="tl-live-map-main"');
+ const candidateAt=ui.indexOf('className="tl-live-candidate-header"');
+ const selectionActionAt=ui.indexOf('className="tl-next-panel"');
+ assert.ok(mapAt>=0&&candidateAt>mapAt&&selectionActionAt>candidateAt,'map → candidate cards → action');
+ assert.match(ui,/className="tl-candidate-location"/);
+ assert.match(ui,/className="tl-candidate-location-note"/);
+ assert.match(ui,/positionExplain/);
+ assert.doesNotMatch(ui,/className="tl-candidate-hint"/);
+ assert.doesNotMatch(ui,/className="tl-selection-summary"/);
+ assert.doesNotMatch(diagram,/후보 열차 위치로|Go to candidates|onClick=\{toCandidates\}/);
+ assert.match(diagram,/onClick=\{\(\)=>\{setFocusedTrain\(number\);onPick\(cand\);\}\}/);
+ assert.match(styles,/tl-candidate-location-note/);
+});
