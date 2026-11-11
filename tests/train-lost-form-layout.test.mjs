@@ -79,16 +79,16 @@ test('slider retains 0–30 one-minute increments and quick choices including op
  for(const label of ['시각 입력','Set time','時刻入力','输入时间'])assert.ok(ui.includes(label),label);
 });
 
-test('elapsed-time value and slider share a dedicated meter above the quick choices',()=>{
+test('quick-time buttons sit above the slider so dragging never covers the shortcuts',()=>{
  const start=ui.indexOf('className="tl-time-meter"');
  const header=ui.indexOf('className="tl-time-topline"',start);
- const slider=ui.indexOf('className="tl-time-slider"',header);
- const meterEnd=ui.indexOf('</div>',slider);
- const choices=ui.indexOf('className="tl-times"',slider);
- assert.ok(start!==-1&&header>start&&slider>header&&meterEnd>slider&&choices>meterEnd,
-  'header and slider should be grouped directly above shortcuts');
+ const choices=ui.indexOf('className="tl-times"',header);
+ const slider=ui.indexOf('className="tl-time-slider"',choices);
+ const end=ui.indexOf('</div>',slider);
+ assert.ok(start!==-1&&header>start&&choices>header&&slider>choices&&end>slider,
+  'toolbar → quick choices → range slider belong in one time meter');
  assert.match(styles,/\.tl-time-field \.tl-time-meter\{\s*display:flex;flex-direction:column;/);
- assert.match(styles,/\.tl-time-field \.tl-time-slider\{\s*margin:10px 0 0/);
+ assert.match(styles,/\.tl-time-field \.tl-time-slider\{\s*margin:14px 0 6px/);
 });
 
 test('exactly the selected train-lost stage receives the strong active styling',()=>{
@@ -231,7 +231,7 @@ test('preview auto-selects ranked first candidate and protects subsequent user c
 test('all three stages share concise headers, with third stage review heading and detailed SMS instruction',()=>{
  assert.match(ui,/heroIn:'분실 정보를 알려주세요'/);
  assert.match(ui,/subtitle:'하차역·시각과 분실 물품을 입력해 주세요\.'/);
- assert.match(ui,/resultSubtitleTop:'추정 1순위 후보가 선택되어 있습니다\.'/);
+ assert.match(ui,/resultSubtitleTop:'선택된 열차가 맞는지 확인해 주세요\.'/);
  assert.match(ui,/handoffReview:'접수 내용 확인'/);
  assert.match(ui,/\{u\.handoffReview\}/);
  assert.doesNotMatch(ui,/<h3>\{u\.handoff\}<\/h3>/);
@@ -247,4 +247,18 @@ test('English compact route and candidate selection are never forced into clippe
  assert.match(styles,/\.tl-route-stations\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
  assert.match(styles,/\.tl-candidate-selected-badge\{/);
+});
+
+test('first-stage station and line controls share a single horizontal row',()=>{
+ assert.equal((ui.match(/tl-station-column tl-station-inline-field/g)||[]).length,2);
+ assert.match(styles,/\.tl-station-column\.tl-station-inline-field\{/);
+ assert.match(styles,/\.tl-station-layout\{\s*display:grid;grid-template-columns:minmax\(0,1\.65fr\)/);
+});
+test('prepared SMS combines route details, removes raw API timestamp, and expands fully',async()=>{
+ const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(model,/z\.route\+': '/);
+ assert.match(model,/selection\.name\+z\.stationUnit\+' → '\+next/);
+ assert.doesNotMatch(model,/current\.station\+z\.stationUnit\+' \('\+current\.receivedAt/);
+ assert.match(model,/z\.item\+': '\+thing\.trim\(\)\+\(place\?/);
+ assert.match(styles,/\.tl-message\{\s*max-height:none;height:auto;min-height:0;overflow:visible/);
 });
