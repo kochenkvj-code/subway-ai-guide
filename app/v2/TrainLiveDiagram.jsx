@@ -195,7 +195,10 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     </div>
     <div className="tf-map-updated">
      <span className="tf-last-update">{t.last} <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
-     <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
+     <button className="tf-refresh-icon" onClick={refresh} disabled={refreshing} type="button"
+      aria-label={refreshing?t.pending:t.manual} title={refreshing?t.pending:t.manual}>
+      <span aria-hidden="true">{refreshing?'…':'↻'}</span>
+     </button>
     </div>
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
