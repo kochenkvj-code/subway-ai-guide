@@ -932,9 +932,8 @@
  color:#fff;
 }
 
-/* 2026-11-11 UX lab: trip summary belongs to the 3-step progress control.
-   Keep normal navigation as three equal cells; compact trip details sit within
-   the same component instead of adding a separate results info card. */
+/* The completed "information" step becomes a tiny editable trip card in
+   step 2, not an extra full-width row below the progress navigator. */
 .tf-redesign.tl-three-stage .tl-stepbar{
  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  align-items:stretch;gap:6px;margin:9px 0 10px;
@@ -942,44 +941,60 @@
 .tf-redesign.tl-three-stage .tl-stepbar button.tl-step{
  width:100%;min-width:0;
 }
-.tf-redesign.tl-three-stage .tl-stepbar-trip{
- grid-column:1/-1;min-width:0;display:flex;align-items:center;
- gap:7px;padding:8px 9px;margin-top:0;
- border:1px solid #dce9e4;border-left:3px solid var(--tl-line-color,#536c80);
- border-radius:10px;background:#f8faf9;color:#466573;
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading{
+ display:flex;align-items:center;justify-content:center;
+ gap:4px;min-width:0;max-width:100%;
+ font-size:inherit;font-weight:inherit;line-height:1.25;
 }
-.tf-redesign.tl-three-stage .tl-trip-line{
- display:grid;place-items:center;flex:0 0 24px;
- height:24px;width:24px;border-radius:7px;
- background:var(--tl-line-color,#536c80);
- color:#fff;font-size:12px;font-weight:900;line-height:1;
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-heading>span:not(.tl-step-pencil){
+ min-width:0;overflow-wrap:anywhere;
 }
-.tf-redesign.tl-three-stage .tl-trip-stations{
- flex:1 1 auto;min-width:0;
- overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
- font-size:11.5px;font-weight:800;color:#254454;
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{
+ display:flex;flex-direction:column;align-items:stretch;
+ justify-content:flex-start;gap:4px;padding:7px 5px;
+ background:#eef7f2;border-color:#b7dac7;color:#246248;
+ text-align:left;cursor:pointer;
 }
-.tf-redesign.tl-three-stage .tl-trip-time{
- flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;
- font-size:10.5px;font-weight:750;color:#5d7985;
+.tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip:hover:not(:disabled){
+ background:#e0f2e6;border-color:#73b898;
 }
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit{
- display:flex;align-items:center;justify-content:center;gap:3px;
- flex:0 0 auto;min-height:30px;padding:5px 8px;
- border:1px solid #cfe3da;border-radius:8px;
- background:#e8f5ef;color:#16755d;
- font-size:10.5px;font-weight:850;line-height:1.2;cursor:pointer;
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{
+ width:100%;justify-content:flex-start;gap:3px;
+ font-size:10px;font-weight:850;white-space:nowrap;
 }
-.tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit:focus-visible{
- outline:2px solid #087a61;outline-offset:2px;
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-pencil{
+ margin-left:auto;flex:none;color:#128365;font-size:12px;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{
+ display:flex;flex-direction:column;align-items:stretch;
+ gap:3px;width:100%;min-width:0;
+ border-top:1px solid rgba(42,114,78,.15);padding-top:5px;
+ font-weight:750;font-size:10px;line-height:1.3;color:#355b4b;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-station{
+ display:flex;align-items:center;gap:4px;min-width:0;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-line{
+ display:grid;place-items:center;flex:0 0 18px;
+ width:18px;height:18px;border-radius:5px;
+ background:var(--tl-line-color,#536c80);color:#fff;
+ font-size:10px;font-weight:900;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-origin,
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-destination{
+ display:block;min-width:0;overflow:hidden;
+ text-overflow:ellipsis;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{
+ display:block;font-size:10px;color:#3b7366;
+ font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap;
 }
 @media(max-width:380px){
  .tf-redesign.tl-three-stage .tl-stepbar{gap:4px}
- .tf-redesign.tl-three-stage .tl-stepbar-trip{padding:7px 6px;gap:5px}
- .tf-redesign.tl-three-stage .tl-trip-line{width:22px;height:22px;flex-basis:22px;font-size:11px}
- .tf-redesign.tl-three-stage .tl-trip-stations{font-size:10.5px}
- .tf-redesign.tl-three-stage .tl-trip-time{font-size:10px}
- .tf-redesign.tl-three-stage .tl-stepbar button.tl-trip-edit{padding:5px 6px;font-size:10px}
+ .tf-redesign.tl-three-stage .tl-stepbar button.tl-step.tl-step-with-trip{padding:6px 4px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-with-trip .tl-step-heading{font-size:9.5px;gap:2px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-detail{font-size:9.5px}
+ .tf-redesign.tl-three-stage .tl-stepbar .tl-step-trip-clock{font-size:9.5px}
 }
 /* Selected train is a simple checkmark, not a wide 'Selected' pill. */
 .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
