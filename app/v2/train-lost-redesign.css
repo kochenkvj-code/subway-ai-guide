@@ -1141,3 +1141,81 @@
 .tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-last{
  margin-top:auto
 }
+
+/* Lost-train live map: no duplicate heading, compact route and two clocks. */
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-board-section{margin-top:0}
+.tf-redesign.tl-three-stage .tf-h-topline{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:8px;padding:9px 10px;background:#202d42;color:#dfebfb;
+}
+.tf-redesign.tl-three-stage .tf-h-topline .tf-alight-context{
+ display:block;flex:1 1 auto;min-width:0;
+}
+.tf-redesign.tl-three-stage .tf-h-topline .tf-alight-route{
+ display:block;font-size:12px;font-weight:800;line-height:1.45;
+ overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tf-h-meta{
+ display:flex;align-items:center;flex:0 0 auto;gap:7px;
+}
+.tf-redesign.tl-three-stage .tf-h-times{
+ display:flex;flex-direction:column;align-items:flex-end;
+ justify-content:center;gap:3px;white-space:nowrap;
+}
+.tf-redesign.tl-three-stage .tf-h-times>span{
+ display:flex;gap:4px;align-items:baseline;
+ font-size:10px;line-height:1.25;color:#acbed1;
+ font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tf-h-times strong{
+ color:#eff7ff;font-size:11px;font-weight:800;
+}
+.tf-redesign.tl-three-stage .tf-h-meta .tf-refresh-icon{
+ display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;
+ min-height:44px;margin:0;padding:0;
+ border:1px solid #516b83;border-radius:10px;
+ background:#283e54;color:#e1f2ff;
+ font-size:24px;line-height:1;cursor:pointer;
+}
+.tf-redesign.tl-three-stage .tf-h-meta .tf-refresh-icon:disabled{
+ opacity:.5;cursor:wait;
+}
+.tf-redesign.tl-three-stage .tf-h-meta .tf-refresh-icon:focus-visible{
+ outline:2px solid #9dd7ff;outline-offset:2px;
+}
+/* Swipe guidance stays at the dark map's top-left during horizontal scrolling. */
+.tf-redesign.tl-three-stage .tf-board-swipe-hint{
+ display:block;background:#121d2e;color:#93b4d0;
+ padding:7px 10px 4px;font-size:10px;line-height:1.3;text-align:left;
+}
+/* Previous and new candidates remain distinguishable across a smooth pan. */
+.tf-redesign.tl-three-stage .tf-selection-comparison{
+ display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;
+ background:#1b2c40;border-top:1px solid #30445b;
+ padding:7px 10px;color:#b6cadc;
+ font-size:10px;line-height:1.4;overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tf-selection-comparison strong{
+ color:#a4f6d9;font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tf-selection-comparison>span:first-child strong{
+ color:#f8cc7b;
+}
+.tf-redesign.tl-three-stage .tf-selection-comparison small{
+ color:#d5e4ee;font-size:10px;
+}
+.tf-redesign.tl-three-stage .tf-h-stop .tf-train-previous{
+ --tf-train-border:#f8cc7b;--tf-train-surface:#594b35;
+ animation:none;
+}
+/* Do not enlarge the existing station chips or hide long translated names. */
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tf-h-topline{gap:5px;padding:8px 7px}
+ .tf-redesign.tl-three-stage .tf-h-topline .tf-alight-route{font-size:11px}
+ .tf-redesign.tl-three-stage .tf-h-meta{gap:4px}
+ .tf-redesign.tl-three-stage .tf-h-times>span{font-size:9px;gap:3px}
+ .tf-redesign.tl-three-stage .tf-h-times strong{font-size:10px}
+ .tf-redesign.tl-three-stage .tf-h-meta .tf-refresh-icon{
+  flex-basis:40px;width:40px;height:44px;
+ }
+}

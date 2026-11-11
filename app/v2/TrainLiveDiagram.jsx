@@ -6,6 +6,7 @@ import {trainLostDestination} from '../lib/train-lost-destination.mjs';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
 const getTime=(iso,lang)=>iso?new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(iso)):'—';
+const metaWords={ko:{alight:'하차시각',updated:'갱신시각',old:'이전',now:'선택',gap:n=>n+'정거장 차이'},en:{alight:'Alighted',updated:'Updated',old:'Before',now:'Selected',gap:n=>n+' '+(n===1?'stop':'stops')+' apart'},ja:{alight:'下車時刻',updated:'更新時刻',old:'前回',now:'選択',gap:n=>n+'駅の差'},zh:{alight:'下车时间',updated:'更新时间',old:'之前',now:'已选',gap:n=>'相隔'+n+'站'}};
 const words={
  ko:{title:'실시간 열차 위치',hint:'하차역을 기준으로 후보 열차의 움직임을 확인하고 선택하세요.',opposite:'반대 방향',forward:'선택한 방향',alighted:'하차역',candidate:'후보',selected:'선택',manual:'새로고침',refresh:'20초마다 자동 업데이트',pending:'실시간 정보 갱신 중',error:'실시간 위치를 갱신하지 못했습니다. 기존 위치를 보여줍니다.',last:'최근 갱신',noTrains:'이 구간에 표시할 열차가 없습니다.',uncertain:'위치는 역 단위 공공데이터로 갱신됩니다. 열차의 정확한 역간 위치나 과거 통과역은 확정할 수 없습니다.',unknown:'노선 분기점 이후 경로는 표시가 제한될 수 있습니다.'},
  en:{title:'Live train positions',hint:'Watch candidate trains around your station, then tap one.',opposite:'Other direction',forward:'Chosen direction',alighted:'Your stop',candidate:'Candidate',selected:'Selected',manual:'Refresh',refresh:'Auto-refresh every 20s',pending:'Refreshing…',error:'Live data could not refresh. Showing last positions.',last:'Updated',noTrains:'No trains reported in this section.',uncertain:'Positions update by station, not GPS. Past stop history is not confirmed.',unknown:'Branches may limit the visible route.'},
@@ -23,12 +24,17 @@ function latestTrains(positions,line){
  }
  return [...map.values()];
 }
-export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart,sectionTitle,instruction,alightingTime}){
+export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,alightingTime}){
  const clean=value=>trainStationKey(line,value);
  const display=value=>stationName(trainStationDisplay(line,value),lang)||value;
  const t=words[lang]||words.ko;
+ const m=metaWords[lang]||metaWords.ko;
  const [refreshing,setRefreshing]=useState(false),[error,setError]=useState(false);
  const [focusedTrain,setFocusedTrain]=useState('');
+ const [comparison,setComparison]=useState(null);
+ const historyRef=useRef(null);
+ const lastCenteredRef=useRef({number:null,station:null});
+ const animationRef=useRef(0);
  const autoFocusedRef=useRef(false);
  const viewportRef=useRef(null);
  const [lastPoll,setLastPoll]=useState(null);
@@ -47,8 +53,8 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    trains.find(p=>trainKey(p.trainNo)===trainKey(c.number))
  ).filter(p=>p&&directionalPathToStation(line,station,next,p.station,38).length>0),
  [candidates,trains,line,station,next]);
- const focusedPosition=visibleCandidates.find(p=>trainKey(p.trainNo)===focusedTrain)||
-   visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||visibleCandidates[0];
+ const focusedPosition=visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||
+   visibleCandidates.find(p=>trainKey(p.trainNo)===focusedTrain)||visibleCandidates[0];
  const focusedStation=focusedPosition?.station||'';
  const focusedDestination=String(focusedPosition?.destination||'').replace(/(?:방면|행)$/,'').trim();
  const displayDestination=p=>trainLostDestination({
@@ -59,19 +65,62 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const path=useMemo(()=>trainDisplayPath(line,station,next,focusedStation,focusedDestination),[line,station,next,focusedStation,focusedDestination]);
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
- // Scroll the horizontal rail AND the train stack inside an individual
- // station. A compact station may contain more trains than its vertical bay
- // can display; moving only sideways can leave the chosen train invisible.
- const centerTarget=node=>{
+ const findCandidateStation=no=>{
+   const position=trains.find(p=>trainKey(p.trainNo)===no);
+   const candidate=candidates.find(c=>trainKey(c.number)===no);
+   return clean(position?.station||candidate?.station||'');
+ };
+ // Keep before/after IDs from deliberate candidate changes. The API still
+ // supplies the station; selection alone is never evidence of a real journey.
+ useEffect(()=>{
+   if(!selectedNo){historyRef.current=null;setComparison(null);return;}
+   const previous=historyRef.current;
+   const routeKey=String(line)+'/'+String(station)+'/'+String(next);
+   if(previous&&previous.routeKey!==routeKey)setComparison(null);
+   const currentStation=findCandidateStation(selectedNo);
+   if(previous&&previous.routeKey===routeKey&&previous.number!==selectedNo){
+     setComparison({
+       from:{number:previous.number,station:findCandidateStation(previous.number)||previous.station},
+       to:{number:selectedNo,station:currentStation}
+     });
+   }
+   historyRef.current={number:selectedNo,station:currentStation,routeKey};
+ },[selectedNo,line,station,next]);
+ const fromIndex=comparison?.from.station?path.stops.indexOf(comparison.from.station):-1;
+ const toIndex=comparison?.to.station?path.stops.indexOf(comparison.to.station):-1;
+ const stopGap=fromIndex>=0&&toIndex>=0?Math.abs(fromIndex-toIndex):null;
+ const stopAnimation=()=>{
+   if(animationRef.current)cancelAnimationFrame(animationRef.current);
+   animationRef.current=0;
+   const viewport=viewportRef.current;
+   if(viewport)viewport.style.scrollSnapType='';
+ };
+ // Use requestAnimationFrame, not an immediate scrollLeft jump. This works on
+ // iOS Safari, cancels on touch, and respects reduced-motion preferences.
+ const centerTarget=(node,animate=false)=>{
    const viewport=viewportRef.current;
    if(!viewport||!node)return false;
    const stationNode=node.closest('[data-tf-station]')||node;
    const box=stationNode.getBoundingClientRect(),frame=viewport.getBoundingClientRect();
    const desired=viewport.scrollLeft+(box.left-frame.left)+box.width/2-viewport.clientWidth/2;
    const maxLeft=Math.max(0,viewport.scrollWidth-viewport.clientWidth);
-   // Direct scrollLeft assignment is reliable on iOS Safari, including when
-   // a previous smooth scroll or touch gesture has not completed.
-   viewport.scrollLeft=Math.max(0,Math.min(maxLeft,Math.round(desired)));
+   const targetX=Math.max(0,Math.min(maxLeft,Math.round(desired)));
+   stopAnimation();
+   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+   if(!animate||reduceMotion||Math.abs(viewport.scrollLeft-targetX)<3){
+     viewport.scrollLeft=targetX;
+   }else{
+     const startX=viewport.scrollLeft,delta=targetX-startX,startTime=performance.now();
+     const duration=Math.max(600,Math.min(950,Math.abs(delta)*1.1));
+     viewport.style.scrollSnapType='none';
+     const frame=now=>{
+       const t=Math.min(1,(now-startTime)/duration);
+       viewport.scrollLeft=startX+delta*(1-Math.pow(1-t,3));
+       if(t<1)animationRef.current=requestAnimationFrame(frame);
+       else{animationRef.current=0;viewport.style.scrollSnapType='';}
+     };
+     animationRef.current=requestAnimationFrame(frame);
+   }
    const bay=node.closest('.tf-h-trains');
    if(bay&&bay.scrollHeight>bay.clientHeight){
      const trainBox=node.getBoundingClientRect(),bayBox=bay.getBoundingClientRect();
@@ -80,7 +129,25 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    }
    return true;
  };
- useEffect(()=>{autoFocusedRef.current=false;},[line,station,next]);
+ useEffect(()=>{
+   const viewport=viewportRef.current;
+   if(!viewport)return;
+   const cancel=()=>stopAnimation();
+   viewport.addEventListener('touchstart',cancel,{passive:true});
+   viewport.addEventListener('pointerdown',cancel,{passive:true});
+   viewport.addEventListener('wheel',cancel,{passive:true});
+   return()=>{
+     viewport.removeEventListener('touchstart',cancel);
+     viewport.removeEventListener('pointerdown',cancel);
+     viewport.removeEventListener('wheel',cancel);
+     stopAnimation();
+   };
+ },[]);
+ useEffect(()=>{
+  autoFocusedRef.current=false;
+  lastCenteredRef.current={number:null,station:null};
+  // Route-specific comparison state resets in the selected-train effect.
+ },[line,station,next]);
  useEffect(()=>{
   const viewport=viewportRef.current;
   const origin=viewport?.querySelector('[data-tf-origin="true"]');
@@ -97,12 +164,17 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  // After React renders the active branch, scroll to the exact candidate chip,
  // including candidates beyond a junction and vertically stacked train chips.
  useEffect(()=>{
-  const activeNo=focusedTrain||selectedNo;
+  const activeNo=selectedNo||focusedTrain;
   if(!activeNo)return;
   const viewport=viewportRef.current;
   const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
    .find(node=>node.dataset.tfTrainNo===activeNo);
-  if(target)centerTarget(target);
+  if(!target)return;
+  const focusStation=target.closest('[data-tf-station]')?.dataset.tfStation||'';
+  const previous=lastCenteredRef.current;
+  if(previous.number===activeNo&&previous.station===focusStation)return;
+  if(centerTarget(target,Boolean(previous.number)))
+   lastCenteredRef.current={number:activeNo,station:focusStation};
  },[focusedTrain,selectedNo,focusedStation,path]);
  // On entering the live-train screen, focus the top-ranked candidate once.
  // Centering a candidate is not a confirmation of boarding.
@@ -113,6 +185,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
   const target=[...(viewport?.querySelectorAll('[data-tf-train-no]')||[])]
    .find(node=>node.dataset.tfTrainNo===key);
   if(target&&centerTarget(target)){
+    lastCenteredRef.current={number:key,station:target.closest('[data-tf-station]')?.dataset.tfStation||''};
     autoFocusedRef.current=true;
     setFocusedTrain(key);
   }
@@ -167,6 +240,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const renderTrain=p=>{
   const number=trainKey(p.trainNo),cand=candidateByNumber.get(number);
   const isSelected=selectedNo===number;
+  const wasSelected=comparison?.from.number===number&&!isSelected;
   const destination=displayDestination(p);
   const destinationLabel=destination.text;
   // Keep the English label compact in its existing narrow 67–69px train shape.
@@ -179,7 +253,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     <strong className="tf-train-number">{p.trainNo}</strong>
   </span>;
   return cand?<button key={number+'-'+p.direction} type="button" title={tooltip}
-   className={'tf-train tf-train-pick'+(isSelected?' tf-train-picked':'')+(focusedTrain===number?' tf-train-focused':'')}
+   className={'tf-train tf-train-pick'+(isSelected?' tf-train-picked':'')+(wasSelected?' tf-train-previous':'')+(focusedTrain===number?' tf-train-focused':'')}
    data-tf-train-no={number}
    aria-pressed={isSelected} aria-label={destinationLabel+' '+p.trainNo+' · '+t.candidate+' · '+clean(p.station)}
    onClick={()=>{setFocusedTrain(number);onPick(cand);}}>{content}</button>:
@@ -187,32 +261,24 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  };
 
  return <section className="tf-board-section" aria-label={t.title}>
-   <div className="tf-board-heading">
-    <div><h3>{t.title}</h3></div>
-    <span className="tf-live-tag">{demo?'DEMO':t.refresh}</span>
-   </div>
-   <div className="tf-board-summary tf-map-headline-row">
-    <div className="tf-map-heading">
-     <strong className="tf-map-title">◎ {sectionTitle||t.title}</strong>
-     {instruction&&<span className="tf-map-instruction">{instruction}</span>}
-    </div>
-    <div className="tf-map-updated">
-     <span className="tf-last-update">{t.last} <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
-     <button className="tf-refresh-icon" onClick={refresh} disabled={refreshing} type="button"
-      aria-label={refreshing?t.pending:t.manual} title={refreshing?t.pending:t.manual}>
-      <span aria-hidden="true">{refreshing?'…':'↻'}</span>
-     </button>
-    </div>
-   </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
     <div className="tf-h-topline">
       <span className="tf-alight-context">
        <span className="tf-alight-route"><strong>{stationName(station,lang)||station}</strong> → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</span>
-       {alightingTime&&<small className="tf-alight-time">{lang==='ko'?'하차시각':lang==='en'?'Alighted at':lang==='ja'?'下車時刻':'下车时间'} {alightingTime}</small>}
       </span>
-      <span className="tf-h-swipe">← {lang==='ko'?'좌우로 밀어보기':lang==='en'?'Swipe sideways':lang==='ja'?'左右にスワイプ':'左右滑动'} →</span>
+      <div className="tf-h-meta">
+       <div className="tf-h-times">
+        {alightingTime&&<span className="tf-alight-time">{m.alight} <strong>{alightingTime}</strong></span>}
+        <span className="tf-last-update">{m.updated} <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
+       </div>
+       <button className="tf-refresh-icon" onClick={refresh} disabled={refreshing} type="button"
+        aria-label={refreshing?t.pending:t.manual} title={refreshing?t.pending:t.manual}>
+        <span aria-hidden="true">{refreshing?'…':'↻'}</span>
+       </button>
+      </div>
     </div>
+    <div className="tf-board-swipe-hint">← {lang==='ko'?'좌우로 밀어보기':lang==='en'?'Swipe sideways':lang==='ja'?'左右にスワイプ':'左右滑动'} →</div>
     <div className="tf-board-viewport tf-board-horizontal" ref={viewportRef} tabIndex={0}>
       <div className="tf-h-flow" role="list">
         {path.stops.map((s,index)=>{
@@ -236,6 +302,12 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
       </div>
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
+    {comparison&&<div className="tf-selection-comparison" aria-live="polite">
+      <span>{m.old} <strong>{comparison.from.number.padStart(4,'0')}</strong> {comparison.from.station&&'('+display(comparison.from.station)+')'}</span>
+      <span className="tf-selection-arrow">→</span>
+      <span>{m.now} <strong>{comparison.to.number.padStart(4,'0')}</strong> {comparison.to.station&&'('+display(comparison.to.station)+')'}</span>
+      {stopGap!==null&&<small>· {m.gap(stopGap)}</small>}
+    </div>}
     {lang==='en'&&focusedPosition&&<div className="tf-focused-destination" aria-live="polite">
      <strong>{focusedPosition.trainNo}</strong><span>{displayDestination(focusedPosition).text}</span>
     </div>}

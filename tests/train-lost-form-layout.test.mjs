@@ -160,7 +160,7 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
 test('results emphasize choosing a train, with compact live refresh controls only',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
- assert.match(results,/instruction=\{candidates\.length\?v\.mapInstruction:''\}/);
+ assert.doesNotMatch(results,/instruction=\{candidates\.length\?v\.mapInstruction:''\}/);
  assert.match(ui,/candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요'/);
  assert.doesNotMatch(results,/<strong>\{v\.candidateCount\} \{candidates\.length\}/);
  assert.doesNotMatch(results,/<span>\{u\.refresh\}<\/span>/);
@@ -168,7 +168,7 @@ test('results emphasize choosing a train, with compact live refresh controls onl
  assert.doesNotMatch(diagram,/\{selected&&<span>\{lang==='ko'\?'선택한 열차'/);
  assert.match(diagram,/className="tf-last-update"/);
  assert.match(diagram,/onClick=\{refresh\}/);
- assert.match(styles,/\.tl-live-map-main \.tf-board-summary\{/);
+ assert.match(diagram,/className="tf-board-swipe-hint"/);
 });
 test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
@@ -183,21 +183,19 @@ test('handoff removes repeated route/time and recent position and uses readable 
  assert.match(ui,/실제 열차 수배와 관제 협조는 정보를 전달받은 역 또는 콜센터가 판단하고 진행합니다/);
 });
 
-test('map title and train-picking hint share one row with update and refresh aligned right',async()=>{
+test('live map removes redundant heading and places swipe hint inside the dark board',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
- assert.match(results,/sectionTitle=\{v\.mapTitle\} instruction=\{candidates\.length\?v\.mapInstruction:''\}/);
- assert.doesNotMatch(results,/className="tl-live-map-title"/);
- assert.doesNotMatch(results,/className="tl-live-candidate-header"/);
- assert.match(diagram,/tf-board-summary tf-map-headline-row/);
- assert.match(diagram,/className="tf-map-heading"/);
- assert.match(diagram,/className="tf-map-instruction"/);
- assert.match(diagram,/className="tf-map-updated"/);
- assert.ok(diagram.indexOf('className="tf-map-heading"')<diagram.indexOf('className="tf-map-updated"'));
- assert.match(styles,/\.tf-map-updated\{/);
- assert.match(styles,/\.tf-board-summary\.tf-map-headline-row\{/);
+ assert.doesNotMatch(results,/sectionTitle=\{v\.mapTitle\} instruction=/);
+ assert.doesNotMatch(diagram,/tf-board-summary tf-map-headline-row/);
+ assert.doesNotMatch(diagram,/className="tf-map-instruction"/);
+ assert.match(diagram,/className="tf-h-meta"/);
+ assert.match(diagram,/className="tf-h-times"/);
+ assert.match(diagram,/className="tf-board-swipe-hint"/);
+ assert.ok(diagram.indexOf('className="tf-board-swipe-hint"')<diagram.indexOf('className="tf-board-viewport'));
+ assert.match(styles,/\.tf-board-swipe-hint\{/);
+ assert.match(styles,/\.tf-h-meta \.tf-refresh-icon\{/);
 });
-
 test('warm train-confirmation copy distinguishes found candidates from pending and empty states',()=>{
  assert.match(ui,/heroFound:'열차 후보를 찾았어요'/);
  assert.match(ui,/heroOut:'열차 정보를 확인하고 있어요'/);
@@ -211,8 +209,8 @@ test('refresh icon remains accessible, small and aligned beside last update',asy
  assert.match(diagram,/aria-label=\{refreshing\?t\.pending:t\.manual\}/);
  assert.match(diagram,/title=\{refreshing\?t\.pending:t\.manual\}/);
  assert.match(diagram,/className="tf-last-update"/);
- assert.match(styles,/button\.tf-refresh-icon\{/);
- assert.match(styles,/width:32px;height:32px/);
+ assert.match(styles,/\.tf-h-meta \.tf-refresh-icon\{/);
+ assert.match(styles,/width:44px;height:44px/);
 });
 
 test('first ranked candidate is selected initially and manual picks persist in production',async()=>{
@@ -296,7 +294,7 @@ test('equal three-step navigator stays simple; alighting time belongs under rout
  assert.match(diagram,/className="tf-alight-context"/);
  assert.match(diagram,/className="tf-alight-route"/);
  assert.match(diagram,/className="tf-alight-time"/);
- assert.match(diagram,/alightingTime&&<small/);
+ assert.match(diagram,/alightingTime&&<span/);
  assert.match(styles,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
  assert.match(styles,/\.tf-h-topline \.tf-alight-context\{/);
 });
@@ -359,7 +357,7 @@ test('handoff transition scrolls to the form top only when moving from results',
 test('restore compact train header labels and remove forced blank summary-card heights',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  assert.match(diagram,/className="tf-alight-route"><strong>\{stationName\(station,lang\)\|\|station\}<\/strong>/);
- assert.match(diagram,/alightingTime&&<small className="tf-alight-time">/);
+ assert.match(diagram,/alightingTime&&<span className="tf-alight-time">/);
  assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
  assert.doesNotMatch(styles,/\.tf-h-topline \.tf-alight-route,\s*\.tf-redesign\.tl-three-stage \.tf-h-topline \.tf-alight-time\{/);
 });
@@ -450,4 +448,28 @@ test('unknown station tokens are never used as verified termini, even in Korean'
  ]);
  assert.match(uiSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
  assert.match(diagramSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
+});
+
+test('candidate switching uses cancellable animation and retains previous train context',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/requestAnimationFrame\(frame\)/);
+ assert.match(diagram,/cancelAnimationFrame\(animationRef\.current\)/);
+ assert.match(diagram,/window\.matchMedia\?\./);
+ assert.match(diagram,/viewport\.addEventListener\('touchstart',cancel/);
+ assert.match(diagram,/viewport\.addEventListener\('pointerdown',cancel/);
+ assert.match(diagram,/viewport\.style\.scrollSnapType='none'/);
+ assert.match(diagram,/centerTarget\(target,Boolean\(previous\.number\)\)/);
+ assert.match(diagram,/fromIndex>=0&&toIndex>=0\?Math\.abs\(fromIndex-toIndex\):null/);
+ assert.match(diagram,/tf-selection-comparison/);
+ assert.match(diagram,/tf-train-previous/);
+ assert.match(styles,/\.tf-train-previous\{/);
+});
+test('only successful API timestamps are displayed, and refresh keeps a 44-pixel touch target',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/\{alightingTime&&<span className="tf-alight-time"/);
+ assert.match(diagram,/getTime\(fetchedAt\|\|lastPoll,lang\)/);
+ assert.match(diagram,/className="tf-last-update"/);
+ assert.match(diagram,/className="tf-refresh-icon" onClick=\{refresh\}/);
+ assert.match(diagram,/\{m\.updated\}/);
+ assert.match(styles,/width:44px;height:44px/);
 });

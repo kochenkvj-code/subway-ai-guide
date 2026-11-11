@@ -189,7 +189,7 @@ export default function TrainLostUI(p){
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
-    <TrainLiveDiagram sectionTitle={v.mapTitle} instruction={candidates.length?v.mapInstruction:''} alightingTime={displayTime} line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
+    <TrainLiveDiagram alightingTime={displayTime} line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
    </div>}
    {!busy&&searched&&!error&&candidates.length>0&&<div className={'tl-candidate-strip'+(chosen?' has-selection':'')} role="group" aria-label={v.candidateCount}>
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
