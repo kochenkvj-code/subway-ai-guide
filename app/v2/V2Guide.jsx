@@ -70,10 +70,14 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function activate(next){if(typeof document!=='undefined')document.activeElement?.blur?.();setMounted(prev=>({...prev,[next]:true}));setView(next);}
   useEffect(()=>{
     if(started.current)return;started.current=true;
-    const initial=readView();activate(initial);window.history.replaceState({...(window.history.state||{}),sagV2:true,sagV2Depth:0},'',window.location.href);
-    // A fresh page is used only to reset iPhone WebKit after the home keyboard.
-    // This is the same visit, not a second visit for analytics.
-    if(!new URLSearchParams(window.location.search).has(HOME_CHAT_HANDOFF_PARAM))recordStat('page_view','visit',initialLanguage);
+    const initial=readView();activate(initial);
+    // Switching the station in the SPA is not a new site visit; StationEntry
+    // records the station change with its own timestamp before remounting.
+    const switchedStation=window.history.state?.sagStationSwitch===true;
+    window.history.replaceState({...(window.history.state||{}),sagStationSwitch:false,sagV2:true,sagV2Depth:0},'',window.location.href);
+    // An iPhone keyboard handoff is likewise the same visit.
+    if(!switchedStation&&!new URLSearchParams(window.location.search).has(HOME_CHAT_HANDOFF_PARAM))
+      recordStat('page_view','visit',initialLanguage,stationContext?.stationCode?'station:'+stationContext.stationCode:null);
   },[]);
   useEffect(()=>{
     // Consume the exact question once after the iPhone's full-page navigation.
