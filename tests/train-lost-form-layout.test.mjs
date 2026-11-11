@@ -356,11 +356,10 @@ test('handoff transition scrolls to the form top only when moving from results',
  assert.match(ui,/stageTopRef\.current\?\.scrollIntoView\(\{behavior:'auto',block:'start'\}\)/);
  assert.match(ui,/ref=\{stageTopRef\}/);
 });
-test('alighting time is as prominent as route, and all four summary cells are equal-size',async()=>{
+test('restore compact train header labels and remove forced blank summary-card heights',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
- assert.match(diagram,/className="tf-alight-time"><span>/);
- assert.match(diagram,/className="tf-alight-route"><strong>/);
- assert.match(styles,/\.tf-h-topline \.tf-alight-route,\s*\.tf-redesign\.tl-three-stage \.tf-h-topline \.tf-alight-time\{/);
- assert.match(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
- assert.match(styles,/\.tl-handoff-cell \.tl-handoff-direction\{[\s\S]*?font-size:12px;font-weight:800/);
+ assert.match(diagram,/className="tf-alight-route"><strong>\{stationName\(station,lang\)\|\|station\}<\/strong>/);
+ assert.match(diagram,/alightingTime&&<small className="tf-alight-time">/);
+ assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
+ assert.doesNotMatch(styles,/\.tf-h-topline \.tf-alight-route,\s*\.tf-redesign\.tl-three-stage \.tf-h-topline \.tf-alight-time\{/);
 });
