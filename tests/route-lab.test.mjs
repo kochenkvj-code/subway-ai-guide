@@ -317,13 +317,11 @@ test('compact form has a single departure station row, 3 equal path options, and
  assert.ok(css.includes('line-height:1.25;white-space:normal;overflow-wrap:break-word;text-align:center'));
  assert.ok(css.includes('font-size:16px;color:#203a35')); // avoid iOS text-field zoom
 });
-test('Gemini route_station metadata shows exact raw value as centered full tags',()=>{
- assert.ok(page.includes('className="rl-route-station-tag"'));
- assert.ok(page.includes("{'<route_station>'}"));
- assert.ok(page.includes("{'</route_station>'}"));
- assert.ok(page.includes('value||RAW_STATION_COPY[lang].empty'));
- assert.ok(css.includes('.rl-route-station-debug{display:flex;flex-direction:column;align-items:center;justify-content:center;'));
- assert.ok(css.includes('.rl-route-station-tag{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;'));
+test('internal route_station diagnostics are not exposed below the recommended stop',()=>{
+ assert.ok(!page.includes('className="rl-route-station-tag"'));
+ assert.ok(!page.includes('className="rl-route-station-debug"'));
+ assert.ok(!page.includes('RAW_STATION_COPY'));
+ assert.ok(page.includes('className="rl-recommend-station"'));
 });
 test('recommended stop shows centered numeric line badges; station timeline scrolls in the parent only',()=>{
  assert.ok(page.includes('className="rl-recommend-station"'));
