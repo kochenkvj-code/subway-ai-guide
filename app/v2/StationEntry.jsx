@@ -23,9 +23,9 @@ export default function StationEntry({basePath='/v2',selectorEnabled=true}){
  const t=ui[entry?.language||'ko'];
  function open(kind){setQuery('');setLine(entry?.station?.line||'');setNotice('');setAddressesOpen(false);setPanel(kind);}
  function choose(station){
-  // Preserve the station selector so staff can copy this station's QR links
-  // before explicitly closing it. Picking a station must never close the dialog.
-  setAddressesOpen(true);setNotice('');setQuery('');setLine(station.line);
+  // Keep the picker open but leave QR addresses collapsed until explicitly requested.
+  // Choosing a station must not unexpectedly open its QR links or close the picker.
+  setAddressesOpen(false);setNotice('');
   if(station.stationCode===entry?.code)return;
   recordStat('page_view','station_change',entry?.language||'ko','station:'+station.stationCode);
   const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:station.stationCode,language:language.current});

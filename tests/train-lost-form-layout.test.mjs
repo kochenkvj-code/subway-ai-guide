@@ -41,7 +41,7 @@ test('lost item and four compact location choices share one row without wrapping
  assert.doesNotMatch(ui,/className="tl-location-grid"/);
 });
 
-test('four door numbers remain on one full-width row below car buttons',()=>{
+test('four door numbers stay in one inline row beside the door-number label',()=>{
  assert.match(ui,/className="tl-door-block"/);
  assert.match(ui,/className="tl-door-options"/);
  assert.match(ui,/\['1','2','3','4'\]\.map/);
@@ -92,7 +92,7 @@ test('quick-time buttons sit above the slider so dragging never covers the short
 });
 
 test('exactly the selected train-lost stage receives the strong active styling',()=>{
- assert.match(ui,/className=\{'tl-step'\+\(i\+1===stageNumber\?' current'/);
+ assert.match(ui,/className=\{'tl-step'\+\(showTrip\?' tl-step-with-trip':''\)\+\(i\+1===stageNumber\?' current'/);
  assert.match(ui,/aria-current=\{i\+1===stageNumber\?'step':undefined\}/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.current,\s*\.tf-redesign\.tl-three-stage \.tl-stepbar button\.tl-step\.current:not\(:disabled\):hover\{\s*background:#176c50;border-color:#176c50;color:#fff;/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.done\{\s*background:#eff8f2/);
@@ -104,9 +104,10 @@ test('selected candidate affordance does not include SOURCE footer',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  assert.doesNotMatch(ui,/SOURCE ·/);
  assert.doesNotMatch(ui,/tl-status-foot/);
- assert.match(ui,/tl-candidate-selected-badge/);
+ assert.match(ui,/tl-candidate-check/);
  assert.match(ui,/has-selection/);
- assert.match(styles,/tl-candidate-selected-badge/);
+ assert.match(styles,/tl-candidate-check/);
+ assert.doesNotMatch(ui,/tl-candidate-selected-badge|selectedLabel/);
  assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
 });
 
@@ -172,7 +173,8 @@ test('results emphasize choosing a train, with compact live refresh controls onl
 test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
  const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
- assert.match(results,/className="tl-search-context tl-search-context-compact"/);
+ assert.doesNotMatch(results,/className="tl-search-context/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
  assert.doesNotMatch(handoff,/className="tl-search-context"/);
  assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
  assert.match(handoff,/className="tl-handoff-notices"/);
@@ -213,7 +215,7 @@ test('refresh icon remains accessible, small and aligned beside last update',asy
  assert.match(styles,/width:32px;height:32px/);
 });
 
-test('production auto-selects ranked first candidate while keeping later user choice',async()=>{
+test('production auto-selects the first estimated candidate and preserves user choice',async()=>{
  const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
  assert.match(model,/function selectTopCandidate\(list,positions\)/);
  assert.match(model,/setChosen\(first\)/);
@@ -236,13 +238,13 @@ test('all three stages share concise headers, with third stage review heading an
  assert.match(styles,/\.tl-hero p\{/);
 });
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
- assert.match(ui,/tl-search-context tl-search-context-compact/);
- assert.match(ui,/className="tl-route-stations"/);
- assert.match(ui,/className="tl-line-badge"/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
+ assert.match(ui,/className="tl-step-trip-clock"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-route-stations\{/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-clock\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
- assert.match(styles,/\.tl-candidate-selected-badge\{/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
 
 test('first-stage station and line controls share a single horizontal row',()=>{
@@ -279,15 +281,44 @@ test('SMS request separates direction from alighting station and uses an actiona
  assert.doesNotMatch(model,/current\.receivedAt\+\)/);
 });
 
-test('station search displays distinct subway-line colors with accessible station labels',()=>{
- assert.match(ui,/const LINE_COLORS=\{/);
- assert.match(ui,/'1':'#24559b'/);
- assert.match(ui,/'2':'#219052'/);
- assert.match(ui,/'3':'#ef8928'/);
- assert.match(ui,/'4':'#238cc4'/);
- assert.match(ui,/'9':'#ae8c35'/);
- assert.match(ui,/pickerLineColor\(s\.line\)/);
- assert.match(ui,/--tl-line-color/);
- assert.match(styles,/\.tl-picker-line\{\s*background:var\(--tl-line-color,#536c80\)/);
- assert.match(styles,/border-left:3px solid var\(--tl-line-color,#536c80\)/);
+test('selected train uses only an accessible checkmark and compact card width',()=>{
+ assert.match(ui,/aria-pressed=\{selected\}/);
+ assert.match(ui,/selected&&<span className="tl-candidate-check" aria-hidden="true">✓<\/span>/);
+ assert.doesNotMatch(ui,/selectedLabel|tl-candidate-selected-badge/);
+ assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{/);
+ assert.match(styles,/flex:0 0 132px/);
+});
+test('three equal-width steps retain only alighting time in compact editable first tile',()=>{
+ assert.match(ui,/const showTrip=stage==='results'&&i===0/);
+ assert.match(ui,/const tripText=v\.time\+' '\+displayTime/);
+ assert.match(ui,/className="tl-step-heading"/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
+ assert.match(ui,/className="tl-step-trip-clock"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-line"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-origin"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
+ assert.match(ui,/aria-label=\{showTrip\?label\+' · '\+tripText\+' · '\+u\.change:undefined\}/);
+ assert.doesNotMatch(ui,/className="tl-stepbar-trip"/);
+ assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
+ assert.match(styles,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(styles,/height:52px;min-height:52px;max-height:52px/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{\s*display:flex;align-items:center;justify-content:center/);
+});
+test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
+ assert.doesNotMatch(ui,/className="tl-chosen-car"/);
+ assert.match(ui,/className="tl-door-block"/);
+ assert.match(styles,/\.tl-car-door-field \.tl-door-block\{\s*display:flex;align-items:center/);
+ assert.match(styles,/\.tl-car-door-field \.tl-door-options\{\s*flex:1 1 auto;min-width:0;/);
+ assert.match(styles,/\.tl-item-place-row \.tl-label,\s*\.tf-redesign\.tl-three-stage \.tl-car-door-field>\.tl-label/);
+});
+
+test('timetable footer avoids API and provider-format jargon in four languages',async()=>{
+ const timetable=await readFile(new URL('../app/v2/TrainTimetable.jsx',import.meta.url),'utf8');
+ const footerStart=timetable.indexOf("note:'서울교통공사 제공 예정 운행시각");
+ assert.ok(footerStart>0);
+ assert.match(timetable,/week:'주말·공휴일에는 운행시각이 다를 수 있으니 이용 전 확인해 주세요\.'/);
+ assert.doesNotMatch(timetable,/토요일·공휴일 구분은 이 API에 별도로 없습니다/);
+ assert.doesNotMatch(timetable,/The provider groups weekend trains together/);
+ assert.doesNotMatch(timetable,/提供元の週末時刻表を使用します/);
+ assert.doesNotMatch(timetable,/运营方统一提供周末时刻表/);
 });

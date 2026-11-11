@@ -37,7 +37,6 @@ const branchWarningLabel={
 };
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 const candidateRankLabel=(index,lang)=>lang==='ko'?'추정 '+(index+1)+'순위':lang==='ja'?'推定 第'+(index+1)+'候補':lang==='zh'?'推测第'+(index+1)+'候选':'Estimated #'+(index+1);
-const selectedLabel={ko:'선택',en:'Selected',ja:'選択中',zh:'已选'};
 
 const flowCopy={
  ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치',mapInstruction:'다른 열차라면 아래 후보를 선택해 주세요.',confirm:'선택한 열차 정보로 계속하기',selectHint:'위의 후보 열차를 선택해 주세요.',positionExplain:'최근 확인 위치는 실시간 열차정보에 마지막으로 기록된 역입니다. 실제 위치와 차이가 있을 수 있으며, 후보는 탑승 열차로 확정되지 않았습니다.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
@@ -82,7 +81,19 @@ export default function TrainLostUI(p){
     const target=['input','results','handoff'][i];
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
-    return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={goToStep}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;
+    const showTrip=stage==='results'&&i===0;
+    const tripText=v.time+' '+displayTime;
+    return <button type="button" key={label}
+     className={'tl-step'+(showTrip?' tl-step-with-trip':'')+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
+     aria-current={i+1===stageNumber?'step':undefined}
+     aria-label={showTrip?label+' · '+tripText+' · '+u.change:undefined}
+     title={showTrip?tripText+' · '+u.change:undefined}
+     disabled={busy||!available} onClick={goToStep}>
+     <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
+     {showTrip&&<span className="tl-step-trip-detail" aria-hidden="true">
+      <span className="tl-step-trip-clock">{displayTime}</span>
+     </span>}
+    </button>;
    })}
   </nav>
   {stage==='input'&&<div className={'tl-required-status'+(canSearch?' ready':' missing')} role="status" aria-live="polite">
@@ -147,19 +158,11 @@ export default function TrainLostUI(p){
       <div className="tl-label">{u.door}<span className="tl-required">{u.required}</span></div>
       <div className="tl-door-options" role="group" aria-label={u.door}>{['1','2','3','4'].map(n=><button type="button" key={n} aria-pressed={door===n} onClick={()=>setDoor(n)}>{lang==='en'?u.doorUnit+' '+n:n+u.doorUnit}</button>)}</div>
      </div>
-     {carNumber&&door&&<p className="tl-chosen-car">✓ {carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</p>}
     </div>
    </section>
    <div className="tl-search-footer"><button type="button" className="tl-primary" disabled={!canSearch} onClick={onSearch}>{u.search} →</button><p className="tl-footer-hint">{canSearch?v.timeRef+': '+displayTime:u.inputHint}</p></div>
   </>}
   {stage==='results'&&<>
-   <section className="tl-search-context tl-search-context-compact">
-    <span className="tl-route-info" title={lineName(selection.line+'호선',lang)+' · '+selectionLabel+' → '+way}>
-     <b className="tl-line-badge">{selection.line}</b><span className="tl-route-stations">{selectionLabel} → {way}</span>
-    </span>
-    <strong className="tl-alight-clock" title={v.time+' '+displayTime}>◷ {displayTime}</strong>
-    <button type="button" className="tl-link tl-compact-edit" title={u.change} aria-label={u.change} onClick={onBack}>✎</button>
-   </section>
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
    {error&&<div className="tf-warning" role="alert">{error}</div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
@@ -169,7 +172,7 @@ export default function TrainLostUI(p){
     {candidates.map((c,index)=>{const selected=compareNo(chosen?.number)===compareNo(c.number);
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <span className="tl-candidate-toprow"><span className={'tl-candidate-rank'+(index===0?' tl-candidate-rank-first':'')}>{candidateRankLabel(index,lang)}</span></span>
-      <span className="tl-candidate-identity"><strong>#{c.number}</strong>{selected&&<small className="tl-candidate-selected-badge">✓ {selectedLabel[lang]||selectedLabel.ko}</small>}</span><span className="tl-candidate-location"><small>{u.position}</small><b>{localized(current&&selected?current.station:c.station,selection.line,lang)}</b></span>
+      <span className="tl-candidate-identity"><strong>#{c.number}</strong></span>{selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}<span className="tl-candidate-location"><small>{u.position}</small><b>{localized(current&&selected?current.station:c.station,selection.line,lang)}</b></span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
@@ -179,7 +182,6 @@ export default function TrainLostUI(p){
    {!busy&&<section className="tl-next-panel">
     {chosen?<><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
     <><p className="tl-select-instruction">{candidates.length>0?v.selectHint:v.noCandidate}</p><button type="button" className="tl-primary tl-secondary-primary" onClick={onNone}>{v.fallback} →</button></>}
-    <button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button>
     {chosen&&<button type="button" className="tl-text-option" onClick={onNone}>{v.fallback}</button>}
    </section>}
   </>}
