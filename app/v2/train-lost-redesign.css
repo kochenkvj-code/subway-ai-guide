@@ -663,3 +663,271 @@
   flex-basis:30px;width:30px;height:30px;min-height:30px;
  }
 }
+
+/* 2026-11-11 loss-report preview: consistent one-line hero hierarchy. */
+.tf-redesign.tl-three-stage .tl-hero h2{
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:16px;font-weight:750;line-height:1.45;
+}
+.tf-redesign.tl-three-stage .tl-hero p{
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:11px;letter-spacing:-.12px;line-height:1.45;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-hero h2{font-size:15px}
+ .tf-redesign.tl-three-stage .tl-hero p{font-size:10px}
+}
+/* Keep the English route + alighting clock in one compact, accessible row. */
+.tf-redesign.tl-three-stage .tl-search-context.tl-search-context-compact{
+ display:flex;align-items:center;flex-wrap:nowrap;
+ gap:6px;min-width:0;padding:8px 9px;margin-bottom:9px;
+}
+.tf-redesign.tl-three-stage .tl-route-info{
+ display:flex;align-items:center;gap:6px;
+ flex:1 1 auto;min-width:0;overflow:hidden;
+}
+.tf-redesign.tl-three-stage .tl-line-badge{
+ flex:0 0 23px;width:23px;height:23px;display:grid;place-items:center;
+ background:#e4f0f8;border:1px solid #c4dfea;
+ border-radius:7px;color:#20669b;font-size:11px;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-route-stations{
+ display:block;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;
+ white-space:nowrap;font-size:11px;line-height:1.4;font-weight:750;
+ scrollbar-width:none;overscroll-behavior-x:contain;
+}
+.tf-redesign.tl-three-stage .tl-route-stations::-webkit-scrollbar{display:none}
+.tf-redesign.tl-three-stage .tl-alight-clock{
+ flex:0 0 auto;white-space:nowrap;font-size:11px;
+ font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tl-search-context>.tl-link.tl-compact-edit{
+ margin-left:0;flex:0 0 25px;width:25px;height:28px;
+ display:grid;place-items:center;padding:0;font-size:15px;
+ border-radius:8px;background:#f1f7fa;color:#377187;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-search-context.tl-search-context-compact{gap:4px;padding:7px 6px}
+ .tf-redesign.tl-three-stage .tl-route-info{gap:4px}
+ .tf-redesign.tl-three-stage .tl-route-stations{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-alight-clock{font-size:10px}
+}
+/* Candidate identity and selection state must never overlap or crop in English. */
+.tf-redesign.tl-three-stage .tl-candidate-chip{
+ min-width:158px;max-width:190px;padding:10px 11px;gap:5px;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-toprow{
+ display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+ white-space:normal;overflow:visible;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:5px;width:100%;max-width:100%;
+ overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-identity strong{
+ min-width:0;font-size:17px;letter-spacing:-.3px;overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-selected-badge{
+ position:static;display:inline-flex;align-items:center;justify-content:center;
+ max-width:none;flex:0 0 auto;white-space:nowrap;
+ font-size:9px;padding:5px 6px;overflow:visible;text-overflow:clip;
+}
+.tf-redesign.tl-three-stage .tl-candidate-location b{
+ white-space:normal;overflow:visible;text-overflow:clip;
+ overflow-wrap:anywhere;line-height:1.35;
+}
+/* SMS explanation retains the important details but is easy to scan. */
+.tf-redesign.tl-three-stage .tl-handoff-notices{
+ gap:9px;padding:12px;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p{
+ gap:9px;font-size:11px;line-height:1.6;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p strong{
+ display:block;margin-bottom:3px;color:#244859;
+ font-size:11px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(2){
+ color:#718791;font-size:10px;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(2) .tl-handoff-notice-icon{
+ background:#fff3dc;color:#987222;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(3) .tl-handoff-notice-icon{
+ background:#e6eef2;color:#56788d;
+}
+
+/* Preview: fit alighting station + line into one horizontal row,
+   including their labels, on narrow phone screens. */
+.tf-redesign.tl-three-stage .tl-station-layout{
+ display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);
+ gap:7px;align-items:stretch;
+}
+.tf-redesign.tl-three-stage .tl-station-column.tl-station-inline-field{
+ display:flex;flex-direction:row;align-items:center;gap:6px;min-width:0;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field>.tl-label{
+ flex:none;white-space:nowrap;margin:0;color:#4f6b76;
+ font-size:11px;font-weight:800;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger,
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select,
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{
+ min-width:0;width:auto;flex:1 1 auto;min-height:40px;
+ font-size:12px;line-height:1.3;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger{
+ padding:7px 9px;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select{
+ padding:7px 17px 7px 5px;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{
+ padding:7px 4px;
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-station-layout{grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:5px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field{gap:4px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field>.tl-label{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger{padding:6px 5px;font-size:11px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select,
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{font-size:11px}
+}
+/* Quick time buttons above the range slider: thumb remains unobstructed. */
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-meter{
+ display:flex;flex-direction:column;gap:0;
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-meter .tl-times{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ gap:6px;margin:11px 0 4px;width:100%;
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-slider{
+ margin:14px 0 6px;touch-action:pan-y;
+}
+.tf-redesign.tl-three-stage .tl-time-field .tl-time-slider:active{cursor:grabbing}
+/* Expanded SMS body avoids nested touch-scrolling and shows the full report. */
+.tf-redesign.tl-three-stage .tl-message{
+ max-height:none;height:auto;min-height:0;overflow:visible;
+ white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;
+ padding:12px 13px;font-size:11px;
+}
+
+/* Balanced one-row station and line cards. Labels and values have a clear,
+   consistent hierarchy instead of competing on the same baseline. */
+.tf-redesign.tl-three-stage .tl-station-layout{
+ grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);gap:10px;align-items:stretch;
+}
+.tf-redesign.tl-three-stage .tl-station-column.tl-station-inline-field{
+ display:flex;flex-direction:column;align-items:stretch;
+ justify-content:flex-start;gap:7px;min-width:0;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field>.tl-label{
+ display:flex;align-items:center;flex:none;
+ margin:0;color:#516b78;font-size:12px;font-weight:750;
+ letter-spacing:-.15px;line-height:1.4;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger,
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select,
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{
+ display:flex;align-items:center;flex:1 1 auto;
+ min-height:46px;width:100%;border-radius:12px;
+ font-size:13px;font-weight:800;line-height:1.35;
+ background:#f5f9fa;border:1px solid #d7e5e9;
+ color:#1a4052;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger{
+ padding:10px 11px;justify-content:space-between;gap:7px;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-value{
+ min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ font-size:14px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-edit-icon{
+ display:grid;place-items:center;flex:0 0 26px;
+ width:26px;height:26px;border-radius:8px;
+ background:#e3f1ee;color:#137d67;font-size:21px;font-weight:700;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger[aria-expanded="true"]{
+ background:#edf8f4;border-color:#37a38d;
+}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select{padding:10px 7px}
+.tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{
+ justify-content:center;padding:10px 4px;font-weight:850;
+}
+@media(max-width:380px){
+ .tf-redesign.tl-three-stage .tl-station-layout{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:7px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field>.tl-label{font-size:11px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-value{font-size:13px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-trigger{padding:8px}
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-select,
+ .tf-redesign.tl-three-stage .tl-station-inline-field .tl-station-line-static{font-size:12px}
+}
+/* Inline station search panel with clear scan targets and no bulky text-only menu. */
+.tf-redesign.tl-three-stage .tl-picker.tl-station-search-panel{
+ margin-top:9px;padding:12px;background:#fff;
+ border:1px solid #d8e7e6;border-radius:13px;
+ box-shadow:0 8px 22px rgba(25,70,80,.06);
+}
+.tf-redesign.tl-three-stage .tl-picker-heading{
+ display:flex;justify-content:space-between;align-items:center;
+ margin-bottom:10px;color:#244a57;font-size:12px;
+}
+.tf-redesign.tl-three-stage .tl-picker-heading strong{font-weight:800}
+.tf-redesign.tl-three-stage .tl-picker-heading button{
+ display:grid;place-items:center;border:0;border-radius:8px;
+ background:#edf3f5;color:#637f89;width:27px;height:27px;
+ font-size:18px;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-picker-search{
+ display:flex;align-items:center;gap:7px;min-height:45px;
+ border:1px solid #b5d5d4;border-radius:11px;
+ background:#f7fbfb;padding:0 10px;
+}
+.tf-redesign.tl-three-stage .tl-picker-search>span{
+ font-size:21px;color:#1a8273;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-picker-search input{
+ flex:1;min-width:0;min-height:43px;height:43px;
+ border:0;outline:none;box-shadow:none;background:transparent;
+ font-size:14px;padding:0;color:#183e4d;
+}
+.tf-redesign.tl-three-stage .tl-picker-search:focus-within{
+ border-color:#15886d;box-shadow:0 0 0 2px #e3f5ee;
+}
+.tf-redesign.tl-three-stage .tl-picker .tf-matches{
+ display:flex;flex-direction:column;gap:5px;
+ max-height:250px;overflow-y:auto;margin-top:10px;
+ border:0;background:transparent;box-shadow:none;
+}
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button{
+ display:flex;align-items:center;gap:9px;text-align:left;
+ background:#f7fafb;border:1px solid #e5edef;
+ border-radius:9px;padding:9px 10px;color:#254b5b;
+ min-height:41px;
+}
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button:hover,
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button[aria-selected="true"]{
+ background:#ebf6f1;border-color:#b8ded2;
+}
+.tf-redesign.tl-three-stage .tl-picker-line{
+ display:grid;place-items:center;flex:0 0 25px;
+ width:25px;height:25px;background:#20639b;
+ color:#fff;border-radius:7px;font-size:11px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button strong{
+ flex:1;min-width:0;font-size:13px;font-weight:800;
+ overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tl-picker-arrow{
+ flex:none;font-size:15px;color:#6d9c9a;
+}
+
+/* Each matched station inherits its own subway-line color. */
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button{
+ border-left:3px solid var(--tl-line-color,#536c80);
+}
+.tf-redesign.tl-three-stage .tl-picker .tl-picker-line{
+ background:var(--tl-line-color,#536c80);
+ color:#fff;
+}
