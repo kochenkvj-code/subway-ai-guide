@@ -117,7 +117,7 @@ test('live rail test page and the selected candidate affordance do not include S
 test('live map precedes ranked candidates, and redundant guidance and phone action are absent',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  const mapAt=ui.indexOf('className="tl-live-map-main"');
- const candidateAt=ui.indexOf('className="tl-live-candidate-header"');
+ const candidateAt=ui.indexOf("className={'tl-candidate-strip'");
  const selectionActionAt=ui.indexOf('className="tl-next-panel"');
  assert.ok(mapAt>=0&&candidateAt>mapAt&&selectionActionAt>candidateAt,'map → candidate cards → action');
  assert.match(ui,/className="tl-candidate-location"/);
@@ -145,7 +145,7 @@ test('third-stage handoff emphasizes composing SMS to the verified operator numb
  assert.match(ui,/smsTarget:'1577-1234'/);
  assert.match(ui,/className="tl-sms-primary-action"/);
  assert.match(ui,/className="tl-sms-primary-recipient"/);
- assert.match(ui,/문자 앱에서 내용을 확인한 뒤 전송해 주세요/);
+ assert.match(ui,/문자 앱에서 내용을 확인한 뒤 직접 전송하세요\. 이 화면에서는 자동 발송되지 않습니다/);
  assert.doesNotMatch(ui,/문자 수신 여부는 확인되지/);
  assert.doesNotMatch(ui,/className="tl-send-options"/);
  assert.ok(ui.indexOf('className="tl-copy-compact"')<ui.indexOf('className="tl-message"'));
@@ -180,5 +180,20 @@ test('handoff removes repeated route/time and recent position and uses readable 
  assert.match(handoff,/className="tl-handoff-notices"/);
  assert.match(handoff,/tl-handoff-notice-icon/);
  assert.match(styles,/\.tl-handoff-notices\{/);
- assert.match(ui,/실제 열차 수배·관제 협조는 담당 역 또는 콜센터에서 판단합니다/);
+ assert.match(ui,/실제 열차 수배와 관제 협조는 정보를 전달받은 역 또는 콜센터가 판단하고 진행합니다/);
+});
+
+test('map title and train-picking hint share one row with update and refresh aligned right',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/sectionTitle=\{v\.mapTitle\} instruction=\{v\.candidatePrompt\}/);
+ assert.doesNotMatch(results,/className="tl-live-map-title"/);
+ assert.doesNotMatch(results,/className="tl-live-candidate-header"/);
+ assert.match(diagram,/tf-board-summary tf-map-headline-row/);
+ assert.match(diagram,/className="tf-map-heading"/);
+ assert.match(diagram,/className="tf-map-instruction"/);
+ assert.match(diagram,/className="tf-map-updated"/);
+ assert.ok(diagram.indexOf('className="tf-map-heading"')<diagram.indexOf('className="tf-map-updated"'));
+ assert.match(styles,/\.tf-map-updated\{/);
+ assert.match(styles,/\.tf-board-summary\.tf-map-headline-row\{/);
 });
