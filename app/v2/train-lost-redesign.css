@@ -663,3 +663,97 @@
   flex-basis:30px;width:30px;height:30px;min-height:30px;
  }
 }
+
+/* 2026-11-11 loss-report preview: consistent one-line hero hierarchy. */
+.tf-redesign.tl-three-stage .tl-hero h2{
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:16px;font-weight:750;line-height:1.45;
+}
+.tf-redesign.tl-three-stage .tl-hero p{
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:11px;letter-spacing:-.12px;line-height:1.45;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-hero h2{font-size:15px}
+ .tf-redesign.tl-three-stage .tl-hero p{font-size:10px}
+}
+/* Keep the English route + alighting clock in one compact, accessible row. */
+.tf-redesign.tl-three-stage .tl-search-context.tl-search-context-compact{
+ display:flex;align-items:center;flex-wrap:nowrap;
+ gap:6px;min-width:0;padding:8px 9px;margin-bottom:9px;
+}
+.tf-redesign.tl-three-stage .tl-route-info{
+ display:flex;align-items:center;gap:6px;
+ flex:1 1 auto;min-width:0;overflow:hidden;
+}
+.tf-redesign.tl-three-stage .tl-line-badge{
+ flex:0 0 23px;width:23px;height:23px;display:grid;place-items:center;
+ background:#e4f0f8;border:1px solid #c4dfea;
+ border-radius:7px;color:#20669b;font-size:11px;line-height:1;
+}
+.tf-redesign.tl-three-stage .tl-route-stations{
+ display:block;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;
+ white-space:nowrap;font-size:11px;line-height:1.4;font-weight:750;
+ scrollbar-width:none;overscroll-behavior-x:contain;
+}
+.tf-redesign.tl-three-stage .tl-route-stations::-webkit-scrollbar{display:none}
+.tf-redesign.tl-three-stage .tl-alight-clock{
+ flex:0 0 auto;white-space:nowrap;font-size:11px;
+ font-variant-numeric:tabular-nums;
+}
+.tf-redesign.tl-three-stage .tl-search-context>.tl-link.tl-compact-edit{
+ margin-left:0;flex:0 0 25px;width:25px;height:28px;
+ display:grid;place-items:center;padding:0;font-size:15px;
+ border-radius:8px;background:#f1f7fa;color:#377187;
+}
+@media(max-width:360px){
+ .tf-redesign.tl-three-stage .tl-search-context.tl-search-context-compact{gap:4px;padding:7px 6px}
+ .tf-redesign.tl-three-stage .tl-route-info{gap:4px}
+ .tf-redesign.tl-three-stage .tl-route-stations{font-size:10px}
+ .tf-redesign.tl-three-stage .tl-alight-clock{font-size:10px}
+}
+/* Candidate identity and selection state must never overlap or crop in English. */
+.tf-redesign.tl-three-stage .tl-candidate-chip{
+ min-width:158px;max-width:190px;padding:10px 11px;gap:5px;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-toprow{
+ display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+ white-space:normal;overflow:visible;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-identity{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:5px;width:100%;max-width:100%;
+ overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-identity strong{
+ min-width:0;font-size:17px;letter-spacing:-.3px;overflow-wrap:anywhere;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-selected-badge{
+ position:static;display:inline-flex;align-items:center;justify-content:center;
+ max-width:none;flex:0 0 auto;white-space:nowrap;
+ font-size:9px;padding:5px 6px;overflow:visible;text-overflow:clip;
+}
+.tf-redesign.tl-three-stage .tl-candidate-location b{
+ white-space:normal;overflow:visible;text-overflow:clip;
+ overflow-wrap:anywhere;line-height:1.35;
+}
+/* SMS explanation retains the important details but is easy to scan. */
+.tf-redesign.tl-three-stage .tl-handoff-notices{
+ gap:9px;padding:12px;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p{
+ gap:9px;font-size:11px;line-height:1.6;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p strong{
+ display:block;margin-bottom:3px;color:#244859;
+ font-size:11px;font-weight:850;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(2){
+ color:#718791;font-size:10px;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(2) .tl-handoff-notice-icon{
+ background:#fff3dc;color:#987222;
+}
+.tf-redesign.tl-three-stage .tl-handoff-notices p:nth-child(3) .tl-handoff-notice-icon{
+ background:#e6eef2;color:#56788d;
+}
