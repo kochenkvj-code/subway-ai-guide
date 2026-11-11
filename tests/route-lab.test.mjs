@@ -90,12 +90,12 @@ test('raw route_station value is preserved independently of multilingual mapping
  const duplicates=inspectRouteStationMetadata('<route_station>을지로입구</route_station>\n<route_station>市厅</route_station>');
  assert.deepEqual(Array.from(duplicates.rawRouteStationValues),['을지로입구','市厅']);
 });
-test('raw Gemini station diagnostics appear in V2 including failed searches',()=>{
+test('route station diagnostics remain available to parsing but are never shown to passengers',()=>{
  assert.match(api,/inspectRouteStationMetadata\(text,candidate\?\.finishReason\|\|null\)/);
  assert.match(api,/\.\.\.routeStationDebug/);
- assert.match(page,/rawRouteStationValues\?\.length/);
- assert.match(page,/rawRouteStationTagSeen/);
- assert.match(page,/rl-route-station-debug/);
+ assert.doesNotMatch(page,/rawRouteStationValues\?\.length/);
+ assert.doesNotMatch(page,/rawRouteStationTagSeen/);
+ assert.doesNotMatch(page,/className="rl-route-station-debug"/);
  assert.match(css,/\.rl-route-station-debug/);
 });
 test('freeform answer survives absent tags, invalid station, ambiguous answer, or truncation',()=>{
@@ -445,4 +445,11 @@ test('selected language rules explicitly exempt Korean route_station metadata',(
  }
  assert.match(api,/EXCEPTION: route_station MUST contain one exact official Korean station name/);
  assert.match(api,/route_station MUST remain one exact official Korean station name/);
+});
+
+test('wayfinding logs only the route request destination and success or failure outcomes',()=>{
+ assert.match(page,/recordStat\('route_search','request',lang,null,term\)/);
+ assert.match(page,/recordStat\('route_search','success',lang\)/);
+ assert.match(page,/recordStat\('route_search','failure',lang\)/);
+ assert.doesNotMatch(page,/RAW_STATION_COPY/);
 });
