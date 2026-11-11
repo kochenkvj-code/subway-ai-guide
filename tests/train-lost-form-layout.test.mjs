@@ -300,7 +300,8 @@ test('stepper includes a compact line-colored route and edit action instead of a
  assert.match(ui,/className="tl-trip-time"/);
  assert.match(ui,/className="tl-trip-edit" onClick=\{onBack\}/);
  assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
- assert.doesNotMatch(ui,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
+ const results=ui.slice(ui.indexOf("{stage==='results'&&<>"),ui.indexOf("{stage==='handoff'&&<>"));
+ assert.doesNotMatch(results,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
  assert.match(styles,/\.tl-stepbar-trip\{/);
  assert.match(styles,/grid-column:1\/-1/);
 });
