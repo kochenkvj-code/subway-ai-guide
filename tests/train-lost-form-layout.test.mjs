@@ -99,3 +99,17 @@ test('exactly the selected train-lost stage receives the strong active styling',
  assert.match(styles,/\.tl-stepbar button\.tl-step\.next-ready\{\s*background:#f1f9f4/);
  assert.match(styles,/\.tl-stepbar button\.tl-step:disabled:not\(\.current\)\{/);
 });
+
+test('live rail test page and the selected candidate affordance do not include SOURCE footer',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const page=await readFile(new URL('../app/train-lost-lab/page.jsx',import.meta.url),'utf8');
+ assert.doesNotMatch(ui,/SOURCE ·/);
+ assert.doesNotMatch(ui,/tl-status-foot/);
+ assert.match(ui,/tl-candidate-selected-badge/);
+ assert.match(ui,/has-selection/);
+ assert.match(styles,/tl-candidate-selected-badge/);
+ assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
+ assert.match(page,/TrainLostFinder/);
+ assert.match(page,/trainDemo=1/);
+ assert.match(page,/trainDemo=0/);
+});
