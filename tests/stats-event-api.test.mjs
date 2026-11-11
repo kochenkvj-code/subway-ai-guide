@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs/promises';
+import { estimateIpRegion } from '../app/lib/ip-region.mjs';
 class NextResponse extends Response{static json(value,init){return new NextResponse(JSON.stringify(value),init);}}
 async function fixture(file){
  const writes=[],logs=[];let fail=false;
  const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,console:{warn:(...v)=>logs.push(v),error:(...v)=>logs.push(v)}});
- const values={'next/server':{NextResponse},'../../../lib/stats-server':{authorized:()=>true,supabase:async(path,options)=>{if(fail)throw Error('Statistics database request failed: 503 (fixture)');writes.push({path,options});return path.startsWith('chatbot_events?')&&(!options||options.method!=='POST')?Response.json([]):new Response(null,{status:204});}},'../../../lib/facility-stat':{isFacilityContext:()=>false}};
+ const values={'next/server':{NextResponse},'../../../lib/stats-server':{authorized:()=>true,supabase:async(path,options)=>{if(fail)throw Error('Statistics database request failed: 503 (fixture)');writes.push({path,options});return path.startsWith('chatbot_events?')&&(!options||options.method!=='POST')?Response.json([]):new Response(null,{status:204});}},'../../../lib/facility-stat':{isFacilityContext:()=>false},'../../../lib/ip-region.mjs':{estimateIpRegion:(headers)=>headers.get('x-vercel-ip-city')||null},'../../../v2/lost-found-demo/seoul-gu-geo.json':{default:{features:[]}}};
  const mod=new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});await mod.link(name=>new vm.SyntheticModule(Object.keys(values[name]),function(){for(const[k,v]of Object.entries(values[name]))this.setExport(k,v)},{context}));await mod.evaluate();return {api:mod.namespace,writes,logs,fail:()=>fail=true};
 }
 const data={event_id:'11111111-1111-4111-8111-111111111111',session_id:'22222222-2222-4222-8222-222222222222',event_type:'gate_action',event_name:'e44',language:'en',context:'gate_e44'};
@@ -51,4 +52,39 @@ test('route queries and validated base-station context persist without saving ar
  stored=JSON.parse(f.writes[3].options.body);
  assert.equal(stored.context,null);
  assert.equal(stored.question,null);
+});
+
+
+test('event endpoint keeps a per-event coarse IP region without storing raw IP or coordinates',async()=>{
+ const f=await fixture('app/api/stats/event/route.js');
+ const headers=new Headers({'x-vercel-ip-country':'JP','x-vercel-ip-city':'Tokyo','x-vercel-ip-latitude':'35.6895','x-vercel-ip-longitude':'139.6917'});
+ assert.equal((await f.api.POST({headers,json:async()=>data})).status,204);
+ const stored=JSON.parse(f.writes[0].options.body);
+ assert.equal(stored.ip_region,'Tokyo');
+ assert.equal(stored.country,'JP');
+ assert.equal(Object.hasOwn(stored,'ip'),false);
+ assert.equal(Object.hasOwn(stored,'latitude'),false);
+ assert.equal(Object.hasOwn(stored,'longitude'),false);
+});
+
+test('IP region lookup resolves Seoul districts and leaves uncertain locations unassigned',async()=>{
+ const geo=JSON.parse(await fs.readFile('app/v2/lost-found-demo/seoul-gu-geo.json','utf8'));
+ const region=(country,subdivision,city,lat,lon)=>{
+  const headers=new Headers({'x-vercel-ip-country':country,'x-vercel-ip-country-region':subdivision,'x-vercel-ip-city':city});
+  if(lat!=null)headers.set('x-vercel-ip-latitude',String(lat));
+  if(lon!=null)headers.set('x-vercel-ip-longitude',String(lon));
+  return estimateIpRegion(headers,geo);
+ };
+ assert.equal(region('KR','11','Seoul',37.569,126.984),'서울특별시 종로구');
+ assert.equal(region('KR','11','Seoul',37.515,127.043),'서울특별시 강남구');
+ assert.equal(region('KR','11','Seoul',null,null),'서울특별시 · 구 미확인');
+ assert.equal(region('KR','41','Seongnam',37.45,127.13),'경기도 · Seongnam');
+ assert.equal(region('JP','13','Tokyo',35.6895,139.6917),'Tokyo');
+});
+
+test('region readout is added only to the existing session list',async()=>{
+ const [report,ui]=await Promise.all([fs.readFile('app/api/stats/report/route.js','utf8'),fs.readFile('app/admin/stats/page.js','utf8')]);
+ assert.match(report,/country,ip_region,device_type/);
+ assert.match(ui,/\["접속시간 \(KST\)","국가","접속지역","기기 \/ 환경"/);
+ assert.match(ui,/group\.events\.find\(e=>e\.ip_region\)/);
 });

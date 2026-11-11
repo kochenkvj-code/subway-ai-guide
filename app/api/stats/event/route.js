@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/stats-server";
 import { isFacilityContext } from "../../../lib/facility-stat";
+import { estimateIpRegion } from "../../../lib/ip-region.mjs";
+import seoulGuGeo from "../../../v2/lost-found-demo/seoul-gu-geo.json";
 
 export const runtime = "nodejs";
 const types = {
@@ -45,9 +47,10 @@ export async function POST(request) {
     const ua = request.headers.get("user-agent") || "";
     const countryHeader = (request.headers.get("x-vercel-ip-country") || "").toUpperCase();
     const country = /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : null;
+    const ip_region = estimateIpRegion(request.headers, seoulGuGeo);
     await supabase(data.event_id ? "chatbot_events?on_conflict=event_id" : "chatbot_events", { method: "POST", signal:AbortSignal.timeout(8000), headers: { Prefer: data.event_id ? "resolution=ignore-duplicates,return=minimal" : "return=minimal" }, body: JSON.stringify({
       event_type: data.event_type, event_name: data.event_name, language: data.language,
-      event_id: data.event_id || null, question, session_id: sessionId, context, occurred_at, country, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
+      event_id: data.event_id || null, question, session_id: sessionId, context, occurred_at, country, ip_region, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
     }) });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

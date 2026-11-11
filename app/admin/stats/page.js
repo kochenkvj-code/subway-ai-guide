@@ -142,15 +142,16 @@ export default function StatsPage() {
               <button disabled={rawPage>=pageCount-1} onClick={()=>setRawPage(p=>Math.min(pageCount-1,p+1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>다음</button>
             </div>
           </div>
-          <div role="region" aria-label="접속·이용 기록 목록" tabIndex={0} style={{border:"1px solid #e3eaed",borderRadius:10}}>
+          <div role="region" aria-label="접속·이용 기록 목록" tabIndex={0} style={{border:"1px solid #e3eaed",borderRadius:10,overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"separate",borderSpacing:0,fontSize:12,textAlign:"left"}}>
-              <thead><tr>{["접속시간 (KST)","국가","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
+              <thead><tr>{["접속시간 (KST)","국가","접속지역","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
               <tbody>{visibleSessions.slice(rawPage*pageSize,(rawPage+1)*pageSize).map((group,rowIndex)=>{
                 const r=group.first;
                 const functional = group.events.some(isFunctionalEvent);
                 return <tr key={group.key} style={{background:rowIndex%2?"#f8fbfb":"#fff"}}>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(activity[r.session_id])}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
+                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}} title="IP 기반 추정 위치 · 실제 접속 위치와 다를 수 있습니다.">{group.events.find(e=>e.ip_region)?.ip_region||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",minWidth:180,verticalAlign:"top"}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
@@ -170,7 +171,7 @@ export default function StatsPage() {
             </table>
             {!visibleSessions.length&&<p style={{color:"#7a858d",fontSize:13}}>선택한 조건에 해당하는 기록이 없습니다.</p>}
           </div>
-          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가는 접속 IP 기반 추정 국가이며 실제 국적이나 현재 위치를 보장하지 않습니다. IP 주소, 기기 고유식별자, 전체 User-Agent, 질문 내용은 서비스 개선을 위해 저장되며 관리자만 조회합니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
+          <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가와 접속지역은 접속 IP 기반 추정치이며 실제 위치나 국적을 보장하지 않습니다. 과거 기록 및 위치정보가 없는 기록의 접속지역은 미확인으로 표시합니다. 질문 내용은 서비스 개선을 위해 저장되며 관리자만 조회합니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
         </section>
         <p style={{color:"#687c82",fontSize:12,lineHeight:1.7}}>접속 횟수는 페이지 로드 기준이며 순 방문자 수가 아닙니다. 실제 기능 이용 세션은 빠른 안내·게이트 세부 동작·AI 질문·길찾기 검색·피드백 이벤트가 하나 이상 있는 세션이며, 단순 접속과 언어 변경만 있는 세션은 제외합니다. 세션 수는 실제 사람 수가 아니며, 세션 ID가 없는 과거 기록은 이벤트별로 개별 집계됩니다. 날짜·시간 차트는 수집된 전체 이벤트 수입니다. 실제 문의 감소나 해결률을 의미하지 않습니다. 통계는 수집 기능 배포 이후부터 기록됩니다.</p>
       </>}
