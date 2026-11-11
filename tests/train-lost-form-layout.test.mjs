@@ -92,7 +92,7 @@ test('quick-time buttons sit above the slider so dragging never covers the short
 });
 
 test('exactly the selected train-lost stage receives the strong active styling',()=>{
- assert.match(ui,/className=\{'tl-step'\+\(i\+1===stageNumber\?' current'/);
+ assert.match(ui,/className=\{'tl-step'\+\(showTrip\?' tl-step-with-trip':''\)\+\(i\+1===stageNumber\?' current'/);
  assert.match(ui,/aria-current=\{i\+1===stageNumber\?'step':undefined\}/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.current,\s*\.tf-redesign\.tl-three-stage \.tl-stepbar button\.tl-step\.current:not\(:disabled\):hover\{\s*background:#176c50;border-color:#176c50;color:#fff;/);
  assert.match(styles,/\.tl-stepbar button\.tl-step\.done\{\s*background:#eff8f2/);
@@ -174,7 +174,7 @@ test('handoff removes repeated route/time and recent position and uses readable 
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
  const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
  assert.doesNotMatch(results,/className="tl-search-context/);
- assert.match(ui,/className="tl-stepbar-trip"/);
+ assert.match(ui,/className="tl-step-trip-detail"/);
  assert.doesNotMatch(handoff,/className="tl-search-context"/);
  assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
  assert.match(handoff,/className="tl-handoff-notices"/);
