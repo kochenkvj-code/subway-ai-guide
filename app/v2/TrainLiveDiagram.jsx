@@ -205,8 +205,8 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    <div className="tf-board" role="group" aria-label={t.title}>
     <div className="tf-h-topline">
       <span className="tf-alight-context">
-       <span className="tf-alight-route"><strong>{stationName(station,lang)||station}</strong> → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</span>
-       {alightingTime&&<small className="tf-alight-time">{lang==='ko'?'하차시각':lang==='en'?'Alighted at':lang==='ja'?'下車時刻':'下车时间'} {alightingTime}</small>}
+       <span className="tf-alight-route"><strong>{stationName(station,lang)||station} → {stationName(next,lang)||next} {lang==='ko'?'방면':lang==='en'?'direction':lang==='ja'?'方面':'方向'}</strong></span>
+       {alightingTime&&<small className="tf-alight-time"><span>{lang==='ko'?'하차시각':lang==='en'?'Alighted at':lang==='ja'?'下車時刻':'下车时间'}</span><strong>{alightingTime}</strong></small>}
       </span>
       <span className="tf-h-swipe">← {lang==='ko'?'좌우로 밀어보기':lang==='en'?'Swipe sideways':lang==='ja'?'左右にスワイプ':'左右滑动'} →</span>
     </div>

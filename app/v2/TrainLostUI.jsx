@@ -1,4 +1,5 @@
 'use client';
+import {useEffect,useRef} from 'react';
 import {stationName,lineName} from '../lib/stationNameI18n';
 import {trainStationDisplay} from '../lib/train-lost';
 import TrainLiveDiagram from './TrainLiveDiagram';
@@ -74,7 +75,17 @@ export default function TrainLostUI(p){
  const resultsTitle=!searched||busy?u.heroOut:candidates.length?u.heroFound:u.heroEmpty;
  const resultsSubtitle=!searched||busy?u.resultSubtitle:candidates.length?(chosen?(firstCandidate?u.resultSubtitleTop:u.resultSubtitleChosen):u.resultSubtitle):u.resultSubtitleEmpty;
  const closeStation=()=>setEditing(!editing);
- return <div className="tf-root tf-redesign tl-three-stage">
+ // A new report stage must start at the top, not at the scroll position of the long train map.
+ const stageTopRef=useRef(null);
+ const previousStageRef=useRef(stage);
+ useEffect(()=>{
+  const previous=previousStageRef.current;
+  previousStageRef.current=stage;
+  if(previous==='results'&&stage==='handoff'){
+   stageTopRef.current?.scrollIntoView({behavior:'auto',block:'start'});
+  }
+ },[stage]);
+ return <div ref={stageTopRef} className="tf-root tf-redesign tl-three-stage">
   <section className="tl-hero"><h2>{stage==='input'?u.heroIn:stage==='results'?resultsTitle:u.handoff}</h2><p>{stage==='input'?u.subtitle:stage==='results'?resultsSubtitle:u.handoffSub}</p></section>
   <nav className="tl-stepbar" aria-label={v.steps.join(' → ')}>
    {v.steps.map((label,i)=>{
@@ -171,7 +182,6 @@ export default function TrainLostUI(p){
     })}
    </div>}
    {!busy&&searched&&!error&&candidates.length===0&&<div className="tl-empty">{u.noResults}{lookupStats&&lang==='ko'?' · API '+(lookupStats.usableRows??'-')+'건':''} <p>{v.noCandidate}</p></div>}
-   {directionWarning&&<p className="tl-note">{t.directionUnknown}</p>}
    {!busy&&<section className="tl-next-panel">
     {chosen?<><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
     <><p className="tl-select-instruction">{candidates.length>0?v.selectHint:v.noCandidate}</p><button type="button" className="tl-primary tl-secondary-primary" onClick={onNone}>{v.fallback} →</button></>}

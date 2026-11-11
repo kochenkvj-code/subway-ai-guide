@@ -276,7 +276,7 @@ test('SMS request separates direction from alighting station and uses an actiona
  const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
  assert.match(model,/z\.station\+': '\+selection\.line\+z\.lineUnit/);
  assert.match(model,/z\.direction\+': '\+next\+z\.stationUnit/);
- assert.match(model,/입력하신 하차 정보와 실시간 열차 위치를 바탕으로 추린 수배 후보입니다/);
+ assert.match(model,/위 열차에 물건을 두고 내린 것 같습니다/);
  assert.doesNotMatch(model,/실제 탑승 열차인지 확인이 필요합니다/);
  assert.doesNotMatch(model,/current\.receivedAt\+\)/);
 });
@@ -340,4 +340,27 @@ test('timetable footer avoids API and provider-format jargon in four languages',
  assert.doesNotMatch(timetable,/The provider groups weekend trains together/);
  assert.doesNotMatch(timetable,/提供元の週末時刻表を使用します/);
  assert.doesNotMatch(timetable,/运营方统一提供周末时刻表/);
+});
+
+test('passenger SMS closing is a natural request instead of internal candidate analysis',async()=>{
+ const finder=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(finder,/위 열차에 물건을 두고 내린 것 같습니다\. 분실물 확인 부탁드립니다\./);
+ assert.doesNotMatch(finder,/입력하신 하차 정보와 실시간 열차 위치를 바탕으로 추린 수배 후보입니다/);
+});
+test('stage-two candidate direction warning is removed without hiding map candidate details',()=>{
+ assert.doesNotMatch(ui,/\{directionWarning&&<p className="tl-note">/);
+ assert.match(ui,/className=\{'tl-candidate-chip'/);
+});
+test('handoff transition scrolls to the form top only when moving from results',()=>{
+ assert.match(ui,/previous==='results'&&stage==='handoff'/);
+ assert.match(ui,/stageTopRef\.current\?\.scrollIntoView\(\{behavior:'auto',block:'start'\}\)/);
+ assert.match(ui,/ref=\{stageTopRef\}/);
+});
+test('alighting time is as prominent as route, and all four summary cells are equal-size',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/className="tf-alight-time"><span>/);
+ assert.match(diagram,/className="tf-alight-route"><strong>/);
+ assert.match(styles,/\.tf-h-topline \.tf-alight-route,\s*\.tf-redesign\.tl-three-stage \.tf-h-topline \.tf-alight-time\{/);
+ assert.match(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
+ assert.match(styles,/\.tl-handoff-cell \.tl-handoff-direction\{[\s\S]*?font-size:12px;font-weight:800/);
 });
