@@ -256,9 +256,29 @@ test('first-stage station and line controls share a single horizontal row',()=>{
 });
 test('prepared SMS combines route details, removes raw API timestamp, and expands fully',async()=>{
  const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
- assert.match(model,/z\.route\+': '/);
- assert.match(model,/selection\.name\+z\.stationUnit\+' → '\+next/);
+ assert.match(model,/z\.station\+': '/);
+ assert.match(model,/z\.direction\+': '\+next/);
+ assert.match(model,/z\.station\+': '\+selection\.line\+z\.lineUnit/);
  assert.doesNotMatch(model,/current\.station\+z\.stationUnit\+' \('\+current\.receivedAt/);
  assert.match(model,/z\.item\+': '\+thing\.trim\(\)\+\(place\?/);
  assert.match(styles,/\.tl-message\{\s*max-height:none;height:auto;min-height:0;overflow:visible/);
+});
+
+test('station picker keeps equal visual hierarchy and has a compact guided station search',()=>{
+ assert.match(ui,/className="tl-picker tl-station-search-panel"/);
+ assert.match(ui,/className="tl-picker-search"/);
+ assert.match(ui,/className="tl-picker-heading"/);
+ assert.match(ui,/className="tl-picker-line"/);
+ assert.match(ui,/className="tl-picker-arrow"/);
+ assert.match(styles,/\.tl-station-inline-field>\.tl-label\{/);
+ assert.match(styles,/\.tl-station-value\{/);
+ assert.match(styles,/\.tl-picker-search\{/);
+});
+test('SMS request separates direction from alighting station and uses an actionable, non-accusatory closing',async()=>{
+ const model=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(model,/z\.station\+': '\+selection\.line\+z\.lineUnit/);
+ assert.match(model,/z\.direction\+': '\+next\+z\.stationUnit/);
+ assert.match(model,/입력하신 하차 정보와 실시간 열차 위치를 바탕으로 추린 수배 후보입니다/);
+ assert.doesNotMatch(model,/실제 탑승 열차인지 확인이 필요합니다/);
+ assert.doesNotMatch(model,/current\.receivedAt\+\)/);
 });
