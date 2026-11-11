@@ -1006,6 +1006,7 @@
 /* Alighting question is a regular form label, not a smaller caption. */
 .tf-redesign.tl-three-stage .tl-time-field .tl-time-question{
  color:#243f4d;font-size:12px;font-weight:800;line-height:1.45;
+ overflow:visible;text-overflow:clip;white-space:normal;
 }
 @media(max-width:360px){
  .tf-redesign.tl-three-stage .tl-time-field .tl-time-question,
