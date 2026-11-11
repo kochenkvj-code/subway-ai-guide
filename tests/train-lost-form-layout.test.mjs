@@ -41,7 +41,7 @@ test('lost item and four compact location choices share one row without wrapping
  assert.doesNotMatch(ui,/className="tl-location-grid"/);
 });
 
-test('four door numbers remain on one full-width row below car buttons',()=>{
+test('four door numbers stay in one inline row beside the door-number label',()=>{
  assert.match(ui,/className="tl-door-block"/);
  assert.match(ui,/className="tl-door-options"/);
  assert.match(ui,/\['1','2','3','4'\]\.map/);
@@ -104,9 +104,10 @@ test('selected candidate affordance does not include SOURCE footer',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  assert.doesNotMatch(ui,/SOURCE ·/);
  assert.doesNotMatch(ui,/tl-status-foot/);
- assert.match(ui,/tl-candidate-selected-badge/);
+ assert.match(ui,/tl-candidate-check/);
  assert.match(ui,/has-selection/);
- assert.match(styles,/tl-candidate-selected-badge/);
+ assert.match(styles,/tl-candidate-check/);
+ assert.doesNotMatch(ui,/tl-candidate-selected-badge|selectedLabel/);
  assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
 });
 
@@ -172,7 +173,8 @@ test('results emphasize choosing a train, with compact live refresh controls onl
 test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
  const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
- assert.match(results,/className="tl-search-context tl-search-context-compact"/);
+ assert.doesNotMatch(results,/className="tl-search-context/);
+ assert.match(ui,/className="tl-stepbar-trip"/);
  assert.doesNotMatch(handoff,/className="tl-search-context"/);
  assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
  assert.match(handoff,/className="tl-handoff-notices"/);
@@ -240,13 +242,13 @@ test('all three stages share concise headers, with third stage review heading an
  assert.match(styles,/\.tl-hero p\{/);
 });
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
- assert.match(ui,/tl-search-context tl-search-context-compact/);
- assert.match(ui,/className="tl-route-stations"/);
- assert.match(ui,/className="tl-line-badge"/);
+ assert.match(ui,/className="tl-stepbar-trip"/);
+ assert.match(ui,/className="tl-trip-stations"/);
+ assert.match(ui,/className="tl-trip-line"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-route-stations\{/);
+ assert.match(styles,/\.tl-trip-stations\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
- assert.match(styles,/\.tl-candidate-selected-badge\{/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
 
 test('first-stage station and line controls share a single horizontal row',()=>{
@@ -281,4 +283,31 @@ test('SMS request separates direction from alighting station and uses an actiona
  assert.match(model,/입력하신 하차 정보와 실시간 열차 위치를 바탕으로 추린 수배 후보입니다/);
  assert.doesNotMatch(model,/실제 탑승 열차인지 확인이 필요합니다/);
  assert.doesNotMatch(model,/current\.receivedAt\+\)/);
+});
+
+test('selected train uses only an accessible checkmark and compact card width',()=>{
+ assert.match(ui,/aria-pressed=\{selected\}/);
+ assert.match(ui,/selected&&<span className="tl-candidate-check" aria-hidden="true">✓<\/span>/);
+ assert.doesNotMatch(ui,/selectedLabel|tl-candidate-selected-badge/);
+ assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{/);
+ assert.match(styles,/flex:0 0 132px/);
+});
+test('stepper includes a compact line-colored route and edit action instead of a duplicate results strip',()=>{
+ assert.match(ui,/stage==='results'&&<div className="tl-stepbar-trip"/);
+ assert.match(ui,/style=\{\{'--tl-line-color':pickerLineColor\(selection\.line\)\}\}/);
+ assert.match(ui,/className="tl-trip-line"/);
+ assert.match(ui,/className="tl-trip-stations"/);
+ assert.match(ui,/className="tl-trip-time"/);
+ assert.match(ui,/className="tl-trip-edit" onClick=\{onBack\}/);
+ assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
+ assert.doesNotMatch(ui,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
+ assert.match(styles,/\.tl-stepbar-trip\{/);
+ assert.match(styles,/grid-column:1\/-1/);
+});
+test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
+ assert.doesNotMatch(ui,/className="tl-chosen-car"/);
+ assert.match(ui,/className="tl-door-block"/);
+ assert.match(styles,/\.tl-car-door-field \.tl-door-block\{\s*display:flex;align-items:center/);
+ assert.match(styles,/\.tl-car-door-field \.tl-door-options\{\s*flex:1 1 auto;min-width:0;/);
+ assert.match(styles,/\.tl-item-place-row \.tl-label,\s*\.tf-redesign\.tl-three-stage \.tl-car-door-field>\.tl-label/);
 });
