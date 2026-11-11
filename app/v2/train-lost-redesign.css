@@ -922,3 +922,12 @@
 .tf-redesign.tl-three-stage .tl-picker-arrow{
  flex:none;font-size:15px;color:#6d9c9a;
 }
+
+/* Each matched station inherits its own subway-line color. */
+.tf-redesign.tl-three-stage .tl-picker .tf-matches button{
+ border-left:3px solid var(--tl-line-color,#536c80);
+}
+.tf-redesign.tl-three-stage .tl-picker .tl-picker-line{
+ background:var(--tl-line-color,#536c80);
+ color:#fff;
+}
