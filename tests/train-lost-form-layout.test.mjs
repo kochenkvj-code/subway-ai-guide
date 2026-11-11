@@ -210,7 +210,7 @@ test('refresh icon remains accessible, small and aligned beside last update',asy
  assert.match(diagram,/title=\{refreshing\?t\.pending:t\.manual\}/);
  assert.match(diagram,/className="tf-last-update"/);
  assert.match(styles,/\.tf-h-meta \.tf-refresh-icon\{/);
- assert.match(styles,/width:44px;height:44px/);
+ assert.match(styles,/width:34px;height:36px/);
 });
 
 test('first ranked candidate is selected initially and manual picks persist in production',async()=>{
@@ -458,18 +458,35 @@ test('candidate switching uses cancellable animation and retains previous train 
  assert.match(diagram,/viewport\.addEventListener\('touchstart',cancel/);
  assert.match(diagram,/viewport\.addEventListener\('pointerdown',cancel/);
  assert.match(diagram,/viewport\.style\.scrollSnapType='none'/);
- assert.match(diagram,/centerTarget\(target,Boolean\(previous\.number\)\)/);
- assert.match(diagram,/fromIndex>=0&&toIndex>=0\?Math\.abs\(fromIndex-toIndex\):null/);
+ assert.match(diagram,/centerTarget\(target,Boolean\(previous\.number\)&&!sameStation,sameStation\)/);
+ assert.doesNotMatch(diagram,/stopGap|m\.gap/);
+ assert.match(diagram,/sameStation=Boolean\(previous\.number&&previous\.station===focusStation\)/);
+ assert.match(diagram,/visible=trainBox\.top>=bayBox\.top/);
+ assert.match(diagram,/\.sort\(\(a,b\)=>String\(a\.trainNo\)\.localeCompare/);
+ assert.doesNotMatch(diagram,/trainKey\(p\.trainNo\)===selectedNo\?0/);
  assert.match(diagram,/tf-selection-comparison/);
  assert.match(diagram,/tf-train-previous/);
  assert.match(styles,/\.tf-train-previous\{/);
 });
-test('only successful API timestamps are displayed, and refresh keeps a 44-pixel touch target',async()=>{
+test('both header clocks use minute precision and refresh button is visually compact',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
  assert.match(diagram,/\{alightingTime&&<span className="tf-alight-time"/);
  assert.match(diagram,/getTime\(fetchedAt\|\|lastPoll,lang\)/);
  assert.match(diagram,/className="tf-last-update"/);
  assert.match(diagram,/className="tf-refresh-icon" onClick=\{refresh\}/);
  assert.match(diagram,/\{m\.updated\}/);
- assert.match(styles,/width:44px;height:44px/);
+ assert.match(diagram,/hour:'2-digit',minute:'2-digit',hour12:false/);
+ assert.doesNotMatch(diagram,/second:'2-digit'/);
+ assert.match(styles,/width:34px;height:36px/);
+});
+
+test('verified express trains have a translated marker on map and candidate card',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/p\.express&&<span className="tf-train-express"/);
+ assert.match(diagram,/aria-label=\{destinationLabel\+' '\+p\.trainNo\+\(p\.express/);
+ assert.match(diagram,/express:'급행'/);
+ assert.match(ui,/candidatePosition\(c\)\?\.express\?\?c\.express/);
+ assert.match(ui,/className="tl-candidate-express"/);
+ assert.match(styles,/\.tf-train-express\{/);
+ assert.match(styles,/\.tl-candidate-express\{/);
 });

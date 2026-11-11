@@ -39,6 +39,7 @@ const branchWarningLabel={
 };
 const localized=(name,line,lang)=>stationName(trainStationDisplay(line,name),lang)||name;
 const candidateRankLabel=(index,lang)=>lang==='ko'?(index+1)+'순위':lang==='ja'?(index+1)+'位':lang==='zh'?'第'+(index+1)+'位':'Rank '+(index+1);
+const expressLabels={ko:'급행',en:'Express',ja:'急行',zh:'快车'};
 
 const flowCopy={
  ko:{steps:['정보 입력','열차 확인','수배 요청'],requiredMissing:'필수 입력 필요',requiredReady:'입력 완료 · 열차 확인을 눌러주세요',requiredCar:'탑승 칸',requiredDirection:'진행 방향',requiredDoor:'출입문',requiredItem:'분실 물품',time:'하차 시각',timeGuide:'선택한 시간은 열차 검색 시점에 다시 계산됩니다.',timeExact:'하차 시각 직접 수정',additional:'물건을 둔 곳 (선택)',candidateCount:'실시간 후보',candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요',candidateHelp:'후보를 누르면 아래 배치도에서 해당 열차를 강조합니다.',mapTitle:'실시간 열차 위치',mapInstruction:'다른 열차라면 아래 후보를 선택해 주세요.',confirm:'선택한 열차 정보로 계속하기',selectHint:'위의 후보 열차를 선택해 주세요.',positionExplain:'최근 확인 위치는 실시간 열차정보에 마지막으로 기록된 역입니다. 실제 위치와 차이가 있을 수 있으며, 후보는 탑승 열차로 확정되지 않았습니다.',chosenPosition:'선택한 열차 최근 위치',fallback:'열차번호 없이 전달하기',handoffBack:'← 열차 위치 다시 확인',quickEdit:'← 입력 정보 수정',secondary:'후보는 실제 탑승 열차로 확정되지 않았습니다.',noCandidate:'실시간 후보가 없더라도 하차·분실 정보를 전달할 수 있습니다.',timeRef:'검색에 적용할 하차 시각'},
@@ -197,7 +198,9 @@ export default function TrainLostUI(p){
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <span className="tl-candidate-toprow"><span className={'tl-candidate-rank'+(index===0?' tl-candidate-rank-first':'')}>{candidateRankLabel(index,lang)}</span></span>
       <span className="tl-candidate-trainblock">
-       <span className="tl-candidate-identity"><strong>{String(c.number).padStart(4,'0')}</strong></span>
+       <span className="tl-candidate-identity"><strong>{String(c.number).padStart(4,'0')}</strong>
+        {(candidatePosition(c)?.express??c.express)&&<small className="tl-candidate-express">⚡ {expressLabels[lang]||expressLabels.ko}</small>}
+       </span>
        <span className="tl-candidate-destination">{candidateDestinationText(c)}</span>
       </span>
       {selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}

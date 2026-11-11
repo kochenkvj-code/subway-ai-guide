@@ -190,7 +190,7 @@ test('branch candidates and navigation use the same directional topology',async(
  assert.match(diagram,/setFocusedTrain\(key\)/);
  assert.match(diagram,/const focusedStation=focusedPosition\?\.station\|\|''/);
  assert.match(diagram,/const path=useMemo\(\(\)=>trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
- assert.match(diagram,/if\(centerTarget\(target,Boolean\(previous\.number\)\)\)/);
+ assert.match(diagram,/if\(centerTarget\(target,Boolean\(previous\.number\)&&!sameStation,sameStation\)\)/);
  assert.match(diagram,/requestAnimationFrame\(frame\)/);
  assert.match(diagram,/viewport\.addEventListener\('touchstart',cancel/);
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
@@ -239,4 +239,22 @@ test('scrollable rail follows one-way loop direction without duplicating station
  assert.deepEqual(result.stops.slice(0,4),['역촌','불광','독바위','연신내']);
  assert.equal(new Set(result.stops).size,result.stops.length);
  for(let i=1;i<result.stops.length;i++)assert.equal(expectedLiveDirection('6',result.stops[i-1],result.stops[i]),'1');
+});
+
+test('15-minute westbound estimate prefers nearer express over equally timed 12-stop express',()=>{
+ const west=expectedLiveDirection('1','종로5가','종로3가');
+ const end=Date.parse('2026-11-11T19:40:00+09:00');
+ const makeWest=(trainNo,place,express)=>({
+  trainNo,line:'1',station:place,direction:west,express,
+  receivedAt:new Date(end).toISOString(),status:'1'
+ });
+ const result=findLiveCandidates([
+  makeWest('0179','대방',false),
+  makeWest('1143','구로',true),
+  makeWest('1145','대방',true)
+ ],{date:'2026-11-11',time:'19:25',line:'1',station:'종로5가',next:'종로3가',now:end});
+ assert.equal(result.candidates.find(c=>c.number==='1143').stopsFromAlight,12);
+ assert.deepEqual(result.candidates.slice(0,3).map(c=>c.number),['0179','1145','1143']);
+ assert.ok(result.candidates[1].score<result.candidates[2].score);
+ assert.ok(result.candidates[1].express&&result.candidates[2].express);
 });

@@ -188,7 +188,7 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
     const stopDelta=effectiveStops-estimatedStops;
     const absDelta=Math.abs(stopDelta);
     const tolerance=Math.max(p.express?3:2.25,
-      1.15+estimatedStops*(p.express?.55:.38));
+      1.15+estimatedStops*(p.express?.32:.38));
     // Avoid treating wildly distant trains as candidates just because they
     // share a direction. The band grows modestly with elapsed time.
     if(absDelta>tolerance)continue;
@@ -210,8 +210,13 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
     const branchPenalty=found.branched?.6:0;
     const expressPenalty=p.express?.45:0;
     const corroborationBonus=corroborated?.35:0;
+    // Express trains may skip stations, so physical-stop timing is approximate.
+    // Avoid ranking an unverified far-ahead express just as highly as a closer
+    // train with the same absolute timing error (e.g. 12 vs 8 stops at ~15m).
+    const aheadPenalty=stopDelta>0?
+      Math.min(1.5,(stopDelta/tolerance)*(p.express?1.5:.6)):0;
     const score=twoDecimals(residual*3+stalePenalty+branchPenalty+
-      expressPenalty-corroborationBonus);
+      expressPenalty+aheadPenalty-corroborationBonus);
     const matchGrade=residual<=.35?'close':residual<=.72?'possible':'check';
     candidates.push({
       number:p.trainNo,station:clean(p.station),live:p,
@@ -235,6 +240,6 @@ export function findLiveCandidates(positions,{date,time,line,station,next,now=Da
   return {candidates:unique,reason:unique.length?'LIVE_CANDIDATES':'NO_LIVE_CANDIDATES',
     expectedStops:Number((elapsed/120000).toFixed(1)),
     range:[0,38],routeAmbiguous:reach.ambiguous,
-    rankingBasis:'2min-local/1.5min-express-heuristic',
+    rankingBasis:'2min-local/1.5min-express-tighter-overrun-heuristic',
     snapshotAt:new Date(now).toISOString()};
 }
