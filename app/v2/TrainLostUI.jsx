@@ -81,14 +81,22 @@ export default function TrainLostUI(p){
     const target=['input','results','handoff'][i];
     const available=i===0||(i===1&&(searched||(stage==='input'&&canSearch)))||(i===2&&searched&&(chosen||handoffUnknown));
     const goToStep=()=>{if(i===1&&stage==='input')onSearch();else onStageChange(target);};
-    return <button type="button" key={label} className={'tl-step'+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')} aria-current={i+1===stageNumber?'step':undefined} disabled={busy||!available} onClick={goToStep}><b>{i+1<stageNumber?'✓':i+1}</b>{label}</button>;
+    const showTrip=stage==='results'&&i===0;
+    const tripText=lineName(selection.line+'호선',lang)+' · '+selectionLabel+' → '+way+' · '+v.time+' '+displayTime;
+    return <button type="button" key={label}
+     className={'tl-step'+(showTrip?' tl-step-with-trip':'')+(i+1===stageNumber?' current':i+1<stageNumber?' done':'')+(stage==='input'&&canSearch?(i===0?' complete':i===1?' next-ready':''):'')}
+     aria-current={i+1===stageNumber?'step':undefined}
+     aria-label={showTrip?label+' · '+tripText+' · '+u.change:undefined}
+     title={showTrip?tripText+' · '+u.change:undefined}
+     disabled={busy||!available} onClick={goToStep}>
+     <span className="tl-step-heading"><b>{i+1<stageNumber?'✓':i+1}</b><span>{label}</span>{showTrip&&<span className="tl-step-pencil" aria-hidden="true">✎</span>}</span>
+     {showTrip&&<span className="tl-step-trip-detail" style={{'--tl-line-color':pickerLineColor(selection.line)}}>
+      <span className="tl-step-trip-station"><span className="tl-step-trip-line">{String(selection.line).replace(/^0/,'')}</span><span className="tl-step-trip-origin">{selectionLabel}</span></span>
+      <span className="tl-step-trip-destination">→ {way}</span>
+      <span className="tl-step-trip-clock">◷ {displayTime}</span>
+     </span>}
+    </button>;
    })}
-   {stage==='results'&&<div className="tl-stepbar-trip" style={{'--tl-line-color':pickerLineColor(selection.line)}} role="group" aria-label={u.alighted}>
-    <span className="tl-trip-line" aria-label={lineName(selection.line+'호선',lang)}>{String(selection.line).replace(/^0/,'')}</span>
-    <span className="tl-trip-stations" title={selectionLabel+' → '+way}>{selectionLabel} → {way}</span>
-    <span className="tl-trip-time" aria-label={v.time+' '+displayTime}>◷ {displayTime}</span>
-    <button type="button" className="tl-trip-edit" onClick={onBack} disabled={busy} aria-label={u.change} title={u.change}><span aria-hidden="true">✎</span> {u.change}</button>
-   </div>}
   </nav>
   {stage==='input'&&<div className={'tl-required-status'+(canSearch?' ready':' missing')} role="status" aria-live="polite">
    <span aria-hidden="true">{canSearch?'✓':'!'}</span>
