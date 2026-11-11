@@ -172,7 +172,7 @@ test('results emphasize choosing a train, with compact live refresh controls onl
 test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
  const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
  const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
- assert.match(results,/className="tl-search-context"/);
+ assert.match(results,/className="tl-search-context tl-search-context-compact"/);
  assert.doesNotMatch(handoff,/className="tl-search-context"/);
  assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
  assert.match(handoff,/className="tl-handoff-notices"/);
