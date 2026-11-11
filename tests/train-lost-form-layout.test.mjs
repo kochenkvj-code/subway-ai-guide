@@ -380,10 +380,10 @@ test('completed stages show checkmarks while current and upcoming stages retain 
 });
 test('English destination shows two readable lines inside compact train with full label outside',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
- assert.match(diagram,/compactDestination=lang==='en'&&translatedDestination/);
+ assert.match(diagram,/compactDestination=lang==='en'&&destination.kind==='terminus'/);
  assert.match(diagram,/tf-train-destination-en/);
  assert.match(diagram,/tf-focused-destination/);
- assert.match(diagram,/Destination: \{focusedDestination/);
+ assert.match(diagram,/displayDestination\(focusedPosition\)\.text/);
  assert.match(styles,/\.tf-h-stop \.tf-train-destination-en\{/);
  assert.match(styles,/-webkit-line-clamp:2/);
  assert.doesNotMatch(styles,/\.tf-redesign\.tl-three-stage \.tf-h-stop \.tf-train\{[^}]*width:/);
@@ -401,7 +401,7 @@ test('candidate cards label terminus and last reported location and retain fixed
  assert.match(ui,/tl-candidate-trainblock/);
  assert.match(ui,/candidateDestinationText\(c\)/);
  assert.match(ui,/candidatePosition\(c\)\?\.station/);
- assert.match(ui,/lang==='ko'\?'최근 확인'/);
+ assert.match(ui,/lang==='ko'\?'최근 위치'/);
  assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{[\s\S]*?flex:0 0 132px;width:132px;min-width:132px;max-width:132px/);
 });
 test('review separates chosen train destination from alighting direction in uniform typography',()=>{
@@ -415,9 +415,39 @@ test('review separates chosen train destination from alighting direction in unif
 test('compact candidate identity merges number with a headed-to destination, last seen remains separate',()=>{
  assert.match(ui,/className="tl-candidate-trainblock"/);
  assert.match(ui,/className="tl-candidate-destination">\{candidateDestinationText\(c\)\}/);
- assert.match(ui,/lang==='en'\?'To '\+terminus/);
+ assert.match(ui,/candidateDestinationText=c=>candidateDestination\(c\)\.text/);
  assert.doesNotMatch(ui,/>\{lang==='ko'\?'종착역'/);
  assert.match(ui,/className="tl-candidate-last tl-candidate-location"/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-last\{[\s\S]*?flex-direction:row/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-destination\{[\s\S]*?font-size:11px/);
+});
+
+test('candidate row keeps the same card height and fixed 132px width',()=>{
+ assert.match(styles,/\.tl-candidate-strip\{align-items:stretch\}/);
+ assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{\s*align-self:stretch;height:auto/);
+ assert.match(styles,/\.tl-candidate-strip \.tl-candidate-last\{\s*margin-top:auto/);
+ assert.match(styles,/flex:0 0 132px;width:132px;min-width:132px;max-width:132px/);
+});
+test('Line 2 lost train labels follow home-screen terminus and inner-outer convention',async()=>{
+ const module=await import(new URL('../app/lib/train-lost-destination.mjs',import.meta.url));
+ const fmt=module.trainLostDestination;
+ const dictionary={성수:'Seongsu',신설동:'Sinseol-dong',까치산:'Kkachisan'};
+ const en=n=>dictionary[n]||'';
+ assert.equal(fmt({line:'2',raw:'성수',direction:'0',station:'을지로3가',lang:'en'},en).text,'Seongsu (Inner)');
+ assert.equal(fmt({line:'2',raw:'성수(외선)',direction:'1',station:'을지로3가',lang:'en'},en).text,'Seongsu (Outer)');
+ assert.equal(fmt({line:'2',raw:'성수순환',direction:'0',station:'시청',lang:'ko'},n=>n).text,'성수(내선)행');
+ assert.equal(fmt({line:'2',raw:'',direction:'0',station:'을지로3가',lang:'en'},en).text,'Inner loop');
+ assert.equal(fmt({line:'2',raw:'미등록역',direction:'1',station:'시청',lang:'en'},en).text,'Outer loop');
+ assert.equal(fmt({line:'2',raw:'',direction:'1',station:'용답',lang:'en'},en).text,'Destination unknown');
+ assert.equal(fmt({line:'2',raw:'신설동',direction:'0',station:'용답',lang:'en'},en).text,'To Sinseol-dong');
+ assert.equal(fmt({line:'1',raw:'',direction:'0',station:'종로5가',lang:'en'},en).text,'Destination unknown');
+});
+
+test('unknown station tokens are never used as verified termini, even in Korean',async()=>{
+ const [uiSrc,diagramSrc]=await Promise.all([
+  readFile(new URL('../app/v2/TrainLostUI.jsx',import.meta.url),'utf8'),
+  readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8')
+ ]);
+ assert.match(uiSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
+ assert.match(diagramSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
 });

@@ -1,7 +1,8 @@
 'use client';
 import {useEffect,useRef} from 'react';
-import {stationName,lineName} from '../lib/stationNameI18n';
+import {stationName,lineName,destinationForApi} from '../lib/stationNameI18n';
 import {trainStationDisplay} from '../lib/train-lost';
+import {trainLostDestination} from '../lib/train-lost-destination.mjs';
 import TrainLiveDiagram from './TrainLiveDiagram';
 import './train-lost-redesign.css';
 
@@ -70,18 +71,18 @@ export default function TrainLostUI(p){
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
  const candidatePosition=c=>livePositions.find(p=>compareNo(p.trainNo)===compareNo(c.number)&&String(p.direction)===String(requiredDirection))||c.live||null;
- const candidateTerminus=c=>{
+ const candidateDestination=c=>{
   const live=candidatePosition(c);
-  const raw=String(live?.destination||c.destination||(chosen&&compareNo(c.number)===compareNo(chosen.number)?current?.destination:'')||'').replace(/(?:방면|행)$/,'').trim();
-  return raw?localized(raw,selection.line,lang):(lang==='en'?'Not confirmed':lang==='ja'?'未確認':lang==='zh'?'未确认':'종착역 미확인');
+  const raw=live?.destination||c.destination||
+   (chosen&&compareNo(c.number)===compareNo(chosen.number)?current?.destination:'')||'';
+  return trainLostDestination({
+   line:selection.line,raw,direction:live?.direction??requiredDirection,
+   station:live?.station||c.station,lang
+  },name=>{const value=trainStationDisplay(selection.line,name);return destinationForApi(value)?stationName(value,lang,false):'';});
  };
+ const candidateTerminus=c=>candidateDestination(c).value;
  const chosenTerminus=chosen?candidateTerminus(chosen):'';
- const terminusKnown=chosen&& !['Not confirmed','未確認','未确认','종착역 미확인'].includes(chosenTerminus);
- const candidateDestinationText=c=>{
-  const terminus=candidateTerminus(c);
-  if(['Not confirmed','未確認','未确认','종착역 미확인'].includes(terminus))return terminus;
-  return lang==='en'?'To '+terminus:terminus+(lang==='ko'?'행':lang==='ja'?'行':'方向');
- };
+ const candidateDestinationText=c=>candidateDestination(c).text;
  const selectedTrainSummary=chosen
   ? String(chosen.number).padStart(4,'0')+' '+candidateDestinationText(chosen)
   : u.unknown;
@@ -201,7 +202,7 @@ export default function TrainLostUI(p){
       </span>
       {selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}
       <span className="tl-candidate-last tl-candidate-location">
-       <small>{lang==='ko'?'최근 확인':lang==='en'?'Last seen':lang==='ja'?'最新確認':'最近确认'}</small>
+       <small>{lang==='ko'?'최근 위치':lang==='en'?'Last location':lang==='ja'?'最新位置':'最近位置'}</small>
        <b>{here?localized(here,selection.line,lang):(lang==='ko'?'미확인':lang==='ja'?'未確認':lang==='zh'?'未确认':'Not available')}</b>
       </span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}

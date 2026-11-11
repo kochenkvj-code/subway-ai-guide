@@ -1,7 +1,8 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {trainDisplayPath,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
-import {stationName} from '../lib/stationNameI18n';
+import {stationName,destinationForApi} from '../lib/stationNameI18n';
+import {trainLostDestination} from '../lib/train-lost-destination.mjs';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
 const getTime=(iso,lang)=>iso?new Intl.DateTimeFormat(lang==='ko'?'ko-KR':'en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(iso)):'—';
@@ -50,6 +51,9 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||visibleCandidates[0];
  const focusedStation=focusedPosition?.station||'';
  const focusedDestination=String(focusedPosition?.destination||'').replace(/(?:방면|행)$/,'').trim();
+ const displayDestination=p=>trainLostDestination({
+  line,raw:p?.destination,direction:p?.direction,station:p?.station,lang
+ },name=>{const value=trainStationDisplay(line,name);return destinationForApi(value)?stationName(value,lang,false):'';});
  // Candidate position is the scroll target, never the end of the rendered line.
  // Extend onward to the terminus or the next unresolved branch.
  const path=useMemo(()=>trainDisplayPath(line,station,next,focusedStation,focusedDestination),[line,station,next,focusedStation,focusedDestination]);
@@ -163,14 +167,10 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const renderTrain=p=>{
   const number=trainKey(p.trainNo),cand=candidateByNumber.get(number);
   const isSelected=selectedNo===number;
-  const rawDestination=clean(p.destination||'').replace(/(?:방면|행)$/,'').trim();
-  const translatedDestination=display(rawDestination);
-  const destinationLabel=translatedDestination?
-    (lang==='ko'?translatedDestination+'행':lang==='ja'?translatedDestination+'行':lang==='zh'?translatedDestination+'方向':'To '+translatedDestination):
-    (lang==='ko'?'행선 미확인':lang==='ja'?'行先不明':lang==='zh'?'终点未知':'Destination unknown');
-  // Short label inside compact English trains; the full destination stays
-  // available in the title/accessible label and the selected-train detail.
-  const compactDestination=lang==='en'&&translatedDestination?translatedDestination:destinationLabel;
+  const destination=displayDestination(p);
+  const destinationLabel=destination.text;
+  // Keep the English label compact in its existing narrow 67–69px train shape.
+  const compactDestination=lang==='en'&&destination.kind==='terminus'?destination.text:destinationLabel;
   // Keep the provider's train number unchanged. Adding a K prefix without
   // verified source information could misidentify the train.
   const tooltip=destinationLabel+' · '+p.trainNo+' · '+getTime(p.receivedAt,lang);
@@ -237,7 +237,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
     {lang==='en'&&focusedPosition&&<div className="tf-focused-destination" aria-live="polite">
-     <strong>{focusedPosition.trainNo}</strong><span>Destination: {focusedDestination?'To '+display(focusedDestination):'Unknown'}</span>
+     <strong>{focusedPosition.trainNo}</strong><span>{displayDestination(focusedPosition).text}</span>
     </div>}
 
    </div>
