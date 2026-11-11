@@ -243,10 +243,10 @@ test('all three stages share concise headers, with third stage review heading an
 });
 test('English compact route and candidate selection are never forced into clipped badges',()=>{
  assert.match(ui,/className="tl-step-trip-detail"/);
- assert.match(ui,/className="tl-step-trip-origin"/);
+ assert.match(ui,/className="tl-step-trip-clock"/);
  assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-candidate-identity"/);
- assert.match(styles,/\.tl-stepbar \.tl-step-trip-origin\{/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-clock\{/);
  assert.match(styles,/\.tl-candidate-identity\{/);
  assert.match(styles,/\.tl-candidate-chip \.tl-candidate-check\{/);
 });
