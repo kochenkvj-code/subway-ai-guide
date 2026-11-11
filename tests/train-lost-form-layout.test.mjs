@@ -292,26 +292,21 @@ test('selected train uses only an accessible checkmark and compact card width',(
  assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{/);
  assert.match(styles,/flex:0 0 132px/);
 });
-test('second step nests line-colored trip details inside the first information tile, with no extra row',()=>{
- const start=ui.indexOf('const showTrip=stage===\u0027results\u0027&&i===0');
- assert.ok(start>=0);
+test('three equal-width steps retain only alighting time in compact editable first tile',()=>{
+ assert.match(ui,/const showTrip=stage==='results'&&i===0/);
+ assert.match(ui,/const tripText=v\.time\+' '\+displayTime/);
  assert.match(ui,/className="tl-step-heading"/);
  assert.match(ui,/className="tl-step-trip-detail"/);
- assert.match(ui,/className="tl-step-trip-line"/);
- assert.match(ui,/className="tl-step-trip-origin"/);
- assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
  assert.match(ui,/className="tl-step-trip-clock"/);
- assert.match(ui,/pickerLineColor\(selection\.line\)/);
- assert.match(ui,/aria-label=\{showTrip\?label\+'\u0020·\u0020'\+tripText\+'\u0020·\u0020'\+u\.change:undefined\}/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-line"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-origin"/);
+ assert.doesNotMatch(ui,/className="tl-step-trip-destination"/);
+ assert.match(ui,/aria-label=\{showTrip\?label\+' · '\+tripText\+' · '\+u\.change:undefined\}/);
  assert.doesNotMatch(ui,/className="tl-stepbar-trip"/);
  assert.doesNotMatch(ui,/className="tl-search-context tl-search-context-compact"/);
- const results=ui.slice(ui.indexOf("{stage==='results'&&<>"),ui.indexOf("{stage==='handoff'&&<>"));
- assert.doesNotMatch(results,/className="tl-secondary" onClick=\{onBack\}>\{v\.quickEdit\}/);
- assert.match(styles,/\.tl-stepbar button\.tl-step\.tl-step-with-trip\{/);
- assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{/);
- assert.match(styles,/grid-template-columns:minmax\(0,1\.45fr\) repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(styles,/height:56px;min-height:56px;max-height:56px/);
- assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{\s*display:flex;flex-direction:row/);
+ assert.match(styles,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(styles,/height:52px;min-height:52px;max-height:52px/);
+ assert.match(styles,/\.tl-stepbar \.tl-step-trip-detail\{\s*display:flex;align-items:center;justify-content:center/);
 });
 test('car-door confirmation duplicates are removed; labels are aligned and door buttons inline',()=>{
  assert.doesNotMatch(ui,/className="tl-chosen-car"/);
