@@ -99,3 +99,113 @@ test('exactly the selected train-lost stage receives the strong active styling',
  assert.match(styles,/\.tl-stepbar button\.tl-step\.next-ready\{\s*background:#f1f9f4/);
  assert.match(styles,/\.tl-stepbar button\.tl-step:disabled:not\(\.current\)\{/);
 });
+
+test('selected candidate affordance does not include SOURCE footer',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.doesNotMatch(ui,/SOURCE ·/);
+ assert.doesNotMatch(ui,/tl-status-foot/);
+ assert.match(ui,/tl-candidate-selected-badge/);
+ assert.match(ui,/has-selection/);
+ assert.match(styles,/tl-candidate-selected-badge/);
+ assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
+});
+
+test('live map precedes ranked candidates, and redundant guidance and phone action are absent',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const mapAt=ui.indexOf('className="tl-live-map-main"');
+ const candidateAt=ui.indexOf("className={'tl-candidate-strip'");
+ const selectionActionAt=ui.indexOf('className="tl-next-panel"');
+ assert.ok(mapAt>=0&&candidateAt>mapAt&&selectionActionAt>candidateAt,'map → candidate cards → action');
+ assert.match(ui,/className="tl-candidate-location"/);
+ assert.doesNotMatch(ui,/className="tl-candidate-location-note"/);
+ assert.match(ui,/candidateRankLabel\(index,lang\)/);
+ assert.match(ui,/tl-candidate-rank/);
+ assert.match(styles,/tl-candidate-rank-first/);
+ assert.doesNotMatch(ui,/href="tel:15771234"/);
+ assert.doesNotMatch(ui,/className="tl-call"/);
+ assert.doesNotMatch(diagram,/className="tf-board-caption"/);
+ assert.doesNotMatch(diagram,/현재 위치는 역 단위 추정이며 실제 탑승 열차는 미확정입니다/);
+ assert.doesNotMatch(ui,/className="tl-candidate-hint"/);
+ assert.doesNotMatch(ui,/className="tl-selection-summary"/);
+ assert.doesNotMatch(diagram,/후보 열차 위치로|Go to candidates|onClick=\{toCandidates\}/);
+ assert.match(diagram,/onClick=\{\(\)=>\{setFocusedTrain\(number\);onPick\(cand\);\}\}/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-rank/);
+});
+
+test('third-stage handoff emphasizes composing SMS to the verified operator number',async()=>{
+ const finder=await readFile(new URL('../app/v2/TrainLostFinder.jsx',import.meta.url),'utf8');
+ assert.match(ui,/className="tl-message-heading"/);
+ assert.match(ui,/className="tl-copy-compact"/);
+ assert.match(ui,/className="tl-sms-primary"/);
+ assert.match(ui,/sms:'콜센터에 문자 접수하기'/);
+ assert.match(ui,/smsTarget:'1577-1234'/);
+ assert.match(ui,/className="tl-sms-primary-action"/);
+ assert.match(ui,/className="tl-sms-primary-recipient"/);
+ assert.match(ui,/문자 앱에서 내용을 확인한 뒤 직접 전송하세요\. 이 화면에서는 자동 발송되지 않습니다/);
+ assert.doesNotMatch(ui,/문자 수신 여부는 확인되지/);
+ assert.doesNotMatch(ui,/className="tl-send-options"/);
+ assert.ok(ui.indexOf('className="tl-copy-compact"')<ui.indexOf('className="tl-message"'));
+ assert.ok(ui.indexOf('className="tl-sms-primary"')>ui.indexOf('className="tl-message"'));
+ assert.match(styles,/\.tf-redesign \.tl-copy-compact\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary-action\{/);
+ assert.match(styles,/\.tf-redesign \.tl-sms-primary-recipient\{/);
+ assert.match(finder,/window\.location\.href='sms:15771234'/);
+ assert.match(finder,/Opens a user-controlled SMS draft only/);
+});
+
+test('results emphasize choosing a train, with compact live refresh controls only',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/\{v\.candidatePrompt\}/);
+ assert.match(ui,/candidatePrompt:'탑승했던 것으로 생각되는 열차를 선택해 주세요'/);
+ assert.doesNotMatch(results,/<strong>\{v\.candidateCount\} \{candidates\.length\}/);
+ assert.doesNotMatch(results,/<span>\{u\.refresh\}<\/span>/);
+ assert.doesNotMatch(diagram,/tf-board-dot"\/> \{t\.candidate\}/);
+ assert.doesNotMatch(diagram,/\{selected&&<span>\{lang==='ko'\?'선택한 열차'/);
+ assert.match(diagram,/className="tf-last-update"/);
+ assert.match(diagram,/onClick=\{refresh\}/);
+ assert.match(styles,/\.tl-live-map-main \.tf-board-summary\{/);
+});
+test('handoff removes repeated route/time and recent position and uses readable two-line notices',()=>{
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ const handoff=ui.slice(ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/className="tl-search-context"/);
+ assert.doesNotMatch(handoff,/className="tl-search-context"/);
+ assert.doesNotMatch(handoff,/\{chosen&&current&&<p className="tl-note">/);
+ assert.match(handoff,/className="tl-handoff-notices"/);
+ assert.match(handoff,/tl-handoff-notice-icon/);
+ assert.match(styles,/\.tl-handoff-notices\{/);
+ assert.match(ui,/실제 열차 수배와 관제 협조는 정보를 전달받은 역 또는 콜센터가 판단하고 진행합니다/);
+});
+
+test('map title and train-picking hint share one row with update and refresh aligned right',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ const results=ui.slice(ui.indexOf("{stage==='results'"),ui.indexOf("{stage==='handoff'"));
+ assert.match(results,/sectionTitle=\{v\.mapTitle\} instruction=\{v\.candidatePrompt\}/);
+ assert.doesNotMatch(results,/className="tl-live-map-title"/);
+ assert.doesNotMatch(results,/className="tl-live-candidate-header"/);
+ assert.match(diagram,/tf-board-summary tf-map-headline-row/);
+ assert.match(diagram,/className="tf-map-heading"/);
+ assert.match(diagram,/className="tf-map-instruction"/);
+ assert.match(diagram,/className="tf-map-updated"/);
+ assert.ok(diagram.indexOf('className="tf-map-heading"')<diagram.indexOf('className="tf-map-updated"'));
+ assert.match(styles,/\.tf-map-updated\{/);
+ assert.match(styles,/\.tf-board-summary\.tf-map-headline-row\{/);
+});
+
+test('warm train-confirmation copy distinguishes found candidates from pending and empty states',()=>{
+ assert.match(ui,/heroFound:'열차 후보를 찾았어요!'/);
+ assert.match(ui,/heroOut:'어떤 열차였는지 찾아볼까요\?'/);
+ assert.match(ui,/mapTitle:'어떤 열차였는지 살펴볼까요\?'/);
+ assert.match(ui,/searched&&!busy&&candidates\.length>0\?u\.heroFound:u\.heroOut/);
+});
+test('refresh icon remains accessible, small and aligned beside last update',async()=>{
+ const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
+ assert.match(diagram,/className="tf-refresh-icon" onClick=\{refresh\}/);
+ assert.match(diagram,/aria-label=\{refreshing\?t\.pending:t\.manual\}/);
+ assert.match(diagram,/title=\{refreshing\?t\.pending:t\.manual\}/);
+ assert.match(diagram,/className="tf-last-update"/);
+ assert.match(styles,/button\.tf-refresh-icon\{/);
+ assert.match(styles,/width:32px;height:32px/);
+});

@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {followStops,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
+import {trainDisplayPath,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import {stationName} from '../lib/stationNameI18n';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
@@ -12,15 +12,6 @@ const words={
  zh:{title:'实时列车位置',hint:'查看候选列车的位置，然后选择。',opposite:'反方向',forward:'所选方向',alighted:'下车站',candidate:'候选',selected:'已选择',manual:'刷新',refresh:'每20秒更新',pending:'更新中…',error:'实时更新失败，显示上次位置。',last:'更新于',noTrains:'此区间暂无列车。',uncertain:'位置按车站更新，并非GPS定位或历史经过记录。',unknown:'分支线路可能无法完整显示。'}
 };
 
-function mapStations(line,station,next,focusStation){
- // When the candidate is past a fork (Guro, Gangdong, etc.), render its actual
- // directional branch rather than ending the diagram at the junction.
- const forward=followStops(line,station,next,38);
- const base={stops:[trainStationKey(line,station),...forward.stops],ambiguous:forward.ambiguous};
- if(!focusStation)return base;
- const throughFork=directionalPathToStation(line,station,next,focusStation,38);
- return throughFork.length>1?{stops:throughFork,ambiguous:forward.ambiguous}:base;
-}
 function latestTrains(positions,line){
  const map=new Map();
  for(const p of positions||[]){
@@ -31,14 +22,12 @@ function latestTrains(positions,line){
  }
  return [...map.values()];
 }
-export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart}){
+export default function TrainLiveDiagram({line,station,next,lang='ko',positions=[],fetchedAt,candidates=[],selected,active=true,demo=false,onSnapshot,onPick,onRestart,sectionTitle,instruction}){
  const clean=value=>trainStationKey(line,value);
  const display=value=>stationName(trainStationDisplay(line,value),lang)||value;
  const t=words[lang]||words.ko;
  const [refreshing,setRefreshing]=useState(false),[error,setError]=useState(false);
- const [jumpStatus,setJumpStatus]=useState('');
  const [focusedTrain,setFocusedTrain]=useState('');
- const candidateJumpIndex=useRef(0);
  const autoFocusedRef=useRef(false);
  const viewportRef=useRef(null);
  const [lastPoll,setLastPoll]=useState(null);
@@ -60,7 +49,10 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const focusedPosition=visibleCandidates.find(p=>trainKey(p.trainNo)===focusedTrain)||
    visibleCandidates.find(p=>trainKey(p.trainNo)===selectedNo)||visibleCandidates[0];
  const focusedStation=focusedPosition?.station||'';
- const path=useMemo(()=>mapStations(line,station,next,focusedStation),[line,station,next,focusedStation]);
+ const focusedDestination=String(focusedPosition?.destination||'').replace(/(?:방면|행)$/,'').trim();
+ // Candidate position is the scroll target, never the end of the rendered line.
+ // Extend onward to the terminus or the next unresolved branch.
+ const path=useMemo(()=>trainDisplayPath(line,station,next,focusedStation,focusedDestination),[line,station,next,focusedStation,focusedDestination]);
  const displayed=useMemo(()=>new Set(path.stops),[path.stops]);
  const hasTrains=trains.some(p=>displayed.has(clean(p.station)));
  // Scroll the horizontal rail AND the train stack inside an individual
@@ -84,8 +76,6 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    }
    return true;
  };
- const candidateKeys=candidates.map(c=>trainKey(c.number)).join('|');
- useEffect(()=>{candidateJumpIndex.current=0;setJumpStatus('');setFocusedTrain('');},[line,station,next,candidateKeys]);
  useEffect(()=>{autoFocusedRef.current=false;},[line,station,next]);
  useEffect(()=>{
   const viewport=viewportRef.current;
@@ -192,46 +182,24 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
    onClick={()=>{setFocusedTrain(number);onPick(cand);}}>{content}</button>:
    <div key={number+'-'+p.direction} title={tooltip} className="tf-train tf-train-other">{content}</div>;
  };
- const toCandidates=()=>{
-  const viewport=viewportRef.current;
-  if(!viewport)return;
-  if(!visibleCandidates.length){
-   setJumpStatus(lang==='ko'
-     ?'현재 노선도에 표시된 후보 열차가 없어요. 새로고침을 누르거나 분기 구간을 확인해 주세요.'
-     :lang==='en'?'No candidate is currently visible. Refresh positions or check the branch route.'
-     :lang==='ja'?'表示できる候補列車がありません。更新または分岐経路をご確認ください。'
-     :'当前没有可显示的候选列车，请刷新或检查支线。');
-   return;
-  }
-  // First tap starts with a manually selected train, when present. Repeated
-  // taps always advance to the next candidate; do not pin one train forever.
-  let nextIndex=candidateJumpIndex.current % visibleCandidates.length;
-  if(candidateJumpIndex.current===0&&selectedNo){
-    const selectedIndex=visibleCandidates.findIndex(p=>trainKey(p.trainNo)===selectedNo);
-    if(selectedIndex>=0)nextIndex=selectedIndex;
-  }
-  const position=visibleCandidates[nextIndex];
-  const key=trainKey(position.trainNo);
-  // The target may be on a different branch and therefore absent from the
-  // current DOM. Switch the rail first; the effect above centers it afterwards.
-  candidateJumpIndex.current=nextIndex+1;
-  setFocusedTrain(key);
-  setJumpStatus((lang==='ko'?'확인 중 · 후보 ':'Candidate ')+position.trainNo+' · '+
-   (stationName(position.station,lang)||position.station)+
-   (visibleCandidates.length>1
-     ?' ('+(nextIndex+1)+'/'+visibleCandidates.length+')':''));
- };
 
  return <section className="tf-board-section" aria-label={t.title}>
    <div className="tf-board-heading">
     <div><h3>{t.title}</h3></div>
     <span className="tf-live-tag">{demo?'DEMO':t.refresh}</span>
    </div>
-   <div className="tf-board-summary">
-    <span><span className="tf-board-dot"/> {t.candidate} <strong>{candidates.length}</strong></span>
-    {selected&&<span>{lang==='ko'?'선택한 열차':t.selected}: <strong>#{selected.number}</strong></span>}
-    <span className="tf-last-update">{t.last}: <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
-    <button onClick={refresh} disabled={refreshing} type="button">{refreshing?t.pending:'↻ '+t.manual}</button>
+   <div className="tf-board-summary tf-map-headline-row">
+    <div className="tf-map-heading">
+     <strong className="tf-map-title">◎ {sectionTitle||t.title}</strong>
+     {instruction&&<span className="tf-map-instruction">{instruction}</span>}
+    </div>
+    <div className="tf-map-updated">
+     <span className="tf-last-update">{t.last} <strong>{getTime(fetchedAt||lastPoll,lang)}</strong></span>
+     <button className="tf-refresh-icon" onClick={refresh} disabled={refreshing} type="button"
+      aria-label={refreshing?t.pending:t.manual} title={refreshing?t.pending:t.manual}>
+      <span aria-hidden="true">{refreshing?'…':'↻'}</span>
+     </button>
+    </div>
    </div>
    {error&&<p className="tf-warning" role="status">{t.error}</p>}
    <div className="tf-board" role="group" aria-label={t.title}>
@@ -262,13 +230,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
       </div>
     </div>
     {!hasTrains&&<div className="tf-board-empty">{t.noTrains}</div>}
-    {!!candidates.length&&<div className="tf-h-foot">
-      <button type="button" onClick={toCandidates}>◎ {lang==='ko'?'후보 열차 위치로':lang==='en'?'Go to candidates':lang==='ja'?'候補列車へ':'前往候选列车'}
-       {visibleCandidates.length>1?' ('+visibleCandidates.length+')':''}
-      </button>
-      {jumpStatus&&<span className="tf-h-jump-status" role="status">{jumpStatus}</span>}
-    </div>}
+
    </div>
-   <div className="tf-board-caption"><span className="tf-board-refresh-dot"/> {lang==='ko'?'현재 위치는 역 단위 추정이며 실제 탑승 열차는 미확정입니다.':t.uncertain}{path.ambiguous?' '+t.unknown:''}</div>
  </section>;
 }

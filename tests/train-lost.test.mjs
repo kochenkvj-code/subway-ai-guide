@@ -18,7 +18,7 @@ await moduleUnderTest.link(specifier=>{
   return new SyntheticModule(['default'],function(){this.setExport('default',fixture);});
 });
 await moduleUnderTest.evaluate();
-const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey,followStops,directionalPathToStation}=moduleUnderTest.namespace;
+const {findLiveCandidates,reachableTrainStations,expectedLiveDirection,stationNeighbors,supportsStation,trainStationKey,followStops,directionalPathToStation,trainDisplayPath}=moduleUnderTest.namespace;
 
 const now=Date.parse('2026-10-31T18:20:00+09:00');
 const date='2026-10-31',time='18:10',line='1',station='종로5가',next='동대문';
@@ -185,12 +185,12 @@ test('branch-specific rail cannot draw opposite, invalid or reversed paths',()=>
 
 test('branch candidates and navigation use the same directional topology',async()=>{
  const diagram=await readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8');
- assert.match(diagram,/directionalPathToStation\(line,station,next,focusStation,38\)/);
+ assert.match(diagram,/trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
  assert.match(diagram,/directionalPathToStation\(line,station,next,p\.station,38\)/);
  assert.match(diagram,/setFocusedTrain\(key\)/);
  assert.match(diagram,/const focusedStation=focusedPosition\?\.station\|\|''/);
- assert.match(diagram,/const path=useMemo\(\(\)=>mapStations\(line,station,next,focusedStation\)/);
- assert.match(diagram,/the effect above centers it afterwards/);
+ assert.match(diagram,/const path=useMemo\(\(\)=>trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
+ assert.match(diagram,/if\(target\)centerTarget\(target\)/);
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
 });
 
@@ -207,4 +207,34 @@ test('a distant branched train is a cautious estimate, not verified past travel'
  const ui=await readFile(new URL('../app/v2/TrainLostUI.jsx',import.meta.url),'utf8');
  assert.match(ui,/c\.branched&&<small className="tl-branch-caution"/);
  assert.ok(ui.includes('분기 경로 확인 필요'));
+});
+
+test('horizontal lost-train map continues beyond candidate after the alighting station',()=>{
+ const path=trainDisplayPath('1','종로5가','동대문','동묘앞');
+ assert.deepEqual(path.stops.slice(0,4),['종로5가','동대문','동묘앞','신설동']);
+ assert.ok(path.stops.includes('제기동'));
+ assert.ok(path.stops.indexOf('청량리')>path.stops.indexOf('동묘앞'));
+ assert.ok(path.stops.length>5,'the candidate is a scroll focus, not the final stop');
+ assert.equal(path.ambiguous,false);
+});
+
+test('rail resolves a fork from actual destination and does not invent unresolved branches',()=>{
+ const resolved=trainDisplayPath('1','종로3가','종각','구로','역곡');
+ const atGuro=resolved.stops.indexOf('구로');
+ assert.ok(atGuro>=0);
+ assert.equal(resolved.stops[atGuro+1],'구일','train destination selects Incheon branch');
+ assert.ok(resolved.stops.includes('개봉'));
+ const unknown=trainDisplayPath('1','종로3가','종각','구로');
+ assert.equal(unknown.stops.at(-1),'구로','unknown branch does not pick a path');
+ assert.equal(unknown.ambiguous,true);
+ const opposite=trainDisplayPath('1','종로3가','종각','청량리','역곡');
+ assert.deepEqual(opposite.stops.slice(0,2),['종로3가','종각'],'do not reverse direction');
+ assert.ok(!opposite.stops.includes('청량리'));
+});
+
+test('scrollable rail follows one-way loop direction without duplicating stations',()=>{
+ const result=trainDisplayPath('6','역촌','불광','독바위');
+ assert.deepEqual(result.stops.slice(0,4),['역촌','불광','독바위','연신내']);
+ assert.equal(new Set(result.stops).size,result.stops.length);
+ for(let i=1;i<result.stops.length;i++)assert.equal(expectedLiveDirection('6',result.stops[i-1],result.stops[i]),'1');
 });
