@@ -176,7 +176,6 @@ export default function TrainLostUI(p){
    {!busy&&<section className="tl-next-panel">
     {chosen?<><button type="button" className="tl-primary" onClick={onContinue}>{v.confirm} →</button></>:
     <><p className="tl-select-instruction">{candidates.length>0?v.selectHint:v.noCandidate}</p><button type="button" className="tl-primary tl-secondary-primary" onClick={onNone}>{v.fallback} →</button></>}
-    <button type="button" className="tl-secondary" onClick={onBack}>{v.quickEdit}</button>
     {chosen&&<button type="button" className="tl-text-option" onClick={onNone}>{v.fallback}</button>}
    </section>}
   </>}
