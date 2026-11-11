@@ -398,10 +398,10 @@ test('rank shows simple 1순위, 2순위 labels',()=>{
  assert.doesNotMatch(ui,/추정 '\+\(index\+1\)\+'순위'/);
 });
 test('candidate cards label terminus and last reported location and retain fixed width',()=>{
- assert.match(ui,/tl-candidate-meta/);
- assert.match(ui,/candidateTerminus\(c\)/);
+ assert.match(ui,/tl-candidate-trainblock/);
+ assert.match(ui,/candidateDestinationText\(c\)/);
  assert.match(ui,/candidatePosition\(c\)\?\.station/);
- assert.match(ui,/lang==='ko'\?'종착역'/);
+ assert.match(ui,/lang==='ko'\?'최근 확인'/);
  assert.match(styles,/\.tl-candidate-strip \.tl-candidate-chip\{[\s\S]*?flex:0 0 132px;width:132px;min-width:132px;max-width:132px/);
 });
 test('review separates chosen train destination from alighting direction in uniform typography',()=>{
@@ -410,4 +410,14 @@ test('review separates chosen train destination from alighting direction in unif
  assert.match(ui,/directionText=lang==='en'/);
  assert.match(ui,/<strong className="tl-handoff-direction">\{directionText\}<\/strong>/);
  assert.match(styles,/\.tl-handoff-cell \.tl-handoff-direction\{[\s\S]*?font:inherit;font-size:12px;font-weight:800/);
+});
+
+test('compact candidate identity merges number with a headed-to destination, last seen remains separate',()=>{
+ assert.match(ui,/className="tl-candidate-trainblock"/);
+ assert.match(ui,/className="tl-candidate-destination">\{candidateDestinationText\(c\)\}/);
+ assert.match(ui,/lang==='en'\?'To '\+terminus/);
+ assert.doesNotMatch(ui,/>\{lang==='ko'\?'종착역'/);
+ assert.match(ui,/className="tl-candidate-last tl-candidate-location"/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-last\{[\s\S]*?flex-direction:row/);
+ assert.match(styles,/\.tl-candidate-chip \.tl-candidate-destination\{[\s\S]*?font-size:11px/);
 });

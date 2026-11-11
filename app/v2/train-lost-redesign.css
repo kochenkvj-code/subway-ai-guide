@@ -1104,3 +1104,31 @@
   flex:0 0 122px;width:122px;min-width:122px;max-width:122px;
  }
 }
+
+/* Compact train identity: number + terminus are one block, last known station is separate. */
+.tf-redesign.tl-three-stage .tl-candidate-strip .tl-candidate-chip{
+ align-self:flex-start;gap:3px;padding:8px 9px;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-trainblock{
+ display:flex;flex-direction:column;align-items:flex-start;
+ width:100%;min-width:0;gap:0;overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-destination{
+ display:block;max-width:100%;overflow:visible;text-overflow:clip;
+ color:#28576a;font-size:11px;font-weight:800;line-height:1.25;
+ white-space:normal;overflow-wrap:anywhere;word-break:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-last{
+ display:flex;flex-direction:row;align-items:baseline;flex-wrap:wrap;
+ gap:2px 4px;width:100%;min-width:0;max-width:100%;
+ padding-top:5px;margin-top:4px;border-top:1px solid #dfe8e9;
+ overflow:visible;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-last small{
+ display:inline;color:#738891;flex:none;font-size:9px;font-weight:750;
+ line-height:1.25;white-space:normal;
+}
+.tf-redesign.tl-three-stage .tl-candidate-chip .tl-candidate-last b{
+ display:inline;color:#214758;max-width:100%;font-size:10px;font-weight:850;
+ line-height:1.3;overflow-wrap:anywhere;white-space:normal;
+}

@@ -77,8 +77,13 @@ export default function TrainLostUI(p){
  };
  const chosenTerminus=chosen?candidateTerminus(chosen):'';
  const terminusKnown=chosen&& !['Not confirmed','未確認','未确认','종착역 미확인'].includes(chosenTerminus);
+ const candidateDestinationText=c=>{
+  const terminus=candidateTerminus(c);
+  if(['Not confirmed','未確認','未确认','종착역 미확인'].includes(terminus))return terminus;
+  return lang==='en'?'To '+terminus:terminus+(lang==='ko'?'행':lang==='ja'?'行':'方向');
+ };
  const selectedTrainSummary=chosen
-  ? String(chosen.number).padStart(4,'0')+' '+chosenTerminus+(terminusKnown?(lang==='ko'?'행':lang==='ja'?'行':lang==='zh'?'方向':''):'')
+  ? String(chosen.number).padStart(4,'0')+' '+candidateDestinationText(chosen)
   : u.unknown;
  const directionText=lang==='en'?'toward '+way:way+(lang==='ko'?' 방면':lang==='ja'?'方面':' 方向');
  const displayTime=when.time;
@@ -190,10 +195,15 @@ export default function TrainLostUI(p){
      const here=selected&&current?.station?current.station:candidatePosition(c)?.station||c.station;
      return <button type="button" key={c.number+'/'+index} aria-pressed={selected} onClick={()=>pick(c)} className={'tl-candidate-chip'+(selected?' selected':'')}>
       <span className="tl-candidate-toprow"><span className={'tl-candidate-rank'+(index===0?' tl-candidate-rank-first':'')}>{candidateRankLabel(index,lang)}</span></span>
-      <span className="tl-candidate-identity"><strong>{String(c.number).padStart(4,'0')}</strong></span>
+      <span className="tl-candidate-trainblock">
+       <span className="tl-candidate-identity"><strong>{String(c.number).padStart(4,'0')}</strong></span>
+       <span className="tl-candidate-destination">{candidateDestinationText(c)}</span>
+      </span>
       {selected&&<span className="tl-candidate-check" aria-hidden="true">✓</span>}
-      <span className="tl-candidate-meta"><small>{lang==='ko'?'종착역':lang==='ja'?'終着駅':lang==='zh'?'终点站':'Destination'}</small><b>{candidateTerminus(c)}</b></span>
-      <span className="tl-candidate-meta tl-candidate-location"><small>{u.position}</small><b>{here?localized(here,selection.line,lang):(lang==='ko'?'미확인':lang==='ja'?'未確認':lang==='zh'?'未确认':'Not available')}</b></span>
+      <span className="tl-candidate-last tl-candidate-location">
+       <small>{lang==='ko'?'최근 확인':lang==='en'?'Last seen':lang==='ja'?'最新確認':'最近确认'}</small>
+       <b>{here?localized(here,selection.line,lang):(lang==='ko'?'미확인':lang==='ja'?'未確認':lang==='zh'?'未确认':'Not available')}</b>
+      </span>
       {c.branched&&<small className="tl-branch-caution">⚠ {branchWarningLabel[lang]||branchWarningLabel.ko}</small>}
      </button>;
     })}
