@@ -1035,3 +1035,13 @@
  font-weight:750;color:#527587;line-height:1.35;
  overflow-wrap:anywhere;
 }
+
+/* Staged: 2 x 2 summary cells share the height of the tallest content without a minimum height. */
+.tf-redesign.tl-three-stage .tl-handoff-grid{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-auto-rows:1fr;
+ align-items:stretch;
+}
+.tf-redesign.tl-three-stage .tl-handoff-grid .tl-handoff-cell{
+ min-width:0;min-height:0;
+}

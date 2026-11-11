@@ -363,3 +363,12 @@ test('restore compact train header labels and remove forced blank summary-card h
  assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
  assert.doesNotMatch(styles,/\.tf-h-topline \.tf-alight-route,\s*\.tf-redesign\.tl-three-stage \.tf-h-topline \.tf-alight-time\{/);
 });
+
+test('handoff train summary shows train number and next-station direction, never estimated-train label',()=>{
+ assert.match(ui,/String\(chosen\.number\)\.padStart\(4,'0'\)/);
+ assert.match(ui,/selectedTrainSummary/);
+ assert.match(ui,/lang==='ko'\?'방면'/);
+ assert.doesNotMatch(ui,/\{chosen\?'#'\+chosen\.number\+' · '\+u\.candidate/);
+ assert.match(styles,/\.tl-handoff-grid\{[\s\S]*?grid-auto-rows:1fr;/);
+ assert.doesNotMatch(styles,/grid-auto-rows:minmax\(98px,1fr\)/);
+});

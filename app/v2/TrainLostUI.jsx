@@ -69,6 +69,11 @@ export default function TrainLostUI(p){
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
+ // Keep the operator train number (including leading zeroes) and show the
+ // passenger's selected next-station direction, not an unverified train label.
+ const selectedTrainSummary=chosen
+  ? String(chosen.number).padStart(4,'0')+' '+(lang==='en'?'toward '+way:way+(lang==='ko'?'방면':lang==='ja'?'方面':'方向'))
+  : u.unknown;
  const displayTime=when.time;
  const stageNumber=stage==='input'?1:stage==='results'?2:3;
  const firstCandidate=Boolean(chosen&&candidates.length&&compareNo(chosen.number)===compareNo(candidates[0].number));
@@ -192,7 +197,7 @@ export default function TrainLostUI(p){
    <section className="tl-panel tl-handoff">
     <div className="tl-handoff-head"><span className="tl-handoff-icon">↗</span><div><h3>{u.handoffReview}</h3></div></div>
     <div className="tl-handoff-grid">
-     <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{chosen?'#'+chosen.number+' · '+u.candidate:u.unknown}</strong></div>
+     <div className="tl-handoff-cell"><small>{u.trainChosen}</small><strong>{selectedTrainSummary}</strong></div>
      <div className="tl-handoff-cell"><small>{u.boarding}</small><strong>{carNumber+'-'+door+' ('+carLabel+' · '+doorLabel+')'}</strong></div>
      <div className="tl-handoff-cell"><small>{u.lostItem}</small><strong>{thing}</strong></div>
      <div className="tl-handoff-cell"><small>{u.alighted}</small><strong>{selectionLabel} · {displayTime}</strong><span className="tl-handoff-direction">{lang==='en'?'toward '+way:way+(lang==='ko'?' 방면':lang==='ja'?'方面':' 方向')}</span></div>
