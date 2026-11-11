@@ -251,8 +251,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
  const boardingPosition=carNumber+'-'+door+' ('+carPosition+' '+z.door(door)+')';
  const message=(chosen||handoffUnknown)?[
    z.title,
-   z.station+': '+selection.line+z.lineUnit+' · '+selection.name+z.stationUnit,
    z.time+': '+when.date+' '+when.time+z.timeSuffix,
+   z.station+': '+selection.line+z.lineUnit+' · '+selection.name+z.stationUnit,
    z.direction+': '+next+z.stationUnit+' '+z.toward,
    z.train+': '+(chosen?chosen.number+' ('+z.estimated+')':z.unknown),
    z.position+': '+(chosen&&current?current.station+z.stationUnit:z.unavailable),
