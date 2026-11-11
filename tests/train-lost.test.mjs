@@ -190,7 +190,9 @@ test('branch candidates and navigation use the same directional topology',async(
  assert.match(diagram,/setFocusedTrain\(key\)/);
  assert.match(diagram,/const focusedStation=focusedPosition\?\.station\|\|''/);
  assert.match(diagram,/const path=useMemo\(\(\)=>trainDisplayPath\(line,station,next,focusedStation,focusedDestination\)/);
- assert.match(diagram,/if\(target\)centerTarget\(target\)/);
+ assert.match(diagram,/if\(centerTarget\(target,Boolean\(previous\.number\)\)\)/);
+ assert.match(diagram,/requestAnimationFrame\(frame\)/);
+ assert.match(diagram,/viewport\.addEventListener\('touchstart',cancel/);
  assert.doesNotMatch(diagram,/displayed\.has\(clean\(p\.station\)\)\)\s*\)\.filter\(Boolean\)/);
 });
 
