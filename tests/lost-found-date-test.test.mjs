@@ -73,7 +73,7 @@ test('test screen iterates pages automatically without changing the existing V2 
  assert.match(page,/for\(let base=2;base<=last;base\+=3\)/);
  assert.match(page,/await Promise\.all\(pages\.map\(retrieve\)\)/);
  assert.match(page,/setStatus\(first\.totalPages>first\.maxPages\?'partial':'done'\)/);
- assert.match(page,/아차산/);
+ assert.match(page,/useState\('2546'\)/);
  const current=await fs.readFile('app/v2/lost-found-demo/CompactLostFound.jsx','utf8');
  assert.match(current,/\/api\/v2\/lost-found\?/);
 });
