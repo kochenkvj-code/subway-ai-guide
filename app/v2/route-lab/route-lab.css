@@ -106,9 +106,9 @@
 .rl-step small{font-size:10px;color:#7c9585}
 .rl-step details{margin-top:7px;border-top:1px solid #e9efe8;padding-top:5px;font-size:10px;color:#517362}
 .rl-step details summary{cursor:pointer;min-height:18px;line-height:1.35}
-.rl-stops{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px;padding-top:3px;color:#52665c}
-.rl-stops>span{display:inline-flex;align-items:center;white-space:nowrap;color:#52665c;font-size:11px;font-weight:400;line-height:1.55}
-.rl-stops>span:not(:last-child)::after{content:"→";margin-left:7px;color:#a0afa5;font-size:11px;font-weight:400}
+.rl-stops{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 7px;max-width:100%;margin-top:5px;padding:7px 10px;border:1px solid color-mix(in srgb,var(--rl-stop-line) 20%,white);border-radius:9px;background:color-mix(in srgb,var(--rl-stop-line) 7%,white);box-shadow:none}
+.rl-stops>span{display:inline-flex;align-items:center;white-space:nowrap;color:#43584e;font-size:11px;font-weight:500;line-height:1.5}
+.rl-stops>span:not(:last-child)::after{content:"→";margin-left:7px;color:#9eaaa2;font-size:10px;font-weight:400}
 .rl-route-line{display:inline-flex;align-items:center;justify-content:center;font-size:9px;background:#6e8d83;color:white;padding:4px 6px;border-radius:6px;font-weight:700}
 .rl-transfer{background:#f7f9f7}
 .rl-transfer .rl-step-pin{background:#a4b0a8}
