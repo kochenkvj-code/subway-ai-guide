@@ -250,7 +250,7 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.doesNotMatch(css,/\.rl-all-stations-list[^\n]*max-height:260px/);
  assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
  assert.match(page,/compact\/>/);
- assert.doesNotMatch(page,/rl-all-stop-arrow/);
+ assert.match(page,/i<allRouteStops\.length-1&&<span className="rl-all-stop-arrow" aria-hidden="true">→<\/span>/);
  assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/\/api\/subway-route\?/);
 });
@@ -332,7 +332,7 @@ test('recommended stop shows centered numeric line badges; station timeline scro
  assert.ok(page.includes('allRouteStops.map((stop,i)=>'));
 });
 
-test('V2 route restores original result cards and keeps the intro and arrow fixes',()=>{
+test('V2 route restores original result cards and keeps the intro and adds requested station arrows',()=>{
  assert.ok(page.includes('<h1>{t.title}</h1><p>{t.subtitle}</p>'));
  assert.ok(css.includes('.route-lab.rl-embedded .rl-top-embedded{padding-top:11px;padding-bottom:13px}'));
  assert.ok(!css.includes('.route-lab.rl-embedded .rl-top-embedded{display:none}'));
@@ -343,9 +343,9 @@ test('V2 route restores original result cards and keeps the intro and arrow fixe
  assert.ok(!css.includes('.route-lab .rl-stats{grid-template-columns:repeat(4'));
  assert.ok(page.includes('className="rl-route-head"'));
  assert.ok(page.includes('className="rl-stats"'));
- assert.ok(css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px 5px;'));
- assert.ok(!page.includes('className="rl-all-stop-arrow"'));
- assert.ok(!css.includes('.rl-all-stop-arrow{'));
+ assert.ok(css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:10px 5px;'));
+ assert.ok(page.includes('className="rl-all-stop-arrow"'));
+ assert.ok(css.includes('.rl-all-stop-arrow{'));
  assert.ok(!css.includes('.rl-all-transfer-label svg{'));
 });
 

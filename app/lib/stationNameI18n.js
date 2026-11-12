@@ -109,6 +109,7 @@ export function stationName(value, lang = "ko", fallbackUnknown = true) {
 }
 
 const LINE_LABELS = {
+  "경의선": ["Gyeongui Line", "京義線", "京义线"],
   "신분당선": ["Shinbundang Line", "新盆唐線", "新盆唐线"],
   "신분당": ["Shinbundang Line", "新盆唐線", "新盆唐线"],
   "경의중앙선": ["Gyeongui–Jungang Line", "京義・中央線", "京义中央线"],
