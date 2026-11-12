@@ -253,11 +253,11 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.match(page,/i<allRouteStops\.length-1&&<span className="rl-all-stop-arrow" aria-hidden="true">→<\/span>/);
  assert.match(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/step\.stations\?\.length>2&&<details><summary>\{t\.allStops\}<\/summary>/);
- assert.match(css,/\.rl-stops\{display:flex;gap:7px;row-gap:5px;flex-wrap:wrap/);
- assert.match(page,/className="rl-stops" style=\{\{'--rl-stop-line':lineColor\(step\.line\)\}\}/);
- assert.match(css,/\.rl-stops>span\{display:inline-flex;align-items:center;gap:5px;background:#f7f9f7/);
- assert.match(css,/\.rl-stops>span::before\{content:"";width:6px;height:6px;flex:none;border-radius:50%;background:var\(--rl-stop-line\)/);
- assert.doesNotMatch(css,/\.rl-stops>span\{[^\n]*color-mix|\.rl-stops>span\{[^\n]*border-left:3px/);
+ assert.match(css,/\.rl-stops\{display:flex;flex-wrap:wrap;align-items:center;gap:5px 7px/);
+ assert.match(page,/className="rl-stops">\{step\.stations\.slice\(1,-1\)/);
+ assert.match(css,/\.rl-stops>span\{display:inline-flex;align-items:center;white-space:nowrap/);
+ assert.match(css,/\.rl-stops>span:not\(:last-child\)::after\{content:"→"/);
+ assert.doesNotMatch(css,/\.rl-stops>span\{[^\n]*(background:|border:|box-shadow:)/);
  assert.match(css,/\.rl-step details summary\{cursor:pointer;min-height:18px/);
  assert.match(page,/\/api\/subway-route\?/);
 });
