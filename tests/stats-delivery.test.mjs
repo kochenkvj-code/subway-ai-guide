@@ -41,7 +41,7 @@ test('corrupt, cross-session and expired saved entries are discarded; blocked st
  const blocked=await fixture([204],{blocked:true});assert.doesNotThrow(()=>blocked.record('page_view','visit','ko'));await blocked.settle();assert.equal(blocked.calls.length,1);
 });
 test('queue is capped at 100 and has at most four in-flight requests',async()=>{
- const f=await fixture([],{defer:true});for(let i=0;i<110;i++)f.record('gate_action','e44','en');assert.equal(f.calls.length,4);assert.equal(f.peak(),4);assert.equal(JSON.parse(f.storage.get(KEY)).length,100);
+ const f=await fixture([],{defer:true});for(let i=0;i<110;i++)f.record('gate_action','e44','en');await f.settle();assert.equal(f.calls.length,4);assert.equal(f.peak(),4);assert.equal(JSON.parse(f.storage.get(KEY)).length,100);
  while(f.releases.length){f.releases.splice(0).forEach(r=>r());await f.settle();}assert.equal(f.calls.length,100);assert.equal(f.storage.has(KEY),false);
 });
 

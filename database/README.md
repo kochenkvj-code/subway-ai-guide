@@ -32,3 +32,7 @@ Facility selections reuse `quick_menu` / `facility` with an allowlisted
 Menu-open events retain a null context. The admin view counts facility selections
 separately from top-level menu opens and names each selection in the activity log.
 Historical null-context events cannot identify which facility was selected.
+
+Browser-level visitor identity is described in `stats-browser-visitors.sql` and
+`docs/browser-visitor-rollback.md`. Visitor UUIDs are separate from 30-minute
+shared browser sessions; historical records retain null visitor IDs.

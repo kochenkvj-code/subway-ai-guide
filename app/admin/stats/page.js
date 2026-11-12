@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ANALYTICS_EXCLUDED_KEY } from "../../lib/analytics-preference";
 import { FACILITY_LABELS, isFacilityContext } from "../../lib/facility-stat";
+import {visitorSummaries} from "../../lib/visitor-stats";
 import { getStationByCode } from "../../lib/station-master";
 
 const KST = "Asia/Seoul";
@@ -53,6 +54,7 @@ export default function StatsPage() {
   const [refresh,setRefresh]=useState(0),[updatedAt,setUpdatedAt]=useState(null);
   useEffect(()=>{if(!auth)return;const update=()=>{if(document.visibilityState==="visible")setRefresh(v=>v+1);};const timer=setInterval(update,30000);window.addEventListener("focus",update);document.addEventListener("visibilitychange",update);return()=>{clearInterval(timer);window.removeEventListener("focus",update);document.removeEventListener("visibilitychange",update);};},[auth]);
   const [pageSize,setPageSize] = useState(25);
+  const [visitorFilter,setVisitorFilter]=useState("all"),[selectedVisitor,setSelectedVisitor]=useState(null);
   const [recordFilter,setRecordFilter] = useState("all");
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
   useEffect(() => { fetch("/api/stats/auth",{cache:"no-store"}).then(r=>r.json()).then(v=>setAuth(!!v.authenticated)).catch(()=>setAuth(false)); },[]);
@@ -83,7 +85,15 @@ export default function StatsPage() {
   },[rows]);
   const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
   const accessOnlySessions = sessionRows.length - activeSessions;
-  const visibleSessions = useMemo(() => sessionRows.filter(group => recordFilter === "all" || (recordFilter === "functional" ? group.events.some(isFunctionalEvent) : !group.events.some(isFunctionalEvent))), [sessionRows,recordFilter]);
+  const visitors=useMemo(()=>visitorSummaries(sessionRows,activity),[sessionRows,activity]);
+  const unidentified=sessionRows.filter(g=>!g.events.some(e=>e.visitor_id)).length;
+  const visibleSessions=useMemo(()=>sessionRows.filter(group=>{
+    if(recordFilter==='functional'&&!group.events.some(isFunctionalEvent)||recordFilter==='accessOnly'&&group.events.some(isFunctionalEvent))return false;
+    const id=group.events.find(e=>e.visitor_id)?.visitor_id,visitor=visitors.get(id);
+    if(selectedVisitor&&id!==selectedVisitor)return false;
+    return visitorFilter==='all'||visitorFilter==='repeat'&&visitor?.sessions>=2||visitorFilter==='short'&&visitor?.shortSessions>=3;
+  }),[sessionRows,recordFilter,selectedVisitor,visitorFilter,visitors]);
+  useEffect(()=>setRawPage(0),[visitorFilter,selectedVisitor]);
   const pageCount = Math.max(1,Math.ceil(visibleSessions.length/pageSize));
   const stats=useMemo(()=>{
     const counts={},facilities={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
@@ -120,7 +130,8 @@ export default function StatsPage() {
           <button type="button" aria-label="다음 날짜" disabled={date>=today()} onClick={()=>setDate(d=>shiftDate(d,1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:date>=today()?"not-allowed":"pointer",opacity:date>=today()?0.4:1}}>›</button>
         </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span><button type="button" disabled={busy} onClick={()=>setRefresh(v=>v+1)}>새로고침</button><small>30초마다 갱신 · 화면 이용시간은 조회 기간 기준 · 마지막 갱신 {updatedAt?timeKst(updatedAt):"—"}</small></section>
         {error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}{busy&&<p>통계 불러오는 중…</p>}
-        <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
+        <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["방문자 수",visitors.size],["방문 세션 수",sessionRows.length],["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
+        <p style={{fontSize:12,color:"#687c82"}}>방문자 수는 브라우저 ID가 있는 신규 기록 기준이며 실제 사람 수와 다를 수 있습니다. 과거 미확인 기록은 제외합니다.</p>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,440px),1fr))",gap:14}}>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>빠른 안내 메뉴별 이용량</h2>{chart(stats.counts,names)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시설별 안내 선택</h2>{chart(stats.facilities,FACILITY_LABELS)}<p style={{fontSize:11,color:"#687c82",marginBottom:0}}>세부 수집 시작 이후 기록입니다. 빠른 안내 메뉴 클릭 수와 별도로 집계합니다.</p></div>
@@ -144,14 +155,20 @@ export default function StatsPage() {
               <button disabled={rawPage>=pageCount-1} onClick={()=>setRawPage(p=>Math.min(pageCount-1,p+1))} style={{padding:"7px 12px",border:"1px solid #ccd9da",borderRadius:8,background:"#fff",cursor:"pointer"}}>다음</button>
             </div>
           </div>
+          <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:12,fontSize:12}}>
+            <label>방문자 <select aria-label="방문자 필터" value={visitorFilter} onChange={e=>setVisitorFilter(e.target.value)}><option value="all">전체 방문자</option><option value="repeat">재방문자</option><option value="short">짧은 반복 접속</option></select></label>
+            {selectedVisitor&&<button type="button" onClick={()=>setSelectedVisitor(null)}>방문자 {selectedVisitor.slice(0,8)} 필터 해제 ×</button>}
+            <span>브라우저 기준 · 조회 기간 내 2개 이상 세션이면 재방문 · 15초 이하 세션 3회 이상이면 짧은 반복 접속</span>
+          </div>
+          <p style={{fontSize:11,color:'#687c82'}}>반복 접속은 이상 접속 판정이 아닙니다. 방문자 ID 없는 과거 기록 {unidentified}개 세션은 방문자 수·방문자 조건 필터에서 제외됩니다. 같은 브라우저의 여러 탭을 공유하며, 30분간 활동이 없으면 새 세션이 시작됩니다.</p>
           <div role="region" aria-label="접속·이용 기록 목록" tabIndex={0} style={{border:"1px solid #e3eaed",borderRadius:10,overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"separate",borderSpacing:0,fontSize:12,textAlign:"left"}}>
               <thead><tr>{["접속시간 (KST)","국가","접속지역","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
               <tbody>{visibleSessions.slice(rawPage*pageSize,(rawPage+1)*pageSize).map((group,rowIndex)=>{
-                const r=group.first;
+                const r=group.first;const visitorId=group.events.find(e=>e.visitor_id)?.visitor_id;const visitor=visitors.get(visitorId);
                 const functional = group.events.some(isFunctionalEvent);
                 return <tr key={group.key} style={{background:rowIndex%2?"#f8fbfb":"#fff"}}>
-                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(activity[r.session_id])}</div></td>
+                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{visitorId?<><button type="button" title={visitorId+' · 클릭하면 같은 방문자의 기록만 표시'} onClick={()=>{setVisitorFilter('all');setSelectedVisitor(visitorId);}} style={{border:'1px solid #bfd8cd',borderRadius:5,background:'#eef6f1',color:'#285d43',fontSize:11,cursor:'pointer'}}>방문자 {visitorId.slice(0,8)}</button><span> · 조회 기간 {visitor.sessions}개 세션</span><br/></>:<>방문자 미확인<br/></>}{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(activity[r.session_id])}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}} title="IP 기반 추정 위치 · 실제 접속 위치와 다를 수 있습니다.">{group.events.find(e=>e.ip_region)?.ip_region||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>

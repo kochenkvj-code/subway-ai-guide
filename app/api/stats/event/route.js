@@ -30,6 +30,7 @@ export async function POST(request) {
     try {data=await request.json();}catch{return reject("invalid_json");}
     diagnostic={event_id:typeof data?.event_id==="string"&&uuid.test(data.event_id)?data.event_id:null};
     if (data?.event_id != null && (typeof data.event_id !== "string" || !uuid.test(data.event_id))) return reject("invalid_event_id");
+    if(data?.visitor_id!=null&&(typeof data.visitor_id!=="string"||!uuid.test(data.visitor_id)))return reject("invalid_visitor_id");
     const question = (data?.event_type === "ai_question" || data?.event_type === "route_search" && data?.event_name === "request") && typeof data.question === "string" ? data.question.trim().slice(0,500) : null;
     if (!data || !Object.hasOwn(types, data.event_type) || !types[data.event_type].includes(data.event_name) || !["ko","en","ja","zh"].includes(data.language)) {
       return reject("unsupported_event_or_language");
@@ -50,7 +51,7 @@ export async function POST(request) {
     const ip_region = estimateIpRegion(request.headers, seoulGuGeo);
     await supabase(data.event_id ? "chatbot_events?on_conflict=event_id" : "chatbot_events", { method: "POST", signal:AbortSignal.timeout(8000), headers: { Prefer: data.event_id ? "resolution=ignore-duplicates,return=minimal" : "return=minimal" }, body: JSON.stringify({
       event_type: data.event_type, event_name: data.event_name, language: data.language,
-      event_id: data.event_id || null, question, session_id: sessionId, context, occurred_at, country, ip_region, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
+      event_id: data.event_id || null, visitor_id:data.visitor_id||null, question, session_id: sessionId, context, occurred_at, country, ip_region, device_type: deviceType(ua), os_type: osType(ua), browser: browserType(ua)
     }) });
     return new NextResponse(null, { status: 204 });
   } catch (error) {

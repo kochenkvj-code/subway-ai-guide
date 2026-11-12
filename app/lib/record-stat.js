@@ -19,6 +19,36 @@ function getVisitSessionId() {
   }
   return visitSessionId;
 }
+// Persistent anonymous browser identity, shared across tabs. No fingerprints/IP.
+const VISITOR_KEY='subway_ai_guide_browser_visitor_v1';
+const SHARED_SESSION_KEY='subway_ai_guide_browser_session_v1';
+const SESSION_IDLE_MS=30*60*1000;
+const VISITOR_TTL_MS=180*86400000;
+function readBrowserVisitor(){try{return JSON.parse(window.localStorage.getItem(VISITOR_KEY)||'null');}catch{return null;}}
+export async function trackingIdentity(touch=true){
+  const update=()=>{
+    if(isAnalyticsExcluded())return null;
+    const fallback=()=>({visitor_id:null,session_id:getVisitSessionId()});
+    try{
+      const storage=window.localStorage;if(!storage)return fallback();
+      const now=Date.now();let visitor=readBrowserVisitor();
+      if(!visitor||!UUID.test(visitor.id)||!Number.isFinite(visitor.expires)||visitor.expires<=now){visitor={id:window.crypto.randomUUID(),expires:now+VISITOR_TTL_MS};storage.setItem(VISITOR_KEY,JSON.stringify(visitor));}
+      else if(touch&&visitor.expires-now<VISITOR_TTL_MS-86400000){visitor={...visitor,expires:now+VISITOR_TTL_MS};storage.setItem(VISITOR_KEY,JSON.stringify(visitor));}
+      let session;try{session=JSON.parse(storage.getItem(SHARED_SESSION_KEY)||'null');}catch{}
+      if(!session||!UUID.test(session.id)||session.visitor!==visitor.id||!Number.isFinite(session.last)||session.last>now+300000||(touch&&now-session.last>=SESSION_IDLE_MS)){
+        session={id:window.crypto.randomUUID(),visitor:visitor.id,last:now};storage.setItem(SHARED_SESSION_KEY,JSON.stringify(session));
+      }else if(touch&&now-session.last>=1000){session={...session,last:now};storage.setItem(SHARED_SESSION_KEY,JSON.stringify(session));}
+      return {visitor_id:visitor.id,session_id:session.id};
+    }catch{return fallback();}
+  };
+  // Serialize first-use/session renewal across tabs where the browser supports it.
+  try{if(window.navigator?.locks?.request)return await window.navigator.locks.request('subway-ai-guide-analytics-identity',update);}catch{}
+  return update();
+}
+function ownsCheckpoint(body){
+  if(body.visitor_id){const visitor=readBrowserVisitor();return UUID.test(body.visitor_id)&&visitor?.id===body.visitor_id&&visitor.expires>Date.now();}
+  return body.session_id===getVisitSessionId();
+}
 // Successful DB acknowledgements remove entries; uncertain deliveries keep the
 // same UUID across retries/reloads so the server can ignore duplicate writes.
 const QUEUE_KEY = "subway_ai_guide_pending_events_v1";
@@ -72,7 +102,7 @@ function initializeQueue() {
       if(typeof item?.body!=="string"||item.body.length>8192||!Number.isFinite(item.queuedAt))continue;
       try {
         const body=JSON.parse(item.body),time=Date.parse(body.occurred_at);
-        if(!UUID.test(body.event_id)||body.session_id!==getVisitSessionId()||!Number.isFinite(time)||Date.now()-time>=MAX_AGE||Date.now()-item.queuedAt>=MAX_AGE||time>Date.now()+300000||item.queuedAt>Date.now()+300000)continue;
+        if(!UUID.test(body.event_id)||!ownsCheckpoint(body)||!Number.isFinite(time)||Date.now()-time>=MAX_AGE||Date.now()-item.queuedAt>=MAX_AGE||time>Date.now()+300000||item.queuedAt>Date.now()+300000)continue;
         pendingEvents.set(body.event_id,{body:item.body,queuedAt:item.queuedAt,nextAttemptAt:0,attempts:0,sending:false});
         lastEventTime=Math.max(lastEventTime,time);
       }catch{ /* Discard malformed entries individually. */ }
@@ -84,7 +114,7 @@ function initializeQueue() {
   document.addEventListener("visibilitychange",()=>flushQueue(true));
   const preference=()=>{if(isAnalyticsExcluded())clearQueue();else flushQueue(true);};
   window.addEventListener("analytics-preference-change",preference);
-  window.addEventListener("storage",preference);
+  window.addEventListener("storage",e=>{if(!e?.key||e.key==="subway_ai_guide_analytics_excluded")preference();});
   flushQueue();
 }
 async function sendEvent(id) {
@@ -109,7 +139,7 @@ async function sendEvent(id) {
     flushQueue();
   }
 }
-export function recordStat(event_type,event_name,language,context=null,question=null) {
+export async function recordStat(event_type,event_name,language,context=null,question=null) {
   if(typeof window==="undefined")return;
   try {
     initializeQueue();
@@ -117,10 +147,13 @@ export function recordStat(event_type,event_name,language,context=null,question=
     pruneQueue();
     if(pendingEvents.size>=MAX_PENDING)return;
     lastEventTime=Math.max(Date.now(),lastEventTime+1);
+    const occurred_at=new Date(lastEventTime).toISOString();
+    const identity=await trackingIdentity();
+    if(!identity||isAnalyticsExcluded()||pendingEvents.size>=MAX_PENDING)return;
     const event_id=window.crypto.randomUUID();
-    const body=JSON.stringify({event_id,event_type,event_name,language,session_id:getVisitSessionId(),context,
+    const body=JSON.stringify({event_id,event_type,event_name,language,...identity,context,
       question:(event_type==="ai_question"||event_type==="route_search"&&event_name==="request")&&typeof question==="string"?question.trim().slice(0,500):null,
-      occurred_at:new Date(lastEventTime).toISOString()});
+      occurred_at});
     pendingEvents.set(event_id,{body,queuedAt:Date.now(),nextAttemptAt:0,attempts:0,sending:false});
     // Persist before starting any network work, including when going offline.
     persistQueue();flushQueue();
@@ -151,10 +184,10 @@ async function flushActivity(){
 }
 function initializeActivity(){
   if(activityReady)return;activityReady=true;
-  if(!isAnalyticsExcluded())try{const raw=window.sessionStorage.getItem(ACTIVITY_KEY);const rows=raw&&raw.length<100000?JSON.parse(raw):[];if(Array.isArray(rows))for(const item of rows.slice(-100)){const b=item?.body;if(b&&UUID.test(b.page_id)&&b.session_id===getVisitSessionId()&&/^\d{4}-\d{2}-\d{2}$/.test(b.activity_date)&&Number.isSafeInteger(b.visible_ms)&&b.visible_ms>=0&&b.visible_ms<=86400000&&Number.isFinite(item.queuedAt)&&item.queuedAt<=Date.now()&&Date.now()-item.queuedAt<MAX_AGE)activityPending.set(b.page_id,item);}}catch{}
+  if(!isAnalyticsExcluded())try{const raw=window.sessionStorage.getItem(ACTIVITY_KEY);const rows=raw&&raw.length<100000?JSON.parse(raw):[];if(Array.isArray(rows))for(const item of rows.slice(-100)){const b=item?.body;if(b&&UUID.test(b.page_id)&&ownsCheckpoint(b)&&/^\d{4}-\d{2}-\d{2}$/.test(b.activity_date)&&Number.isSafeInteger(b.visible_ms)&&b.visible_ms>=0&&b.visible_ms<=86400000&&Number.isFinite(item.queuedAt)&&item.queuedAt<=Date.now()&&Date.now()-item.queuedAt<MAX_AGE)activityPending.set(b.page_id,item);}}catch{}
   const retry=()=>{void flushActivity();};
   window.addEventListener('online',retry);window.addEventListener('pageshow',retry);
-  window.addEventListener('analytics-preference-change',retry);window.addEventListener('storage',retry);
+  window.addEventListener('analytics-preference-change',retry);window.addEventListener('storage',e=>{if(!e?.key||e.key==='subway_ai_guide_analytics_excluded')retry();});
   void flushActivity();
 }
 function queueActivity(body){
@@ -165,10 +198,11 @@ function queueActivity(body){
 export function startActivityTracking(){
   if(typeof window==='undefined'||!window.crypto?.randomUUID)return()=>{};
   initializeActivity();
-  const session_id=getVisitSessionId(),days=new Map(),queuedTotals=new Map();
+  let identity=null,identityTask=Promise.resolve();
+  const days=new Map(),queuedTotals=new Map();
   let visibleSince=!isAnalyticsExcluded()&&document.visibilityState==='visible'?performance.now():null,stopped=false;
   const dayKey=ms=>new Date(ms+9*3600000).toISOString().slice(0,10);
-  const segment=day=>{if(!days.has(day))days.set(day,{page_id:window.crypto.randomUUID(),session_id,activity_date:day,visible_ms:0});return days.get(day);};
+  const segment=day=>{if(!days.has(day))days.set(day,{page_id:window.crypto.randomUUID(),...identity,activity_date:day,visible_ms:0});return days.get(day);};
   const collect=()=>{
     if(visibleSince===null)return;
     const now=performance.now(),elapsed=Math.max(0,now-visibleSince);visibleSince=now;
@@ -176,12 +210,23 @@ export function startActivityTracking(){
     // Split a foreground interval at KST midnight without counting hidden time.
     while(cursor<end){const day=dayKey(cursor),midnight=Date.parse(day+'T00:00:00+09:00')+86400000;const until=Math.min(end,midnight);segment(day).visible_ms+=until-cursor;cursor=until;}
   };
-  const save=()=>{if(isAnalyticsExcluded())return;collect();if(!days.size)segment(dayKey(Date.now()));for(const value of days.values()){const ms=Math.min(86400000,Math.floor(value.visible_ms));if(queuedTotals.get(value.page_id)===ms)continue;queuedTotals.set(value.page_id,ms);queueActivity({...value,visible_ms:ms});}};
-  const visibility=()=>{collect();visibleSince=!isAnalyticsExcluded()&&document.visibilityState==='visible'?performance.now():null;save();};
+  const save=()=>{if(!identity||isAnalyticsExcluded()||pendingEvents.size>=MAX_PENDING)return;collect();if(!days.size)segment(dayKey(Date.now()));for(const value of days.values()){const ms=Math.min(86400000,Math.floor(value.visible_ms));if(queuedTotals.get(value.page_id)===ms)continue;queuedTotals.set(value.page_id,ms);queueActivity({...value,visible_ms:ms});}};
+  const refreshIdentity=(touch,checkpoint=!touch)=>{
+    identityTask=identityTask.then(async()=>{
+      const next=await trackingIdentity(touch);if(!next)return;
+      const initial=!identity;const changed=identity&&(identity.session_id!==next.session_id||identity.visitor_id!==next.visitor_id);
+      if(changed){save();days.clear();queuedTotals.clear();}
+      identity=next;if(initial||changed||checkpoint)save();
+    }).catch(()=>{});return identityTask;
+  };
+  const touch=()=>{void refreshIdentity(true);};
+  const visibility=()=>{collect();visibleSince=!isAnalyticsExcluded()&&document.visibilityState==='visible'?performance.now():null;if(visibleSince!==null)touch();else save();};
   const hide=()=>{collect();visibleSince=null;save();};
-  const show=()=>{if(!isAnalyticsExcluded()&&document.visibilityState==='visible'&&visibleSince===null)visibleSince=performance.now();};
-  const preference=()=>{if(isAnalyticsExcluded()){visibleSince=null;days.clear();queuedTotals.clear();resetActivity();}else{show();save();}};
-  document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',hide);window.addEventListener('pageshow',show);window.addEventListener('storage',preference);window.addEventListener('analytics-preference-change',preference);
-  const timer=setInterval(()=>{if(visibleSince!==null)save();},15000);save();
-  return()=>{if(stopped)return;stopped=true;save();clearInterval(timer);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',hide);window.removeEventListener('pageshow',show);window.removeEventListener('storage',preference);window.removeEventListener('analytics-preference-change',preference);};
+  const show=()=>{if(!isAnalyticsExcluded()&&document.visibilityState==='visible'&&visibleSince===null){visibleSince=performance.now();touch();}};
+  const preference=()=>{if(isAnalyticsExcluded()){visibleSince=null;days.clear();queuedTotals.clear();identity=null;resetActivity();}else{show();touch();}};
+  const storagePreference=e=>{if(!e?.key||e.key==='subway_ai_guide_analytics_excluded')preference();};
+  document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',hide);window.addEventListener('pageshow',show);window.addEventListener('storage',storagePreference);window.addEventListener('analytics-preference-change',preference);
+  document.addEventListener('pointerdown',touch,{passive:true});document.addEventListener('keydown',touch);
+  const timer=setInterval(()=>{if(visibleSince!==null)void refreshIdentity(false);},15000);void refreshIdentity(true);
+  return()=>{if(stopped)return;stopped=true;save();clearInterval(timer);document.removeEventListener('pointerdown',touch);document.removeEventListener('keydown',touch);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',hide);window.removeEventListener('pageshow',show);window.removeEventListener('storage',storagePreference);window.removeEventListener('analytics-preference-change',preference);};
 }
