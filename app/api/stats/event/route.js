@@ -12,7 +12,7 @@ const types = {
   route_search: ["request", "success", "failure"],
   language_change: ["ko", "en", "ja", "zh"],
   feedback: ["solved", "not_solved"],
-  gate_action: ["e01","e03","e04","e05","e06","e14","e33","e44","opposite","unknown","another","office","details_open"],
+  gate_action: ["e01","e03","e04","e05","e06","e14","e33","e44","opposite","unknown","another","office","details_open","location_diagram_open"],
 };
 const deviceType = (ua) => /ipad|tablet|android(?!.*mobile)/i.test(ua) ? "태블릿" : /mobile|iphone|ipod|android/i.test(ua) ? "모바일" : "PC";
 const osType = (ua) => /ipad|iphone|ipod/i.test(ua) ? "iOS" : /android/i.test(ua) ? "Android" : /windows/i.test(ua) ? "Windows" : /macintosh|mac os x/i.test(ua) ? "macOS" : /linux/i.test(ua) ? "Linux" : "기타";

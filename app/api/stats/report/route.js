@@ -25,14 +25,14 @@ export async function GET(request) {
     const activity={};
     const sessionIds=[...new Set(rows.map(r=>r.session_id).filter(Boolean))];
     for(let i=0;i<sessionIds.length;i+=200){
-      const response=await supabase("rpc/get_chatbot_activity",{method:"POST",body:JSON.stringify({p_sessions:sessionIds.slice(i,i+200)})});
+      const response=await supabase("rpc/get_chatbot_activity_range",{method:"POST",body:JSON.stringify({p_sessions:sessionIds.slice(i,i+200),p_start:start,p_end:end})});
       for(const item of await response.json()) activity[item.session_id]=Number(item.visible_ms);
     }
     return NextResponse.json({ rows, activity }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("[stats/report]", error);
     const message = String(error?.message || "");
-    const detail = message.includes("not configured") ? "환경변수 설정을 확인해 주세요." : message.match(/request failed: (\\d+)/)?.[1] ? "Supabase 응답 코드: " + message.match(/request failed: (\\d+)/)[1] : "서버 로그에서 [stats/report] 오류를 확인해 주세요.";
+    const detail = message.includes("not configured") ? "환경변수 설정을 확인해 주세요." : message.match(/request failed: (\d+)/)?.[1] ? "Supabase 응답 코드: " + message.match(/request failed: (\d+)/)[1] : "서버 로그에서 [stats/report] 오류를 확인해 주세요.";
     return NextResponse.json({ error: "통계 조회 실패. " + detail }, { status: 503 });
   }
 }

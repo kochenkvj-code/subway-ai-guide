@@ -17,7 +17,7 @@
     "test:train-lost-ui": "node --experimental-vm-modules tests/train-lost-station-ui.cjs",
     "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
     "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs",
-    "test:stats": "node --experimental-vm-modules --test tests/stats-delivery.test.mjs tests/stats-event-api.test.mjs",
+    "test:stats": "node --experimental-vm-modules --test tests/stats-delivery.test.mjs tests/stats-event-api.test.mjs tests/stats-activity-reliability.test.mjs",
     "test:stats-ui": "node tests/stats-recovery-ui.cjs",
     "generate:station-master": "node scripts/build-station-master.mjs",
     "test:station-master": "node --experimental-vm-modules --test tests/station-master.test.mjs",

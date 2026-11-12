@@ -6,10 +6,12 @@ export const FACILITY_LABELS = {
   facility_customerOffice: '고객안전실',
   facility_elevator: '엘리베이터',
   facility_nursingRoom: '수유실',
+  facility_escalator: '에스컬레이터',
+  facility_atm: 'ATM',
 };
 export const isFacilityContext = value => typeof value === 'string' && Object.hasOwn(FACILITY_LABELS, value);
 export function facilityContext(type) {
-  const canonical = { office:'customerOffice', nursing:'nursingRoom' }[type] || type;
+  const canonical = { office:'customerOffice', nursing:'nursingRoom', toilet:'restroom', locker:'lockers' }[type] || type;
   const value = `facility_${canonical}`;
   return isFacilityContext(value) ? value : null;
 }

@@ -127,36 +127,61 @@ export function recordStat(event_type,event_name,language,context=null,question=
   }catch{ /* Statistics must never interrupt the passenger experience. */ }
 }
 
-// One segment per page load, summed by anonymous tab session. Heartbeats update
-// that segment rather than creating activity-list events. Out-of-order saves
-// cannot reduce the stored total (the database upsert uses greatest).
-export function startActivityTracking() {
-  if (typeof window === "undefined" || isAnalyticsExcluded() || !window.crypto?.randomUUID) return () => {};
-  const session_id=getVisitSessionId(), page_id=window.crypto.randomUUID();
-  let total=0, visibleSince=document.visibilityState === "visible" ? performance.now() : null;
-  let stopped=false;
+// Activity checkpoints are coalesced by page/day and retained until acknowledged.
+const ACTIVITY_KEY='subway_ai_guide_pending_activity_v2';
+const activityPending=new Map();
+let activityReady=false,activityTimer=null,activitySending=false,activityFailures=0;
+function persistActivity(){try{if(activityPending.size)window.sessionStorage.setItem(ACTIVITY_KEY,JSON.stringify([...activityPending.values()]));else window.sessionStorage.removeItem(ACTIVITY_KEY);}catch{}}
+function resetActivity(){activityPending.clear();clearTimeout(activityTimer);activityTimer=null;persistActivity();}
+async function flushActivity(){
+  if(isAnalyticsExcluded()){resetActivity();return;}
+  if(activitySending)return;
+  clearTimeout(activityTimer);activityTimer=null;
+  for(const [key,item] of activityPending)if(Date.now()-item.queuedAt>=MAX_AGE)activityPending.delete(key);
+  persistActivity();
+  const entry=activityPending.entries().next().value;if(!entry)return;
+  const [key,item]=entry;activitySending=true;
+  let acknowledged=false;
+  try{
+    const response=await fetch('/api/stats/activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item.body),keepalive:true,signal:AbortSignal.timeout(12000)});
+    acknowledged=response.status===204||[400,413,422].includes(response.status);
+    if(acknowledged&&activityPending.get(key)===item)activityPending.delete(key);
+  }catch{/* Persist uncertain checkpoints for retry/reload. */}
+  finally{activitySending=false;activityFailures=acknowledged?0:activityFailures+1;persistActivity();if(activityPending.size)activityTimer=setTimeout(()=>{activityTimer=null;void flushActivity();},acknowledged?1000:Math.min(60000,1000*2**Math.min(activityFailures,6)));}
+}
+function initializeActivity(){
+  if(activityReady)return;activityReady=true;
+  if(!isAnalyticsExcluded())try{const raw=window.sessionStorage.getItem(ACTIVITY_KEY);const rows=raw&&raw.length<100000?JSON.parse(raw):[];if(Array.isArray(rows))for(const item of rows.slice(-100)){const b=item?.body;if(b&&UUID.test(b.page_id)&&b.session_id===getVisitSessionId()&&/^\d{4}-\d{2}-\d{2}$/.test(b.activity_date)&&Number.isSafeInteger(b.visible_ms)&&b.visible_ms>=0&&b.visible_ms<=86400000&&Number.isFinite(item.queuedAt)&&item.queuedAt<=Date.now()&&Date.now()-item.queuedAt<MAX_AGE)activityPending.set(b.page_id,item);}}catch{}
+  const retry=()=>{void flushActivity();};
+  window.addEventListener('online',retry);window.addEventListener('pageshow',retry);
+  window.addEventListener('analytics-preference-change',retry);window.addEventListener('storage',retry);
+  void flushActivity();
+}
+function queueActivity(body){
+  if(isAnalyticsExcluded()){resetActivity();return;}
+  if(activityPending.size>=100&&!activityPending.has(body.page_id))activityPending.delete(activityPending.keys().next().value);
+  activityPending.set(body.page_id,{body,queuedAt:Date.now()});persistActivity();if(activityTimer===null)void flushActivity();
+}
+export function startActivityTracking(){
+  if(typeof window==='undefined'||!window.crypto?.randomUUID)return()=>{};
+  initializeActivity();
+  const session_id=getVisitSessionId(),days=new Map(),queuedTotals=new Map();
+  let visibleSince=!isAnalyticsExcluded()&&document.visibilityState==='visible'?performance.now():null,stopped=false;
+  const dayKey=ms=>new Date(ms+9*3600000).toISOString().slice(0,10);
+  const segment=day=>{if(!days.has(day))days.set(day,{page_id:window.crypto.randomUUID(),session_id,activity_date:day,visible_ms:0});return days.get(day);};
   const collect=()=>{
-    if(visibleSince!==null){const now=performance.now();total+=Math.max(0,now-visibleSince);visibleSince=now;}
+    if(visibleSince===null)return;
+    const now=performance.now(),elapsed=Math.max(0,now-visibleSince);visibleSince=now;
+    let cursor=Date.now()-elapsed;const end=Date.now();
+    // Split a foreground interval at KST midnight without counting hidden time.
+    while(cursor<end){const day=dayKey(cursor),midnight=Date.parse(day+'T00:00:00+09:00')+86400000;const until=Math.min(end,midnight);segment(day).visible_ms+=until-cursor;cursor=until;}
   };
-  const save=()=>{
-    if(isAnalyticsExcluded())return;
-    collect();
-    try { void fetch("/api/stats/activity",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id,page_id,visible_ms:Math.min(604800000,Math.floor(total))}),keepalive:true}).catch(()=>{}); } catch {}
-  };
-  const visibility=()=>{
-    collect();
-    visibleSince=!isAnalyticsExcluded() && document.visibilityState === "visible" ? performance.now() : null;
-    save();
-  };
+  const save=()=>{if(isAnalyticsExcluded())return;collect();if(!days.size)segment(dayKey(Date.now()));for(const value of days.values()){const ms=Math.min(86400000,Math.floor(value.visible_ms));if(queuedTotals.get(value.page_id)===ms)continue;queuedTotals.set(value.page_id,ms);queueActivity({...value,visible_ms:ms});}};
+  const visibility=()=>{collect();visibleSince=!isAnalyticsExcluded()&&document.visibilityState==='visible'?performance.now():null;save();};
   const hide=()=>{collect();visibleSince=null;save();};
-  const show=()=>{if(!isAnalyticsExcluded() && document.visibilityState==="visible")visibleSince=performance.now();};
-  const preferenceChanged=()=>{collect();visibleSince=!isAnalyticsExcluded() && document.visibilityState==="visible" ? performance.now() : null;};
-  window.addEventListener("storage",preferenceChanged);
-  window.addEventListener("analytics-preference-change",preferenceChanged);
-  const timer=setInterval(()=>{if(visibleSince!==null)save();},15000);
-  document.addEventListener("visibilitychange",visibility);
-  window.addEventListener("pagehide",hide);
-  window.addEventListener("pageshow",show);
-  save();
-  return ()=>{if(stopped)return;stopped=true;save();clearInterval(timer);document.removeEventListener("visibilitychange",visibility);window.removeEventListener("pagehide",hide);window.removeEventListener("pageshow",show);window.removeEventListener("storage",preferenceChanged);window.removeEventListener("analytics-preference-change",preferenceChanged);};
+  const show=()=>{if(!isAnalyticsExcluded()&&document.visibilityState==='visible'&&visibleSince===null)visibleSince=performance.now();};
+  const preference=()=>{if(isAnalyticsExcluded()){visibleSince=null;days.clear();queuedTotals.clear();resetActivity();}else{show();save();}};
+  document.addEventListener('visibilitychange',visibility);window.addEventListener('pagehide',hide);window.addEventListener('pageshow',show);window.addEventListener('storage',preference);window.addEventListener('analytics-preference-change',preference);
+  const timer=setInterval(()=>{if(visibleSince!==null)save();},15000);save();
+  return()=>{if(stopped)return;stopped=true;save();clearInterval(timer);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pagehide',hide);window.removeEventListener('pageshow',show);window.removeEventListener('storage',preference);window.removeEventListener('analytics-preference-change',preference);};
 }

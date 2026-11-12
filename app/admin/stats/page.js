@@ -21,7 +21,7 @@ const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교�
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
 const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
 const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action"].includes(e.event_type);
-const gateActions = {e01:"E-01 카드 중복",e03:"E-03 하차 처리 누락",e04:"E-04 승차 처리 누락",e05:"E-05 이용시간 초과",e06:"E-06 카드 사용 불가",e14:"E-14 잔액 부족",e33:"E-33 당역 재승차",e44:"E-44 당역 재하차",opposite:"반대편 승강장",unknown:"오류 코드 모름",another:"다른 오류 선택",office:"고객안전실 위치",details_open:"오류 상세 안내 보기"};
+const gateActions = {e01:"E-01 카드 중복",e03:"E-03 하차 처리 누락",e04:"E-04 승차 처리 누락",e05:"E-05 이용시간 초과",e06:"E-06 카드 사용 불가",e14:"E-14 잔액 부족",e33:"E-33 당역 재승차",e44:"E-44 당역 재하차",opposite:"반대편 승강장",unknown:"오류 코드 모름",another:"다른 오류 선택",office:"고객안전실 위치",details_open:"오류 상세 안내 보기",location_diagram_open:"게이트 위치 그림 보기"};
 const eventTime = e => e.occurred_at || e.created_at;
 const baseStationLabel = context => {const code=typeof context==="string"&&context.startsWith("station:")?context.slice(8):"";const st=getStationByCode(code);return st?st.line+"호선 "+st.names.ko:null;};
 const screenTime = ms => { if(ms == null)return "미측정"; const seconds=Math.floor(ms/1000); return seconds<1?"1초 미만":[seconds>=3600?Math.floor(seconds/3600)+"시간":"",seconds>=60?Math.floor(seconds%3600/60)+"분":"",seconds%60?seconds%60+"초":""].filter(Boolean).join(" "); };
@@ -50,8 +50,10 @@ export default function StatsPage() {
   const [questionPage,setQuestionPage] = useState(0);
   const [rawPage,setRawPage] = useState(0);
   const [activity,setActivity] = useState({});
+  const [refresh,setRefresh]=useState(0),[updatedAt,setUpdatedAt]=useState(null);
+  useEffect(()=>{if(!auth)return;const update=()=>{if(document.visibilityState==="visible")setRefresh(v=>v+1);};const timer=setInterval(update,30000);window.addEventListener("focus",update);document.addEventListener("visibilitychange",update);return()=>{clearInterval(timer);window.removeEventListener("focus",update);document.removeEventListener("visibilitychange",update);};},[auth]);
   const [pageSize,setPageSize] = useState(25);
-  const [recordFilter,setRecordFilter] = useState("functional");
+  const [recordFilter,setRecordFilter] = useState("all");
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
   useEffect(() => { fetch("/api/stats/auth",{cache:"no-store"}).then(r=>r.json()).then(v=>setAuth(!!v.authenticated)).catch(()=>setAuth(false)); },[]);
   const start = period==="day"?date:startOf(date,period==="week"?6:29);
@@ -59,9 +61,9 @@ export default function StatsPage() {
     if (!auth) return;
     let active=true;
     setBusy(true);setError("");
-    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active){setRows(v.rows||[]);setActivity(v.activity||{});}}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
+    fetch("/api/stats/report?"+new URLSearchParams({start,end:date}),{cache:"no-store"}).then(async r=>{if(!r.ok){const v=await r.json().catch(()=>({}));throw Error(v.error||"통계 조회에 실패했습니다.");}return r.json();}).then(v=>{if(active){setRows(v.rows||[]);setActivity(v.activity||{});setUpdatedAt(Date.now());}}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
-  },[auth,start,date]);
+  },[auth,start,date,refresh]);
   useEffect(()=>{setRawPage(0);setQuestionPage(0);},[start,date]);
   const aiQuestions = useMemo(()=>rows.filter(r=>r.event_type==="ai_question").sort((a,b)=>new Date(eventTime(b))-new Date(eventTime(a))),[rows]);
   const sessionRows = useMemo(()=>{
@@ -85,7 +87,7 @@ export default function StatsPage() {
   const pageCount = Math.max(1,Math.ceil(visibleSessions.length/pageSize));
   const stats=useMemo(()=>{
     const counts={},facilities={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
-    for(const r of rows){const d=dateKst(r.created_at);const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(r.created_at));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
+    for(const r of rows){const d=dateKst(eventTime(r));const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(eventTime(r)));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
       if(r.event_type==="page_view"&&r.event_name==="visit")visits++;
       if(r.event_type==="ai_question")questions++;
       if(r.event_type==="route_search"&&r.event_name==="request")routes++;
@@ -107,7 +109,7 @@ export default function StatsPage() {
     <div style={{maxWidth:1360,margin:"0 auto"}}>
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",marginBottom:22,gap:12}}><div><h1 style={{fontSize:22,margin:0}}>지하철 AI 안내 통계</h1><p style={{color:"#667b83",fontSize:13,margin:"6px 0 0"}}>관리자 전용 · 전체 이용 기록 · 한국시간(KST) 기준</p></div>{auth&&<div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,flexWrap:"wrap"}}><button type="button" role="switch" aria-label="이 브라우저 통계 제외" aria-checked={analyticsExcluded===true} disabled={analyticsExcluded===null} onClick={toggleAnalyticsExcluded} title="켜면 이 브라우저의 Vercel 방문 분석과 자체 통계 수집을 제외합니다. 로그아웃 후에도 유지됩니다." style={{border:analyticsExcluded?"1px solid #16836e":"1px solid #ccd9da",background:analyticsExcluded?"#e7f5ee":"#fff",color:analyticsExcluded?"#087f69":"#526970",borderRadius:9,padding:10,cursor:"pointer",fontSize:12}}>이 브라우저 통계 제외 <strong>{analyticsExcluded===null?"확인 중":analyticsExcluded?"ON":"OFF"}</strong></button><a href="/?view=feedback" style={{color:"#087f69",fontSize:12}}>역 개선 의견함</a><button onClick={logout} style={{border:"1px solid #ccd9da",background:"#fff",borderRadius:9,padding:10,cursor:"pointer"}}>로그아웃</button></div>}</header>
       {auth===null?<p>인증 확인 중…</p>:!auth?<form onSubmit={login} style={{...card,maxWidth:420,margin:"60px auto"}}><h2 style={{marginTop:0,fontSize:18}}>관리자 로그인</h2><label htmlFor="stats-password">관리자 비밀번호</label><input id="stats-password" type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={{display:"block",width:"100%",boxSizing:"border-box",padding:12,border:"1px solid #b9c9cc",borderRadius:9,margin:"10px 0 16px"}}/><button type="submit" style={{background:"#087f69",color:"white",border:0,borderRadius:9,padding:"11px 20px",cursor:"pointer"}}>로그인</button>{error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}</form>:<>
-        <p style={{fontSize:12,color:"#667b83",lineHeight:1.7,margin:"0 0 14px"}}>통계 제외는 현재 브라우저에만 적용되며 로그아웃 후에도 유지됩니다. 다른 기기·브라우저에서는 각각 설정해 주세요. 설정 변경 후 이미 열린 챗봇 탭은 새로고침해 주세요. 과거 기록은 삭제하지 않습니다.</p>
+        <p style={{fontSize:12,color:"#667b83",lineHeight:1.7,margin:"0 0 14px"}}>통계 제외는 현재 브라우저에만 적용되며 로그아웃 후에도 유지됩니다. 다른 기기·브라우저에서는 각각 설정해 주세요. 설정 변경 후 이미 열린 챗봇 탭은 새로고침해 주세요. 과거 기록은 삭제하지 않습니다. 화면 이용시간은 화면이 보인 시간이며, 개선 전 기록은 최초 저장일 기준으로 집계됩니다.</p>
         {preferenceError&&<p role="alert" style={{color:"#ba3333"}}>{preferenceError}</p>}
         <section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12,marginBottom:14}}><label>조회 기준 <select value={period} onChange={e=>setPeriod(e.target.value)} style={{marginLeft:8,padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}><option value="day">일별</option><option value="week">최근 7일</option><option value="month">최근 30일</option></select></label><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
           <span style={{fontSize:14}}>기준 날짜</span>
@@ -116,7 +118,7 @@ export default function StatsPage() {
           <select aria-label="월" value={Number(date.slice(5,7))} onChange={e=>setDate(d=>changeDatePart(d,"month",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:12},(_,i)=>i+1).map(m=><option key={m} value={m}>{m}월</option>)}</select>
           <select aria-label="일" value={Number(date.slice(8,10))} onChange={e=>setDate(d=>changeDatePart(d,"day",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:new Date(Date.UTC(Number(date.slice(0,4)),Number(date.slice(5,7)),0)).getUTCDate()},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}일</option>)}</select>
           <button type="button" aria-label="다음 날짜" disabled={date>=today()} onClick={()=>setDate(d=>shiftDate(d,1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:date>=today()?"not-allowed":"pointer",opacity:date>=today()?0.4:1}}>›</button>
-        </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span></section>
+        </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span><button type="button" disabled={busy} onClick={()=>setRefresh(v=>v+1)}>새로고침</button><small>30초마다 갱신 · 화면 이용시간은 조회 기간 기준 · 마지막 갱신 {updatedAt?timeKst(updatedAt):"—"}</small></section>
         {error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}{busy&&<p>통계 불러오는 중…</p>}
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,440px),1fr))",gap:14}}>

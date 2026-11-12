@@ -12,9 +12,10 @@ Supabase migration `gate_actions_and_visible_session_time`.
   milliseconds are updated, not appended to the action log.
 - Write/read RPCs are security-invoker functions callable only by `service_role`.
   RLS blocks direct public access; the Next.js API retains the server secret.
-- The report sums all tracked segments for the session IDs in the selected
-  event period. This is cumulative session screen time, not time limited to that
-  date range. Old unmeasured sessions display `미측정`.
+- The report now sums tracked segments within the selected KST dates using
+  `get_chatbot_activity_range`. New clients split at KST midnight. Historical
+  unsplit rows use their original start date; unmeasured sessions show `미측정`.
+  See `stats-activity-daily.sql` and `docs/stats-stabilization-rollback.md`.
 - Checkpoints run every 15 seconds while visible and on hide/pagehide. Visibility
   resumes on return (including the back/forward cache). Abrupt termination or
   network failure can lose the final unsaved interval. Visibility measures an

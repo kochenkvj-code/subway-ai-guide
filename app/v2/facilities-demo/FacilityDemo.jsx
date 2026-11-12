@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import {recordStat} from '../../lib/record-stat';
+import {facilityContext} from '../../lib/facility-stat';
 import {facilityCopy} from './facility-copy';
 import {translateFacilityText} from '../../lib/facility-i18n';
 const TYPES=[
@@ -113,7 +115,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   {(embedded||(!loading&&data?.ok&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
     {!loading&&data?.ok&&available.length>0&&<>
     <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>{t.all} <small>{total}</small></button>
-    {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>setFilter(filter===cat.id?'all':cat.id)}>{cat.label}<small>{cat.items.length}</small></button>)}
+    {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>{if(filter!==cat.id)recordStat('quick_menu','facility',lang,facilityContext(cat.id));setFilter(filter===cat.id?'all':cat.id);}}>{cat.label}<small>{cat.items.length}</small></button>)}
     </>}
     {embedded&&<button className="sf-refresh sf-filter-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button>}
   </nav>}

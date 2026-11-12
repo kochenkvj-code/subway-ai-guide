@@ -110,7 +110,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(next==='route')setRouteRequest(routeQuery?{id:window.crypto.randomUUID(),query:routeQuery,returnDepth:window.history.state?.sagV2Depth||0}:null);
     const item=menuItems.find(x=>x.id===next);
     if(['timetable','tour','found','facility','lost','feedback','live'].includes(next))recordStat('quick_menu',next,lang);
-    if(item?.action && (mounted[next]||next==='route'))recordStat('quick_menu',item.action,lang);
+    if(item?.action && next==='route')recordStat('quick_menu',item.action,lang);
     const url=new URL(window.location.href);url.searchParams.delete('place');if(next==='home')url.searchParams.delete('view');else url.searchParams.set('view',next);
     window.history.pushState({...(window.history.state||{}),sagV2:true,sagKey:null,sagData:null,sagDetail:false,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
   }
