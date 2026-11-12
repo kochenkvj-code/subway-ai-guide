@@ -47,6 +47,8 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const [standaloneLang,setStandaloneLang]=useState('ko'),[originCode,setOriginCode]=useState(stationContext?.stationCode||'0154');
  const lang=embedded&&COPY[language]?language:standaloneLang;
  const [query,setQuery]=useState(''),[picked,setPicked]=useState(null),[focused,setFocused]=useState(false);
+ const suggestionList=useRef(null),[moreSuggestions,setMoreSuggestions]=useState(false);
+ const updateSuggestionHint=()=>{const el=suggestionList.current;setMoreSuggestions(!!el&&el.scrollLeft+el.clientWidth<el.scrollWidth-3);};
  const [mode,setMode]=useState('duration'),[place,setPlace]=useState(null),[route,setRoute]=useState(null);
  const [loading,setLoading]=useState(''),[error,setError]=useState('');
  const [aiMs,setAiMs]=useState(null);
@@ -69,6 +71,12 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const originName=origin.names[lang]||origin.names.ko;
  const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
  const stationMatches=useMemo(()=>matchesForQuery(query,lang),[query,lang]);
+ useEffect(()=>{
+  const el=suggestionList.current;if(!el){setMoreSuggestions(false);return;}
+  el.scrollLeft=0;const frame=requestAnimationFrame(updateSuggestionHint);
+  const observer=new ResizeObserver(updateSuggestionHint);observer.observe(el);
+  return()=>{cancelAnimationFrame(frame);observer.disconnect();};
+ },[focused,picked,stationMatches]);
  useEffect(()=>{
   if(embedded)return;
   const p=new URLSearchParams(window.location.search);
@@ -197,7 +205,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
       <span className="rl-departure-chip" title={departureLabel}><span className="rl-departure-line" style={{background:lineColor(origin.line+'호선')}}>{origin.line}</span><span className="rl-departure-name">{departureLabel}</span></span>
      </div>
      <div className="rl-query-box"><span className="rl-search-icon">⌕</span><input id="rl-destination" value={query} onChange={e=>changeQuery(e.target.value)} onFocus={()=>setFocused(true)} onBlur={()=>setTimeout(()=>setFocused(false),180)} placeholder={t.placeholder} maxLength={100} autoComplete="off"/>{query&&<button type="button" onClick={()=>changeQuery('')} aria-label="Clear">×</button>}</div>
-     {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-list" role="listbox" aria-label={t.suggest}>{stationMatches.slice(0,6).map(s=>{const lines=(s.lines||[s.line]).map(line=>lineName(normalizeLine(line),lang)).join(' · ');return <button key={s.code} type="button" role="option" aria-selected="false" title={stationLabel(s,lang)+' · '+lines} onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><strong>{stationLabel(s,lang)}</strong><small>{lines}</small></button>;})}</div>}
+     {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-wrap"><div ref={suggestionList} onScroll={updateSuggestionHint} className="rl-match-list" role="listbox" aria-label={t.suggest}>{stationMatches.slice(0,6).map(s=>{const lines=(s.lines||[s.line]).map(line=>lineName(normalizeLine(line),lang)).join(' · ');return <button key={s.code} type="button" role="option" aria-selected="false" title={stationLabel(s,lang)+' · '+lines} onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><strong>{stationLabel(s,lang)}</strong><small>{lines}</small></button>;})}</div>{moreSuggestions&&<span className="rl-suggestion-hint" aria-hidden="true">›</span>}</div>}
      
      <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);resetFeedback();if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button>
