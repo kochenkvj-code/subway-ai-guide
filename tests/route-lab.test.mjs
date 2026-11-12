@@ -343,7 +343,7 @@ test('V2 route restores original result cards and keeps the intro and adds reque
  assert.ok(!css.includes('.route-lab .rl-stats{grid-template-columns:repeat(4'));
  assert.ok(page.includes('className="rl-route-head"'));
  assert.ok(page.includes('className="rl-stats"'));
- assert.ok(css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:10px 0;'));
+ assert.ok(css.includes('.rl-all-stations-list{display:flex;align-items:center;flex-wrap:wrap;gap:6px 0;'));
  assert.ok(page.includes('className="rl-all-stop-arrow"'));
  assert.ok(css.includes('.rl-all-stop-arrow{'));
  assert.ok(!css.includes('.rl-all-transfer-label svg{'));
