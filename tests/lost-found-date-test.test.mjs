@@ -16,13 +16,13 @@ async function service(fetch,env={LOST112_PORTAL_API_KEY:'test-key'}){
   if(loaded.has(file))return loaded.get(file);
   const raw=await fs.readFile(file,'utf8');
   const module=file.endsWith('.json')
-   ?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(raw));},{context:ctx})
+   ?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(raw));},{context:ctx,identifier:file})
    :new vm.SourceTextModule(raw,{context:ctx,identifier:file});
   loaded.set(file,module);
-  await module.link(name=>load(path.resolve(path.dirname(file),name.endsWith('.json')?name:name+'.js')));
   return module;
  }
  const api=await load('app/api/v2/lost-found-date-test/route.js');
+ await api.link((name,importer)=>load(path.resolve(path.dirname(importer.identifier),name.endsWith('.json')?name:name+'.js')));
  await api.evaluate();
  return query=>api.namespace.GET({url:'http://localhost/api/v2/lost-found-date-test?'+new URLSearchParams(query)});
 }
