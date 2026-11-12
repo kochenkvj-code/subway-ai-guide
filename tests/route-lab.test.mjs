@@ -251,7 +251,9 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.doesNotMatch(css,/\.rl-all-stop-rail|\.rl-all-stop-track|min-height:53px/);
  assert.match(page,/compact\/>/);
  assert.match(page,/i<allRouteStops\.length-1&&<span className="rl-all-stop-arrow" aria-hidden="true">→<\/span>/);
- assert.doesNotMatch(page,/step\.stations\.slice\(1,-1\)/);
+ assert.match(page,/step\.stations\.slice\(1,-1\)/);
+ assert.match(page,/step\.stations\?\.length>2&&<details><summary>\{t\.allStops\}<\/summary>/);
+ assert.match(css,/\.rl-stops\{display:flex;gap:7px;flex-wrap:wrap/);
  assert.match(page,/\/api\/subway-route\?/);
 });
 
