@@ -240,11 +240,11 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      )}</div>
 
      {allRouteStops.length>0&&<details className="rl-all-stations">
-       <summary><span className="rl-all-stations-title">{t.allStations} <small>({allRouteStops.length})</small></span><span className="rl-all-stations-chevron" aria-hidden="true">⌄</span></summary>
+       <summary><span className="rl-all-stations-title">{t.allStations} <small>({allRouteStops.length})</small></span><svg className="rl-all-stations-chevron" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
        <div className="rl-all-stations-list" role="list" aria-label={t.allStations}>
         {allRouteStops.map((stop,i)=><span className={'rl-all-stop'+(stop.transfer?' rl-all-transfer':'')+(stop.start?' rl-all-start':'')+(stop.end?' rl-all-end':'')} role="listitem" key={i}>
          <span className="rl-all-stop-chip">
-          {stop.lines.length>0&&<span className="rl-all-stop-lines">{stop.lines.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}</span>}
+          {(stop.start||stop.end||stop.transfer)&&stop.lines.length>0&&<span className="rl-all-stop-lines">{stop.lines.map(line=><LineBadge key={line} line={line} lang={lang} compact/>)}</span>}
           <span className="rl-all-stop-name">{routeStation(stop.name)}</span>
           {stop.transfer&&<span className="rl-all-transfer-label">{t.transfer}</span>}
          </span>
