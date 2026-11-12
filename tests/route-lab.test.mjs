@@ -253,7 +253,11 @@ test('route lab has a translated full-route toggle with line-colored stops and t
  assert.match(page,/i<allRouteStops\.length-1&&<span className="rl-all-stop-arrow" aria-hidden="true">→<\/span>/);
  assert.match(page,/step\.stations\.slice\(1,-1\)/);
  assert.match(page,/step\.stations\?\.length>2&&<details><summary>\{t\.allStops\}<\/summary>/);
- assert.match(css,/\.rl-stops\{display:flex;gap:7px;flex-wrap:wrap/);
+ assert.match(css,/\.rl-stops\{display:flex;gap:7px;row-gap:5px;flex-wrap:wrap/);
+ assert.match(page,/className="rl-stops" style=\{\{'--rl-stop-line':lineColor\(step\.line\)\}\}/);
+ assert.match(css,/\.rl-stops>span\{background:color-mix\(in srgb,var\(--rl-stop-line\)/);
+ assert.match(css,/border-left:3px solid var\(--rl-stop-line\)/);
+ assert.match(css,/\.rl-step details summary\{cursor:pointer;min-height:18px/);
  assert.match(page,/\/api\/subway-route\?/);
 });
 
