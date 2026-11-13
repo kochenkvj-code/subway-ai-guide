@@ -213,9 +213,10 @@ export default function WideEntry(){
   const sync=()=>setEntry(readStationEntry(window.location.href,'ko'));
   sync();window.addEventListener('popstate',sync);return()=>window.removeEventListener('popstate',sync);
  },[]);
- if(!entry)return <main className="wide-loading">Wide View</main>;
- if(!entry.station)return <main className="wide-loading">{labels[entry.language]?.noStation||labels.ko.noStation}</main>;
+ // Hooks must execute in the same order on both the initial loading and hydrated renders.
  const updateLanguage=useCallback(language=>setEntry(prev=>({...prev,language})),[]);
  const updateStation=useCallback(stationCode=>setEntry(prev=>({...prev,code:stationCode,station:getStationByCode(stationCode)})),[]);
+ if(!entry)return <main className="wide-loading">Wide View</main>;
+ if(!entry.station)return <main className="wide-loading">{labels[entry.language]?.noStation||labels.ko.noStation}</main>;
  return <WideGuide station={entry.station} lang={entry.language} setLang={updateLanguage} setStationCode={updateStation}/>;
 }
