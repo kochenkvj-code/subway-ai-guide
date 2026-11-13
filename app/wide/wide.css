@@ -526,3 +526,194 @@
  .wide-root .wide-touch-keyboard{max-height:none}
 }
 @media(prefers-reduced-motion:reduce){.wide-root .wide-touch-keyboard{animation:none}}
+
+
+
+/* Metro Night / Wide View only (2026-11-13).
+   High-contrast station display palette; no mobile V2 or layout changes.
+   Detailed existing V2 tools remain on light work surfaces for readable forms. */
+.wide-root{
+  --wide-ink:#f2f7f7;
+  --wide-accent:#35d49a;
+  --wide-muted:#b8c9cc;
+  --wide-edge:#3d5663;
+  color-scheme:dark;
+  background:#0e1923;
+  color:var(--wide-ink);
+}
+.wide-root button:focus-visible,.wide-root textarea:focus-visible,.wide-root input:focus-visible,
+.wide-root [role="button"]:focus-visible{outline-color:#5cebb7;outline-offset:2px}
+.wide-root .wide-symbol{
+  color:#fff;background:linear-gradient(145deg,#13b777,#067c59);
+  box-shadow:0 2px 12px #0bb17a35;
+}
+.wide-root .wide-brand-one-line strong{color:#f7fafb}
+.wide-root .wide-brand-one-line>span{color:#50dfa0}
+.wide-root .wide-header-actions .wide-station-button{
+  color:#ecf6f2;background:#1b2c38;border:1px solid #425964;
+}
+.wide-root .wide-header-actions .wide-station-button:hover{background:#29404d}
+.wide-root .wide-header-actions .wide-reset-button{
+  color:#ecf6f2;background:#1b2c38;border-color:#425964;
+}
+.wide-root .wide-selector-caret{color:#b1c7c6}
+.wide-root .wide-top>section{
+  background:#172632;border-color:#40545e;
+  box-shadow:0 5px 17px #020a1280;
+}
+.wide-root .wide-top-caption{color:#dceae9}
+.wide-root .wide-top-caption span{color:#bacccc}
+.wide-root .wide-arrivals .v2-position-trains{color:#f1f7f6;background:transparent}
+.wide-root .wide-arrivals .v2-summary-heading,
+.wide-root .wide-arrivals .v2-summary-destination,
+.wide-root .wide-arrivals .v2-summary-destination>span{color:#d5e6e4}
+.wide-root .wide-arrivals .v2-summary-destination>small{color:#a1bbb8}
+.wide-root .wide-arrivals .v2-summary-train b,
+.wide-root .wide-arrivals .v2-position-message{color:#70edb8}
+.wide-root .wide-arrivals .v2-summary-direction{border-color:#40545e}
+.wide-root .wide-language{
+  background:#23313e;border-color:#526371;color:#eef6f7;
+  box-shadow:inset 0 1px 0 #ffffff10;
+}
+.wide-root .wide-language:nth-child(1){border-color:#317b63}
+.wide-root .wide-language:nth-child(2){border-color:#476bb7}
+.wide-root .wide-language:nth-child(3){border-color:#795aa6}
+.wide-root .wide-language:nth-child(4){border-color:#956073}
+.wide-root .wide-language.selected{
+  background:#075b43;border:2px solid #42e4a2;color:#fff;
+  box-shadow:inset 0 0 0 1px #2ed89a30,0 0 13px #26dc9440;
+}
+.wide-root .wide-language:nth-child(2).selected{background:#1a427f;border-color:#6aabff;box-shadow:0 0 13px #2877ef45}
+.wide-root .wide-language:nth-child(3).selected{background:#50316b;border-color:#c38cfc;box-shadow:0 0 13px #9763db45}
+.wide-root .wide-language:nth-child(4).selected{background:#683440;border-color:#f08c9b;box-shadow:0 0 13px #d95b7245}
+.wide-root .wide-panel{
+  background:#172530;border-color:#405560;
+  box-shadow:0 6px 22px #01071199;
+}
+.wide-root .wide-panel-heading{
+  color:#f4faf9;
+  border-color:#3c505b;
+  background:linear-gradient(180deg,#253743,#1b2a35);
+}
+.wide-root .wide-panel-heading h2,
+.wide-root .wide-panel-heading>strong{color:#f7fbfc}
+.wide-root .wide-panel-heading small{color:#60e0ae}
+.wide-root .wide-count{color:#a3f1cc;background:#174638}
+.wide-root .wide-back{background:#24463d;color:#d9ffea;border:1px solid #3b8064}
+.wide-root .wide-ai-indicator{color:#adf4d2;background:#174638}
+.wide-root .wide-left-body{background:#14222d;color:#eef8f7}
+.wide-root .wide-menu-grid>button{
+  background:linear-gradient(165deg,#233540,#172832);
+  border:1px solid #536c77;
+  box-shadow:inset 0 1px 0 #ffffff12,0 3px 10px #040e1766;
+  color:#f4faf8;
+}
+.wide-root .wide-menu-grid>button strong{color:#f7fafa}
+.wide-root .wide-menu-icon{
+  background:#124735;color:#56ecaa;
+  box-shadow:inset 0 0 0 1px #2abc8144;
+}
+.wide-root .wide-menu-grid>button:hover{
+  background:#2b4550;border-color:#4adea5;
+}
+@media(hover:none),(pointer:coarse){
+  .wide-root .wide-menu-grid>button:hover{
+    background:linear-gradient(165deg,#233540,#172832);
+    border-color:#536c77;
+  }
+}
+.wide-root .wide-menu-grid>button:active{background:#285445;border-color:#6ce9b6}
+/* Shared V2 tools are designed around light forms; keep their working area
+   legible instead of inverting chart colors, map tiles and dynamic cards. */
+.wide-root .wide-left-body:not(:has(.wide-menu-grid)){
+  background:#f1f5f7;color:#193543;color-scheme:light;
+}
+.wide-root .wide-chat-body,
+.wide-root .wide-chat-body .sag-page,
+.wide-root .wide-chat-body .sag-phone,
+.wide-root .wide-chat-body .sag-chat-shell,
+.wide-root .wide-chat-body .sag-chat{
+  background:#14222d!important;color:#eef7f8;
+}
+.wide-root .wide-chat-body .sag-bubble.assistant:not(.route-card-bubble):not(.full-width-assistant){
+  background:#263a48;border:1px solid #526978;
+  color:#f0f7f9;
+}
+.wide-root .wide-chat-body .sag-bubble.user{
+  background:#087d60;border:1px solid #18a881;color:#fff;
+}
+.wide-root .wide-chat-body .sag-bubble.pending{color:#c5d8d9}
+.wide-root .wide-chat-body .sag-bubble.system{color:#c1cfd2;border-color:#455865}
+.wide-root .wide-chat-body .sag-ai-loading-dots i{background:#53dca7}
+.wide-root .wide-chat-body .sag-menu-recommendation{
+  background:#174c3c;border:1px solid #38a77c;color:#eefff5;
+}
+.wide-root .wide-chat-body .sag-menu-recommendation .sag-route-origin{color:#b0dac9}
+.wide-root .wide-chat-body .sag-bubble.route-card-bubble,
+.wide-root .wide-chat-body .sag-bubble.full-width-assistant{
+  color:#23404b;background:#f7fafc;
+}
+/* Field-entry surfaces stay readable even when screen glare is high. */
+.wide-root .wide-composer{
+  background:#1a2a35;border-top:1px solid #415765;
+}
+.wide-root .wide-composer-title strong{color:#c8f6df}
+.wide-root .wide-composer-title span{color:#b9cdd0}
+.wide-root .wide-composer-form textarea{
+  background:#101e29;color:#f4fafa;border:1px solid #65808d;
+  box-shadow:inset 0 1px 4px #0005;
+}
+.wide-root .wide-composer-form textarea::placeholder{color:#b0c5c8;opacity:1}
+.wide-root .wide-microphone{
+  background:#1a5b49;color:#e5fff4;border:1px solid #42b88a;
+}
+.wide-root .wide-microphone.recording{
+  background:#7f2f36;color:#fff;border-color:#ef9296;
+}
+.wide-root .wide-send{
+  background:#07966a;color:#fff;border:1px solid #34d99b;
+}
+.wide-root .wide-composer .wide-privacy{color:#afc2c4}
+/* Station selection, idle timer and custom keyboard remain dark as well. */
+.wide-root .wide-station-overlay,.wide-root .wide-idle-backdrop{background:#060d15bf}
+.wide-root .wide-station-dialog,.wide-root .wide-idle-card{
+  background:#192a36;border:1px solid #57707a;color:#f4f9fa;
+}
+.wide-root .wide-station-dialog-header button{background:#314955;color:#f3faf8}
+.wide-root .wide-station-dialog>input{
+  color:#fff;background:#10212d;border-color:#66838c;
+}
+.wide-root .wide-station-lines{border-color:#536672}
+.wide-root .wide-station-lines>button,
+.wide-root .wide-station-list>button{
+  color:#f1f8f9;background:#243945;border-color:#4b626e;
+}
+.wide-root .wide-station-list>button small{color:#b8ced0}
+.wide-root .wide-station-lines>button[aria-pressed="true"]{
+  color:#fff;background:#0d7255;border-color:#48dba3;
+}
+.wide-root .wide-idle-count{color:#5fe5ad}
+.wide-root .wide-idle-card p{color:#c4d5d6}
+.wide-root .wide-idle-card button{background:#07966a}
+.wide-root .wide-touch-keyboard{
+  background:linear-gradient(160deg,#253943,#1b2c37);
+  border-top-color:#4b6771;box-shadow:0 -5px 18px #020b1466;
+}
+.wide-root .wide-keyboard-bar{color:#c7e8dd}
+.wide-root .wide-keyboard-close{background:#3b5360;color:#f1f8f8}
+.wide-root .wide-key{
+  color:#f3faf9;background:#334c58;border-color:#69828d;
+  border-bottom-color:#516a76;box-shadow:0 2px 0 #14232e;
+}
+.wide-root .wide-key:active{background:#156e55;color:#fff}
+.wide-root .wide-key-utility{color:#e1f3ec;background:#29483e;border-color:#4c816c}
+.wide-root .wide-key-done{
+  background:#078c63;color:#fff;border-color:#46dca1;
+  box-shadow:0 2px 0 #07583f;
+}
+.wide-root .wide-keyboard-candidates button{
+  background:#2e4b52;color:#effcf7;border-color:#5c8980;
+}
+.wide-root .wide-keyboard-candidates button:active{background:#196d53}
+.wide-root input::placeholder{color:#a9c1c5}
+.wide-root .wide-loading{color:#e4f7ec;background:#142632}
