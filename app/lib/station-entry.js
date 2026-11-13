@@ -1,12 +1,20 @@
 import {getStationByCode} from './station-master';
 const languages=new Set(['ko','en','ja','zh']);
-export function readStationEntry(href){
+// Browser preference is read once by the entry component, before mounting the guide.
+export function getBrowserLanguage(browser){
+ try{
+  const locale=browser?.language;
+  const language=typeof locale==='string'?locale.trim().toLowerCase().split(/[-_]/)[0]:'';
+  return languages.has(language)?language:'en';
+ }catch{return 'en';}
+}
+export function readStationEntry(href,fallbackLanguage='en'){
  const url=new URL(href,'https://entry.invalid');
  const raw=url.searchParams.get('station');
  const code=raw===null?'0154':raw;
  const station=getStationByCode(code);
  const gate=url.searchParams.get('from')==='gate';
- const language=languages.has(url.searchParams.get('lang'))?url.searchParams.get('lang'):gate?'en':'ko';
+ const language=languages.has(url.searchParams.get('lang'))?url.searchParams.get('lang'):languages.has(fallbackLanguage)?fallbackLanguage:'en';
  return {station,code,language,legacyGate:gate&&!url.searchParams.has('view')};
 }
 // The mount path is supplied by the page, never inferred from nested menus.

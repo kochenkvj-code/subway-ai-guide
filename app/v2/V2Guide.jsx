@@ -117,7 +117,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function back(){if(view==='route'&&routeRequest){const steps=(window.history.state?.sagV2Depth||0)-routeRequest.returnDepth;if(steps>0){window.history.go(-steps);return;}}if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
 
   useEffect(()=>setLang(initialLanguage),[initialLanguage]);
-  function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);if(next==='ko')url.searchParams.delete('lang');else url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
+  function changeLanguage(next){if(next!==lang){recordStat('language_change',next,next);setLang(next);const url=new URL(window.location.href);url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);onLanguageChange?.(next);}}
 
   function send(text,{fromHomeComposer=false}={}){
     const clean=text.trim();
@@ -133,6 +133,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
         const url=new URL(window.location.href);
         url.searchParams.delete('place');
         url.searchParams.set('view','chat');
+        url.searchParams.set('lang',lang);
         url.searchParams.set(HOME_CHAT_HANDOFF_PARAM,token);
         homeSubmitPending.current=true;
         document.activeElement?.blur?.();

@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import V2Guide from './V2Guide';
 import {recordStat} from '../lib/record-stat';
 import {searchStationMaster,stationMaster} from '../lib/station-master';
-import {readStationEntry,stationEntryUrl} from '../lib/station-entry';
+import {getBrowserLanguage,readStationEntry,stationEntryUrl} from '../lib/station-entry';
 import './station-entry.css';
 const ui={
  ko:{loading:'기준역을 확인하고 있습니다.',choose:'기준역 선택',share:'QR 입력 주소',close:'닫기',search:'역명·역코드',line:'호선',all:'전체',select:'선택',home:'메인 화면 주소',gate:'게이트 안내 주소',copy:'복사',copied:'주소를 복사했습니다.',manual:'자동 복사가 지원되지 않습니다. 주소를 선택해 복사해 주세요.',invalid:'지원하지 않는 기준역 주소입니다.',invalidHelp:'QR 제공자에게 주소를 확인해 주세요. 다른 역으로 자동 연결하지 않습니다.',none:'검색 결과가 없습니다.',more:'검색어 또는 호선을 선택해 목록을 좁혀 주세요.',note:'현재 선택한 언어로 열리는 주소입니다. QR은 복사한 주소로 생성해 주세요.',previous:'뒤로'},
@@ -13,9 +13,10 @@ const ui={
 };
 export default function StationEntry({basePath='/v2',selectorEnabled=true}){
  const [entry,setEntry]=useState(null),[panel,setPanel]=useState(null),[query,setQuery]=useState(''),[line,setLine]=useState(''),[notice,setNotice]=useState(''),[addressesOpen,setAddressesOpen]=useState(false);
- const dialog=useRef(null),language=useRef('ko');
+ const dialog=useRef(null),language=useRef(null);
  useEffect(()=>{
-  function sync(){const next=readStationEntry(window.location.href);language.current=next.language;setEntry(next);setPanel(null);
+  if(language.current===null)language.current=getBrowserLanguage(window.navigator);
+  function sync(){const next=readStationEntry(window.location.href,language.current);language.current=next.language;setEntry(next);setPanel(null);
    if(next.station){const url=new URL(window.location.href);url.searchParams.set('station',next.code);if(next.legacyGate){url.searchParams.set('view','gate');url.searchParams.set('lang',next.language);url.searchParams.delete('from');}window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);}}
   sync();window.addEventListener('popstate',sync);return()=>window.removeEventListener('popstate',sync);
  },[]);
@@ -28,9 +29,12 @@ export default function StationEntry({basePath='/v2',selectorEnabled=true}){
   setAddressesOpen(false);setNotice('');
   if(station.stationCode===entry?.code)return;
   recordStat('page_view','station_change',entry?.language||'ko','station:'+station.stationCode);
-  const url=stationEntryUrl({origin:window.location.origin,basePath,stationCode:station.stationCode,language:language.current});
+  const url=new URL(stationEntryUrl({origin:window.location.origin,basePath,stationCode:station.stationCode,language:language.current}));
+  // Navigation preserves the resolved language, including an explicit Korean choice.
+  // QR generation continues to use its existing canonical format below.
+  url.searchParams.set('lang',language.current);
   window.history.pushState({sagV2:true,sagStationSwitch:true,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url);
-  const next=readStationEntry(url);setEntry(next);
+  const next=readStationEntry(url,language.current);setEntry(next);
  }
  function changedLanguage(lang){language.current=lang;setEntry(previous=>({...previous,language:lang}));}
  async function copy(value,input){try{await navigator.clipboard.writeText(value);setNotice(t.copied);}catch{input?.focus();input?.select();setNotice(t.manual);}}
