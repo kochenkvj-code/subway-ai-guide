@@ -114,13 +114,13 @@ const DICT=[...BASIC,...stationMaster.flatMap(s=>{
 const DISTINCT=[...new Map(DICT.map(([key,value])=>[key+'\0'+value,[key,value]])).values()];
 const COMMON=['駅','出口','乗り換え','ホテル','ロッテホテル','切符','財布','忘れ物','トイレ','ソウル'];
 
-export function japaneseCandidates(romaji='',rendered=''){
+export function japaneseCandidates(romaji='',rendered='',{exactOnly=false}={}){
  const key=String(romaji).toLowerCase().replace(/[^a-z0-9]/g,'');
  if(!key)return COMMON;
  if(key.length<2)return [];
  const normalizedKana=kataToHira(rendered||'');
  const candidates=DISTINCT.filter(([roman,value])=>
-  roman===key||key.length>=3&&roman.startsWith(key)||value===rendered||kataToHira(value)===normalizedKana
+  roman===key||!exactOnly&&key.length>=3&&roman.startsWith(key)||value===rendered||kataToHira(value)===normalizedKana
  ).sort((a,b)=>(a[0]===key?0:1)-(b[0]===key?0:1)||a[0].length-b[0].length);
  return [...new Set(candidates.map(([,value])=>value))].slice(0,7);
 }
