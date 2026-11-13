@@ -46,6 +46,8 @@ function WideGuide({station,lang,setLang,setStationCode}){
  const [stationQuery,setStationQuery]=useState('');
  const [stationLine,setStationLine]=useState('');
  const [keyboardTarget,setKeyboardTarget]=useState(null);
+ const [feedbackBack,setFeedbackBack]=useState(null);
+ const onFeedbackInternal=useCallback(action=>setFeedbackBack(()=>action),[]);
  const [idleRemaining,setIdleRemaining]=useState(120);
  const [routeRequest,setRouteRequest]=useState(null);
  const activity=useRef(Date.now()),seq=useRef(0),speech=useRef(null);
@@ -92,7 +94,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
   activity.current=Date.now();setIdleRemaining(120);
  }
  function openMenu(id,options={}){
-  setKeyboardTarget(null);setLeft(id);setRouteRequest(id==='route'&&options.routeQuery?{id:++seq.current,query:options.routeQuery}:null);
+  setKeyboardTarget(null);setFeedbackBack(null);setLeft(id);setRouteRequest(id==='route'&&options.routeQuery?{id:++seq.current,query:options.routeQuery}:null);
   activity.current=Date.now();setIdleRemaining(120);
  }
  // Reuse the existing V2 recommendation-button logic without editing the mobile component.
@@ -211,7 +213,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
   </div>
   <div className="wide-panels">
    <section className="wide-left wide-panel" aria-label={t.guide}>
-    <div className="wide-panel-heading">{left==='home'?<><div><small>QUICK GUIDE</small><h2>{t.guide}</h2></div><span className="wide-count">9 MENUS</span></>:<><button className="wide-back" onClick={()=>openMenu('home')}><span>←</span> {t.back}</button><strong>{leftTitle}</strong></>}</div>
+    <div className="wide-panel-heading">{left==='home'?<><div><small>QUICK GUIDE</small><h2>{t.guide}</h2></div><span className="wide-count">9 MENUS</span></>:<><button className="wide-back" onClick={()=>left==='feedback'&&feedbackBack?feedbackBack():openMenu('home')}><span>←</span> {t.back}</button><strong>{leftTitle}</strong></>}</div>
     <div className="wide-left-body" ref={leftBody} key={session+'-'+left+'-'+station.stationCode}>
      {left==='home'&&<nav className="wide-menu-grid" aria-label={t.guide}>{menuItems.map((m,i)=><button key={m.id} onClick={()=>openMenu(m.id)}><span className={'wide-menu-icon v2-icon-'+m.id}><Icon name={m.icon} size={29}/></span><strong>{source.menu[i]}</strong><span className="wide-menu-arrow">↗</span></button>)}</nav>}
      {left==='live'&&<PositionArrivalDetails stationContext={station} state={arrivals} lang={lang} t={source}/>}
@@ -223,7 +225,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
      {left==='lost'&&<TrainLostFinder lang={lang} active defaultStation={station.names.ko} defaultLine={station.line} defaultNames={station.names}/>}
      {left==='timetable'&&<TrainTimetable lang={lang} active stationContext={station}/>}
      {left==='facility'&&<FacilityDemo embedded stationContext={station} lang={lang} active/>}
-     {left==='feedback'&&<StationFeedback station={feedbackStation} lang={lang} active/>}
+     {left==='feedback'&&<StationFeedback station={feedbackStation} lang={lang} active onInternalScreen={onFeedbackInternal}/>}
     </div>
     {keyboardArea==='left'&&<WideTouchKeyboard key={'left-'+lang} lang={lang} target={keyboardTarget} onClose={()=>setKeyboardTarget(null)}/>}
    </section>
