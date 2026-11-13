@@ -206,7 +206,7 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
   if(key==='space'){
    const saved=buffer.current;
    if(isJapanese&&saved.mode==='ja'&&saved.raw.length){
-    const candidates=japaneseCandidates(saved.raw.join(''),saved.rendered);
+    const candidates=japaneseCandidates(saved.raw.join(''),saved.rendered,{exactOnly:true});
     const exactCandidates=candidates.filter(word=>word!==saved.rendered);
     if(exactCandidates.length){useCandidate(exactCandidates[0]);return;}
     finalizeJapanese();flush();return;
