@@ -14,7 +14,7 @@ import {copy,menuItems} from '../v2/copy';
 import {iconPaths} from '../v2/icons';
 import {FEEDBACK_STATIONS,DEFAULT_FEEDBACK_STATION} from '../lib/feedback-config';
 import {lostFoundStation} from '../lib/lost-found-stations';
-import {getStationByCode,searchStationMaster} from '../lib/station-master';
+import {getStationByCode,searchStationMaster,stationMaster} from '../lib/station-master';
 import {readStationEntry} from '../lib/station-entry';
 import '../v2/v2.css';
 import '../v2/design-refresh.css';
@@ -23,6 +23,7 @@ import './wide.css';
 
 const flags=[{code:'ko',flag:'🇰🇷',label:'한국어'},{code:'en',flag:'🇺🇸',label:'English'},{code:'ja',flag:'🇯🇵',label:'日本語'},{code:'zh',flag:'🇨🇳',label:'中文'}];
 const locale={ko:'ko-KR',en:'en-US',ja:'ja-JP',zh:'zh-CN'};
+const stationLines=[...new Set(stationMaster.map(station=>station.line))].sort((a,b)=>Number(a)-Number(b));
 const labels={
  ko:{station:'기준역',choose:'역 변경',search:'역명 또는 역 코드 검색',close:'닫기',guide:'빠른 안내',chat:'AI 고객안내',live:'실시간 열차정보',speech:'음성으로 질문',stop:'음성입력 중지',typing:'키보드로 질문',ask:'질문 보내기',preview:'인식된 문장을 확인하고 전송하세요.',listening:'듣고 있어요. 질문을 말씀해 주세요.',speechError:'음성인식에 실패했습니다. 다시 시도해 주세요.',speechUnsupported:'이 브라우저에서는 음성인식이 지원되지 않습니다. 키보드를 이용해 주세요.',micPermission:'마이크 사용을 허용해 주세요.',placeholder:'궁금한 점을 질문하거나 마이크를 눌러 말씀하세요.',idle:'이용을 계속하시겠습니까?',idleDesc:'잠시 후 질문 기록이 초기화됩니다.',continue:'계속 이용',reset:'처음부터',back:'전체 메뉴',full:'전체화면',ready:'질문을 보내면 AI가 답변합니다.',privacy:'개인정보는 입력하지 마세요. 질문은 외부 AI 서비스로 전송·저장됩니다.',noStation:'지원하지 않는 역사 주소입니다.',searchEmpty:'검색된 역이 없습니다.',help:'질문을 말하거나 직접 입력해 주세요.',mode:'대화면 모드'},
  en:{station:'Station',choose:'Change station',search:'Search station or code',close:'Close',guide:'Quick guide',chat:'Ask AI',live:'Live train arrivals',speech:'Speak your question',stop:'Stop listening',typing:'Type your question',ask:'Send question',preview:'Review the recognized text before sending.',listening:'Listening. Please speak.',speechError:'Speech recognition failed. Please try again.',speechUnsupported:'Speech input is unavailable here. Please type your question.',micPermission:'Please allow microphone access.',placeholder:'Type your question or tap the microphone.',idle:'Still using this screen?',idleDesc:'Your questions will be cleared shortly.',continue:'Continue',reset:'Start over',back:'All guides',full:'Fullscreen',ready:'Ask a question to get help from AI.',privacy:'Do not enter personal information. Questions are sent to external AI and stored.',noStation:'Unsupported station.',searchEmpty:'No stations found.',help:'Speak or type your question.',mode:'Wide View'},
@@ -42,9 +43,11 @@ function WideGuide({station,lang,setLang,setStationCode}){
  const [speechSupported,setSpeechSupported]=useState(true);
  const [searchOpen,setSearchOpen]=useState(false);
  const [stationQuery,setStationQuery]=useState('');
+ const [stationLine,setStationLine]=useState('');
  const [idleRemaining,setIdleRemaining]=useState(120);
  const [routeRequest,setRouteRequest]=useState(null);
  const activity=useRef(Date.now()),seq=useRef(0),speech=useRef(null);
+ const chatRoot=useRef(null),leftBody=useRef(null),handledRecommendations=useRef(new WeakSet());
  const t=labels[lang],source=copy[lang];
  const arrivals=usePositionArrivals(true,station.stationCode);
  const stationName=station.names?.[lang]||station.names?.ko||'';
@@ -59,21 +62,22 @@ function WideGuide({station,lang,setLang,setStationCode}){
  },[]);
  const reset=useCallback(()=>{
   stopVoice();setLeft('home');setSession(n=>n+1);setDraft('');setChatRequest(null);setBusy(false);
-  setSpeechError('');setSearchOpen(false);setStationQuery('');setRouteRequest(null);
+  setSpeechError('');setSearchOpen(false);setStationQuery('');setStationLine('');setRouteRequest(null);
   setLang('ko');activity.current=Date.now();setIdleRemaining(120);
  },[stopVoice,setLang]);
  useEffect(()=>{if(lastStation!==station.stationCode){setLastStation(station.stationCode);stopVoice();setLeft('home');setSession(n=>n+1);setChatRequest(null);setDraft('');setRouteRequest(null);activity.current=Date.now();}},[station.stationCode,lastStation,stopVoice]);
  useEffect(()=>{setSpeechSupported(Boolean(window.SpeechRecognition||window.webkitSpeechRecognition));return()=>stopVoice();},[stopVoice]);
  useEffect(()=>{
-  const touch=()=>{activity.current=Date.now();setIdleRemaining(120);};
-  for(const event of ['pointerdown','keydown','input','wheel','touchstart'])document.addEventListener(event,touch,{passive:true,capture:true});
+  // Touches update a ref only: no per-tap React re-render or event-listener churn.
+  const touch=()=>{activity.current=Date.now();};
+  for(const event of ['pointerdown','keydown','input','wheel'])document.addEventListener(event,touch,{passive:true,capture:true});
   const timer=window.setInterval(()=>{
-   if(busy||listening){activity.current=Date.now();setIdleRemaining(120);return;}
+   if(busy||listening){activity.current=Date.now();setIdleRemaining(previous=>previous===120?previous:120);return;}
    const remaining=Math.max(0,120-Math.floor((Date.now()-activity.current)/1000));
-   setIdleRemaining(remaining);
+   setIdleRemaining(previous=>previous===remaining?previous:remaining);
    if(remaining===0)reset();
   },1000);
-  return()=>{window.clearInterval(timer);for(const event of ['pointerdown','keydown','input','wheel','touchstart'])document.removeEventListener(event,touch,true);};
+  return()=>{window.clearInterval(timer);for(const event of ['pointerdown','keydown','input','wheel'])document.removeEventListener(event,touch,true);};
  },[busy,listening,reset]);
  function changeLanguage(next){
   if(next===lang)return;stopVoice();setSpeechError('');setDraft('');setLang(next);
@@ -89,6 +93,43 @@ function WideGuide({station,lang,setLang,setStationCode}){
   setLeft(id);setRouteRequest(id==='route'&&options.routeQuery?{id:++seq.current,query:options.routeQuery}:null);
   activity.current=Date.now();setIdleRemaining(120);
  }
+ // Reuse the existing V2 recommendation-button logic without editing the mobile component.
+ // In Wide View, the recommendation is executed as soon as a successful chat answer exposes it.
+ useEffect(()=>{
+  const root=chatRoot.current;
+  if(!root)return;
+  const scan=()=>{
+   const candidates=root.querySelectorAll('.sag-row.assistant .sag-menu-recommendation');
+   const button=candidates[candidates.length-1];
+   if(!button||handledRecommendations.current.has(button))return;
+   handledRecommendations.current.add(button);
+   requestAnimationFrame(()=>{if(button.isConnected)button.click();});
+  };
+  const observer=new MutationObserver(scan);
+  observer.observe(root,{childList:true,subtree:true});
+  scan();
+  return()=>observer.disconnect();
+ },[session,station.stationCode]);
+ // The mobile route component scrolls the window. Wide View scrolls only its left pane.
+ useEffect(()=>{
+  const pane=leftBody.current;
+  if(left!=='route'||!pane)return;
+  let lastTarget=null;
+  const scan=()=>{
+   const target=pane.querySelector('.rl-route-card, .rl-place-card');
+   if(!target||target===lastTarget)return;
+   lastTarget=target;
+   requestAnimationFrame(()=>{
+    if(!pane.contains(target))return;
+    const offset=target.getBoundingClientRect().top-pane.getBoundingClientRect().top;
+    pane.scrollTo({top:Math.max(0,pane.scrollTop+offset-12),behavior:'smooth'});
+   });
+  };
+  const observer=new MutationObserver(scan);
+  observer.observe(pane,{subtree:true,childList:true});
+  scan();
+  return()=>observer.disconnect();
+ },[left,session,station.stationCode]);
  function startVoice(){
   if(listening){stopVoice();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -111,17 +152,16 @@ function WideGuide({station,lang,setLang,setStationCode}){
   setStationCode(code);setSearchOpen(false);setStationQuery('');
   const url=new URL(window.location.href);url.searchParams.set('station',code);url.searchParams.set('lang',lang);window.history.replaceState(window.history.state,'',url.pathname+url.search);
  }
- const results=searchStationMaster(stationQuery).slice(0,50);
+ const results=searchStationMaster(stationQuery,stationLine).slice(0,50);
  const leftTitle=left==='live'?t.live:source.menu[menuItems.findIndex(x=>x.id===left)]||t.guide;
 
  return <main className="wide-root v2-app v2-design-refresh" lang={locale[lang]}>
   <header className="wide-header">
-   <div className="wide-brand"><div className="wide-symbol"><Icon name="train" size={27}/></div><div><span>SUBWAY AI GUIDE <b>· WIDE VIEW</b></span><h1>{stationName} <span className="wide-line-pill" style={{background:station.color}}>{station.line}</span></h1></div></div>
-   <div className="wide-header-actions"><button className="wide-station-button" onClick={()=>{setStationQuery('');setSearchOpen(true);}}><Icon name="route" size={18}/>{t.choose}</button><button onClick={reset} className="wide-reset-button"><Icon name="home" size={18}/>{t.reset}</button></div>
+   <div className="wide-brand"><div className="wide-symbol"><Icon name="train" size={27}/></div><div className="wide-brand-one-line"><strong>SUBWAY AI GUIDE</strong><span>WIDE VIEW</span></div></div>
+   <div className="wide-header-actions"><button type="button" className="wide-station-button" onClick={()=>{setStationQuery('');setStationLine(station.line);setSearchOpen(true);}} aria-label={t.choose+': '+stationName}><span className="wide-header-line" style={{background:station.color}}>{station.line}</span><span className="wide-station-name">{stationName}</span><span className="wide-selector-caret" aria-hidden="true">⌄</span></button><button type="button" onClick={reset} className="wide-reset-button"><Icon name="home" size={18}/>{t.reset}</button></div>
   </header>
   <div className="wide-top">
    <section className="wide-arrivals" aria-label={t.live}>
-    <div className="wide-top-caption"><Icon name="train" size={18}/><strong>{t.live}</strong><span>{stationName}</span></div>
     <PositionTrainSummary stationContext={station} state={arrivals} lang={lang} t={source} onDetails={()=>openMenu('live')}/>
    </section>
    <section className="wide-languages" aria-label={source.language}>
@@ -132,7 +172,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
   <div className="wide-panels">
    <section className="wide-left wide-panel" aria-label={t.guide}>
     <div className="wide-panel-heading">{left==='home'?<><div><small>QUICK GUIDE</small><h2>{t.guide}</h2></div><span className="wide-count">9 MENUS</span></>:<><button className="wide-back" onClick={()=>openMenu('home')}><span>←</span> {t.back}</button><strong>{leftTitle}</strong></>}</div>
-    <div className="wide-left-body" key={session+'-'+left+'-'+station.stationCode}>
+    <div className="wide-left-body" ref={leftBody} key={session+'-'+left+'-'+station.stationCode}>
      {left==='home'&&<nav className="wide-menu-grid" aria-label={t.guide}>{menuItems.map((m,i)=><button key={m.id} onClick={()=>openMenu(m.id)}><span className={'wide-menu-icon v2-icon-'+m.id}><Icon name={m.icon} size={29}/></span><strong>{source.menu[i]}</strong><span className="wide-menu-arrow">↗</span></button>)}</nav>}
      {left==='live'&&<PositionArrivalDetails stationContext={station} state={arrivals} lang={lang} t={source}/>}
      {left==='route'&&<UnifiedRouteLab embedded stationContext={station} language={lang} active routeRequest={routeRequest}/>}
@@ -147,8 +187,8 @@ function WideGuide({station,lang,setLang,setStationCode}){
     </div>
    </section>
    <section className="wide-right wide-panel" aria-label={t.chat}>
-    <div className="wide-panel-heading wide-chat-heading"><div><small>AI ASSISTANT</small><h2>{t.chat}</h2></div><span className="wide-ai-indicator"><i/>{busy?source.waiting:'GEMINI AI'}</span></div>
-    <div className="wide-chat-body"><GuideExperience key={'chat-'+session+'-'+station.stationCode} embedded language={lang} active chatStation={station} routeStation={station} onRecommendMenu={openMenu} onBusyChange={setBusy} chatRequest={chatRequest} showPrivacyNotice={false}/></div>
+    <div className="wide-panel-heading wide-chat-heading"><h2>{lang==='ko'?'AI 고객 안내':t.chat}</h2>{busy&&<span className="wide-ai-indicator" role="status"><i/>{source.waiting}</span>}</div>
+    <div className="wide-chat-body" ref={chatRoot}><GuideExperience key={'chat-'+session+'-'+station.stationCode} embedded language={lang} active chatStation={station} routeStation={station} onRecommendMenu={openMenu} onBusyChange={setBusy} chatRequest={chatRequest} showPrivacyNotice={false}/></div>
     <div className="wide-composer">
      <div className="wide-composer-title"><strong>{t.help}</strong><span>{listening?t.listening:speechError||t.preview}</span></div>
      <form onSubmit={e=>{e.preventDefault();sendQuestion(draft);}} className="wide-composer-form">
@@ -163,7 +203,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
    </section>
   </div>
   {idleRemaining<=15&&idleRemaining>0&&!busy&&!listening&&<div className="wide-idle-backdrop" role="alertdialog" aria-modal="true" aria-label={t.idle}><div className="wide-idle-card"><div className="wide-idle-count">{idleRemaining}</div><h2>{t.idle}</h2><p>{t.idleDesc}</p><button onClick={()=>{activity.current=Date.now();setIdleRemaining(120);}}>{t.continue}</button></div></div>}
-  {searchOpen&&<div className="wide-station-overlay" role="presentation" onClick={()=>setSearchOpen(false)}><section className="wide-station-dialog" role="dialog" aria-modal="true" aria-label={t.choose} onClick={e=>e.stopPropagation()}><div className="wide-station-dialog-header"><h2>{t.choose}</h2><button onClick={()=>setSearchOpen(false)} aria-label={t.close}>×</button></div><input autoFocus value={stationQuery} onChange={e=>setStationQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="wide-station-list">{results.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s.stationCode)}><b className="wide-line-pill" style={{background:s.color}}>{s.line}</b><strong>{s.names[lang]||s.names.ko}</strong><small>{s.stationCode}</small></button>)}{results.length===0&&<p>{t.searchEmpty}</p>}</div></section></div>}
+  {searchOpen&&<div className="wide-station-overlay" role="presentation" onClick={()=>setSearchOpen(false)}><section className="wide-station-dialog" role="dialog" aria-modal="true" aria-label={t.choose} onClick={e=>e.stopPropagation()}><div className="wide-station-dialog-header"><h2>{t.choose}</h2><button onClick={()=>setSearchOpen(false)} aria-label={t.close}>×</button></div><input autoFocus value={stationQuery} onChange={e=>setStationQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><nav className="wide-station-lines" aria-label={lang==='ko'?'호선 선택':t.choose}><button type="button" aria-pressed={!stationLine} onClick={()=>setStationLine('')}>{lang==='ko'?'전체':lang==='en'?'All':lang==='ja'?'全線':'全部'}</button>{stationLines.map(line=><button type="button" key={line} aria-label={line+'호선'} aria-pressed={stationLine===line} onClick={()=>setStationLine(line)}><span className="wide-header-line" style={{background:stationMaster.find(st=>st.line===line)?.color||'#607c69'}}>{line}</span></button>)}</nav><div className="wide-station-list">{results.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s.stationCode)}><b className="wide-line-pill" style={{background:s.color}}>{s.line}</b><strong>{s.names[lang]||s.names.ko}</strong><small>{s.stationCode}</small></button>)}{results.length===0&&<p>{t.searchEmpty}</p>}</div></section></div>}
  </main>;
 }
 
@@ -173,9 +213,10 @@ export default function WideEntry(){
   const sync=()=>setEntry(readStationEntry(window.location.href,'ko'));
   sync();window.addEventListener('popstate',sync);return()=>window.removeEventListener('popstate',sync);
  },[]);
+ // Hooks must execute in the same order on both the initial loading and hydrated renders.
+ const updateLanguage=useCallback(language=>setEntry(prev=>({...prev,language})),[]);
+ const updateStation=useCallback(stationCode=>setEntry(prev=>({...prev,code:stationCode,station:getStationByCode(stationCode)})),[]);
  if(!entry)return <main className="wide-loading">Wide View</main>;
  if(!entry.station)return <main className="wide-loading">{labels[entry.language]?.noStation||labels.ko.noStation}</main>;
- const updateLanguage=language=>setEntry(prev=>({...prev,language}));
- const updateStation=stationCode=>setEntry(prev=>({...prev,code:stationCode,station:getStationByCode(stationCode)}));
  return <WideGuide station={entry.station} lang={entry.language} setLang={updateLanguage} setStationCode={updateStation}/>;
 }
