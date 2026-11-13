@@ -107,3 +107,70 @@
 @media(max-width:950px){.wide-root{height:auto;min-height:100dvh;overflow:auto}.wide-panels{grid-template-columns:1fr;min-height:0}.wide-left,.wide-right{min-height:460px}.wide-chat-body{height:360px;flex:none}.wide-top{grid-template-columns:1fr 1fr}.wide-language{min-height:65px}.wide-root .wide-panels{flex:none}}
 @media(max-width:700px){.wide-top{grid-template-columns:1fr}.wide-panels{gap:10px}.wide-root{padding:11px;gap:10px}.wide-header{gap:7px}.wide-header-actions button{padding:0 9px;font-size:12px}.wide-brand h1{font-size:19px}.wide-brand span{font-size:9px}.wide-menu-grid{gap:8px}.wide-menu-grid>button{min-height:95px;padding:10px}.wide-menu-grid strong{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.wide-root *{animation:none!important;transition:none!important}}
+
+
+/* Wide-only detail sizing: let the existing V2 screens use the entire left pane.
+   The production mobile route screen still retains its original 490px cap. */
+.wide-left-body .route-lab.rl-embedded{
+  width:100%;
+  max-width:none;
+  min-height:100%;
+  background:transparent;
+}
+.wide-left-body .route-lab.rl-embedded .rl-shell{
+  width:100%;
+  max-width:none;
+  min-height:0;
+  margin:0;
+  padding:0 0 24px;
+  background:transparent;
+}
+.wide-left-body .route-lab.rl-embedded .rl-top{
+  width:100%;
+  max-width:none;
+  margin:0 0 13px;
+  border-radius:16px;
+  padding:19px 21px 20px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-search-card,
+.wide-left-body .route-lab.rl-embedded .rl-result-card{
+  width:100%;
+  max-width:none;
+  margin-left:0;
+  margin-right:0;
+  padding:clamp(16px,1.5vw,23px);
+}
+.wide-left-body .route-lab.rl-embedded .rl-destination-heading label{
+  font-size:16px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-query-box{
+  min-height:56px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-route-options button{
+  min-height:48px;
+  font-size:13px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-submit{
+  min-height:53px;
+  font-size:15px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-examples button{
+  min-height:39px;
+  font-size:12px;
+}
+.wide-left-body .route-lab.rl-embedded .rl-route-head,
+.wide-left-body .route-lab.rl-embedded .rl-steps{
+  max-width:none;
+}
+.wide-left-body .route-lab.rl-embedded .rl-steps{
+  width:100%;
+}
+.wide-left-body .route-lab.rl-embedded .rl-route-card,
+.wide-left-body .route-lab.rl-embedded .rl-place-card{
+  font-size:14px;
+}
+@media(max-height:760px){
+  .wide-left-body .route-lab.rl-embedded .rl-top{padding:13px 17px 15px}
+  .wide-left-body .route-lab.rl-embedded .rl-search-card,
+  .wide-left-body .route-lab.rl-embedded .rl-result-card{padding:14px}
+}
