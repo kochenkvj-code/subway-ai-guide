@@ -1239,3 +1239,28 @@
 /* Bright timestamps only on the dark second-step live-map header. */
 .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times .tf-last-update{color:#c5d9eb}
 .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times .tf-last-update strong{color:#f4fbff}
+
+/* Train-lost step 2: match the alighting/refresh timestamp typography.
+   Both rows use the same label and time sizes, including compact phones. */
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-alight-time,
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-last-update{
+  font-size:10px;
+  font-weight:750;
+  line-height:1.25;
+}
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-alight-time strong,
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-last-update strong{
+  font-size:11px;
+  font-weight:800;
+  line-height:1.25;
+}
+@media(max-width:380px){
+  .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-alight-time,
+  .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-last-update{
+    font-size:9px;
+  }
+  .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-alight-time strong,
+  .tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times > span.tf-last-update strong{
+    font-size:10px;
+  }
+}
