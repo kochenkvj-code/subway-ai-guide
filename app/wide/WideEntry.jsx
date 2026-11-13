@@ -175,7 +175,9 @@ function WideGuide({station,lang,setLang,setStationCode}){
    element.setAttribute('inputmode','none');
    return;
   }
-  if(!element.closest?.('.wide-touch-keyboard'))setKeyboardTarget(null);
+  // Never remove the keyboard during pointerdown. That reflows the screen
+  // before pointerup/click and makes touch buttons intermittently miss.
+  // Actual actions (send, navigation, language, Done) close it on click.
  }
  function onWideFocus(event){
   const input=event.target;
