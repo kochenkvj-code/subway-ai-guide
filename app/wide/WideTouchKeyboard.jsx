@@ -104,9 +104,15 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const choices=isPinyin&&(pinyin?ZH_WORDS.filter(([key])=>key.startsWith(pinyin.toLowerCase())).map(x=>x[1]).slice(0,6):ZH_COMMON);
  const suggestions=isJapanese?japaneseCandidates(romaji,romajiToKana(romaji,{katakana:kanaMode})):isPinyin?choices:[];
  const flush=()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setPinyin('');setRomaji('');};
+ const isActiveJapanese=(saved=buffer.current)=>{
+  if(saved.mode!=='ja'||saved.element!==target||!saved.raw.length)return false;
+  const caret=target.selectionStart??target.value.length;
+  return saved.start+saved.rendered.length===caret &&
+   target.value.slice(saved.start,saved.start+saved.rendered.length)===saved.rendered;
+ };
  const finalizeJapanese=()=>{
   const saved=buffer.current;
-  if(saved.mode!=='ja'||saved.element!==target||!saved.raw.length)return;
+  if(!isActiveJapanese(saved)){flush();return;}
   const text=romajiToKana(saved.raw.join(''),{katakana:kanaMode,finalize:true});
   replaceText(target,text,{start:saved.start,end:saved.start+saved.rendered.length});
   saved.rendered=text;
@@ -139,7 +145,7 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
   if(!target.isConnected){onClose?.();return;}
   const caret=target.selectionStart??target.value.length;
   const saved=buffer.current;
-  const canContinue=saved.mode==='ja'&&saved.element===target&&saved.start+saved.rendered.length===caret;
+  const canContinue=isActiveJapanese(saved);
   const active=canContinue?saved:{mode:'ja',element:target,raw:[],start:caret,rendered:''};
   if(!canContinue&&target.selectionEnd!==caret){
    setReactInput(target,target.value.slice(0,caret)+target.value.slice(target.selectionEnd),caret);
@@ -154,7 +160,7 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const useCandidate=(word)=>{
   const saved=buffer.current;
   const caret=target.selectionStart??target.value.length;
-  if(isJapanese&&saved.mode==='ja'&&saved.element===target&&saved.start+saved.rendered.length===caret){
+  if(isJapanese&&isActiveJapanese(saved)){
    replaceText(target,word,{start:saved.start,end:saved.start+saved.rendered.length});
   }else if(isPinyin&&pinyin){
    const caret=target.selectionStart??target.value.length;
@@ -168,7 +174,7 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const applyBackspace=()=>{
   const saved=buffer.current;
   const caret=target.selectionStart??target.value.length;
-  if((isKorean||isJapanese&&saved.mode==='ja')&&saved.element===target&&saved.raw.length&&saved.start+saved.rendered.length===caret){
+  if((isKorean&&saved.element===target&&saved.raw.length&&saved.start+saved.rendered.length===caret)||isJapanese&&isActiveJapanese(saved)){
    saved.raw.pop();
    const output=isJapanese?romajiToKana(saved.raw.join(''),{katakana:kanaMode}):composeHangul(saved.raw);
    replaceText(target,output,{start:saved.start,end:saved.start+saved.rendered.length});
@@ -194,18 +200,18 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
    if(isJapanese){
     const next=!kanaMode;setKanaMode(next);
     const active=buffer.current;
-    if(active.mode==='ja'&&active.element===target&&active.raw.length){
+    if(isActiveJapanese(active)){
      const text=romajiToKana(active.raw.join(''),{katakana:next});
      replaceText(target,text,{start:active.start,end:active.start+active.rendered.length});
      active.rendered=text;
-    }
+    }else flush();
    }else setShift(v=>!v);
    return;
   }
   if(key==='back'){applyBackspace();return;}
   if(key==='space'){
    const saved=buffer.current;
-   if(isJapanese&&saved.mode==='ja'&&saved.raw.length){
+   if(isJapanese&&isActiveJapanese(saved)){
     const candidates=japaneseCandidates(saved.raw.join(''),saved.rendered,{exactOnly:true});
     const exactCandidates=candidates.filter(word=>word!==saved.rendered);
     if(exactCandidates.length){useCandidate(exactCandidates[0]);return;}
