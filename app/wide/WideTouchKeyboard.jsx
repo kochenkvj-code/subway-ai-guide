@@ -199,7 +199,8 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
    else setPinyin('');
    buffer.current={element:target,raw:[],start:pos,rendered:''};
   }else insert(value);
-  if(shift)setShift(false);
+  // Kana/Katakana is a persistent mode; English/Hangul Shift is one-shot.
+  if(shift&&!isKana)setShift(false);
  };
  return <div className="wide-touch-keyboard" data-wide-keyboard="" aria-label={CHAR_LABEL[lang]}>
   <div className="wide-keyboard-bar">
