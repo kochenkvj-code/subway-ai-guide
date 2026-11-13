@@ -31,6 +31,57 @@ const labels={
  ja:{station:'基準駅',choose:'駅を変更',search:'駅名・駅コードで検索',close:'閉じる',guide:'クイック案内',chat:'AIに質問',live:'リアルタイム列車情報',speech:'音声で質問',stop:'音声入力を停止',typing:'文字で質問',ask:'質問を送信',preview:'認識された文章を確認して送信してください。',listening:'聞き取り中です。話してください。',speechError:'音声認識に失敗しました。',speechUnsupported:'このブラウザでは音声入力を利用できません。文字で入力してください。',micPermission:'マイクの使用を許可してください。',placeholder:'質問を入力するか、マイクを押して話してください。',idle:'ご利用を続けますか？',idleDesc:'まもなく質問履歴が消去されます。',continue:'続ける',reset:'最初から',back:'案内一覧',full:'全画面',ready:'質問するとAIがお答えします。',privacy:'個人情報を入力しないでください。質問は外部AIに送信・保存されます。',noStation:'対応していない駅です。',searchEmpty:'該当する駅がありません。',help:'音声または文字で質問してください。',mode:'ワイドビュー'},
  zh:{station:'基准站',choose:'更换车站',search:'搜索车站名称或代码',close:'关闭',guide:'快捷指南',chat:'AI问答',live:'实时列车到站',speech:'语音提问',stop:'停止录音',typing:'键盘输入',ask:'发送问题',preview:'请确认识别的文字后发送。',listening:'正在聆听，请开始说话。',speechError:'语音识别失败，请重试。',speechUnsupported:'此浏览器不支持语音输入，请使用键盘。',micPermission:'请允许使用麦克风。',placeholder:'输入问题或点击麦克风提问。',idle:'继续使用吗？',idleDesc:'提问记录即将清除。',continue:'继续',reset:'重新开始',back:'全部指南',full:'全屏',ready:'输入问题，AI将为您解答。',privacy:'请勿输入个人信息。问题将发送至外部AI并保存。',noStation:'不支持此车站。',searchEmpty:'未找到车站。',help:'请通过语音或文字提问。',mode:'宽屏模式'}
 };
+/** Wide View only: keep the browser speech error code visible for diagnostics. */
+const speechDiagnosticHints={
+ "ko": {
+  "network": "음성인식 서버 연결에 실패했습니다. 네트워크·인증서 설정을 확인해 주세요.",
+  "audio-capture": "마이크 소리를 가져오지 못했습니다. 입력 장치를 확인해 주세요.",
+  "not-allowed": "마이크 접근이 차단되었습니다. 사이트 권한을 확인해 주세요.",
+  "service-not-allowed": "브라우저에서 음성인식 서비스 사용이 제한되었습니다. 브라우저 정책·서비스 연결을 확인해 주세요.",
+  "no-speech": "음성이 감지되지 않았습니다. 마이크에 대고 다시 말씀해 주세요.",
+  "language-not-supported": "선택한 언어의 음성인식을 지원하지 않습니다.",
+  "bad-grammar": "음성인식 문법 처리에 실패했습니다.",
+  "ended-no-result": "인식 결과 없이 음성입력이 종료됐습니다. 브라우저 음성인식 서비스를 확인해 주세요.",
+  "start-failed": "음성인식을 시작하지 못했습니다. 브라우저 설정을 확인해 주세요."
+ },
+ "en": {
+  "network": "Could not connect to the speech service. Check the network and certificates.",
+  "audio-capture": "Could not capture microphone audio. Check the input device.",
+  "not-allowed": "Microphone access was denied. Check the site permission.",
+  "service-not-allowed": "Speech service is unavailable or restricted by the browser.",
+  "no-speech": "No speech was detected. Check the microphone and try again.",
+  "language-not-supported": "Speech recognition is not supported for this language.",
+  "bad-grammar": "Speech recognition grammar could not be processed.",
+  "ended-no-result": "Speech input ended without a result. Check the browser speech service.",
+  "start-failed": "Could not start speech recognition. Check browser settings."
+ },
+ "ja": {
+  "network": "音声認識サービスに接続できません。ネットワークと証明書を確認してください。",
+  "audio-capture": "マイクの音声を取得できません。入力機器を確認してください。",
+  "not-allowed": "マイクへのアクセスが拒否されました。サイトの権限を確認してください。",
+  "service-not-allowed": "ブラウザーで音声認識サービスが制限されています。",
+  "no-speech": "音声が検出されませんでした。マイクを確認して再試行してください。",
+  "language-not-supported": "この言語の音声認識には対応していません。",
+  "bad-grammar": "音声認識の文法処理に失敗しました。",
+  "ended-no-result": "認識結果なしで終了しました。ブラウザーの音声認識サービスを確認してください。",
+  "start-failed": "音声認識を開始できませんでした。ブラウザーの設定を確認してください。"
+ },
+ "zh": {
+  "network": "无法连接语音识别服务。请检查网络和证书设置。",
+  "audio-capture": "无法获取麦克风音频。请检查输入设备。",
+  "not-allowed": "麦克风访问被拒绝。请检查网站权限。",
+  "service-not-allowed": "浏览器限制或无法使用语音识别服务。",
+  "no-speech": "未检测到语音。请检查麦克风后重试。",
+  "language-not-supported": "不支持当前语言的语音识别。",
+  "bad-grammar": "语音识别语法处理失败。",
+  "ended-no-result": "语音输入结束但没有识别结果。请检查浏览器语音服务。",
+  "start-failed": "无法启动语音识别。请检查浏览器设置。"
+ }
+};
+function describeSpeechError(lang,code){
+ const hint=speechDiagnosticHints[lang]?.[code]||labels[lang]?.speechError||labels.ko.speechError;
+ return '['+code+'] '+hint;
+}
 function Icon({name,size=22}){return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:iconPaths[name]||iconPaths.train}}/>;}
 const MIC=<svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 10.5v1.5a6.5 6.5 0 0 0 13 0v-1.5M12 18.5v3M8.5 21.5h7"/></svg>;
 function WideGuide({station,lang,setLang,setStationCode}){
@@ -143,20 +194,31 @@ function WideGuide({station,lang,setLang,setStationCode}){
  function startVoice(){
   if(listening){stopVoice();return;}
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Recognition){setSpeechError(t.speechUnsupported);return;}
+  if(!Recognition){setSpeechError('[unsupported] '+t.speechUnsupported);return;}
   if(busy)return;
-  stopVoice();setSpeechError('');
+  setKeyboardTarget(null);stopVoice();setSpeechError('');
   const recognition=new Recognition();
   recognition.lang=locale[lang];recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-  const original=draft.trim();speech.current=recognition;
+  const original=draft.trim();let hasTranscript=false;speech.current=recognition;
   recognition.onresult=e=>{
    let text='';for(let i=0;i<e.results.length;i++)text+=(e.results[i]?.[0]?.transcript||'')+' ';
-   text=text.trim();if(text)setDraft(original?original+' '+text:text);
+   text=text.trim();if(text){hasTranscript=true;setDraft(original?original+' '+text:text);}
    activity.current=Date.now();
   };
-  recognition.onerror=e=>{if(e.error!=='aborted')setSpeechError(e.error==='not-allowed'?t.micPermission:t.speechError);speech.current=null;setListening(false);};
-  recognition.onend=()=>{if(speech.current===recognition)speech.current=null;setListening(false);};
-  try{recognition.start();setListening(true);}catch{speech.current=null;setListening(false);setSpeechError(t.speechError);}
+  recognition.onerror=e=>{
+   if(speech.current!==recognition)return;
+   const errorCode=typeof e.error==='string'&&e.error?e.error:'unknown';
+   if(errorCode!=='aborted')setSpeechError(describeSpeechError(lang,errorCode));
+   speech.current=null;setListening(false);
+  };
+  recognition.onend=()=>{
+   if(speech.current!==recognition)return;
+   speech.current=null;setListening(false);
+   if(!hasTranscript)setSpeechError(describeSpeechError(lang,'ended-no-result'));
+  };
+  try{recognition.start();setListening(true);}catch{
+   speech.current=null;setListening(false);setSpeechError(describeSpeechError(lang,'start-failed'));
+  }
  }
  function chooseStation(code){
   setKeyboardTarget(null);setStationCode(code);setSearchOpen(false);setStationQuery('');
@@ -235,7 +297,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
     <div className="wide-panel-heading wide-chat-heading"><h2>{lang==='ko'?'AI 고객 안내':t.chat}</h2>{busy&&<span className="wide-ai-indicator" role="status"><i/>{source.waiting}</span>}</div>
     <div className="wide-chat-body" ref={chatRoot}><GuideExperience key={'chat-'+session+'-'+station.stationCode} embedded language={lang} active chatStation={station} routeStation={station} onRecommendMenu={openMenu} onBusyChange={setBusy} chatRequest={chatRequest} showPrivacyNotice={false}/></div>
     <div className="wide-composer">
-     <div className="wide-composer-title"><strong>{t.help}</strong><span>{listening?t.listening:speechError||t.preview}</span></div>
+     <div className="wide-composer-title"><strong>{t.help}</strong><span role={speechError?'alert':undefined} title={speechError||undefined} style={speechError?{color:'#aa2f28',fontWeight:750,maxWidth:'74%',lineHeight:1.45}:undefined}>{listening?t.listening:speechError||t.preview}</span></div>
      <form onSubmit={e=>{e.preventDefault();sendQuestion(draft);}} className="wide-composer-form">
       <textarea rows={2} value={draft} onChange={e=>setDraft(e.target.value)} placeholder={t.placeholder} aria-label={t.typing} disabled={busy} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendQuestion(draft);}}}/>
       <div className="wide-composer-actions">
