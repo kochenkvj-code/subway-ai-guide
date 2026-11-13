@@ -114,15 +114,21 @@ function WideGuide({station,lang,setLang,setStationCode}){
  useEffect(()=>{
   const pane=leftBody.current;
   if(left!=='route'||!pane)return;
-  let lastTarget=null;
+  let lastResultKey='';
   const scan=()=>{
-   const target=pane.querySelector('.rl-route-card, .rl-place-card');
-   if(!target||target===lastTarget)return;
-   lastTarget=target;
+   // Keep the first result card's heading visible even when the official route
+   // is appended below the AI place result. Do not jump to the middle of a card.
+   const placeCard=pane.querySelector('.rl-place-card');
+   const routeCard=pane.querySelector('.rl-route-card');
+   const target=placeCard||routeCard;
+   if(!target){lastResultKey='';return;}
+   const resultKey=(placeCard?'place':'')+(routeCard?'+route':'');
+   if(resultKey===lastResultKey)return;
+   lastResultKey=resultKey;
    requestAnimationFrame(()=>{
     if(!pane.contains(target))return;
     const offset=target.getBoundingClientRect().top-pane.getBoundingClientRect().top;
-    pane.scrollTo({top:Math.max(0,pane.scrollTop+offset-12),behavior:'smooth'});
+    pane.scrollTo({top:Math.max(0,pane.scrollTop+offset-14),behavior:'smooth'});
    });
   };
   const observer=new MutationObserver(scan);
