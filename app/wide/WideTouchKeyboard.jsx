@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import zhStationPinyin from './zh-station-pinyin.json';
 
 // Wide View only. This keyboard never touches the shared/mobile V2 components.
 const KO=[
@@ -49,6 +50,7 @@ const ZH_WORDS=[
  ['zhan','站'],['shijian','时间'],['jidian','几点'],['shenme','什么'],['zheli','这里'],
  ['nali','哪里'],['duoshao','多少'],['huoche','火车'],['kuaiche','快车'],['anjian','按键']
 ];
+ZH_WORDS.push(...zhStationPinyin);
 const JP_COMMON=['駅','出口','乗り換え','ホテル','ロッテホテル','切符','交通カード','財布','スマートフォン','忘れ物','トイレ','エレベーター','景福宮'];
 const ZH_COMMON=['地铁','路线','出口','换乘','钱包','乐天酒店','首尔站','钟路','明洞','失物'];
 
@@ -99,7 +101,7 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const [shift,setShift]=useState(false);
  const [pinyin,setPinyin]=useState('');
  const buffer=useRef({element:null,raw:[],start:0,rendered:''});
- useEffect(()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setSymbols(false);setAlt(false);setShift(false);setPinyin('');},[target,lang]);
+ useEffect(()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setSymbols(['number','tel'].includes(target?.type));setAlt(false);setShift(false);setPinyin('');},[target,lang]);
  if(!target)return null;
  const mainMode=symbols?'symbols':alt?'en':lang;
  const rows=mainMode==='symbols'?SYMBOLS:mainMode==='ko'?KO:mainMode==='ja'?JA:EN;
