@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import GuideExperience from '../components/GuideExperience';
+import WideTouchKeyboard from './WideTouchKeyboard';
 import UnifiedRouteLab from '../v2/route-lab/RouteLab';
 import usePositionArrivals from '../v2/usePositionArrivals';
 import {PositionTrainSummary,PositionArrivalDetails} from '../v2/PositionArrivals';
@@ -44,6 +45,9 @@ function WideGuide({station,lang,setLang,setStationCode}){
  const [searchOpen,setSearchOpen]=useState(false);
  const [stationQuery,setStationQuery]=useState('');
  const [stationLine,setStationLine]=useState('');
+ const [keyboardTarget,setKeyboardTarget]=useState(null);
+ const [feedbackBack,setFeedbackBack]=useState(null);
+ const onFeedbackInternal=useCallback(action=>setFeedbackBack(()=>action),[]);
  const [idleRemaining,setIdleRemaining]=useState(120);
  const [routeRequest,setRouteRequest]=useState(null);
  const activity=useRef(Date.now()),seq=useRef(0),speech=useRef(null);
@@ -62,7 +66,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
  },[]);
  const reset=useCallback(()=>{
   stopVoice();setLeft('home');setSession(n=>n+1);setDraft('');setChatRequest(null);setBusy(false);
-  setSpeechError('');setSearchOpen(false);setStationQuery('');setStationLine('');setRouteRequest(null);
+  setSpeechError('');setSearchOpen(false);setStationQuery('');setStationLine('');setRouteRequest(null);setKeyboardTarget(null);
   setLang('ko');activity.current=Date.now();setIdleRemaining(120);
  },[stopVoice,setLang]);
  useEffect(()=>{if(lastStation!==station.stationCode){setLastStation(station.stationCode);stopVoice();setLeft('home');setSession(n=>n+1);setChatRequest(null);setDraft('');setRouteRequest(null);activity.current=Date.now();}},[station.stationCode,lastStation,stopVoice]);
@@ -80,17 +84,17 @@ function WideGuide({station,lang,setLang,setStationCode}){
   return()=>{window.clearInterval(timer);for(const event of ['pointerdown','keydown','input','wheel'])document.removeEventListener(event,touch,true);};
  },[busy,listening,reset]);
  function changeLanguage(next){
-  if(next===lang)return;stopVoice();setSpeechError('');setDraft('');setLang(next);
+  if(next===lang)return;setKeyboardTarget(null);stopVoice();setSpeechError('');setDraft('');setLang(next);
   const url=new URL(window.location.href);url.searchParams.set('lang',next);window.history.replaceState(window.history.state,'',url.pathname+url.search);
  }
  function sendQuestion(value){
   const message=value.trim();
   if(!message||busy)return;
-  stopVoice();setChatRequest({id:++seq.current,text:message});setDraft('');
+  setKeyboardTarget(null);stopVoice();setChatRequest({id:++seq.current,text:message});setDraft('');
   activity.current=Date.now();setIdleRemaining(120);
  }
  function openMenu(id,options={}){
-  setLeft(id);setRouteRequest(id==='route'&&options.routeQuery?{id:++seq.current,query:options.routeQuery}:null);
+  setKeyboardTarget(null);setFeedbackBack(null);setLeft(id);setRouteRequest(id==='route'&&options.routeQuery?{id:++seq.current,query:options.routeQuery}:null);
   activity.current=Date.now();setIdleRemaining(120);
  }
  // Reuse the existing V2 recommendation-button logic without editing the mobile component.
@@ -155,13 +159,47 @@ function WideGuide({station,lang,setLang,setStationCode}){
   try{recognition.start();setListening(true);}catch{speech.current=null;setListening(false);setSpeechError(t.speechError);}
  }
  function chooseStation(code){
-  setStationCode(code);setSearchOpen(false);setStationQuery('');
+  setKeyboardTarget(null);setStationCode(code);setSearchOpen(false);setStationQuery('');
   const url=new URL(window.location.href);url.searchParams.set('station',code);url.searchParams.set('lang',lang);window.history.replaceState(window.history.state,'',url.pathname+url.search);
  }
+ function eligibleInput(element){
+  if(!element||!element.matches?.('input,textarea')||element.disabled)return false;
+  if(element.tagName==='TEXTAREA')return true;
+  return !element.type||['text','search','email','tel','number','url','password'].includes(element.type);
+ }
+ function onWidePointerDown(event){
+  const element=event.target;
+  if(eligibleInput(element)){
+   // Prevent Windows on-screen keyboard from covering our panel keyboard;
+   // physical keyboards still work if an operator needs one.
+   element.setAttribute('inputmode','none');
+   return;
+  }
+  // Never remove the keyboard during pointerdown. That reflows the screen
+  // before pointerup/click and makes touch buttons intermittently miss.
+  // Actual actions (send, navigation, language, Done) close it on click.
+ }
+ function onWideFocus(event){
+  const input=event.target;
+  if(!eligibleInput(input))return;
+  input.setAttribute('inputmode','none');
+  setKeyboardTarget(input);
+  requestAnimationFrame(()=>{
+   if(!input.isConnected)return;
+   const pane=input.closest('.wide-left-body,.wide-station-list,.wide-chat-body');
+   if(!pane)return;
+   const p=pane.getBoundingClientRect(),r=input.getBoundingClientRect();
+   if(r.bottom>p.bottom-12||r.top<p.top+10){
+    pane.scrollBy({top:r.bottom>p.bottom-12?r.bottom-p.bottom+28:r.top-p.top-18,behavior:'smooth'});
+   }
+  });
+ }
+ const keyboardArea=keyboardTarget?.isConnected?
+  (keyboardTarget.closest('.wide-station-dialog')?'station':keyboardTarget.closest('.wide-left')?'left':keyboardTarget.closest('.wide-right')?'right':null):null;
  const results=searchStationMaster(stationQuery,stationLine).slice(0,50);
  const leftTitle=left==='live'?t.live:source.menu[menuItems.findIndex(x=>x.id===left)]||t.guide;
 
- return <main className="wide-root v2-app v2-design-refresh" lang={locale[lang]}>
+ return <main className="wide-root v2-app v2-design-refresh" lang={locale[lang]} onPointerDownCapture={onWidePointerDown} onFocusCapture={onWideFocus}>
   <header className="wide-header">
    <div className="wide-brand"><div className="wide-symbol"><Icon name="train" size={27}/></div><div className="wide-brand-one-line"><strong>SUBWAY AI GUIDE</strong><span>WIDE VIEW</span></div></div>
    <div className="wide-header-actions"><button type="button" className="wide-station-button" onClick={()=>{setStationQuery('');setStationLine(station.line);setSearchOpen(true);}} aria-label={t.choose+': '+stationName}><span className="wide-header-line" style={{background:station.color}}>{station.line}</span><span className="wide-station-name">{stationName}</span><span className="wide-selector-caret" aria-hidden="true">⌄</span></button><button type="button" onClick={reset} className="wide-reset-button"><Icon name="home" size={18}/>{t.reset}</button></div>
@@ -177,7 +215,7 @@ function WideGuide({station,lang,setLang,setStationCode}){
   </div>
   <div className="wide-panels">
    <section className="wide-left wide-panel" aria-label={t.guide}>
-    <div className="wide-panel-heading">{left==='home'?<><div><small>QUICK GUIDE</small><h2>{t.guide}</h2></div><span className="wide-count">9 MENUS</span></>:<><button className="wide-back" onClick={()=>openMenu('home')}><span>←</span> {t.back}</button><strong>{leftTitle}</strong></>}</div>
+    <div className="wide-panel-heading">{left==='home'?<><div><small>QUICK GUIDE</small><h2>{t.guide}</h2></div><span className="wide-count">9 MENUS</span></>:<><button className="wide-back" onClick={()=>left==='feedback'&&feedbackBack?feedbackBack():openMenu('home')}><span>←</span> {t.back}</button><strong>{leftTitle}</strong></>}</div>
     <div className="wide-left-body" ref={leftBody} key={session+'-'+left+'-'+station.stationCode}>
      {left==='home'&&<nav className="wide-menu-grid" aria-label={t.guide}>{menuItems.map((m,i)=><button key={m.id} onClick={()=>openMenu(m.id)}><span className={'wide-menu-icon v2-icon-'+m.id}><Icon name={m.icon} size={29}/></span><strong>{source.menu[i]}</strong><span className="wide-menu-arrow">↗</span></button>)}</nav>}
      {left==='live'&&<PositionArrivalDetails stationContext={station} state={arrivals} lang={lang} t={source}/>}
@@ -189,8 +227,9 @@ function WideGuide({station,lang,setLang,setStationCode}){
      {left==='lost'&&<TrainLostFinder lang={lang} active defaultStation={station.names.ko} defaultLine={station.line} defaultNames={station.names}/>}
      {left==='timetable'&&<TrainTimetable lang={lang} active stationContext={station}/>}
      {left==='facility'&&<FacilityDemo embedded stationContext={station} lang={lang} active/>}
-     {left==='feedback'&&<StationFeedback station={feedbackStation} lang={lang} active/>}
+     {left==='feedback'&&<StationFeedback station={feedbackStation} lang={lang} active onInternalScreen={onFeedbackInternal}/>}
     </div>
+    {keyboardArea==='left'&&<WideTouchKeyboard key={'left-'+lang} lang={lang} target={keyboardTarget} onClose={()=>setKeyboardTarget(null)}/>}
    </section>
    <section className="wide-right wide-panel" aria-label={t.chat}>
     <div className="wide-panel-heading wide-chat-heading"><h2>{lang==='ko'?'AI 고객 안내':t.chat}</h2>{busy&&<span className="wide-ai-indicator" role="status"><i/>{source.waiting}</span>}</div>
@@ -206,10 +245,11 @@ function WideGuide({station,lang,setLang,setStationCode}){
      </form>
      <p className="wide-privacy">{t.privacy}</p>
     </div>
+    {keyboardArea==='right'&&<WideTouchKeyboard key={'right-'+lang} lang={lang} target={keyboardTarget} onClose={()=>setKeyboardTarget(null)}/>}
    </section>
   </div>
   {idleRemaining<=15&&idleRemaining>0&&!busy&&!listening&&<div className="wide-idle-backdrop" role="alertdialog" aria-modal="true" aria-label={t.idle}><div className="wide-idle-card"><div className="wide-idle-count">{idleRemaining}</div><h2>{t.idle}</h2><p>{t.idleDesc}</p><button onClick={()=>{activity.current=Date.now();setIdleRemaining(120);}}>{t.continue}</button></div></div>}
-  {searchOpen&&<div className="wide-station-overlay" role="presentation" onClick={()=>setSearchOpen(false)}><section className="wide-station-dialog" role="dialog" aria-modal="true" aria-label={t.choose} onClick={e=>e.stopPropagation()}><div className="wide-station-dialog-header"><h2>{t.choose}</h2><button onClick={()=>setSearchOpen(false)} aria-label={t.close}>×</button></div><input autoFocus value={stationQuery} onChange={e=>setStationQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><nav className="wide-station-lines" aria-label={lang==='ko'?'호선 선택':t.choose}><button type="button" aria-pressed={!stationLine} onClick={()=>setStationLine('')}>{lang==='ko'?'전체':lang==='en'?'All':lang==='ja'?'全線':'全部'}</button>{stationLines.map(line=><button type="button" key={line} aria-label={line+'호선'} aria-pressed={stationLine===line} onClick={()=>setStationLine(line)}><span className="wide-header-line" style={{background:stationMaster.find(st=>st.line===line)?.color||'#607c69'}}>{line}</span></button>)}</nav><div className="wide-station-list">{results.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s.stationCode)}><b className="wide-line-pill" style={{background:s.color}}>{s.line}</b><strong>{s.names[lang]||s.names.ko}</strong><small>{s.stationCode}</small></button>)}{results.length===0&&<p>{t.searchEmpty}</p>}</div></section></div>}
+  {searchOpen&&<div className="wide-station-overlay" role="presentation" onClick={()=>setSearchOpen(false)}><section className="wide-station-dialog" role="dialog" aria-modal="true" aria-label={t.choose} onClick={e=>e.stopPropagation()}><div className="wide-station-dialog-header"><h2>{t.choose}</h2><button onClick={()=>setSearchOpen(false)} aria-label={t.close}>×</button></div><input value={stationQuery} onChange={e=>setStationQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><nav className="wide-station-lines" aria-label={lang==='ko'?'호선 선택':t.choose}><button type="button" aria-pressed={!stationLine} onClick={()=>setStationLine('')}>{lang==='ko'?'전체':lang==='en'?'All':lang==='ja'?'全線':'全部'}</button>{stationLines.map(line=><button type="button" key={line} aria-label={line+'호선'} aria-pressed={stationLine===line} onClick={()=>setStationLine(line)}><span className="wide-header-line" style={{background:stationMaster.find(st=>st.line===line)?.color||'#607c69'}}>{line}</span></button>)}</nav><div className="wide-station-list">{results.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s.stationCode)}><b className="wide-line-pill" style={{background:s.color}}>{s.line}</b><strong>{s.names[lang]||s.names.ko}</strong><small>{s.stationCode}</small></button>)}{results.length===0&&<p>{t.searchEmpty}</p>}</div>{keyboardArea==='station'&&<WideTouchKeyboard key={'station-'+lang} lang={lang} target={keyboardTarget} onClose={()=>setKeyboardTarget(null)}/>}</section></div>}
  </main>;
 }
 

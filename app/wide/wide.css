@@ -414,3 +414,115 @@
  .wide-chat-body .sag-ai-loading-dots i {opacity:.8}
  .wide-chat-body .sag-chat {scroll-behavior:auto!important}
 }
+
+
+/* Isolated Wide View shared touch keyboard. No selectors outside /wide. */
+.wide-root .wide-touch-keyboard{
+ flex:0 0 auto;
+ width:100%;
+ min-width:0;
+ max-height:min(285px,37dvh);
+ display:flex;
+ flex-direction:column;
+ gap:7px;
+ overflow:hidden;
+ padding:9px 12px 11px;
+ border-top:1px solid #c0d9ca;
+ background:linear-gradient(160deg,#eaf3ed,#e0eee5);
+ box-shadow:0 -5px 18px #1e503616;
+ z-index:10;
+ animation:wide-keyboard-slide .18s ease-out both;
+}
+@keyframes wide-keyboard-slide{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.wide-root .wide-keyboard-bar{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ min-height:22px;flex:none;color:#366b4a;
+}
+.wide-root .wide-keyboard-title{font-size:12px;font-weight:850;letter-spacing:-.25px}
+.wide-root .wide-keyboard-title>span{margin-right:5px;font-size:14px}
+.wide-root .wide-keyboard-close{
+ display:grid;place-items:center;
+ width:26px;min-height:26px;padding:0;border:0;border-radius:7px;
+ background:#d5e7dc;color:#54765f;font-size:21px;font-weight:600;
+}
+.wide-root .wide-keyboard-keys{display:flex;flex-direction:column;gap:5px;min-height:0}
+.wide-root .wide-keyboard-row{display:flex;justify-content:center;gap:5px;min-height:0}
+.wide-root .wide-key{
+ flex:1 1 0;min-width:0;min-height:37px;padding:3px 0;
+ display:flex;align-items:center;justify-content:center;
+ border:1px solid #cbded0;border-bottom-color:#bdd2c2;
+ background:#fff;color:#2a5340;border-radius:8px;
+ font-size:clamp(13px,1.6vw,20px);font-weight:730;line-height:1.1;
+ box-shadow:0 2px 0 #cadace;
+ -webkit-user-select:none;user-select:none;
+ touch-action:manipulation;
+}
+.wide-root .wide-key:active{background:#ddf1e4;transform:translateY(1px);box-shadow:none}
+.wide-root .wide-keyboard-actions{gap:5px;min-height:40px}
+.wide-root .wide-keyboard-actions .wide-key{min-height:40px}
+.wide-root .wide-key-utility{
+ flex:0 0 auto;
+ min-width:41px;padding:0 7px;
+ font-size:clamp(10px,1.07vw,12px);
+ background:#d9e9de;color:#37694e;
+ border-color:#bfd3c5;
+}
+.wide-root .wide-key-space{flex:2 1 auto;font-size:12px}
+.wide-root .wide-key-done{
+ flex:0 0 auto;
+ min-width:70px;padding:0 9px;
+ background:#28764f;color:#fff;border-color:#28764f;
+ font-size:12px;font-weight:800;
+ box-shadow:0 2px 0 #235e42;
+}
+.wide-root .wide-keyboard-candidates{
+ display:flex;align-items:center;gap:6px;flex:none;
+ min-height:32px;overflow-x:auto;overscroll-behavior-x:contain;
+ padding:1px 1px 3px;
+}
+.wide-root .wide-keyboard-candidates button{
+ flex:none;
+ padding:5px 9px;
+ border:1px solid #c2ddcb;border-radius:9px;
+ background:white;color:#28624a;font-weight:750;font-size:12px;
+ min-height:30px;
+}
+.wide-root .wide-keyboard-candidates button:active{background:#d2efdb}
+.wide-root input:focus,.wide-root textarea:focus{scroll-margin-bottom:10px}
+.wide-root .wide-left:has(.wide-touch-keyboard) .wide-panel-heading,
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-panel-heading{
+ min-height:45px;padding-top:8px;padding-bottom:8px;
+}
+.wide-root .wide-left:has(.wide-touch-keyboard) .wide-left-body{
+ overscroll-behavior-y:contain;scroll-padding-bottom:18px;
+}
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-composer{
+ padding-top:7px;padding-bottom:7px;
+}
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-composer-title,
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-privacy{display:none}
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-composer-form textarea{
+ min-height:49px;max-height:80px;
+}
+.wide-root .wide-right:has(.wide-touch-keyboard) .wide-composer-actions button{min-height:41px}
+.wide-root .wide-station-dialog:has(.wide-touch-keyboard){
+ gap:9px;overflow:hidden;
+}
+.wide-root .wide-station-dialog>.wide-touch-keyboard{
+ padding-left:8px;padding-right:8px;
+ border-radius:12px;
+}
+.wide-root .wide-left-body,.wide-root .wide-chat-body,.wide-root .wide-station-list{
+ -webkit-overflow-scrolling:touch;
+}
+@media(max-height:750px){
+ .wide-root .wide-touch-keyboard{max-height:min(235px,40dvh);padding:6px 8px;gap:4px}
+ .wide-root .wide-keyboard-keys,.wide-root .wide-keyboard-row{gap:3px}
+ .wide-root .wide-key{min-height:30px}
+ .wide-root .wide-keyboard-actions .wide-key{min-height:33px}
+ .wide-root .wide-keyboard-title{font-size:10px}
+}
+@media(max-width:950px){
+ .wide-root .wide-touch-keyboard{max-height:none}
+}
+@media(prefers-reduced-motion:reduce){.wide-root .wide-touch-keyboard{animation:none}}
