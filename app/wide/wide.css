@@ -293,12 +293,11 @@
  overscroll-behavior-y:contain;
 }
 .wide-chat-body .sag-chat.sag-chat-turn-active::after{
- flex-basis:70%;
+ /* Match mobile V2's stable pending-to-answer scroll reserve on iPad Safari. */
+ flex-basis:100%;
 }
-/* Recommendation navigation is automatic only in Wide View. Mobile buttons remain intact. */
-.wide-chat-body .sag-menu-recommendation{
- display:none!important;
-}
+/* The wide screen auto-opens recommended tools on the left,
+   but passengers must still see and be able to tap the original recommendation. */
 .wide-station-lines{
  display:flex;
  align-items:center;
@@ -344,4 +343,74 @@
  .wide-header-actions .wide-reset-button{padding:0 8px}
  .wide-station-name{font-size:12px}
  .wide-composer-actions button{font-size:13px}
+}
+
+/* Wide-only parity with the mobile V2 chat loading indicator.
+   Mobile styles target .v2-chat-pane, which is not present on /wide. */
+.wide-chat-body .sag-row.assistant .sag-bubble.pending {
+ width:max-content;
+ max-width:calc(100% - 18px);
+ min-width:0;
+ padding:10px 12px;
+ border-radius:14px 14px 14px 4px;
+ box-sizing:border-box;
+}
+.wide-chat-body .sag-bubble.pending .sag-ai-pending-indicator {
+ max-width:100%;
+ font-size:13px;
+}
+.wide-chat-body .sag-ai-pending-indicator {
+ display:inline-flex;
+ align-items:center;
+ flex-wrap:nowrap;
+ gap:6px;
+ line-height:1.4;
+ white-space:nowrap;
+}
+.wide-chat-body .sag-ai-loading-dots {
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:3px;
+ flex:0 0 18px;
+ height:12px;
+}
+.wide-chat-body .sag-ai-loading-dots i {
+ display:block;
+ width:4px;
+ height:4px;
+ border-radius:50%;
+ background:#4c9479;
+ animation:v2-ai-thinking-dot 1.2s ease-in-out infinite;
+ transform-origin:center;
+}
+.wide-chat-body .sag-ai-loading-dots i:nth-child(2){animation-delay:.16s}
+.wide-chat-body .sag-ai-loading-dots i:nth-child(3){animation-delay:.32s}
+.wide-chat-body .sag-bubble.sag-answer-entering {
+ animation:v2-chat-answer-appear .2s ease-out both;
+}
+.wide-chat-body .sag-menu-recommendation .sag-route-name {
+ display:block;
+ font-size:inherit;
+ line-height:1.5;
+ overflow-wrap:anywhere;
+}
+.wide-chat-body .sag-menu-recommendation .sag-route-origin {
+ display:block;
+ margin-top:3px;
+ font-size:10px;
+ line-height:1.4;
+ font-weight:400;
+ color:#7c9383;
+}
+/* Soft edges show that the pane is scrollable without hard-cut text at its boundary. */
+.wide-chat-body .sag-chat {
+ -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 8px),transparent 100%);
+ mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 8px),transparent 100%);
+}
+@media(prefers-reduced-motion:reduce) {
+ .wide-chat-body .sag-ai-loading-dots i,
+ .wide-chat-body .sag-bubble.sag-answer-entering {animation:none!important}
+ .wide-chat-body .sag-ai-loading-dots i {opacity:.8}
+ .wide-chat-body .sag-chat {scroll-behavior:auto!important}
 }
