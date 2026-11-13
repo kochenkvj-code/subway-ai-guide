@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import zhStationPinyin from './zh-station-pinyin.json';
+import {japaneseCandidates,romajiToKana} from './ja-romaji';
 
 // Wide View only. This keyboard never touches the shared/mobile V2 components.
 const KO=[
@@ -18,25 +19,16 @@ const SYMBOLS=[
  ['@','#','-','/','(',')',':',';',',','.'],
  ['?','!','%','&','+','=','*','_']
 ];
-const JA=[
- ['あ','い','う','え','お','か','き','く','け','こ'],
- ['さ','し','す','せ','そ','た','ち','つ','て','と'],
- ['な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ'],
- ['ま','み','む','め','も','や','ゆ','よ','ら','り'],
- ['る','れ','ろ','わ','を','ん','ゃ','ゅ','ょ','っ']
-];
 const INITIAL='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split('');
 const MEDIAL='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split('');
 const FINAL=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const COMPOUND_V={'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ'};
 const COMPOUND_F={'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ'};
 const SHIFT_KO={'ㅂ':'ㅃ','ㅈ':'ㅉ','ㄷ':'ㄸ','ㄱ':'ㄲ','ㅅ':'ㅆ','ㅐ':'ㅒ','ㅔ':'ㅖ'};
-const VOICE={'か':'が','き':'ぎ','く':'ぐ','け':'げ','こ':'ご','さ':'ざ','し':'じ','す':'ず','せ':'ぜ','そ':'ぞ','た':'だ','ち':'ぢ','つ':'づ','て':'で','と':'ど','は':'ば','ひ':'び','ふ':'ぶ','へ':'べ','ほ':'ぼ'};
-const SEMI={'は':'ぱ','ひ':'ぴ','ふ':'ぷ','へ':'ぺ','ほ':'ぽ'};
-const CHAR_LABEL={ko:'한국어 · 두벌식',en:'English · QWERTY',ja:'日本語 · かな',zh:'中文 · 拼音'};
+const CHAR_LABEL={ko:'한국어 · 두벌식',en:'English · QWERTY',ja:'日本語 · ローマ字',zh:'中文 · 拼音'};
 const COMPLETE={ko:'완료',en:'Done',ja:'完了',zh:'完成'};
-const SPACE={ko:'띄어쓰기',en:'Space',ja:'スペース',zh:'空格'};
-const LANGUAGE_LABEL={ko:'한/영',en:'EN/한',ja:'かな/ABC',zh:'拼音/ABC'};
+const SPACE={ko:'띄어쓰기',en:'Space',ja:'変換 / 空白',zh:'空格'};
+const LANGUAGE_LABEL={ko:'한/영',en:'EN/한',ja:'ABC',zh:'拼音/ABC'};
 const ZH_WORDS=[
  ['shouer','首尔'],['shouerzhanting','首尔站'],['ditie','地铁'],['ditiezhan','地铁站'],
  ['jiudian','酒店'],['letian','乐天'],['letianjiudian','乐天酒店'],
@@ -51,7 +43,6 @@ const ZH_WORDS=[
  ['nali','哪里'],['duoshao','多少'],['huoche','火车'],['kuaiche','快车'],['anjian','按键']
 ];
 ZH_WORDS.push(...zhStationPinyin);
-const JP_COMMON=['駅','出口','乗り換え','ホテル','ロッテホテル','切符','交通カード','財布','スマートフォン','忘れ物','トイレ','エレベーター','景福宮'];
 const ZH_COMMON=['地铁','路线','出口','换乘','钱包','乐天酒店','首尔站','钟路','明洞','失物'];
 
 function composeHangul(raw){
@@ -99,18 +90,27 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const [symbols,setSymbols]=useState(false);
  const [alt,setAlt]=useState(false);
  const [shift,setShift]=useState(false);
+ const [kanaMode,setKanaMode]=useState(false);
+ const [romaji,setRomaji]=useState('');
  const [pinyin,setPinyin]=useState('');
  const buffer=useRef({element:null,raw:[],start:0,rendered:''});
- useEffect(()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setSymbols(['number','tel'].includes(target?.type));setAlt(false);setShift(false);setPinyin('');},[target,lang]);
+ useEffect(()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setSymbols(['number','tel'].includes(target?.type));setAlt(false);setShift(false);setKanaMode(false);setRomaji('');setPinyin('');},[target,lang]);
  if(!target)return null;
  const mainMode=symbols?'symbols':alt?'en':lang;
- const rows=mainMode==='symbols'?SYMBOLS:mainMode==='ko'?KO:mainMode==='ja'?JA:EN;
+ const rows=mainMode==='symbols'?SYMBOLS:mainMode==='ko'?KO:EN;
  const isKorean=mainMode==='ko';
- const isKana=mainMode==='ja';
+ const isJapanese=mainMode==='ja';
  const isPinyin=mainMode==='zh';
  const choices=isPinyin&&(pinyin?ZH_WORDS.filter(([key])=>key.startsWith(pinyin.toLowerCase())).map(x=>x[1]).slice(0,6):ZH_COMMON);
- const suggestions=isKana?JP_COMMON:isPinyin?choices:[];
- const flush=()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setPinyin('');};
+ const suggestions=isJapanese?japaneseCandidates(romaji,romajiToKana(romaji,{katakana:kanaMode})):isPinyin?choices:[];
+ const flush=()=>{buffer.current={element:null,raw:[],start:0,rendered:''};setPinyin('');setRomaji('');};
+ const finalizeJapanese=()=>{
+  const saved=buffer.current;
+  if(saved.mode!=='ja'||saved.element!==target||!saved.raw.length)return;
+  const text=romajiToKana(saved.raw.join(''),{katakana:kanaMode,finalize:true});
+  replaceText(target,text,{start:saved.start,end:saved.start+saved.rendered.length});
+  saved.rendered=text;
+ };
  const insert=(text,asComposition=false)=>{
   if(!target.isConnected){onClose?.();return;}
   const caret=target.selectionStart??target.value.length;
@@ -134,13 +134,29 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
   }
   flush();
   replaceText(target,text);
-  if(isPinyin&&/^[a-z]$/i.test(text)){
-   const next=text.toLowerCase();
-   setPinyin(previous=>previous+next);
+ };
+ const insertRomaji=(key)=>{
+  if(!target.isConnected){onClose?.();return;}
+  const caret=target.selectionStart??target.value.length;
+  const saved=buffer.current;
+  const canContinue=saved.mode==='ja'&&saved.element===target&&saved.start+saved.rendered.length===caret;
+  const active=canContinue?saved:{mode:'ja',element:target,raw:[],start:caret,rendered:''};
+  if(!canContinue&&target.selectionEnd!==caret){
+   setReactInput(target,target.value.slice(0,caret)+target.value.slice(target.selectionEnd),caret);
   }
+  active.raw.push(key.toLowerCase());
+  const text=romajiToKana(active.raw.join(''),{katakana:kanaMode});
+  replaceText(target,text,{start:active.start,end:active.start+active.rendered.length});
+  active.rendered=text;
+  buffer.current=active;
+  setRomaji(active.raw.join(''));
  };
  const useCandidate=(word)=>{
-  if(isPinyin&&pinyin){
+  const saved=buffer.current;
+  const caret=target.selectionStart??target.value.length;
+  if(isJapanese&&saved.mode==='ja'&&saved.element===target&&saved.start+saved.rendered.length===caret){
+   replaceText(target,word,{start:saved.start,end:saved.start+saved.rendered.length});
+  }else if(isPinyin&&pinyin){
    const caret=target.selectionStart??target.value.length;
    const before=target.value.slice(0,caret);
    // Replace the uncommitted romanized segment without affecting earlier text.
@@ -152,11 +168,12 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
  const applyBackspace=()=>{
   const saved=buffer.current;
   const caret=target.selectionStart??target.value.length;
-  if(isKorean&&saved.element===target&&saved.raw.length&&saved.start+saved.rendered.length===caret){
+  if((isKorean||isJapanese&&saved.mode==='ja')&&saved.element===target&&saved.raw.length&&saved.start+saved.rendered.length===caret){
    saved.raw.pop();
-   const output=composeHangul(saved.raw);
+   const output=isJapanese?romajiToKana(saved.raw.join(''),{katakana:kanaMode}):composeHangul(saved.raw);
    replaceText(target,output,{start:saved.start,end:saved.start+saved.rendered.length});
    saved.rendered=output;
+   if(isJapanese)setRomaji(saved.raw.join(''));
    if(!saved.raw.length)flush();
    return;
   }
@@ -169,29 +186,39 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
   if(isPinyin)setPinyin(v=>v.slice(0,-1));
   else flush();
  };
- const kanaTransform=(symbol)=>{
-  const position=target.selectionStart??target.value.length;
-  if(!position)return;
-  const last=target.value.slice(position-1,position);
-  const isKatakana=/[\u30a1-\u30f6]/.test(last);
-  const hiragana=isKatakana?String.fromCharCode(last.charCodeAt(0)-96):last;
-  const replacement=(symbol==='voiced'?VOICE:SEMI)[hiragana];
-  if(replacement)replaceText(target,isKatakana?String.fromCharCode(replacement.charCodeAt(0)+96):replacement,{start:position-1,end:position});
- };
  const press=(key)=>{
-  if(key==='done'){flush();target.blur();onClose?.();return;}
-  if(key==='symbols'){flush();setSymbols(v=>!v);return;}
-  if(key==='alt'){flush();setAlt(v=>!v);setSymbols(false);return;}
-  if(key==='shift'){setShift(v=>!v);return;}
+  if(key==='done'){if(isJapanese)finalizeJapanese();flush();target.blur();onClose?.();return;}
+  if(key==='symbols'){if(isJapanese)finalizeJapanese();flush();setSymbols(v=>!v);return;}
+  if(key==='alt'){if(isJapanese)finalizeJapanese();flush();setAlt(v=>!v);setSymbols(false);return;}
+  if(key==='shift'){
+   if(isJapanese){
+    const next=!kanaMode;setKanaMode(next);
+    const active=buffer.current;
+    if(active.mode==='ja'&&active.element===target&&active.raw.length){
+     const text=romajiToKana(active.raw.join(''),{katakana:next});
+     replaceText(target,text,{start:active.start,end:active.start+active.rendered.length});
+     active.rendered=text;
+    }
+   }else setShift(v=>!v);
+   return;
+  }
   if(key==='back'){applyBackspace();return;}
-  if(key==='space'){insert(' ');return;}
-  if(key==='enter'){insert(target.tagName==='TEXTAREA'?'\n':' ');return;}
-  if(key==='voiced'||key==='semi'){kanaTransform(key);return;}
+  if(key==='space'){
+   const saved=buffer.current;
+   if(isJapanese&&saved.mode==='ja'&&saved.raw.length){
+    const candidates=japaneseCandidates(saved.raw.join(''),saved.rendered);
+    const exactCandidates=candidates.filter(word=>word!==saved.rendered);
+    if(exactCandidates.length){useCandidate(exactCandidates[0]);return;}
+    finalizeJapanese();flush();return;
+   }
+   insert(' ');return;
+  }
+  if(key==='enter'){if(isJapanese)finalizeJapanese();insert(target.tagName==='TEXTAREA'?'\n':' ');return;}
   let value=key;
   if(isKorean&&shift)value=SHIFT_KO[key]||key;
-  if(isKana&&shift)value=String.fromCharCode(key.charCodeAt(0)+96);
   if((mainMode==='en'||isPinyin)&&shift)value=key.toUpperCase();
   if(isKorean)insert(value,true);
+  else if(isJapanese)insertRomaji(value);
   else if(isPinyin){
    const pos=target.selectionStart??target.value.length;
    replaceText(target,value);
@@ -199,26 +226,24 @@ export default function WideTouchKeyboard({lang='ko',target,onClose}){
    else setPinyin('');
    buffer.current={element:target,raw:[],start:pos,rendered:''};
   }else insert(value);
-  // Kana/Katakana is a persistent mode; English/Hangul Shift is one-shot.
-  if(shift&&!isKana)setShift(false);
+  if(shift&&!isJapanese)setShift(false);
  };
  return <div className="wide-touch-keyboard" data-wide-keyboard="" aria-label={CHAR_LABEL[lang]}>
   <div className="wide-keyboard-bar">
    <span className="wide-keyboard-title"><span aria-hidden="true">⌨</span> {CHAR_LABEL[lang]} {alt?'· ABC':''}{symbols?'· 123':''}</span>
    <button type="button" className="wide-keyboard-close" onPointerDown={e=>e.preventDefault()} onClick={()=>{flush();target.blur();onClose?.();}} aria-label="Close keyboard">×</button>
   </div>
-  {suggestions.length>0&&<div className="wide-keyboard-candidates" aria-label={isPinyin?'汉字候选':'よく使う言葉'}>
+  {suggestions.length>0&&<div className="wide-keyboard-candidates" aria-label={isPinyin?'汉字候选':'漢字・駅名候補'}>
    {suggestions.map((word,i)=><button type="button" key={word+'-'+i} onPointerDown={e=>e.preventDefault()} onClick={()=>useCandidate(word)}>{word}</button>)}
   </div>}
   <div className="wide-keyboard-keys">
    {rows.map((row,i)=><div className="wide-keyboard-row" key={i}>
-    {row.map((key,j)=><button type="button" key={j} className="wide-key" onPointerDown={e=>e.preventDefault()} onClick={()=>press(key)} aria-label={key}>{isKana&&shift?String.fromCharCode(key.charCodeAt(0)+96):isKorean&&shift?(SHIFT_KO[key]||key):shift&&/^[a-z]$/i.test(key)?key.toUpperCase():key}</button>)}
+    {row.map((key,j)=><button type="button" key={j} className="wide-key" onPointerDown={e=>e.preventDefault()} onClick={()=>press(key)} aria-label={key}>{isKorean&&shift?(SHIFT_KO[key]||key):shift&&!isJapanese&&/^[a-z]$/i.test(key)?key.toUpperCase():key}</button>)}
    </div>)}
    <div className="wide-keyboard-row wide-keyboard-actions">
-    <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('shift')}>{isKana?(shift?'カナ':'かな'):'⇧'}</button>
-    {isKana&&<><button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('voiced')}>゛</button><button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('semi')}>゜</button></>}
+    <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('shift')}>{isJapanese?(kanaMode?'ア → あ':'あ → ア'):'⇧'}</button>
     <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('symbols')}>{symbols?'ABC':'123'}</button>
-    <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('alt')}>{LANGUAGE_LABEL[lang]}</button>
+    <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('alt')}>{lang==='ja'&&alt?'かな':LANGUAGE_LABEL[lang]}</button>
     <button type="button" className="wide-key wide-key-space" onPointerDown={e=>e.preventDefault()} onClick={()=>press('space')}>{SPACE[lang]}</button>
     <button type="button" className="wide-key wide-key-utility" onPointerDown={e=>e.preventDefault()} onClick={()=>press('back')} aria-label="Backspace">⌫</button>
     <button type="button" className="wide-key wide-key-done" onPointerDown={e=>e.preventDefault()} onClick={()=>press('done')}>{COMPLETE[lang]} ✓</button>
