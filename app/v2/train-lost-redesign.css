@@ -1235,3 +1235,7 @@
  font-size:9px;font-weight:800;line-height:1.35;
  color:#9b6a16;background:#fff5dc;border-radius:5px;padding:2px 3px;
 }
+
+/* Bright timestamps only on the dark second-step live-map header. */
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times .tf-last-update{color:#c5d9eb}
+.tf-redesign.tl-three-stage .tl-live-map-main .tf-h-times .tf-last-update strong{color:#f4fbff}

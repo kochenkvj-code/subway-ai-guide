@@ -52,7 +52,6 @@ export default function StatsPage() {
   const [rawPage,setRawPage] = useState(0);
   const [activity,setActivity] = useState({});
   const [refresh,setRefresh]=useState(0),[updatedAt,setUpdatedAt]=useState(null);
-  useEffect(()=>{if(!auth)return;const update=()=>{if(document.visibilityState==="visible")setRefresh(v=>v+1);};const timer=setInterval(update,30000);window.addEventListener("focus",update);document.addEventListener("visibilitychange",update);return()=>{clearInterval(timer);window.removeEventListener("focus",update);document.removeEventListener("visibilitychange",update);};},[auth]);
   const [pageSize,setPageSize] = useState(25);
   const [visitorFilter,setVisitorFilter]=useState("all"),[selectedVisitor,setSelectedVisitor]=useState(null);
   const [recordFilter,setRecordFilter] = useState("all");
@@ -128,7 +127,7 @@ export default function StatsPage() {
           <select aria-label="월" value={Number(date.slice(5,7))} onChange={e=>setDate(d=>changeDatePart(d,"month",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:12},(_,i)=>i+1).map(m=><option key={m} value={m}>{m}월</option>)}</select>
           <select aria-label="일" value={Number(date.slice(8,10))} onChange={e=>setDate(d=>changeDatePart(d,"day",e.target.value))} style={{padding:9,borderRadius:8,border:"1px solid #c8d7d9"}}>{Array.from({length:new Date(Date.UTC(Number(date.slice(0,4)),Number(date.slice(5,7)),0)).getUTCDate()},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}일</option>)}</select>
           <button type="button" aria-label="다음 날짜" disabled={date>=today()} onClick={()=>setDate(d=>shiftDate(d,1))} style={{padding:"8px 11px",background:"#fff",border:"1px solid #c8d7d9",borderRadius:8,cursor:date>=today()?"not-allowed":"pointer",opacity:date>=today()?0.4:1}}>›</button>
-        </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span><button type="button" disabled={busy} onClick={()=>setRefresh(v=>v+1)}>새로고침</button><small>30초마다 갱신 · 화면 이용시간은 조회 기간 기준 · 마지막 갱신 {updatedAt?timeKst(updatedAt):"—"}</small></section>
+        </div><span style={{fontSize:12,color:"#667b83"}}>{start} ~ {date}</span><button type="button" disabled={busy} onClick={()=>setRefresh(v=>v+1)}>새로고침</button><small>화면 이용시간은 조회 기간 기준 · 마지막 갱신 {updatedAt?timeKst(updatedAt):"—"}</small></section>
         {error&&<p role="alert" style={{color:"#ba3333"}}>{error}</p>}{busy&&<p>통계 불러오는 중…</p>}
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:14}}>{[["방문 수",visitors.size],["방문 세션 수",sessionRows.length],["접속 횟수",stats.visits],["실제 기능 이용 세션",activeSessions],["접속만 한 세션",accessOnlySessions],["빠른 안내",Object.values(stats.counts).reduce((a,b)=>a+b,0)],["AI 질문",stats.questions],["길찾기 검색",stats.routes]].map(([label,n])=><div key={label} style={card}><div style={{fontSize:12,color:"#647a82"}}>{label}</div><strong style={{display:"block",fontSize:28,marginTop:7}}>{n.toLocaleString()}</strong></div>)}</section>
         <p style={{fontSize:12,color:"#687c82"}}>방문 수는 브라우저 ID가 있는 신규 기록 기준이며 실제 사람 수와 다를 수 있습니다. 과거 미확인 기록은 제외합니다.</p>
