@@ -60,7 +60,8 @@ async function purgeRoom(id){
 async function getActive(id,token){
  const room=await getRoom(id);
  if(!room)return {error:'room-not-found',status:404};
- if(isExpired(room)){
+ if(room.closed_at)return {error:'room-ended',status:410};
+ if(Date.parse(room.expires_at)<=Date.now()){
   await purgeRoom(id);
   return {error:'room-ended',status:410};
  }
@@ -204,7 +205,12 @@ export async function POST(request){
    return reply({ok:true,room:publicRoom(rows[0],role)});
   }
   if(action==='close'){
-   await purgeRoom(id);
+   // Delete conversation content immediately, but retain the non-content room
+   // record until expiry so closing/reopening cannot evade per-IP limits.
+   await database('interpreter_test_messages',params({room_id:'eq.'+id}),{method:'DELETE'});
+   await database('interpreter_test_rooms',params({id:'eq.'+id,closed_at:'is.null'}),{
+    method:'PATCH',body:{closed_at:new Date().toISOString()}
+   });
    return reply({ok:true,closed:true});
   }
   if(action==='send'){
