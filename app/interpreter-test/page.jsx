@@ -71,7 +71,7 @@ export default function InterpreterTestPage(){
  const roomRef=useRef(null);
  const inviteLink=useMemo(()=>{
   if(typeof window==='undefined'||!room?.id||!invite)return '';
-  return window.location.origin+'/interpreter-test?room='+encodeURIComponent(room.id)+'&invite='+encodeURIComponent(invite);
+  return window.location.origin+'/interpreter-test?room='+encodeURIComponent(room.id)+'#invite='+encodeURIComponent(invite);
  },[room?.id,invite]);
  const role=room?.role||'staff';
  const currentLang=room?(role==='staff'?room.staffLang:room.guestLang):entryLang;
@@ -91,7 +91,7 @@ export default function InterpreterTestPage(){
   const lang=getBrowserLang();
   const search=new URLSearchParams(window.location.search);
   const id=search.get('room');
-  const invitation=search.get('invite');
+  const invitation=new URLSearchParams(window.location.hash.slice(1)).get('invite')||search.get('invite');
   if(invitation&&id){
    setEntryLang(lang);setPendingInvite({room:id,invite:invitation});setMode('join');
    window.history.replaceState(null,'','/interpreter-test');
