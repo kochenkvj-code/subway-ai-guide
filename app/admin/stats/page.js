@@ -174,7 +174,7 @@ export default function StatsPage() {
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",minWidth:180,verticalAlign:"top"}}>
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
                       const stationLabel=baseStationLabel(e.context);
-                      const action=e.event_type==="page_view"?(e.event_name==="station_change"?"기준역 변경":"접속")+(stationLabel?": "+stationLabel:""):
+                      const action=e.event_type==="page_view"?(e.event_name==="station_change"?"기준역 변경":"접속")+(stationLabel?": "+stationLabel:"")+" · "+(langs[e.language]||e.language||"언어 미확인"):
                         e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):
                         e.event_type==="quick_menu"?(e.event_name==="facility"&&isFacilityContext(e.context)?"시설: "+FACILITY_LABELS[e.context]:(names[e.event_name]||e.event_name)):
                         e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):
