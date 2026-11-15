@@ -35,14 +35,30 @@ async function callGov(key){
  const pageSize=100;let all=[],count=null;
  for(let page=1;page<=10;page++){
   const url=new URL('https://apis.data.go.kr/B553766/facility/getFcCstct');
-  for(const [k,v] of Object.entries({serviceKey:key,dataType:'JSON',numOfRows:String(pageSize),pageNo:String(page)}))url.searchParams.set(k,v);
+  for(const [k,v] of Object.entries({serviceKey:key,dataType:'XML',numOfRows:String(pageSize),pageNo:String(page)}))url.searchParams.set(k,v);
   const res=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
-  if(!res.ok)throw Error('UPSTREAM_HTTP');
+  if(!res.ok)throw Error('GOV_HTTP_'+res.status);
   const parsed=parseGov(await res.text());
   all.push(...parsed.items);if(count===null)count=parsed.count;
   if(all.length>=count||parsed.items.length<pageSize)break;
  }
  return {items:all,count:count??all.length};
+}
+async function callSeoul(key){
+ // Seoul Open Data API uses a path key, unlike the B553766 query-key API.
+ const hosts=['https://openapi.seoul.go.kr','http://openapi.seoul.go.kr:8088'];
+ for(const host of hosts){
+  try{
+   const url=host+'/'+encodeURIComponent(key)+'/json/getFcCstct/1/1000/';
+   const res=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(12000)});
+   if(!res.ok)continue;
+   const data=await res.json(),part=data?.getFcCstct;
+   if(part?.RESULT?.CODE==='INFO-000'&&Array.isArray(part.row)&&part.row.length){
+    return {items:part.row,count:Number(part.list_total_count||part.row.length)};
+   }
+  }catch{}
+ }
+ throw Error('SEOUL_UNAVAILABLE');
 }
 function normalizeRow(r){
  const result={};for(const k of ['fcltNm','mngNo','lineNm','stnCd','stnNm','stnNo','crtrYmd','grndUdgdSe','stnFlr','dtlPstn','vcntEntrcNo','operInstTelno','utztnPsbltyHr'])result[k]=String(r[k]??'').trim();
@@ -50,9 +66,20 @@ function normalizeRow(r){
 }
 async function build(){
  const key=process.env[keyName]?.trim();if(!key)throw Error('NOT_CONFIGURED');
- let source;
- try{source=await callGov(key);}catch{throw Error('UPSTREAM_UNAVAILABLE');}
- const provider='공공데이터포털 B553766';
+ const seoulKey=/^[0-9a-f]{32}$/i.test(key);
+ let source=null,provider=null,failed=null;
+ try{
+  if(seoulKey){source=await callSeoul(key);provider='서울 열린데이터광장';}
+  else{source=await callGov(key);provider='공공데이터포털 B553766';}
+ }catch(e){failed=e.message;}
+ if(!source){
+  // A separate existing government-portal key is always sent only to its own provider.
+  const portalKey=process.env.SEOUL_METRO_FACILITY_API_KEY?.trim();
+  if(seoulKey&&portalKey){
+   try{source=await callGov(portalKey);provider='공공데이터포털 B553766 (기존 시설 키)';}catch{}
+  }
+ }
+ if(!source)throw Error(seoulKey?'SEOUL_SOURCE_FAILED':'PORTAL_SOURCE_FAILED');
  // Compare line-specific canonical codes; keep the unregistered 0200 visible only in this audit.
  const candidates=[...master.stations.map(s=>({stationCode:s.stationCode,line:s.line,name:s.names.ko})),
   {stationCode:'0200',line:'2',name:'까치산'}];
@@ -76,5 +103,5 @@ export async function GET(){
   if(!pending)pending=build().finally(()=>{pending=null;});
   const data=await pending;snapshot={data,at:Date.now()};
   return Response.json(data,{headers});
- }catch(e){return Response.json({ok:false,error:e.message==='NOT_CONFIGURED'?'NOT_CONFIGURED':'UPSTREAM_UNAVAILABLE'},{status:503,headers});}
+ }catch(e){return Response.json({ok:false,error:['NOT_CONFIGURED','SEOUL_SOURCE_FAILED','PORTAL_SOURCE_FAILED'].includes(e.message)?e.message:'UPSTREAM_UNAVAILABLE'},{status:503,headers});}
 }
