@@ -3,6 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {officialStationMatches} from '../lib/officialStations';
 import {stationMaster} from '../lib/station-master';
 import {stationName,lineName} from '../lib/stationNameI18n';
+import {isWithinLiveWindow,kstAlightDateForTime} from '../lib/train-lost-time';
 import {stationNeighbors,supportsStation,findLiveCandidates,followStops,futureStops,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
 import './train-lost.css';
 import TrainLostUI from './TrainLostUI';
@@ -14,10 +15,10 @@ const labels={
  zh:{head:'查找遗落在列车上的物品',sub:'推测乘坐列车并查看实时位置。',station:'下车站',change:'更换车站',search:'搜索车站',line:'线路',toward:'列车驶往的下一站',towardHint:'列车朝哪个方向离开？',time:'下车时间',date:'下车日期',thing:'遗失物品',thingExample:'例如：黑色背包',car:'车厢/车门',carExample:'例如：4-2',lookup:'查找候选列车',looking:'正在核对时刻表和实时位置…',none:'没有符合条件的列车，请检查时间。',candidates:'候选列车',scheduled:'时刻表',live:'车次匹配·实时位置已核对',onlySchedule:'仅时刻表推测·未实时确认',directionUnknown:'无法确认方向，可能显示两个方向的候选列车。',uncertain:'请自行确认候选车次，时刻表不能保证乘坐的列车。',choose:'追踪此列车',selected:'已选列车',update:'更新位置',position:'最近报告位置',absent:'无法核实实时位置。',forth:'可联系的后续车站',forthNote:'仅适用于普通列车及无分岔路段，请核实停站。',noForth:'因快车或支线不确定，暂不推荐车站。',sms:'向客服发送短信',copy:'复制短信',call:'拨打1577-1234',smsNote:'请在短信应用中确认后自行发送，部分设备不会自动填入正文。',openSms:'打开短信应用',again:'重新搜索',guide:'列车号码仅为推测，不保证为您乘坐的列车。',failure:'无法获取信息，请拨打客服。',emptyQuery:'请先选择车站。',dateNote:'节假日、延误及末班车时刻可能不同。',branch:'即使方向相同，线路也可能分岔。',noApi:'没有实时数据时仅提供时刻表候选。',pick:'选择',arrivalGap:'时间差'}
 };
 const liveWords={
-ko:{looking:'실시간 열차 위치·도착정보 확인 중…',none:'조건에 맞는 실시간 열차를 찾지 못했어요. 하차시각을 확인해 주세요.',live:'실시간 위치·후속역 도착정보 일치',onlySchedule:'실시간 위치 후보 · 진행 방향 미확인',directionUnknown:'일부 후보는 방향을 추가 확인해야 해요.',uncertain:'열차의 현재 위치만으로 이전에 하차역을 통과했다고 확정할 수 없습니다. 열차번호를 신중히 확인해 주세요.',scheduled:'최근 확인 위치',dateNote:'하차 후 30분 이내 검색 가능 · 정거장당 약 2분은 임시 추정값이에요.',noApi:'시간표 대신 실시간 위치·도착정보만 사용합니다.',arrivalGap:'하차역부터',fastTime:'하차한 지',fastMin:'분',expressText:'급행 경로 미검증'},
-en:{looking:'Checking live train positions…',none:'No train matches live-position evidence. Please check the alighting time.',live:'Live position corroborated by downstream arrival',onlySchedule:'Live position candidate · direction unverified',directionUnknown:'Some candidates still lack direction confirmation.',uncertain:'A current location alone cannot prove the train previously passed your station.',scheduled:'Last reported station',dateNote:'Search within 30 minutes; ~2 minutes per stop is a preliminary estimate.',noApi:'Uses only real-time train positions and arrival data.',arrivalGap:'Stops since alighting',fastTime:'Alighted',fastMin:'min ago',expressText:'Express route unverified'},
-ja:{looking:'リアルタイム位置を確認中…',none:'候補が見つかりません。下車時刻をご確認ください。',live:'現在位置と後続駅到着情報が一致',onlySchedule:'位置情報による候補・方向未確認',directionUnknown:'一部の進行方向は未確認です。',uncertain:'現在位置だけでは以前の通過駅を確定できません。',scheduled:'最新確認駅',dateNote:'下車後30分以内が対象。駅間約2分は暫定値です。',noApi:'時刻表ではなく現在位置から推定します。',arrivalGap:'下車駅から',fastTime:'下車から',fastMin:'分',expressText:'急行経路未確認'},
-zh:{looking:'正在核对实时列车位置…',none:'没有匹配的实时列车，请核对下车时间。',live:'实时位置与后续到站数据吻合',onlySchedule:'实时位置候选·方向未核实',directionUnknown:'部分候选方向待确认。',uncertain:'仅凭当前位置不能证明列车此前经过下车站。',scheduled:'最近报告车站',dateNote:'仅支持下车后30分钟内查询；每站约2分钟为初步估计。',noApi:'不使用时刻表，仅依靠实时数据。',arrivalGap:'下车站之后',fastTime:'下车前',fastMin:'分钟',expressText:'快车线路待核实'}
+ko:{outsideLiveWindow:'하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.',looking:'실시간 열차 위치·도착정보 확인 중…',none:'조건에 맞는 실시간 열차를 찾지 못했어요. 하차시각을 확인해 주세요.',live:'실시간 위치·후속역 도착정보 일치',onlySchedule:'실시간 위치 후보 · 진행 방향 미확인',directionUnknown:'일부 후보는 방향을 추가 확인해야 해요.',uncertain:'열차의 현재 위치만으로 이전에 하차역을 통과했다고 확정할 수 없습니다. 열차번호를 신중히 확인해 주세요.',scheduled:'최근 확인 위치',dateNote:'하차 후 30분 이내 검색 가능 · 정거장당 약 2분은 임시 추정값이에요.',noApi:'시간표 대신 실시간 위치·도착정보만 사용합니다.',arrivalGap:'하차역부터',fastTime:'하차한 지',fastMin:'분',expressText:'급행 경로 미검증'},
+en:{outsideLiveWindow:'You can only search live train positions within 30 minutes of getting off.',looking:'Checking live train positions…',none:'No train matches live-position evidence. Please check the alighting time.',live:'Live position corroborated by downstream arrival',onlySchedule:'Live position candidate · direction unverified',directionUnknown:'Some candidates still lack direction confirmation.',uncertain:'A current location alone cannot prove the train previously passed your station.',scheduled:'Last reported station',dateNote:'Search within 30 minutes; ~2 minutes per stop is a preliminary estimate.',noApi:'Uses only real-time train positions and arrival data.',arrivalGap:'Stops since alighting',fastTime:'Alighted',fastMin:'min ago',expressText:'Express route unverified'},
+ja:{outsideLiveWindow:'下車後30分以内の列車のみ、リアルタイム位置を検索できます。',looking:'リアルタイム位置を確認中…',none:'候補が見つかりません。下車時刻をご確認ください。',live:'現在位置と後続駅到着情報が一致',onlySchedule:'位置情報による候補・方向未確認',directionUnknown:'一部の進行方向は未確認です。',uncertain:'現在位置だけでは以前の通過駅を確定できません。',scheduled:'最新確認駅',dateNote:'下車後30分以内が対象。駅間約2分は暫定値です。',noApi:'時刻表ではなく現在位置から推定します。',arrivalGap:'下車駅から',fastTime:'下車から',fastMin:'分',expressText:'急行経路未確認'},
+zh:{outsideLiveWindow:'仅可查询下车后30分钟内的列车实时位置。',looking:'正在核对实时列车位置…',none:'没有匹配的实时列车，请核对下车时间。',live:'实时位置与后续到站数据吻合',onlySchedule:'实时位置候选·方向未核实',directionUnknown:'部分候选方向待确认。',uncertain:'仅凭当前位置不能证明列车此前经过下车站。',scheduled:'最近报告车站',dateNote:'仅支持下车后30分钟内查询；每站约2分钟为初步估计。',noApi:'不使用时刻表，仅依靠实时数据。',arrivalGap:'下车站之后',fastTime:'下车前',fastMin:'分钟',expressText:'快车线路待核实'}
 };
 
 const korea=(minutesAgo=0)=>{
@@ -33,21 +34,10 @@ const compareNo=x=>String(x||'').replace(/^0+(?=\d)/,'');
 // the complete line-8 topology used by train-lost.js.
 const selectableLine8=new Set(stationMaster.filter(s=>s.line==='8').map(s=>trainStationKey('8',s.names.ko)));
 const selectableAlightingStation=(line,name)=>String(line)!=='8'||selectableLine8.has(trainStationKey('8',name));
-function kstAlightDateForTime(time){
- const today=korea().date;
- const todayMs=Date.parse(today+'T'+time+':00+09:00');
- const now=Date.now();
- if(todayMs>now+60000){
-  const yesterday=korea(1440).date;
-  const yesterdayMs=Date.parse(yesterday+'T'+time+':00+09:00');
-  if(now-yesterdayMs>=-120000&&now-yesterdayMs<=30*60000)return yesterday;
- }
- return today;
-}
 function validLocation(candidate,p,selection,next,when){
  if(!candidate||!p||compareNo(p.trainNo)!==compareNo(candidate.number))return false;
  const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
- if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000)return false;
+ if(!isWithinLiveWindow(elapsed))return false;
  if(String(candidate.live.direction)!==String(p.direction))return false;
  if(String(p.direction)!==expectedLiveDirection(selection.line,selection.name,next))return false;
  const route=followStops(selection.line,selection.name,next,38);
@@ -116,8 +106,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    const isCurrent=()=>token===requestId.current;
    if(!supportsStation(selection.line,selection.name)||!next||!when.time){setError(t.emptyQuery);return;}
    const elapsed=Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00');
-   if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000){
-     setError('하차 후 30분 이내의 최근 열차만 실시간 위치로 검색할 수 있어요.');
+   if(!isWithinLiveWindow(elapsed)){
+     setError('OUTSIDE_LIVE_WINDOW');
      if(isCurrent()){setCandidates([]);setChosen(null);setSearched(true);}return;
    }
    trackedTrainRef.current='';setBusy(true);setSearched(true);setError('');setCandidates([]);setChosen(null);setCurrent(null);setDirectionWarning(false);setLookupStats(null);
@@ -275,7 +265,8 @@ export default function TrainLostFinder({lang='ko',active=true,defaultStation='�
    editing={editing} setEditing={setEditing} query={query} setQuery={setQuery} chooseStation={chooseStation}
    next={next} setNext={setNext} when={when} setWhen={setWhen} quickMin={quickMin} setQuickMin={setQuickMin}
    korea={korea} kstAlightDateForTime={kstAlightDateForTime} resetMatches={resetMatches}
-   busy={busy} error={error} candidates={candidates} chosen={chosen} current={current} searched={searched}
+   busy={busy} error={error==='OUTSIDE_LIVE_WINDOW'?t.outsideLiveWindow:error}
+   timeWindowError={error==='OUTSIDE_LIVE_WINDOW'} candidates={candidates} chosen={chosen} current={current} searched={searched}
    lookupStats={lookupStats} directionWarning={directionWarning} pick={pick} livePositions={livePositions}
    liveFetchedAt={liveFetchedAt} onLiveSnapshot={onLiveSnapshot} onSearch={startSearch} onBack={returnToForm}
    onNone={chooseUnknown} onContinue={confirmCandidate} onBackToResults={returnToResults} carNumber={carNumber}

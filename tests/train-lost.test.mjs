@@ -11,7 +11,12 @@ const graph=JSON.parse(await readFile(new URL('../app/data/trainLostGraph.json',
 const directions=JSON.parse(await readFile(new URL('../app/data/trainLostDirection.json',import.meta.url),'utf8'));
 const source=await readFile(file,'utf8');
 const moduleUnderTest=new SourceTextModule(source,{identifier:file.href});
-await moduleUnderTest.link(specifier=>{
+await moduleUnderTest.link(async specifier=>{
+  if(specifier==='./train-lost-time'){
+    const timeModule=new SourceTextModule(await readFile(new URL('../app/lib/train-lost-time.js',import.meta.url),'utf8'));
+    await timeModule.link(()=>{throw Error('Unexpected time-module dependency');});
+    return timeModule;
+  }
   const fixture=specifier.endsWith('trainLostGraph.json')?graph:
     specifier.endsWith('trainLostDirection.json')?directions:null;
   if(!fixture)throw Error('Unexpected dependency: '+specifier);

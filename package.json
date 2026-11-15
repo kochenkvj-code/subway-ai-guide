@@ -13,7 +13,7 @@
     "test:feedback": "node --experimental-vm-modules --test tests/feedback.test.mjs",
     "test:feedback-flow": "node tests/feedback-flow.cjs",
     "test:keyboard-viewport": "node --test tests/v2-keyboard-viewport.test.mjs tests/v2-home-chat-handoff.test.mjs",
-    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs tests/train-lost-arrival.test.mjs tests/train-lost-form-layout.test.mjs",
+    "test:train-lost": "node --experimental-vm-modules --test tests/train-lost.test.mjs tests/train-lost-arrival.test.mjs tests/train-lost-form-layout.test.mjs tests/train-lost-time.test.mjs",
     "test:train-lost-ui": "node --experimental-vm-modules tests/train-lost-station-ui.cjs",
     "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
     "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs",
@@ -33,7 +33,8 @@
     "test:route-lab": "node --experimental-vm-modules --test tests/route-lab.test.mjs",
     "test:facility-i18n": "node --experimental-vm-modules --test tests/facility-i18n.test.mjs",
     "test:station-names": "node --experimental-vm-modules --test tests/station-directory.test.mjs tests/arrival-test-localize.test.mjs",
-    "test:station-names-ui": "node --experimental-vm-modules tests/station-names-ui.cjs"
+    "test:station-names-ui": "node --experimental-vm-modules tests/station-names-ui.cjs",
+    "test:train-lost-window-ui": "node tests/train-lost-window-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",

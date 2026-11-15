@@ -2,6 +2,7 @@
 // This module deliberately does not use scheduled train times.
 import graph from '../data/trainLostGraph.json';
 import directions from '../data/trainLostDirection.json';
+import {isWithinLiveWindow} from './train-lost-time';
 
 const clean=value=>String(value||'').trim().replace(/역$/,'');
 // Keep the existing graph/direction data intact; these verified line-4 names
@@ -148,7 +149,7 @@ export function reachableTrainStations(line,origin,next,limit=38){
 export function findLiveCandidates(positions,{date,time,line,station,next,now=Date.now(),arrivalEvidence=[]}){
   const alightedAt=minuteDate(date,time);
   const elapsed=now-alightedAt;
-  if(!Number.isFinite(elapsed)||elapsed< -120000||elapsed>30*60000)
+  if(!isWithinLiveWindow(elapsed))
     return {candidates:[],reason:'OUTSIDE_LIVE_WINDOW'};
   if(!stationNeighbors(line,station).includes(trainStationKey(line,next)))
     return {candidates:[],reason:'INVALID_DIRECTION'};

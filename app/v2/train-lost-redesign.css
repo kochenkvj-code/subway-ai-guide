@@ -1265,3 +1265,6 @@
     font-size:10px;
   }
 }
+
+/* Center only the localized live-window validation message. */
+.tf-warning.tl-time-window-error{text-align:center}

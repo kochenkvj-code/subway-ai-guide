@@ -50,7 +50,7 @@ const flowCopy={
 export default function TrainLostUI(p){
  const {lang='ko',t,active,demoMode,selection,selectionLabel,lines,neighbors,requiredDirection,matches,
  editing,setEditing,query,setQuery,chooseStation,next,setNext,when,setWhen,quickMin,setQuickMin,korea,kstAlightDateForTime,resetMatches,
- busy,error,candidates,chosen,current,searched,lookupStats,directionWarning,pick,livePositions,liveFetchedAt,onLiveSnapshot,
+ busy,error,timeWindowError,candidates,chosen,current,searched,lookupStats,directionWarning,pick,livePositions,liveFetchedAt,onLiveSnapshot,
  onSearch,onBack,onNone,onContinue,onBackToResults,carNumber,setCarNumber,thing,setThing,door,setDoor,place,setPlace,
  stage,onStageChange,handoffUnknown,message,sms,copyMessage,copyStatus,recommended,liveInfo}=p;
  const u=dictionary[lang]||dictionary.ko;
@@ -67,7 +67,7 @@ export default function TrainLostUI(p){
   !door&&v.requiredDoor
  ].filter(Boolean);
  const canSearch=missingRequired.length===0;
- const manualElapsed=Math.round((Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00'))/60000);
+ const manualElapsed=Math.floor((Date.now()-Date.parse(when.date+'T'+when.time+':00+09:00'))/60000);
  const sliderMinutes=quickMin===null?(Number.isFinite(manualElapsed)?Math.max(0,Math.min(30,manualElapsed)):5):quickMin;
  const pickElapsed=n=>{setQuickMin(n);setWhen(korea(n));resetMatches();};
  const way=next?localized(next,selection.line,lang):'';
@@ -188,7 +188,7 @@ export default function TrainLostUI(p){
   </>}
   {stage==='results'&&<>
    {busy&&<div className="tl-searching" role="status"><div className="tl-spinner"/><div><strong>{u.searching}</strong><p>{u.searchingInfo}</p></div></div>}
-   {error&&<div className="tf-warning" role="alert">{error}</div>}
+   {error&&<div className={'tf-warning'+(timeWindowError?' tl-time-window-error':'')} role="alert">{error}</div>}
    {searched&&!error&&!busy&&<div className="tl-live-map-main">
     <TrainLiveDiagram alightingTime={displayTime} line={selection.line} station={selection.name} next={next} lang={lang} positions={livePositions} fetchedAt={liveFetchedAt} candidates={candidates} selected={chosen} active={active} demo={demoMode} onSnapshot={onLiveSnapshot} onPick={pick}/>
    </div>}
