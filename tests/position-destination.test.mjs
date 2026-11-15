@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {positionDestination} from '../app/arrival-test/position/destination.js';
-const data=JSON.parse(fs.readFileSync('app/data/subwayStations.json'));
-const source=fs.readFileSync('app/lib/stationNameI18n.js','utf8').replace('import rawData from "../data/subwayStations.json";',`const rawData=${JSON.stringify(data)};`);
-const {stationName}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+import {loadAppModule} from './helpers/load-app-module.mjs';
+const data=JSON.parse(fs.readFileSync('app/data/seoulMetroOfficialStations.json'));
+const {stationName}=await loadAppModule('app/lib/stationNameI18n.js');
 test('actual line 2 provider labels retain station name and service qualifier',()=>{
  assert.deepEqual(positionDestination('성수종착','en',stationName),{name:'Seongsu',qualifier:'Terminus',bound:'Seongsu',full:'Seongsu · Terminus'});
  assert.equal(positionDestination('성수지선','en',stationName).full,'Seongsu · Branch');
@@ -13,8 +13,8 @@ test('actual line 2 provider labels retain station name and service qualifier',(
  }
 });
 test('registered station destinations and unknown originals are preserved',()=>{
- for(const lang of ['en','ja','zh'])for(const name of Object.keys(data.stations))assert.equal(positionDestination(name,lang,stationName).name,stationName(name,lang));
- assert.equal(positionDestination('미등록행선지','en',stationName).name,'Destination unavailable');
+ for(const lang of ['en','ja','zh'])for(const {ko:name} of data)assert.equal(positionDestination(name,lang,stationName).name,stationName(name,lang));
+ assert.equal(positionDestination('미등록행선지','en',stationName).name,'미등록행선지');
 });
 
 test('line 6 Eungam loop destination labels are localized',()=>{

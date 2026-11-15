@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef} from 'react';
-import {stationName,lineName,destinationForApi} from '../lib/stationNameI18n';
+import {stationLabelResult,stationName,lineName} from '../lib/stationNameI18n';
 import {trainStationDisplay} from '../lib/train-lost';
 import {trainLostDestination} from '../lib/train-lost-destination.mjs';
 import TrainLiveDiagram from './TrainLiveDiagram';
@@ -79,7 +79,7 @@ export default function TrainLostUI(p){
   return trainLostDestination({
    line:selection.line,raw,direction:live?.direction??requiredDirection,
    station:live?.station||c.station,lang
-  },name=>{const value=trainStationDisplay(selection.line,name);return destinationForApi(value)?stationName(value,lang,false):'';});
+  },name=>{const value=trainStationDisplay(selection.line,name);return stationLabelResult(value,lang,{line:selection.line});});
  };
  const candidateTerminus=c=>candidateDestination(c).value;
  const chosenTerminus=chosen?candidateTerminus(chosen):'';

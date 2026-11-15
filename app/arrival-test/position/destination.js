@@ -36,12 +36,11 @@ export function positionDestination(raw,lang,stationName,line,direction){
  if(match&&stationName(match[1],lang==='ko'?'en':lang,false)){
   base=match[1].trim();qualifier=qualifiers[match[2]||match[3]][lang];
  }
- // Unknown labels stay readable in the original language, never a long error label.
+ // A missing translation is not a missing API destination. Preserve the source
+ // wording instead of replacing a real terminus with an unavailable notice.
  const translated=lang==='ko'?base:stationName(base,lang,false);
  if(lang!=='ko'&&!translated&&/[가-힣]/.test(base)){
-  // Unknown source wording is available unchanged in the raw JSON.
-  const unavailable={en:'Destination unavailable',ja:'行先未登録',zh:'终点未登记'}[lang];
-  return {name:unavailable,qualifier:'',bound:unavailable,full:unavailable};
+  return {name:original,qualifier:'',bound:original,full:original};
  }
  const name=translated||original;
  const bound=lang==='ko'?name+'행':lang==='ja'?name+'行き':lang==='zh'?'开往'+name:name;

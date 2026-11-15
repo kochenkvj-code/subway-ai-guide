@@ -1,4 +1,4 @@
-import official from "../data/seoulMetroOfficialStations.json";
+import {officialStationRecords as official, stationLabelResult} from "./station-directory";
 const clean = value => String(value || "").normalize("NFC").trim().toLocaleLowerCase().replace(/[\s._·・･,，‘’'“”"\-‐‑–—:：()（）\[\]{}]/g, "");
 // Match Korean initial consonants locally; no additional API requests.
 const INITIALS = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
@@ -14,9 +14,8 @@ for (const station of official) {
   if (!byKo.has(station.ko)) byKo.set(station.ko, station);
 }
 export function officialStationName(ko, lang, fallback) {
-  if (lang === "ko") return ko;
-  const station = byKo.get(String(ko || "").trim());
-  return station?.[lang] || fallback(ko, lang);
+  const result = stationLabelResult(ko, lang);
+  return result.status === "translated" ? result.text : fallback(ko, lang);
 }
 export function officialStationMatches(query, lang, limit = 50) {
   const q = clean(query);

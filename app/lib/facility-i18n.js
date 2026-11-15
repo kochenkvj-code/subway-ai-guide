@@ -1,17 +1,14 @@
 import dictionary from '../data/facility-i18n.json';
-import stations from '../data/subwayStations.json';
+import {stationPhraseLabels, stationLabelResult} from './station-directory';
 
 const languages=['en','ja','zh'];
 const hangul=/[가-힣ㄱ-ㅎㅏ-ㅣ]/;
 const ordered=object=>Object.keys(object).sort((a,b)=>b.length-a.length);
 const places=ordered(dictionary.places),relations=ordered(dictionary.relations);
 const stationLabels=new Map();
-for(const [name,item]of Object.entries(stations.stations)){
- for(const alias of [name,item.ko,...(item.aliases_ko||[])]){
-  if(!alias)continue;
-  for(const label of [alias,alias.replace(/역$/,'')]){
-   if(!stationLabels.has(label))stationLabels.set(label,item);
-  }
+for(const alias of stationPhraseLabels){
+ for(const label of [alias,alias.replace(/역$/,'')]){
+  if(!stationLabels.has(label))stationLabels.set(label,alias);
  }
 }
 const stationKeys=[...stationLabels.keys()].sort((a,b)=>b.length-a.length);
@@ -73,7 +70,8 @@ export function translateFacilityText(value,lang='ko',field='location'){
    if(place){out.push(dictionary.places[place][lang]);pos+=place.length;continue;}
    const station=stationKeys.find(key=>rest.startsWith(key)&&(key.endsWith('역')||/^(?:역)?(?:방면|방향|측|쪽|연결통로|B|지하|[()（）,，/·]|$)/.test(rest.slice(key.length).replace(/\s/g,''))));
    if(station){
-    const entry=stationLabels.get(station),label=entry[lang]||entry.en;
+    const result=stationLabelResult(stationLabels.get(station),lang);
+    const label=result.status==='translated'?result.text:'';
     if(!label||hangul.test(label)){failed=true;return '';}
     out.push(label);pos+=station.length;
     if(!station.endsWith('역')){const suffix=input.slice(pos).match(/^\s*역/);if(suffix)pos+=suffix[0].length;}

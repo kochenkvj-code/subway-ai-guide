@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createArrivalLocalizer} from '../app/arrival-test/localize.js';
+import {loadAppModule} from './helpers/load-app-module.mjs';
 // Load the existing production name resolver with its exact checked-in dataset.
-const data=JSON.parse(fs.readFileSync(new URL('../app/data/subwayStations.json',import.meta.url)));
-const source=fs.readFileSync(new URL('../app/lib/stationNameI18n.js',import.meta.url),'utf8').replace('import rawData from "../data/subwayStations.json";',`const rawData=${JSON.stringify(data)};`);
-const {stationName}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const data=JSON.parse(fs.readFileSync(new URL('../app/data/seoulMetroOfficialStations.json',import.meta.url)));
+const {stationName}=await loadAppModule('app/lib/stationNameI18n.js');
 const translate=createArrivalLocalizer(stationName);
 test('all registered destinations use the existing multilingual directory',()=>{
- for(const lang of ['en','ja','zh'])for(const ko of Object.keys(data.stations)){
+ for(const lang of ['en','ja','zh'])for(const {ko} of data){
  const result=translate(ko+'행',lang);assert.ok(!/[가-힣]/.test(result),lang+': '+result);assert.ok(result.includes(stationName(ko,lang,false)));
  }
 });

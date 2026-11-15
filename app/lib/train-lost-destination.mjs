@@ -1,3 +1,5 @@
+import {positionDestination} from '../arrival-test/position/destination.js';
+
 // Reuse the display conventions of the home-screen TrainSummary:
 // a documented terminus takes priority; Line 2 circle trains add the
 // verified inner/outer loop direction rather than inventing a station.
@@ -16,6 +18,19 @@ const LOOP_SUFFIX={
 };
 export function trainLostDestination({line,raw,direction,station,lang='ko'},translate){
  const original=String(raw??'').trim();
+ const lookup=name=>{
+  const result=typeof translate==='function'?translate(name):null;
+  if(result&&typeof result==='object')return result.status==='translated'?result.text:'';
+  return typeof result==='string'&&!['Station name unavailable','駅名未登録','暂无车站译名'].includes(result)?result:'';
+ };
+ const result=(kind,value,text,status)=>({kind,value,text,status,raw:original});
+ // Use the existing home-screen service formatter; do not interpret these
+ // operating labels as ordinary station names or discard their qualifiers.
+ if((Number(line)===6&&/^응암\s*순환(?:\s*\(\s*(상선|하선)\s*\))?(?:행)?$/.test(original))||
+    (Number(line)===2&&/지선$/.test(original))){
+  const formatted=positionDestination(original,lang,lookup,line,direction);
+  return result('service',formatted.name,formatted.full,formatted.full===original&&lang!=='ko'?'untranslated':'translated');
+ }
  // Seoul API may return '성수(내선)', '성수순환', or a direction-only label.
  const stationPart=original.replace(/\s*[（(]\s*(?:내선|외선|순환|종착역?)\s*[)）]\s*$/,'')
   .replace(/\s*(?:내선|외선)순환\s*$/,'')
@@ -25,17 +40,22 @@ export function trainLostDestination({line,raw,direction,station,lang='ko'},tran
   !BRANCH_STATIONS.has(String(station??'').trim().replace(/역$/,'')) &&
   !JUNCTION_STATIONS.has(String(station??'').trim().replace(/역$/,''));
  const dir=String(direction);
- const documented=stationPart && !/^(내선|외선)$/.test(stationPart) && typeof translate==='function'
-   ?translate(stationPart):'';
- if(documented && !['Station name unavailable','駅名未登録','暂无车站译名'].includes(documented)){
+ const documented=stationPart && !/^(내선|외선)$/.test(stationPart)?lookup(stationPart):'';
+ if(documented){
   if(isMain && stationPart==='성수' && LOOP_SUFFIX[dir]){
-   return {kind:'terminus',value:documented,text:documented+LOOP_SUFFIX[dir][lang]};
+   return result('terminus',documented,documented+LOOP_SUFFIX[dir][lang],'translated');
   }
-  return {kind:'terminus',value:documented,
-   text:lang==='en'?'To '+documented:documented+(lang==='ko'?'행':lang==='ja'?'行':'方向')};
+  return result('terminus',documented,
+   lang==='en'?'To '+documented:documented+(lang==='ko'?'행':lang==='ja'?'行':'方向'),'translated');
+ }
+ // Unrecognized, nonempty API wording remains the source destination. Never
+ // infer a different terminus from the current station or dictionary coverage.
+ if(original&&!/^(?:(?:내선|외선)?순환|내선|외선)$/.test(original)){
+  return result('source',original,original,'untranslated');
  }
  if(isMain && LOOP[dir]){
-  return {kind:'loop',value:LOOP[dir][lang],text:LOOP[dir][lang]};
+  return result('loop',LOOP[dir][lang],LOOP[dir][lang],original?'translated':'missing');
  }
- return {kind:'unknown',value:null,text:UNKNOWN[lang]||UNKNOWN.ko};
+ if(original)return result('source',original,original,'untranslated');
+ return result('unknown',null,UNKNOWN[lang]||UNKNOWN.ko,'missing');
 }

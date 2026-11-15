@@ -435,19 +435,21 @@ test('Line 2 lost train labels follow home-screen terminus and inner-outer conve
  assert.equal(fmt({line:'2',raw:'성수(외선)',direction:'1',station:'을지로3가',lang:'en'},en).text,'Seongsu (Outer)');
  assert.equal(fmt({line:'2',raw:'성수순환',direction:'0',station:'시청',lang:'ko'},n=>n).text,'성수(내선)행');
  assert.equal(fmt({line:'2',raw:'',direction:'0',station:'을지로3가',lang:'en'},en).text,'Inner loop');
- assert.equal(fmt({line:'2',raw:'미등록역',direction:'1',station:'시청',lang:'en'},en).text,'Outer loop');
+ assert.equal(fmt({line:'2',raw:'미등록역',direction:'1',station:'시청',lang:'en'},en).text,'미등록역');
  assert.equal(fmt({line:'2',raw:'',direction:'1',station:'용답',lang:'en'},en).text,'Destination unknown');
  assert.equal(fmt({line:'2',raw:'신설동',direction:'0',station:'용답',lang:'en'},en).text,'To Sinseol-dong');
  assert.equal(fmt({line:'1',raw:'',direction:'0',station:'종로5가',lang:'en'},en).text,'Destination unknown');
 });
 
-test('unknown station tokens are never used as verified termini, even in Korean',async()=>{
+test('candidate and diagram separate translation lookup from API destination presence',async()=>{
  const [uiSrc,diagramSrc]=await Promise.all([
   readFile(new URL('../app/v2/TrainLostUI.jsx',import.meta.url),'utf8'),
   readFile(new URL('../app/v2/TrainLiveDiagram.jsx',import.meta.url),'utf8')
  ]);
- assert.match(uiSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
- assert.match(diagramSrc,/destinationForApi\(value\)\?stationName\(value,lang,false\):''/);
+ for(const src of [uiSrc,diagramSrc]){
+  assert.doesNotMatch(src,/destinationForApi/);
+  assert.match(src,/stationLabelResult\(value,lang,\{line/);
+ }
 });
 
 test('candidate switching uses cancellable animation and retains previous train context',async()=>{

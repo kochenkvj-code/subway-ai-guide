@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {trainDisplayPath,directionalPathToStation,expectedLiveDirection,trainStationKey,trainStationDisplay} from '../lib/train-lost';
-import {stationName,destinationForApi} from '../lib/stationNameI18n';
+import {stationLabelResult,stationName} from '../lib/stationNameI18n';
 import {trainLostDestination} from '../lib/train-lost-destination.mjs';
 
 const trainKey=value=>String(value||'').trim().replace(/^0+(?=\d)/,'');
@@ -59,7 +59,7 @@ export default function TrainLiveDiagram({line,station,next,lang='ko',positions=
  const focusedDestination=String(focusedPosition?.destination||'').replace(/(?:방면|행)$/,'').trim();
  const displayDestination=p=>trainLostDestination({
   line,raw:p?.destination,direction:p?.direction,station:p?.station,lang
- },name=>{const value=trainStationDisplay(line,name);return destinationForApi(value)?stationName(value,lang,false):'';});
+ },name=>{const value=trainStationDisplay(line,name);return stationLabelResult(value,lang,{line});});
  // Candidate position is the scroll target, never the end of the rendered line.
  // Extend onward to the terminus or the next unresolved branch.
  const path=useMemo(()=>trainDisplayPath(line,station,next,focusedStation,focusedDestination),[line,station,next,focusedStation,focusedDestination]);
