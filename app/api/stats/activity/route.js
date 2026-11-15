@@ -9,6 +9,19 @@ export async function POST(request) {
     if (!data || !uuid.test(data.page_id||"") || !uuid.test(data.session_id||"") || !Number.isSafeInteger(data.visible_ms) || data.visible_ms<0 || data.visible_ms>604800000) return new NextResponse(null,{status:400});
     if(data.visitor_id!=null&&(typeof data.visitor_id!=="string"||!uuid.test(data.visitor_id)))return new NextResponse(null,{status:400});
     const day=data.activity_date;
+    // Temporary read-only diagnostics for legacy clients; no IP, message, query or token logging.
+    if(day===undefined){
+      const safeUrl=value=>{try{const u=new URL(value);return {origin:u.origin,path:u.pathname};}catch{return null;}};
+      const referer=safeUrl(request.headers.get("referer")||"");
+      console.info("[stats/activity-legacy-origin]",{
+        session:data.session_id.slice(0,8),page:data.page_id.slice(0,8),
+        origin:safeUrl(request.headers.get("origin")||"")?.origin||null,
+        referer_origin:referer?.origin||null,referer_path:referer?.path||null,
+        server_host:safeUrl(request.url)?.origin||null,
+        server_commit:process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,12)||null,
+        visible_ms:data.visible_ms
+      });
+    }
     if(day!==undefined){
       const time=typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)?Date.parse(day+'T00:00:00+09:00'):NaN;
       const today=Date.parse(new Date(Date.now()+9*3600000).toISOString().slice(0,10)+'T00:00:00+09:00');

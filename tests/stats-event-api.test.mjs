@@ -6,7 +6,7 @@ import { estimateIpRegion } from '../app/lib/ip-region.mjs';
 class NextResponse extends Response{static json(value,init){return new NextResponse(JSON.stringify(value),init);}}
 async function fixture(file){
  const writes=[],logs=[];let fail=false;
- const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,console:{warn:(...v)=>logs.push(v),error:(...v)=>logs.push(v)}});
+ const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,process:{env:{VERCEL_GIT_COMMIT_SHA:'diagnostic-test-build'}},console:{info:(...v)=>logs.push(v),warn:(...v)=>logs.push(v),error:(...v)=>logs.push(v)}});
  const values={'next/server':{NextResponse},'../../../lib/stats-server':{authorized:()=>true,supabase:async(path,options)=>{if(fail)throw Error('Statistics database request failed: 503 (fixture)');writes.push({path,options});return path.startsWith('chatbot_events?')&&(!options||options.method!=='POST')?Response.json([]):new Response(null,{status:204});}},'../../../lib/facility-stat':{isFacilityContext:()=>false},'../../../lib/ip-region.mjs':{estimateIpRegion:(headers)=>headers.get('x-vercel-ip-city')||null},'../../../v2/lost-found-demo/seoul-gu-geo.json':{default:{features:[]}}};
  const mod=new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});await mod.link(name=>new vm.SyntheticModule(Object.keys(values[name]),function(){for(const[k,v]of Object.entries(values[name]))this.setExport(k,v)},{context}));await mod.evaluate();return {api:mod.namespace,writes,logs,fail:()=>fail=true};
 }
@@ -95,3 +95,33 @@ test('activity endpoint accepts old clients and routes dated checkpoints to the 
 
 test('browser visitor IDs survive event writes and reject malformed identifiers',async()=>{const f=await fixture('app/api/stats/event/route.js');const id='33333333-3333-4333-8333-333333333333';assert.equal((await f.api.POST(request({...data,visitor_id:id}))).status,204);assert.equal(JSON.parse(f.writes[0].options.body).visitor_id,id);assert.equal((await f.api.POST(request({...data,visitor_id:'bad'}))).status,400);});
 test('dated visitor activity uses v3 while preserving v1/v2 compatibility',async()=>{const f=await fixture('app/api/stats/activity/route.js');const day=new Date(Date.now()+9*3600000).toISOString().slice(0,10);const body={page_id:data.event_id,session_id:data.session_id,visible_ms:1000,activity_date:day,visitor_id:'33333333-3333-4333-8333-333333333333'};assert.equal((await f.api.POST(request(body))).status,204);assert.equal(f.writes[0].path,'rpc/record_chatbot_activity_v3');assert.equal(JSON.parse(f.writes[0].options.body).p_visitor_id,body.visitor_id);});
+
+
+test('temporary legacy diagnostics capture source without logging credentials or URL queries',async()=>{
+ const f=await fixture('app/api/stats/activity/route.js');
+ const body={page_id:data.event_id,session_id:data.session_id,visible_ms:15000};
+ const req={url:'https://app.test/api/stats/activity',headers:new Headers({origin:'https://app.test',referer:'https://app.test/legacy?secret=PRIVATE',authorization:'Bearer PRIVATE'}),json:async()=>body};
+ assert.equal((await f.api.POST(req)).status,204);
+ assert.equal(f.writes[0].path,'rpc/record_chatbot_activity');
+ assert.equal(f.logs.length,1);
+ const [tag,log]=f.logs[0];
+ assert.equal(tag,'[stats/activity-legacy-origin]');
+ assert.equal(log.session,data.session_id.slice(0,8));
+ assert.equal(log.page,data.event_id.slice(0,8));
+ assert.equal(log.origin,'https://app.test');
+ assert.equal(log.referer_path,'/legacy');
+ assert.equal(log.server_host,'https://app.test');
+ assert.equal(log.server_commit,'diagnostic-t');
+ assert.equal(JSON.stringify(f.logs).includes('PRIVATE'),false);
+ assert.equal(JSON.stringify(f.logs).includes(data.session_id),false);
+});
+test('temporary diagnostics leave modern activity silent and tolerate missing source headers',async()=>{
+ const f=await fixture('app/api/stats/activity/route.js');
+ const body={page_id:data.event_id,session_id:data.session_id,visible_ms:15000};
+ const day=new Date(Date.now()+9*3600000).toISOString().slice(0,10);
+ assert.equal((await f.api.POST(request({...body,activity_date:day}))).status,204);
+ assert.equal(f.logs.length,0);
+ assert.equal((await f.api.POST(request(body))).status,204);
+ assert.equal(f.logs[0][1].origin,null);
+ assert.equal(f.logs[0][1].server_host,null);
+});
