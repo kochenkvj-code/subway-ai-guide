@@ -5,7 +5,7 @@ const STATIONS=[
  ['4131','삼전'],['4132','석촌고분'],['4133','석촌'],['4134','송파나루'],['4135','한성백제'],
  ['4136','올림픽공원'],['4137','둔촌오륜'],['4138','중앙보훈병원'],
 ];
-const nameKey=v=>String(v??'').normalize('NFKC').replace(/역$/,'').replace(/\s/g,'').trim();
+const nameKey=v=>String(v??'').normalize('NFKC').replace(/\([^)]*\)/g,'').replace(/역$/,'').replace(/\s/g,'').trim();
 const lineNine=v=>/^(?:0?9(?:호선)?|9호선(?:2|3)(?:단계)?|9호선2[·~\-]3단계)$/.test(String(v??'').replace(/\s/g,''));
 const text=v=>String(v??'').trim();
 let cache=null,inFlight=null;
