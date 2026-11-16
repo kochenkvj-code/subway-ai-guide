@@ -165,7 +165,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
          {['Y','N'].includes(s.stroller)&&<span className="sf-tag">{t.stroller} · {s.stroller==='Y'?t.yes:t.no}</span>}
          {s.provider&&<span className="sf-tag">{s.provider}</span>}
         </div>}
-        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}>{cat.id==='customerOffice'?t.officePhone:t.helpPhone} <span>{s.phone.replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
+        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}>{cat.id==='customerOffice'?t.officePhone:t.helpPhone} <span>{s.phone.replace(/^(02)(\d{3,4})(\d{4})$/, '$1-$2-$3').replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
        </article>;
       })}</div>
       {moreCount>0&&<button className="sf-more" type="button" onClick={()=>setExpanded(prev=>({...prev,[cat.id]:true}))}>{t.showMore} +{moreCount} ↓</button>}
