@@ -55,3 +55,11 @@
 .se-current-station[aria-expanded=true] .se-address-caret{transform:rotate(180deg)}
 .se-heading .se-current-station:hover{color:#234d35}
 .se-current-station .se-address-caret{flex:none;font-size:12px;color:#7a8e80}
+
+/* The station chooser has one scrollable viewport. A second scrolling dialog
+   can trap momentum and clip the last cards in mobile Safari. */
+.se-dialog[open]{box-sizing:border-box;display:flex;flex-direction:column;height:min(84dvh,740px);max-height:calc(100dvh - 24px);overflow:hidden}
+.se-dialog[open]>.se-heading,.se-dialog[open]>.se-filters,.se-dialog[open]>.se-line-filters{flex:0 0 auto}
+.se-dialog[open]>.se-addresses:not([hidden]){flex:0 1 auto;min-height:0;max-height:32dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.se-dialog[open]>.se-options{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-content:start;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.se-dialog[open]:has(.se-addresses:not([hidden]))>.se-options{max-height:none}
