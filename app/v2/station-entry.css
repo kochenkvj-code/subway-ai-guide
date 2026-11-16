@@ -60,9 +60,19 @@
    can trap momentum and clip the last cards in mobile Safari. */
 .se-dialog[open]{box-sizing:border-box;display:flex;flex-direction:column;height:fit-content;max-height:min(84dvh,740px);overflow:hidden}
 .se-dialog[open]>.se-heading,.se-dialog[open]>.se-filters,.se-dialog[open]>.se-line-filters{flex:0 0 auto}
-.se-dialog[open]>.se-addresses:not([hidden]){flex:0 0 auto;min-height:0;max-height:min(36dvh,300px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.se-dialog[open]>.se-addresses:not([hidden]){flex:0 0 auto;min-height:0;max-height:none;overflow:visible}
 .se-dialog[open]>.se-options{flex:0 1 auto;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-content:start;padding-bottom:6px}
 .se-dialog[open]:has(.se-addresses:not([hidden]))>.se-options{max-height:none}
 
-/* Short viewports keep the first URL visible and preserve space to select stations. */
-@media(max-height:650px){.se-dialog[open]>.se-addresses:not([hidden]){max-height:min(21dvh,140px)}}
+/* Expanded station URLs stay completely visible; only the station cards scroll. */
+.se-dialog[open]:has(.se-addresses:not([hidden])){max-height:min(92dvh,760px)}
+.se-dialog[open]:has(.se-addresses:not([hidden])) .se-filters{margin-top:10px;margin-bottom:10px}
+.se-dialog[open]:has(.se-addresses:not([hidden])) .se-line-filters{margin-bottom:8px}
+.se-dialog[open]>.se-addresses:not([hidden]) .se-url{margin:8px 0}
+.se-dialog[open]>.se-addresses:not([hidden]){margin-top:6px}
+/* Short phones: show both address rows without collapsing the station list. */
+@media(max-height:650px){
+ .se-dialog[open]:has(.se-addresses:not([hidden])){max-height:calc(100dvh - 12px)}
+ .se-dialog[open]:has(.se-addresses:not([hidden])) .se-filters{margin-top:6px;margin-bottom:6px}
+ .se-dialog[open]:has(.se-addresses:not([hidden])) .se-line-filters{margin-bottom:5px}
+}
