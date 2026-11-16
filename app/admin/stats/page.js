@@ -29,6 +29,21 @@ const screenTime = ms => { if(ms == null)return "미측정"; const seconds=Math.
 const countryLabels = {KR:"한국",JP:"일본",HK:"홍콩",SG:"싱가포르",US:"미국",CN:"중국",TW:"대만"};
 const timeKst = (value) => new Intl.DateTimeFormat("ko-KR",{timeZone:KST,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(new Date(value));
 const card = {background:"#fff",border:"1px solid #dce5e9",borderRadius:14,padding:18};
+const groupSessions = rows => {
+    const groups = new Map();
+    for (const event of rows) {
+      // Legacy events have no session ID; never infer identity from country/device/time.
+      const key = event.session_id || "legacy-" + event.id;
+      if (!groups.has(key)) groups.set(key, {key,events:[]});
+      groups.get(key).events.push(event);
+    }
+    return [...groups.values()].map(group=>{
+      group.events.sort((a,b)=>new Date(eventTime(a))-new Date(eventTime(b)) || Number(a.id)-Number(b.id));
+      group.first=group.events[0];
+      group.last=group.events[group.events.length-1];
+      return group;
+    }).sort((a,b)=>new Date(eventTime(b.first))-new Date(eventTime(a.first)));
+};
 export default function StatsPage() {
   const [auth,setAuth] = useState(null),[password,setPassword] = useState(""),[error,setError] = useState("");
   const [analyticsExcluded,setAnalyticsExcluded] = useState(null);
@@ -54,6 +69,7 @@ export default function StatsPage() {
   const [refresh,setRefresh]=useState(0),[updatedAt,setUpdatedAt]=useState(null);
   const [pageSize,setPageSize] = useState(25);
   const [visitorFilter,setVisitorFilter]=useState("all"),[selectedVisitor,setSelectedVisitor]=useState(null);
+  const [visitorReport,setVisitorReport]=useState(null),[visitorBusy,setVisitorBusy]=useState(false),[visitorError,setVisitorError]=useState("");
   const [recordFilter,setRecordFilter] = useState("all");
   const [period,setPeriod] = useState("day"),[date,setDate] = useState(today),[rows,setRows] = useState([]),[busy,setBusy] = useState(false);
   useEffect(() => { fetch("/api/stats/auth",{cache:"no-store"}).then(r=>r.json()).then(v=>setAuth(!!v.authenticated)).catch(()=>setAuth(false)); },[]);
@@ -66,32 +82,34 @@ export default function StatsPage() {
     return ()=>{active=false;};
   },[auth,start,date,refresh]);
   useEffect(()=>{setRawPage(0);setQuestionPage(0);},[start,date]);
-  const aiQuestions = useMemo(()=>rows.filter(r=>r.event_type==="ai_question").sort((a,b)=>new Date(eventTime(b))-new Date(eventTime(a))),[rows]);
-  const sessionRows = useMemo(()=>{
-    const groups = new Map();
-    for (const event of rows) {
-      // Legacy events have no session ID; never infer identity from country/device/time.
-      const key = event.session_id || "legacy-" + event.id;
-      if (!groups.has(key)) groups.set(key, {key,events:[]});
-      groups.get(key).events.push(event);
-    }
-    return [...groups.values()].map(group=>{
-      group.events.sort((a,b)=>new Date(eventTime(a))-new Date(eventTime(b)) || Number(a.id)-Number(b.id));
-      group.first=group.events[0];
-      group.last=group.events[group.events.length-1];
-      return group;
-    }).sort((a,b)=>new Date(eventTime(b.first))-new Date(eventTime(a.first)));
-  },[rows]);
+  useEffect(()=>{
+    setVisitorReport(null);setVisitorError("");
+    if(!auth||!selectedVisitor){setVisitorBusy(false);return;}
+    const controller=new AbortController();setVisitorBusy(true);
+    fetch("/api/stats/report?"+new URLSearchParams({visitor:selectedVisitor}),{cache:"no-store",signal:controller.signal})
+      .then(async response=>{const result=await response.json();if(!response.ok)throw Error(result.error||"방문 기록을 불러오지 못했습니다.");return result;})
+      .then(result=>{if(!controller.signal.aborted)setVisitorReport({id:selectedVisitor,rows:result.rows||[],activity:result.activity||{}});})
+      .catch(error=>{if(!controller.signal.aborted)setVisitorError(error.message);})
+      .finally(()=>{if(!controller.signal.aborted)setVisitorBusy(false);});
+    return()=>controller.abort();
+  },[auth,selectedVisitor,refresh]);
+  const recordRows=selectedVisitor?(visitorReport?.id===selectedVisitor?visitorReport.rows:[]):rows;
+  const recordActivity=selectedVisitor?(visitorReport?.id===selectedVisitor?visitorReport.activity:{}):activity;
+  const rawSessionRows=useMemo(()=>groupSessions(recordRows),[recordRows]);
+  const rawVisitors=useMemo(()=>visitorSummaries(rawSessionRows,recordActivity),[rawSessionRows,recordActivity]);
+  const rawActiveSessions=rawSessionRows.filter(g=>g.events.some(isFunctionalEvent)).length;
+  const aiQuestions = useMemo(()=>recordRows.filter(r=>r.event_type==="ai_question").sort((a,b)=>new Date(eventTime(b))-new Date(eventTime(a))),[recordRows]);
+  const sessionRows = useMemo(()=>groupSessions(rows),[rows]);
   const activeSessions = useMemo(() => sessionRows.filter(group => group.events.some(isFunctionalEvent)).length, [sessionRows]);
   const accessOnlySessions = sessionRows.length - activeSessions;
   const visitors=useMemo(()=>visitorSummaries(sessionRows,activity),[sessionRows,activity]);
   const unidentified=sessionRows.filter(g=>!g.events.some(e=>e.visitor_id)).length;
-  const visibleSessions=useMemo(()=>sessionRows.filter(group=>{
+  const visibleSessions=useMemo(()=>rawSessionRows.filter(group=>{
     if(recordFilter==='functional'&&!group.events.some(isFunctionalEvent)||recordFilter==='accessOnly'&&group.events.some(isFunctionalEvent))return false;
-    const id=group.events.find(e=>e.visitor_id)?.visitor_id,visitor=visitors.get(id);
+    const id=group.events.find(e=>e.visitor_id)?.visitor_id,visitor=rawVisitors.get(id);
     if(selectedVisitor&&id!==selectedVisitor)return false;
     return visitorFilter==='all'||visitorFilter==='repeat'&&visitor?.sessions>=2||visitorFilter==='short'&&visitor?.shortSessions>=3;
-  }),[sessionRows,recordFilter,selectedVisitor,visitorFilter,visitors]);
+  }),[rawSessionRows,recordFilter,selectedVisitor,visitorFilter,rawVisitors]);
   useEffect(()=>setRawPage(0),[visitorFilter,selectedVisitor]);
   const pageCount = Math.max(1,Math.ceil(visibleSessions.length/pageSize));
   const stats=useMemo(()=>{
@@ -140,12 +158,12 @@ export default function StatsPage() {
         </section>
         <section style={{...card,marginBottom:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12}}><h2 style={{fontSize:17}}>AI 질문 기록 · {aiQuestions.length}건</h2><div><button disabled={questionPage===0} onClick={()=>setQuestionPage(p=>p-1)}>이전</button> {questionPage+1} / {Math.max(1,Math.ceil(aiQuestions.length/25))} <button disabled={(questionPage+1)*25>=aiQuestions.length} onClick={()=>setQuestionPage(p=>p+1)}>다음</button></div></div>
-          <p style={{fontSize:12,color:"#687c82"}}>위 조회 기간 기준 · 최신순 · 질문 시각(KST) · 과거 질문 원문은 복구할 수 없습니다.</p>
+          <p style={{fontSize:12,color:"#687c82"}}>{selectedVisitor?"선택한 방문의 전체 기간":"위 조회 기간 기준"} · 최신순 · 질문 시각(KST) · 과거 질문 원문은 복구할 수 없습니다.</p>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,textAlign:"left"}}><thead><tr><th>질문 시각 (KST)</th><th>언어 / 세션</th><th>질문 내용</th></tr></thead><tbody>{aiQuestions.slice(questionPage*25,(questionPage+1)*25).map(q=><tr key={q.id}><td style={{padding:"8px 4px",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(q))}</td><td style={{padding:8,verticalAlign:"top"}}>{langs[q.language]||q.language}<br/>{q.session_id?.slice(0,8)||"미확인"}</td><td style={{padding:8,whiteSpace:"pre-wrap",overflowWrap:"anywhere",borderBottom:"1px solid #edf1f2"}}>{q.question||"내용 미수집 (기존 기록)"}</td></tr>)}</tbody></table>{!aiQuestions.length&&<p>해당 기간 AI 질문이 없습니다.</p>}
         </section>
         <section style={{...card,marginTop:14}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
-            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>조회 기간 내 {sessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {activeSessions.toLocaleString()}개 · 목록 {visibleSessions.length.toLocaleString()}개 · 최근 접속순 · {pageSize}개씩 표시</p></div>
+            <div><h2 style={{fontSize:16,margin:0}}>접속·이용 기록 (Raw Data)</h2><p style={{fontSize:12,color:"#687c82",margin:"5px 0 0"}}>{selectedVisitor?"선택한 방문의 전체 기간":"조회 기간 내"} {rawSessionRows.length.toLocaleString()}개 세션 기록 · 기능 이용 {rawActiveSessions.toLocaleString()}개 · 목록 {visibleSessions.length.toLocaleString()}개 · 최근 접속순 · {pageSize}개씩 표시</p></div>
             <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
               <label>기록 <select aria-label="기록 필터" value={recordFilter} onChange={e=>{setRecordFilter(e.target.value);setRawPage(0);}} style={{padding:7,border:"1px solid #ccd9da",borderRadius:8,background:"#fff"}}><option value="functional">기능 이용만</option><option value="all">전체 기록</option><option value="accessOnly">접속·언어 변경만</option></select></label>
               <label>표시 <select aria-label="페이지당 기록 수" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setRawPage(0);}} style={{padding:7,border:"1px solid #ccd9da",borderRadius:8,background:"#fff"}}>{[10,25,50].map(n=><option key={n} value={n}>{n}개</option>)}</select></label>
@@ -157,17 +175,20 @@ export default function StatsPage() {
           <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:12,fontSize:12}}>
             <label>방문 <select aria-label="방문 필터" value={visitorFilter} onChange={e=>setVisitorFilter(e.target.value)}><option value="all">전체 방문</option><option value="repeat">재방문</option><option value="short">짧은 반복 접속</option></select></label>
             {selectedVisitor&&<button type="button" onClick={()=>setSelectedVisitor(null)}>방문 {selectedVisitor.slice(0,8)} 필터 해제 ×</button>}
-            <span>브라우저 기준 · 조회 기간 내 2개 이상 세션이면 재방문 · 15초 이하 세션 3회 이상이면 짧은 반복 접속</span>
+            <span>브라우저 기준 · {selectedVisitor?"전체 기간":"조회 기간 내"} 2개 이상 세션이면 재방문 · 15초 이하 세션 3회 이상이면 짧은 반복 접속</span>
           </div>
           <p style={{fontSize:11,color:'#687c82'}}>반복 접속은 이상 접속 판정이 아닙니다. 방문 ID 없는 과거 기록 {unidentified}개 세션은 방문 수·방문 조건 필터에서 제외됩니다. 같은 브라우저의 여러 탭을 공유하며, 30분간 활동이 없으면 새 세션이 시작됩니다.</p>
+          {selectedVisitor&&<p style={{fontSize:12,color:'#285d52'}}>상단 날짜 조건과 관계없이 이 방문 ID의 전체 기록을 표시합니다. 상단 통계·차트는 선택한 날짜 기준입니다.</p>}
+          {selectedVisitor&&visitorBusy&&<p role="status">방문 ID의 전체 기간 기록을 불러오는 중…</p>}
+          {selectedVisitor&&visitorError&&<p role="alert">{visitorError}</p>}
           <div role="region" aria-label="접속·이용 기록 목록" tabIndex={0} style={{border:"1px solid #e3eaed",borderRadius:10,overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"separate",borderSpacing:0,fontSize:12,textAlign:"left"}}>
               <thead><tr>{["접속시간 (KST)","국가","접속지역","기기 / 환경","활동 내역 (시간순)"].map(h=><th key={h} style={{padding:"10px 9px",borderBottom:"1px solid #dce5e9",color:"#61777f",whiteSpace:"nowrap",background:"#f1f6f6"}}>{h}</th>)}</tr></thead>
               <tbody>{visibleSessions.slice(rawPage*pageSize,(rawPage+1)*pageSize).map((group,rowIndex)=>{
-                const r=group.first;const visitorId=group.events.find(e=>e.visitor_id)?.visitor_id;const visitor=visitors.get(visitorId);
+                const r=group.first;const visitorId=group.events.find(e=>e.visitor_id)?.visitor_id;const visitor=rawVisitors.get(visitorId);
                 const functional = group.events.some(isFunctionalEvent);
                 return <tr key={group.key} style={{background:rowIndex%2?"#f8fbfb":"#fff"}}>
-                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{visitorId?<><button type="button" title={visitorId+' · 클릭하면 같은 방문의 기록만 표시'} onClick={()=>{setVisitorFilter('all');setSelectedVisitor(visitorId);}} style={{border:'1px solid #bfd8cd',borderRadius:5,background:'#eef6f1',color:'#285d43',fontSize:11,cursor:'pointer'}}>방문 {visitorId.slice(0,8)}</button><span> · 조회 기간 {visitor.sessions}개 세션</span><br/></>:<>방문 미확인<br/></>}{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(activity[r.session_id])}</div></td>
+                  <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{timeKst(eventTime(r))} <span style={{fontSize:10,color:functional?"#087f69":"#8b9398"}}>· {functional?"기능 이용":"접속만"}</span><div style={{color:"#819096",marginTop:3,fontSize:11}}>{visitorId?<><button type="button" title={visitorId+' · 클릭하면 이 방문의 전체 기간 기록 표시'} onClick={()=>{setVisitorFilter('all');setRecordFilter('all');setSelectedVisitor(visitorId);}} style={{border:'1px solid #bfd8cd',borderRadius:5,background:'#eef6f1',color:'#285d43',fontSize:11,cursor:'pointer'}}>방문 {visitorId.slice(0,8)}</button><span> · {selectedVisitor?"전체 기간":"조회 기간"} {visitor?.sessions||0}개 세션</span><br/></>:<>방문 미확인<br/></>}{r.session_id?"세션 "+r.session_id.slice(0,8):"이전 기록"} · {group.events.length}개 활동 · 화면 이용 {screenTime(recordActivity[r.session_id])}</div></td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{countryLabels[r.country]||r.country||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}} title="IP 기반 추정 위치 · 실제 접속 위치와 다를 수 있습니다.">{group.events.find(e=>e.ip_region)?.ip_region||"미확인"}</td>
                   <td style={{padding:"7px 9px",borderBottom:"1px solid #edf1f2",whiteSpace:"nowrap",verticalAlign:"top"}}>{r.device_type||"미확인"}<div style={{color:"#819096",marginTop:4,whiteSpace:"nowrap"}}>{[r.os_type,r.browser].filter(Boolean).join(" · ")||"미확인"}</div></td>
@@ -187,7 +208,7 @@ export default function StatsPage() {
                 </tr>;
               })}</tbody>
             </table>
-            {!visibleSessions.length&&<p style={{color:"#7a858d",fontSize:13}}>선택한 조건에 해당하는 기록이 없습니다.</p>}
+            {!visibleSessions.length&&!(selectedVisitor&&visitorBusy)&&!visitorError&&<p style={{color:"#7a858d",fontSize:13}}>선택한 조건에 해당하는 기록이 없습니다.</p>}
           </div>
           <p style={{fontSize:12,color:"#687c82",lineHeight:1.6,marginBottom:0}}>목록은 기본적으로 기능 이용 세션만 표시합니다. 전체 기록과 상단 통계는 그대로 보존됩니다. 화면 이용시간은 수집 시작 이후 같은 세션에서 화면이 보였던 누적 시간입니다. 화면 잠금·다른 앱이나 탭으로 이동한 시간은 제외하며, 실제로 읽었는지까지 확인하지는 않습니다. 약 15초마다 저장하며 갑작스러운 종료나 통신 실패 시 일부 누락될 수 있습니다. 이전 기록은 미측정으로 표시합니다. 국가와 접속지역은 접속 IP 기반 추정치이며 실제 위치나 국적을 보장하지 않습니다. 과거 기록 및 위치정보가 없는 기록의 접속지역은 미확인으로 표시합니다. 질문 내용은 서비스 개선을 위해 저장되며 관리자만 조회합니다. 기록은 페이지를 새로 열 때 생성되는 임시 익명 세션별로 묶습니다. 과거 기록은 세션 ID가 없어 개별 표시됩니다. 이름·IP·기기 고유식별자는 저장하지 않습니다.</p>
         </section>

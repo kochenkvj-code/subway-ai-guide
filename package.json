@@ -17,7 +17,7 @@
     "test:train-lost-ui": "node --experimental-vm-modules tests/train-lost-station-ui.cjs",
     "test:tour": "node --experimental-vm-modules --test tests/tour-language-api.test.mjs tests/station-coordinates.test.mjs",
     "test:tour-ui": "node --experimental-vm-modules tests/tour-station-ui.cjs",
-    "test:stats": "node --experimental-vm-modules --test tests/stats-delivery.test.mjs tests/stats-event-api.test.mjs tests/stats-activity-reliability.test.mjs tests/browser-identity.test.mjs",
+    "test:stats": "node --experimental-vm-modules --test tests/stats-delivery.test.mjs tests/stats-event-api.test.mjs tests/stats-activity-reliability.test.mjs tests/browser-identity.test.mjs tests/stats-visitor-history.test.mjs",
     "test:stats-ui": "node tests/stats-recovery-ui.cjs",
     "generate:station-master": "node scripts/build-station-master.mjs",
     "test:station-master": "node --experimental-vm-modules --test tests/station-master.test.mjs",
@@ -36,7 +36,8 @@
     "test:station-names-ui": "node --experimental-vm-modules tests/station-names-ui.cjs",
     "test:train-lost-window-ui": "node tests/train-lost-window-ui.cjs",
     "test:station-office": "node --experimental-vm-modules --test tests/station-office-facility.test.mjs",
-    "test:station-office-ui": "node --experimental-vm-modules tests/station-office-ui.cjs"
+    "test:station-office-ui": "node --experimental-vm-modules tests/station-office-ui.cjs",
+    "test:stats-visitor-history-ui": "node tests/stats-visitor-history-ui.cjs"
   },
   "dependencies": {
     "next": "16.0.10",

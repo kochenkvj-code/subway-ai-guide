@@ -6,17 +6,21 @@ export async function GET(request) {
   if (!authorized(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const url = new URL(request.url);
+    const visitor=url.searchParams.get("visitor");
+    if(url.searchParams.has("visitor")&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitor||""))return NextResponse.json({error:"Invalid visitor"},{status:400});
     const start = url.searchParams.get("start");
     const end = url.searchParams.get("end");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(start || "") || !/^\d{4}-\d{2}-\d{2}$/.test(end || "") || start > end) return NextResponse.json({ error: "Invalid dates" }, { status: 400 });
-    const from = new Date(start + "T00:00:00+09:00");
-    const until = new Date(end + "T00:00:00+09:00");
-    until.setUTCDate(until.getUTCDate() + 1);
-    if (!Number.isFinite(+from) || !Number.isFinite(+until) || (+until - +from) / 86400000 > 93) return NextResponse.json({ error: "Maximum 93 days" }, { status: 400 });
+    if (!visitor && (!/^\d{4}-\d{2}-\d{2}$/.test(start || "") || !/^\d{4}-\d{2}-\d{2}$/.test(end || "") || start > end)) return NextResponse.json({ error: "Invalid dates" }, { status: 400 });
+    const from = visitor?null:new Date(start + "T00:00:00+09:00");
+    const until = visitor?null:new Date(end + "T00:00:00+09:00");
+    if(until)until.setUTCDate(until.getUTCDate() + 1);
+    if (!visitor && (!Number.isFinite(+from) || !Number.isFinite(+until) || (+until - +from) / 86400000 > 93)) return NextResponse.json({ error: "Maximum 93 days" }, { status: 400 });
     // PostgREST pages are limited; request in batches to avoid truncating results.
     const rows = [];
-    for (let offset = 0; offset < 100000; offset += 1000) {
-      const params = new URLSearchParams({ select: "id,session_id,visitor_id,created_at,event_type,event_name,language,country,ip_region,device_type,os_type,browser,context,occurred_at,question", or: "(and(occurred_at.gte." + from.toISOString() + ",occurred_at.lt." + until.toISOString() + "),and(occurred_at.is.null,created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + "))", order: "created_at.asc,id.asc", limit: "1000", offset: String(offset) });
+    for (let offset = 0; visitor || offset < 100000; offset += 1000) {
+      const params = new URLSearchParams({ select: "id,session_id,visitor_id,created_at,event_type,event_name,language,country,ip_region,device_type,os_type,browser,context,occurred_at,question", order: "created_at.asc,id.asc", limit: "1000", offset: String(offset) });
+      if(visitor)params.set("visitor_id","eq."+visitor);
+      else params.set("or","(and(occurred_at.gte." + from.toISOString() + ",occurred_at.lt." + until.toISOString() + "),and(occurred_at.is.null,created_at.gte." + from.toISOString() + ",created_at.lt." + until.toISOString() + "))");
       const response = await supabase("chatbot_events?" + params);
       const batch = await response.json();
       rows.push(...batch);
@@ -25,8 +29,18 @@ export async function GET(request) {
     const activity={};
     const sessionIds=[...new Set(rows.map(r=>r.session_id).filter(Boolean))];
     for(let i=0;i<sessionIds.length;i+=200){
+      if(visitor){
+        for(let offset=0;;offset+=1000){
+          const params=new URLSearchParams({select:"page_id,session_id,visible_ms",session_id:"in.("+sessionIds.slice(i,i+200).join(",")+")",order:"page_id.asc",limit:"1000",offset:String(offset)});
+          const response=await supabase("chatbot_session_activity?"+params);
+          const batch=await response.json();
+          for(const item of batch)activity[item.session_id]=(activity[item.session_id]||0)+Number(item.visible_ms);
+          if(batch.length<1000)break;
+        }
+      }else{
       const response=await supabase("rpc/get_chatbot_activity_range",{method:"POST",body:JSON.stringify({p_sessions:sessionIds.slice(i,i+200),p_start:start,p_end:end})});
       for(const item of await response.json()) activity[item.session_id]=Number(item.visible_ms);
+      }
     }
     return NextResponse.json({ rows, activity }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
