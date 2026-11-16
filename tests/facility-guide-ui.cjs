@@ -56,6 +56,14 @@ const assert=require('node:assert/strict');
     for(const [index,fields]of category.records.entries()){
      const record=section.locator('.sf-record').nth(index),text=await record.innerText();
      for(const [field,value]of Object.entries(fields)){
+      if(field==='name'){
+       assert.equal(await record.getAttribute('aria-label'),value);
+       if(value!==category.label){
+        const identifier=category.id==='locker'?value.split('·').slice(1).join('·').trim():value.match(/\d+$/)?.[0]||value;
+        assert.equal(await record.locator('.sf-record-name').innerText(),identifier,'category title and inline identifier retain the original facility identity');
+       }
+       continue;
+      }
       const visibleText=field==='name'&&value===category.label?await section.innerText():text;
       assert.ok(visibleText.includes(value),lang+' '+category.id+' '+index+' lost legacy '+field+': '+value);
      }
@@ -70,17 +78,28 @@ const assert=require('node:assert/strict');
    assert.equal(await toilet.locator('.sf-tag-restroom').count(),1);
    assert.equal(await scope.locator('.sf-contact span').first().evaluate(el=>getComputedStyle(el).fontSize),await scope.locator('.sf-tag').first().evaluate(el=>getComputedStyle(el).fontSize),'phone text matches information chips');
    if(lang!=='ko')assert.ok((await scope.innerText()).includes(({en:'Korean source',ja:'韓国語原文',zh:'韩文原文'})[lang]+': 미등록장소 3번 출입구 옆'));
-   for(const width of [320,390,768]){
+   for(const width of [320,390,768,1024]){
     await page.setViewportSize({width,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,lang+' '+width+' horizontal overflow');
     const clipped=await scope.locator('.sf-category,.sf-tag,.sf-filter,.sf-contact').evaluateAll(xs=>xs.filter(x=>x.scrollWidth>x.clientWidth+1).map(x=>x.textContent));
     assert.deepEqual(clipped,[],lang+' '+width+' clipped content');
+    const columns=await scope.locator('.sf-categories').evaluate(el=>getComputedStyle(el).columnCount);
+    if(width>=768)assert.equal(columns,'2',lang+' '+width+' tablet has two columns');
+    else assert.notEqual(columns,'2',lang+' '+width+' mobile remains one column');
    }
+   await page.setViewportSize({width:390,height:844});
+   await scope.evaluate(el=>el.scrollTo({top:500,behavior:'auto'}));
+   const sticky=await scope.locator('.sf-filter-scroll').evaluate(el=>({navTop:el.getBoundingClientRect().top,scopeTop:el.closest('.v2-facility-scope').getBoundingClientRect().top}));
+   assert.ok(Math.abs(sticky.navTop-sticky.scopeTop)<=1,lang+' facility filters stay at top of their scroll area');
+   await scope.locator('.sf-filter').filter({hasText:names[lang][2]}).click();
+   assert.equal(await scope.evaluate(el=>el.scrollTop),0,'filter selection returns to the start of the selected results');
+   await scope.locator('.sf-filter').filter({hasText:names[lang][2]}).click();
    for(const name of names[lang]){const filter=scope.locator('.sf-filter').filter({hasText:name});await filter.click();assert.equal(await scope.locator('.sf-category').count(),1);await filter.click()}
    assert.equal(await scope.locator('.sf-record').count(),14);
    await page.setViewportSize({width:390,height:844});
    await scope.locator('input').fill('6-1');assert.equal(await scope.locator('.sf-record').count(),1);
-   assert.ok((await scope.locator('.sf-record').innerText()).includes(names[lang][1]+' 04'),'a single search result keeps its original elevator number');
+   assert.equal(await scope.locator('.sf-record').getAttribute('aria-label'),names[lang][1]+' 04');
+   assert.equal(await scope.locator('.sf-record-name').innerText(),'04','a single search result keeps its original elevator number');
    await scope.locator('.sf-clear').click();assert.equal(await scope.locator('.sf-record').count(),14);
    await scope.locator('input').fill('1~19');assert.equal(await scope.locator('.sf-record').count(),1);
    assert.ok((await scope.locator('.sf-record-name').innerText()).includes('1~19'),'a single locker keeps its range');
@@ -91,9 +110,13 @@ const assert=require('node:assert/strict');
    await fs.mkdir('work/facility-redesign/production-ui',{recursive:true});
    await page.screenshot({path:'work/facility-redesign/production-ui/'+lang+'.png'});
    await scope.locator('.sf-record').last().scrollIntoViewIfNeeded();assert.ok(await scope.locator('.sf-record').last().isVisible());
-   checks.push(lang+': all pre-redesign information retained across 14 records; facility and locker numbers remain after search; toilet details in a chip; phone matches chip text; 7 filters, 320/390/768px');
+   checks.push(lang+': legacy information retained across 14 records; stable inline identifiers; phone/chips at 11px; sticky filters; filter scroll reset; 320/390px single column, 768/1024px two columns');
   }
   await page.goto('http://localhost:3106/v2?station=0154&view=facility&lang=en');await allVisible();checks.push('existing /v2 entry uses the same complete facility guide');
+  await page.setViewportSize({width:1024,height:1000});
+  assert.ok(await page.locator('.v2-workspace').evaluate(el=>el.getBoundingClientRect().width>850),'active tablet facilities use the approved wide layout');
+  await page.goto('http://localhost:3106/v2?station=0154&view=route&lang=en');await page.locator('#rl-destination').waitFor();
+  assert.ok(await page.locator('.v2-workspace').evaluate(el=>el.getBoundingClientRect().width<=620),'other tools keep the existing width');
   await page.goto('http://localhost:3106/v2/facilities-demo');await allVisible();assert.ok(await page.locator('.sf-hero').isVisible());checks.push('standalone facility page');
   await page.setViewportSize({width:1440,height:1000});
   await page.goto('http://localhost:3106/wide?station=0154');await page.locator('.wide-menu-grid').waitFor();

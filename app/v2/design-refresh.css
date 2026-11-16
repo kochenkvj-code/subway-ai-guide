@@ -212,10 +212,8 @@
 .v2-design-refresh .v2-chat-pane .sag-input-wrap{flex-shrink:0}
 .v2-design-refresh .v2-chat-pane .sag-input-wrap input{font-size:16px}
 
-/* Embedded facilities already have a workspace title; start with station and search. */
-.v2-design-refresh .v2-facility-scope.sf-compact .sf-page{padding:10px 14px 24px}
+/* Embedded facilities own their page and sticky-filter spacing. */
 .v2-design-refresh .sf-compact .sf-station-row{margin-bottom:10px}
-.v2-design-refresh .sf-compact .sf-filter-scroll{margin:10px 0;padding:0;gap:6px}
 .v2-design-refresh .sf-compact .sf-search input{font-size:16px}
 
 /* Match the established chat typography; use one compact spacing rhythm. */

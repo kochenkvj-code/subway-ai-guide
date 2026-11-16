@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {recordStat} from '../../lib/record-stat';
 import {facilityContext} from '../../lib/facility-stat';
 import {facilityCopy} from './facility-copy';
@@ -48,6 +48,8 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
  const [filter,setFilter]=useState('all'),[q,setQ]=useState('');
  const [data,setData]=useState(null),[loading,setLoading]=useState(true),[nonce,setNonce]=useState(0);
  const [office,setOffice]=useState(null),[officeLoading,setOfficeLoading]=useState(false);
+ const scopeRef=useRef(null);
+ const chooseFilter=id=>{setFilter(id);scopeRef.current?.scrollTo({top:0,behavior:'auto'});};
  const reload=()=>setNonce(n=>n+1);
  useEffect(()=>{
   if(!active)return;
@@ -122,16 +124,18 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   return {...cat,items};
  }).filter(cat=>cat.items.length>0);
  const shownTotal=shown.reduce((n,category)=>n+category.items.length,0);
- return <div className={"v2-facility-scope"+(embedded?" sf-compact":"")}><main className="sf-page">
+ return <div ref={scopeRef} className={"v2-facility-scope"+(embedded?" sf-compact":"")}><main className="sf-page">
   {!embedded&&<div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div><button className="sf-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button></div>}
   {embedded&&<div className="sf-compact-intro"><div className="sf-context-heading"><h2>{t.oneScreenTitle}</h2><span className="sf-context-station" title={stationLabel}><b style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</b><span>{stationLabel}</span></span></div><p>{t.oneScreenIntro}</p></div>}
   {!embedded&&<div className="sf-hero"><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div>}
   <label className="sf-search"><FacilityIcon name="search"/><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}><FacilityIcon name="close"/></button>}</label>
   {(embedded||(!loading&&(data?.ok||office?.category)&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
+    <div className="sf-filters">
     {!loading&&(data?.ok||office?.category)&&available.length>0&&<>
-    <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>{t.all} <small>{total}</small></button>
-    {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>{if(trackUsage&&filter!==cat.id)recordStat('quick_menu','facility',lang,facilityContext(cat.id));setFilter(filter===cat.id?'all':cat.id);}}>{cat.label}<small>{cat.items.length}</small></button>)}
+    <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>chooseFilter('all')}>{t.all} <small>{total}</small></button>
+    {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>{if(trackUsage&&filter!==cat.id)recordStat('quick_menu','facility',lang,facilityContext(cat.id));chooseFilter(filter===cat.id?'all':cat.id);}}>{cat.label}<small>{cat.items.length}</small></button>)}
     </>}
+    </div>
     {embedded&&<button className="sf-refresh sf-filter-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button>}
   </nav>}
   {officeLoading&&<p className="sf-count" role="status">{t.types.customerOffice} · {t.loading}</p>}
@@ -141,17 +145,18 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
    :!data?.ok&&!office?.category?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
    :available.length===0?<div className="sf-empty">{t.empty}</div>
    :<><div className="sf-count" aria-live="polite"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong></div>
-    {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:shown.map(cat=>{
+    {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:<div className="sf-categories">{shown.map(cat=>{
      return <section className="sf-category" key={cat.id} aria-label={cat.label}>
       <header className="sf-category-head"><span className="sf-icon"><FacilityIcon name={cat.id}/></span><h3>{cat.label}</h3><span className="sf-num">{cat.items.length}{t.records}</span></header>
       <div className="sf-records">{cat.items.map(({row,index,summary:s})=>{
        const state=pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i]);
-       return <article className="sf-record" key={cat.id+'-'+index} title={s.originalName}>
-        {s.name!==cat.label&&<div className="sf-record-name">{s.name}</div>}
+       const identifier=s.name===cat.label?'':cat.id==='locker'?s.name.split('·').slice(1).join('·').trim():s.name.match(/\d+$/)?.[0]||s.name;
+       return <article className="sf-record" key={cat.id+'-'+index} title={s.originalName} aria-label={s.name}>
         <div className="sf-location">
+         {identifier&&<span className="sf-record-name" aria-label={s.name}>{identifier}</span>}
          <div className="sf-location-text"><h4 title={s.originalLocation} className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</h4></div>
         </div>
-        {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider||s.status)&&<div className="sf-meta">
+        {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider||s.status||s.phone)&&<div className="sf-meta">
          {s.floorConnection?<span className="sf-tag sf-tag-strong">{t.connectedFloors} {s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}
          {s.entrance&&<span className="sf-tag">{lang==='en'?'Exit '+s.entrance:s.entrance+t.exitSuffix}</span>}
          {s.gateLabel&&<span className="sf-tag">{s.gateLabel}</span>}
@@ -163,12 +168,12 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
          {s.method&&<span className="sf-tag">{t.usageMethod} · {s.method}</span>}
          {['Y','N'].includes(s.stroller)&&<span className="sf-tag">{t.stroller} · {s.stroller==='Y'?t.yes:t.no}</span>}
          {s.provider&&<span className="sf-tag">{s.provider}</span>}
+         {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}><FacilityIcon name="phone"/><span>{cat.id==='customerOffice'?t.officePhone:t.helpPhone}</span><span>{s.phone.replace(/^(02)(\d{3,4})(\d{4})$/, '$1-$2-$3').replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><FacilityIcon name="arrow"/></a>}
         </div>}
-        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}><FacilityIcon name="phone"/><span>{cat.id==='customerOffice'?t.officePhone:t.helpPhone}</span><span>{s.phone.replace(/^(02)(\d{3,4})(\d{4})$/, '$1-$2-$3').replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><FacilityIcon name="arrow"/></a>}
        </article>;
       })}</div>
      </section>;
-    })}
+    })}</div>}
    </>}
   {data?.partial&&<div className="sf-alert" role="status">ⓘ {t.partial}</div>}
  </main></div>;
