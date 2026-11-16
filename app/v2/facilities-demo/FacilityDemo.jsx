@@ -5,6 +5,7 @@ import {facilityContext} from '../../lib/facility-stat';
 import {facilityCopy} from './facility-copy';
 import {translateFacilityText} from '../../lib/facility-i18n';
 const TYPES=[
+ ['customerOffice','고객안전실','ⓘ','고객 안내'],
  ['toilet','화장실','WC','기본 편의'],
  ['elevator','엘리베이터','↕','이동·접근성'],
  ['locker','물품보관함','▣','기본 편의'],
@@ -45,6 +46,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
  const stationLabel=stationContext?.names?.[lang]||stationContext?.names?.ko||({ko:'종로5가역',en:'Jongno 5-ga',ja:'チョンノオガ',zh:'钟路五街'})[lang];
  const [filter,setFilter]=useState('all'),[expanded,setExpanded]=useState({}),[q,setQ]=useState('');
  const [data,setData]=useState(null),[loading,setLoading]=useState(true),[nonce,setNonce]=useState(0);
+ const [office,setOffice]=useState(null),[officeLoading,setOfficeLoading]=useState(false);
  const reload=()=>setNonce(n=>n+1);
  useEffect(()=>{
   if(!active)return;
@@ -56,6 +58,18 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
    if(!r.ok||!result.ok||(stationContext&&result.stationCode!==stationContext.stationCode))throw Error('UNAVAILABLE');
    if(!controller.signal.aborted)setData(result);
   }).catch(()=>{if(!controller.signal.aborted)setData({ok:false});}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
+  return()=>controller.abort();
+ },[stationContext?.stationCode,active,nonce]);
+ useEffect(()=>{
+  if(!active)return;
+  setOffice(null);
+  if(stationContext?.line==='9'||stationContext?.stationCode==='2810'){setOfficeLoading(false);return;}
+  const controller=new AbortController(),code=stationContext?.stationCode||'0154';
+  setOfficeLoading(true);
+  fetch('/api/v2/station-office?stationCode='+encodeURIComponent(code),{cache:'no-store',signal:controller.signal})
+   .then(async response=>{const result=await response.json();if(!response.ok||!result.ok||result.stationCode!==code)throw Error('OFFICE_UNAVAILABLE');if(!controller.signal.aborted)setOffice(result);})
+   .catch(()=>{if(!controller.signal.aborted)setOffice({status:'unavailable'});})
+   .finally(()=>{if(!controller.signal.aborted)setOfficeLoading(false);});
   return()=>controller.abort();
  },[stationContext?.stationCode,active,nonce]);
  const describe=(row,index,id)=>{
@@ -82,6 +96,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
     result.phone=pick(row,[/^custCntrTelno$/i]).replace(/\D/g,'');
   }
   result.provider=id==='atm'?pick(row,[/^fnstNm$/i]):'';
+  if(id==='customerOffice')result.phone=pick(row,[/^operInstTelno$/i]).replace(/\D/g,'');
   result.originalLocation=result.location;
   for(const field of ['location','floor','floorConnection','hours','method','restroomInfo','provider','status']){
    const translated=translateFacilityText(result[field],lang,field);
@@ -90,7 +105,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   return result;
  };
  const available=TYPES.map(([id,koreanName,icon])=>{
-  const category=data?.ok&&data.categories?.find(x=>x.id===id);
+  const category=id==='customerOffice'?office?.category:data?.ok&&data.categories?.find(x=>x.id===id);
   return {id,icon,koreanName,label:t.types[id],items:(category?.items||[]).filter(row=>pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i])!=='D')};
  }).filter(category=>category.items.length>0);
  const total=available.reduce((n,category)=>n+category.items.length,0);
@@ -112,15 +127,18 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   {!embedded&&<span className="sf-eyebrow">{t.title} · STATION GUIDE</span>}
   {!embedded&&<div className="sf-hero"><div><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div><span className="sf-hero-mark" aria-hidden="true">⌖</span></div>}
   <label className="sf-search"><span className="sf-search-icon" aria-hidden="true">⌕</span><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}>×</button>}</label>
-  {(embedded||(!loading&&data?.ok&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
-    {!loading&&data?.ok&&available.length>0&&<>
+  {(embedded||(!loading&&(data?.ok||office?.category)&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
+    {!loading&&(data?.ok||office?.category)&&available.length>0&&<>
     <button className="sf-filter" type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>{t.all} <small>{total}</small></button>
     {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>{if(filter!==cat.id)recordStat('quick_menu','facility',lang,facilityContext(cat.id));setFilter(filter===cat.id?'all':cat.id);}}>{cat.label}<small>{cat.items.length}</small></button>)}
     </>}
     {embedded&&<button className="sf-refresh sf-filter-refresh" type="button" onClick={reload} disabled={loading}>↻ {t.retry}</button>}
   </nav>}
+  {officeLoading&&<p className="sf-count" role="status">{t.types.customerOffice} · {t.loading}</p>}
+  {office?.status==='missing'&&<p className="sf-alert" role="status">{t.types.customerOffice} · {t.officeMissing}</p>}
+  {office?.status==='unavailable'&&<p className="sf-alert" role="status">{t.types.customerOffice} · {t.failed}</p>}
   {loading?<div className="sf-empty" role="status">{t.loading}</div>
-   :!data?.ok?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
+   :!data?.ok&&!office?.category?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
    :available.length===0?<div className="sf-empty">{t.empty}</div>
    :<><div className="sf-count"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong></div>
     {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:shown.map(cat=>{
@@ -133,6 +151,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
        const state=pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i]);
        return <article className="sf-record" key={cat.id+'-'+index}>
         <div className="sf-record-top"><h4 title={s.originalName}>{s.name}</h4>{s.status&&<span className={'sf-status'+(state==='M'?' status-good':state?' status-warn':'')}>{s.status}</span>}</div>
+        {cat.id==='customerOffice'&&office?.status==='shared'&&<p className="sf-tag">{t.officeShared}</p>}
         <div className="sf-location"><span className="sf-location-icon" aria-hidden="true">⌖</span><div className="sf-location-text"><small>{t.location}</small><strong title={s.originalLocation} className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</strong></div></div>
         {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider)&&<div className="sf-meta">
          {s.floorConnection?<span className="sf-tag sf-tag-strong">{t.connectedFloors} {s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}
@@ -146,7 +165,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
          {['Y','N'].includes(s.stroller)&&<span className="sf-tag">{t.stroller} · {s.stroller==='Y'?t.yes:t.no}</span>}
          {s.provider&&<span className="sf-tag">{s.provider}</span>}
         </div>}
-        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={t.helpPhone+' '+s.phone}>{t.helpPhone} <span>{s.phone.replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
+        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}>{cat.id==='customerOffice'?t.officePhone:t.helpPhone} <span>{s.phone.replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><span aria-hidden="true">↗</span></a>}
        </article>;
       })}</div>
       {moreCount>0&&<button className="sf-more" type="button" onClick={()=>setExpanded(prev=>({...prev,[cat.id]:true}))}>{t.showMore} +{moreCount} ↓</button>}

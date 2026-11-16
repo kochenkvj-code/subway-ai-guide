@@ -1,0 +1,2662 @@
+[
+  {
+    "stnCd": "0150",
+    "stnNm": "서울역",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0151",
+    "stnNm": "시청",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0152",
+    "stnNm": "종각",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0153",
+    "stnNm": "종로3가",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0154",
+    "stnNm": "종로5가",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0155",
+    "stnNm": "동대문",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0156",
+    "stnNm": "신설동",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0157",
+    "stnNm": "제기동",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0158",
+    "stnNm": "청량리",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261101241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0159",
+    "stnNm": "동묘앞",
+    "lineNm": "1호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261101271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0201",
+    "stnNm": "시청",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261102011",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0202",
+    "stnNm": "을지로입구",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102021",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0203",
+    "stnNm": "을지로3가",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102031",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0204",
+    "stnNm": "을지로4가",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102041",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0205",
+    "stnNm": "동대문역사문화공원",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102051",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0206",
+    "stnNm": "신당",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102061",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0207",
+    "stnNm": "상왕십리",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102071",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0208",
+    "stnNm": "왕십리",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102081",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0209",
+    "stnNm": "한양대",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102091",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0210",
+    "stnNm": "뚝섬",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0211",
+    "stnNm": "성수",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102111",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0212",
+    "stnNm": "건대입구",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0213",
+    "stnNm": "구의",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102131",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0214",
+    "stnNm": "강변",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261102141",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0215",
+    "stnNm": "잠실나루",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261102151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0216",
+    "stnNm": "잠실",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0217",
+    "stnNm": "잠실새내",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102171",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0218",
+    "stnNm": "종합운동장",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0219",
+    "stnNm": "삼성",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0220",
+    "stnNm": "선릉",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0221",
+    "stnNm": "역삼",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261102211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0222",
+    "stnNm": "강남",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0223",
+    "stnNm": "교대",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0224",
+    "stnNm": "서초",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0225",
+    "stnNm": "방배",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0226",
+    "stnNm": "사당",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0227",
+    "stnNm": "낙성대",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0228",
+    "stnNm": "서울대입구",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0229",
+    "stnNm": "봉천",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0230",
+    "stnNm": "신림",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0231",
+    "stnNm": "신대방",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0232",
+    "stnNm": "구로디지털단지",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0233",
+    "stnNm": "대림",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0234",
+    "stnNm": "신도림",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0235",
+    "stnNm": "문래",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0236",
+    "stnNm": "영등포구청",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0237",
+    "stnNm": "당산",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261102371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0238",
+    "stnNm": "합정",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102381",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0239",
+    "stnNm": "홍대입구",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102391",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0240",
+    "stnNm": "신촌",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102401",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0241",
+    "stnNm": "이대",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261102411",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0242",
+    "stnNm": "아현",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102421",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0243",
+    "stnNm": "충정로",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261102431",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0244",
+    "stnNm": "용답",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261101341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0245",
+    "stnNm": "신답",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261101351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0246",
+    "stnNm": "신설동",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0247",
+    "stnNm": "도림천",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261102441",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0248",
+    "stnNm": "양천구청",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261102451",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0249",
+    "stnNm": "신정네거리",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261102461",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0250",
+    "stnNm": "용두",
+    "lineNm": "2호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261101361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0309",
+    "stnNm": "지축",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261103191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0310",
+    "stnNm": "구파발",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0312",
+    "stnNm": "불광",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0313",
+    "stnNm": "녹번",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0314",
+    "stnNm": "홍제",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0315",
+    "stnNm": "무악재",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0316",
+    "stnNm": "독립문",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0317",
+    "stnNm": "경복궁",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0318",
+    "stnNm": "안국",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0261103281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0319",
+    "stnNm": "종로3가",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0320",
+    "stnNm": "을지로3가",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0322",
+    "stnNm": "동대입구",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0261103321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0323",
+    "stnNm": "약수",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0324",
+    "stnNm": "금호",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0325",
+    "stnNm": "옥수",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0261103351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0326",
+    "stnNm": "압구정",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0327",
+    "stnNm": "신사",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0328",
+    "stnNm": "잠원",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103381",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0329",
+    "stnNm": "고속터미널",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103391",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0330",
+    "stnNm": "교대",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103401",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0331",
+    "stnNm": "남부터미널",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103411",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0332",
+    "stnNm": "양재",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103421",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0333",
+    "stnNm": "매봉",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103431",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0334",
+    "stnNm": "도곡",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103441",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0335",
+    "stnNm": "대치",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103451",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0336",
+    "stnNm": "학여울",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B4",
+    "dtlPstn": "B4층 대합실",
+    "operInstTelno": "0261103461",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0337",
+    "stnNm": "대청",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103471",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0338",
+    "stnNm": "일원",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103481",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0339",
+    "stnNm": "수서",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103491",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0340",
+    "stnNm": "가락시장",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261103501",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0341",
+    "stnNm": "경찰병원",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103511",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0342",
+    "stnNm": "오금",
+    "lineNm": "3호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103521",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0409",
+    "stnNm": "불암산",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261104091",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0410",
+    "stnNm": "상계",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261104101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0411",
+    "stnNm": "노원",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261104111",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0412",
+    "stnNm": "창동",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0261104121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0413",
+    "stnNm": "쌍문",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104131",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0414",
+    "stnNm": "수유",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104141",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0415",
+    "stnNm": "미아",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0416",
+    "stnNm": "미아사거리",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0417",
+    "stnNm": "길음",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104171",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0418",
+    "stnNm": "성신여대입구",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0419",
+    "stnNm": "한성대입구",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0420",
+    "stnNm": "혜화",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0421",
+    "stnNm": "동대문",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0422",
+    "stnNm": "동대문역사문화공원",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0423",
+    "stnNm": "충무로",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0424",
+    "stnNm": "명동",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0425",
+    "stnNm": "회현",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0426",
+    "stnNm": "서울역",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0427",
+    "stnNm": "숙대입구",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0428",
+    "stnNm": "삼각지",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0429",
+    "stnNm": "신용산",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0430",
+    "stnNm": "이촌",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0431",
+    "stnNm": "동작",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0261104311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0432",
+    "stnNm": "총신대입구",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261104321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0433",
+    "stnNm": "사당",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261104331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "0434",
+    "stnNm": "남태령",
+    "lineNm": "4호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261104341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2511",
+    "stnNm": "방화",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2512",
+    "stnNm": "개화산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115111",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2513",
+    "stnNm": "김포공항",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2514",
+    "stnNm": "송정",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115131",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2515",
+    "stnNm": "마곡",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115141",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2516",
+    "stnNm": "발산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2517",
+    "stnNm": "우장산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2518",
+    "stnNm": "화곡",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115171",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2519",
+    "stnNm": "까치산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2520",
+    "stnNm": "신정",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2521",
+    "stnNm": "목동",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2522",
+    "stnNm": "오목교",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2523",
+    "stnNm": "양평",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2524",
+    "stnNm": "영등포구청",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B4",
+    "dtlPstn": "B4층 대합실",
+    "operInstTelno": "0263115231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2525",
+    "stnNm": "영등포시장",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263115231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2526",
+    "stnNm": "신길",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263115251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2527",
+    "stnNm": "여의도",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2528",
+    "stnNm": "여의나루",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263115271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2529",
+    "stnNm": "마포",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2531",
+    "stnNm": "애오개",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2532",
+    "stnNm": "충정로",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2533",
+    "stnNm": "서대문",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2534",
+    "stnNm": "광화문",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2535",
+    "stnNm": "종로3가",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2536",
+    "stnNm": "을지로4가",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2537",
+    "stnNm": "동대문역사문화공원",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2539",
+    "stnNm": "신금호",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115381",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2540",
+    "stnNm": "행당",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263115391",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2541",
+    "stnNm": "왕십리",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115401",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2542",
+    "stnNm": "마장",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115411",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2543",
+    "stnNm": "답십리",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115421",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2544",
+    "stnNm": "장한평",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115431",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2546",
+    "stnNm": "아차산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115451",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2547",
+    "stnNm": "광나루",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115461",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2549",
+    "stnNm": "강동",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263115481",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2550",
+    "stnNm": "길동",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115491",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2551",
+    "stnNm": "굽은다리",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115501",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2552",
+    "stnNm": "명일",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115511",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2553",
+    "stnNm": "고덕",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115521",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2554",
+    "stnNm": "상일동",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115531",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2555",
+    "stnNm": "둔촌동",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115541",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2556",
+    "stnNm": "올림픽공원",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115551",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2557",
+    "stnNm": "방이",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115561",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2559",
+    "stnNm": "개롱",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115581",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2560",
+    "stnNm": "거여",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115591",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2561",
+    "stnNm": "마천",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115601",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2562",
+    "stnNm": "강일",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263115611",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2563",
+    "stnNm": "미사",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115621",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2564",
+    "stnNm": "하남풍산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115631",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2565",
+    "stnNm": "하남시청",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115641",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2566",
+    "stnNm": "하남검단산",
+    "lineNm": "5호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115651",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2611",
+    "stnNm": "응암",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2612",
+    "stnNm": "역촌",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116111",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2613",
+    "stnNm": "불광",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2614",
+    "stnNm": "독바위",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263116131",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2615",
+    "stnNm": "연신내",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0261103211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2616",
+    "stnNm": "구산",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2617",
+    "stnNm": "새절",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2618",
+    "stnNm": "증산",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116171",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2619",
+    "stnNm": "디지털미디어시티",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2620",
+    "stnNm": "월드컵경기장",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2621",
+    "stnNm": "마포구청",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2622",
+    "stnNm": "망원",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2623",
+    "stnNm": "합정",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2624",
+    "stnNm": "상수",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2625",
+    "stnNm": "광흥창",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2626",
+    "stnNm": "대흥",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2627",
+    "stnNm": "공덕",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2628",
+    "stnNm": "효창공원앞",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2629",
+    "stnNm": "삼각지",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263116281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2630",
+    "stnNm": "녹사평",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2631",
+    "stnNm": "이태원",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2632",
+    "stnNm": "한강진",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2633",
+    "stnNm": "버티고개",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2634",
+    "stnNm": "약수",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2635",
+    "stnNm": "청구",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2636",
+    "stnNm": "신당",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2637",
+    "stnNm": "동묘앞",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2638",
+    "stnNm": "창신",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2639",
+    "stnNm": "보문",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116381",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2640",
+    "stnNm": "안암",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116391",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2641",
+    "stnNm": "고려대",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116401",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2642",
+    "stnNm": "월곡",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116411",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2643",
+    "stnNm": "상월곡",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116421",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2644",
+    "stnNm": "돌곶이",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116431",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2645",
+    "stnNm": "석계",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263116441",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2647",
+    "stnNm": "화랑대",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116461",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2648",
+    "stnNm": "봉화산",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263116471",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2649",
+    "stnNm": "신내",
+    "lineNm": "6호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0263116481",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2711",
+    "stnNm": "장암",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0263117091",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2712",
+    "stnNm": "도봉산",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "1",
+    "dtlPstn": "1층 대합실",
+    "operInstTelno": "0263117101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2713",
+    "stnNm": "수락산",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117111",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2714",
+    "stnNm": "마들",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2715",
+    "stnNm": "노원",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0261104211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2716",
+    "stnNm": "중계",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117141",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2717",
+    "stnNm": "하계",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2718",
+    "stnNm": "공릉",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2719",
+    "stnNm": "태릉입구",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263117171",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2720",
+    "stnNm": "먹골",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2721",
+    "stnNm": "중화",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2722",
+    "stnNm": "상봉",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2723",
+    "stnNm": "면목",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117211",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2724",
+    "stnNm": "사가정",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2725",
+    "stnNm": "용마산",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2726",
+    "stnNm": "중곡",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2727",
+    "stnNm": "군자",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115441",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2728",
+    "stnNm": "어린이대공원",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2729",
+    "stnNm": "건대입구",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2730",
+    "stnNm": "자양",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0263117281",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2731",
+    "stnNm": "청담",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263117291",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2732",
+    "stnNm": "강남구청",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117301",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2733",
+    "stnNm": "학동",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117311",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2734",
+    "stnNm": "논현",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117321",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2735",
+    "stnNm": "반포",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117331",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2736",
+    "stnNm": "고속터미널",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117341",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2737",
+    "stnNm": "내방",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117351",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2738",
+    "stnNm": "이수",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B3",
+    "dtlPstn": "B3층 대합실",
+    "operInstTelno": "0263117361",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2739",
+    "stnNm": "남성",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117371",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2740",
+    "stnNm": "숭실대입구",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117381",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2741",
+    "stnNm": "상도",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117391",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2742",
+    "stnNm": "장승배기",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117401",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2743",
+    "stnNm": "신대방삼거리",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117411",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2744",
+    "stnNm": "보라매",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117421",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2745",
+    "stnNm": "신풍",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117431",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2746",
+    "stnNm": "대림",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117441",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2747",
+    "stnNm": "남구로",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117451",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2748",
+    "stnNm": "가산디지털단지",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117461",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2749",
+    "stnNm": "철산",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117471",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2750",
+    "stnNm": "광명사거리",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263117481",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2751",
+    "stnNm": "천왕",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117491",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2752",
+    "stnNm": "온수",
+    "lineNm": "7호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263117501",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2811",
+    "stnNm": "암사",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118101",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2812",
+    "stnNm": "천호",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263115471",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2813",
+    "stnNm": "강동구청",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118121",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2814",
+    "stnNm": "몽촌토성",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118131",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2815",
+    "stnNm": "잠실",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118141",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2816",
+    "stnNm": "석촌",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118151",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2817",
+    "stnNm": "송파",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118161",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2819",
+    "stnNm": "문정",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118181",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2820",
+    "stnNm": "장지",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118191",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2821",
+    "stnNm": "복정",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118201",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2822",
+    "stnNm": "산성",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118221",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2823",
+    "stnNm": "남한산성입구",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118231",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2824",
+    "stnNm": "단대오거리",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118241",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2825",
+    "stnNm": "신흥",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118251",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2826",
+    "stnNm": "수진",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B1",
+    "dtlPstn": "B1층 대합실",
+    "operInstTelno": "0263118261",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2827",
+    "stnNm": "모란",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "B2",
+    "dtlPstn": "B2층 대합실",
+    "operInstTelno": "0263118271",
+    "utztnPsbltyHr": "05:00~00:00"
+  },
+  {
+    "stnCd": "2828",
+    "stnNm": "남위례",
+    "lineNm": "8호선",
+    "fcltNm": "고객안전실",
+    "stnFlr": "2",
+    "dtlPstn": "2층 대합실",
+    "operInstTelno": "0263118211",
+    "utztnPsbltyHr": "05:00~00:00"
+  }
+]
