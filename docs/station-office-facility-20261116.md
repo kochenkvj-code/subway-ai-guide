@@ -45,3 +45,10 @@ substitution. The 2810 exclusion is deliberate per user instruction.
 Completed local checks: full build and 269 tests pass; browser verification
 passes 12 scenarios with zero page exceptions, including the 2810 exclusion.
 Production deployments: 0. Preview deployments: 0.
+
+A separate /station-office-facility-test page reuses the actual facility component
+with station/language controls and example buttons. Its filter interactions disable
+usage tracking; normal facility screens retain their existing tracking behavior.
+An offline HTML preview contains actual API-derived office-card snapshots for
+0154, 0311, 0321 and the deliberate 2810 exclusion in four languages. No provider
+key or analytics calls are included in that self-contained artifact.
