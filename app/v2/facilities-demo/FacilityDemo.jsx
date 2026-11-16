@@ -151,7 +151,6 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
        const state=pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i]);
        return <article className="sf-record" key={cat.id+'-'+index}>
         <div className="sf-record-top"><h4 title={s.originalName}>{s.name}</h4>{s.status&&<span className={'sf-status'+(state==='M'?' status-good':state?' status-warn':'')}>{s.status}</span>}</div>
-        {cat.id==='customerOffice'&&office?.status==='shared'&&<p className="sf-tag">{t.officeShared}</p>}
         <div className="sf-location"><span className="sf-location-icon" aria-hidden="true">⌖</span><div className="sf-location-text"><small>{t.location}</small><strong title={s.originalLocation} className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</strong></div></div>
         {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider)&&<div className="sf-meta">
          {s.floorConnection?<span className="sf-tag sf-tag-strong">{t.connectedFloors} {s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}

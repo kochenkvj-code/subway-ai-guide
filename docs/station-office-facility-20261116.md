@@ -20,8 +20,7 @@ Implementation:
   code and source line. The API response retains the user's base stationCode and
   separately identifies sourceStationCode; source records are never rewritten.
 - FacilityDemo loads offices independently of existing facilities, preventing
-  an office request from blocking other facility records. A shared-office label
-  is visible in four languages. The existing facility-context analytics identifier
+  an office request from blocking other facility records. Source sharing remains internal and is not labeled in the passenger UI. The existing facility-context analytics identifier
   facility_customerOffice is reused. Telephone links open the user's dialer only.
 - Same-name sharing is not automatically applied to future unmatched records.
 - The original coverage audit retains its 290 rows and classifications, including
@@ -52,3 +51,7 @@ usage tracking; normal facility screens retain their existing tracking behavior.
 An offline HTML preview contains actual API-derived office-card snapshots for
 0154, 0311, 0321 and the deliberate 2810 exclusion in four languages. No provider
 key or analytics calls are included in that self-contained artifact.
+
+Passenger-facing shared-office labels and preview sample badges were removed
+per user preference; the explicit source mappings and base-line identities remain
+unchanged. Seoul telephone display uses hyphens, e.g. 02-6110-3211.
