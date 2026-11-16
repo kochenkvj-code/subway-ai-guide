@@ -49,6 +49,8 @@ const assert=require('node:assert/strict');
    const scope=await allVisible();
    assert.equal((await scope.locator('.sf-refresh').innerText()).trim(),'');
    assert.ok(await scope.locator('.sf-refresh').getAttribute('aria-label'));
+   assert.equal(await scope.locator('.sf-count > .sf-refresh').count(),1,'refresh belongs at the end of the facility-count row');
+   assert.equal(await scope.locator('.sf-filter-scroll .sf-refresh').count(),0);
    assert.equal(await scope.locator('.sf-footer').count(),0);
    for(const category of legacy[lang]){
     const section=scope.locator('.sf-category').filter({has:page.getByRole('heading',{name:category.label,exact:true})});

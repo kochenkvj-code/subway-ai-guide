@@ -125,7 +125,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
  }).filter(cat=>cat.items.length>0);
  const shownTotal=shown.reduce((n,category)=>n+category.items.length,0);
  return <div ref={scopeRef} className={"v2-facility-scope"+(embedded?" sf-compact":"")}><main className="sf-page">
-  {!embedded&&<div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div><button className="sf-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button></div>}
+  {!embedded&&<div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div></div>}
   {embedded&&<div className="sf-compact-intro"><div className="sf-context-heading"><h2>{t.oneScreenTitle}</h2><span className="sf-context-station" title={stationLabel}><b style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</b><span>{stationLabel}</span></span></div><p>{t.oneScreenIntro}</p></div>}
   {!embedded&&<div className="sf-hero"><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div>}
   <label className="sf-search"><FacilityIcon name="search"/><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}><FacilityIcon name="close"/></button>}</label>
@@ -136,7 +136,6 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
     {available.map(cat=><button key={cat.id} className="sf-filter" type="button" aria-pressed={filter===cat.id} onClick={()=>{if(trackUsage&&filter!==cat.id)recordStat('quick_menu','facility',lang,facilityContext(cat.id));chooseFilter(filter===cat.id?'all':cat.id);}}>{cat.label}<small>{cat.items.length}</small></button>)}
     </>}
     </div>
-    {embedded&&<button className="sf-refresh sf-filter-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button>}
   </nav>}
   {officeLoading&&<p className="sf-count" role="status">{t.types.customerOffice} · {t.loading}</p>}
   {office?.status==='missing'&&<p className="sf-alert" role="status">{t.types.customerOffice} · {t.officeMissing}</p>}
@@ -144,7 +143,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   {loading?<div className="sf-empty" role="status">{t.loading}</div>
    :!data?.ok&&!office?.category?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
    :available.length===0?<div className="sf-empty">{t.empty}</div>
-   :<><div className="sf-count" aria-live="polite"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong></div>
+   :<><div className="sf-count"><strong aria-live="polite">{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong><button className="sf-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button></div>
     {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:<div className="sf-categories">{shown.map(cat=>{
      return <section className="sf-category" key={cat.id} aria-label={cat.label}>
       <header className="sf-category-head"><span className="sf-icon"><FacilityIcon name={cat.id}/></span><h3>{cat.label}</h3><span className="sf-num">{cat.items.length}{t.records}</span></header>

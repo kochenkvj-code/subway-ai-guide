@@ -35,8 +35,9 @@
 .v2-facility-scope .sf-refresh{display:inline-flex;align-items:center;justify-content:center;min-width:37px;min-height:37px;border:1px solid #e3eae6;border-radius:9px;padding:7px;background:#fff;color:#677b72;font-size:11px;line-height:1.4}
 .v2-facility-scope.sf-compact .sf-filter-refresh{flex:none;margin-left:0;padding:7px 6px;border:0;background:transparent;font-size:11px}
 .v2-facility-scope .sf-filter-refresh .sf-vector{width:14px;height:14px}
-.v2-facility-scope .sf-count{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12px;color:#677b72}
+.v2-facility-scope .sf-count{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;font-size:12px;color:#677b72}
 .v2-facility-scope .sf-count strong{font-size:13px;font-weight:600;color:#203a32}
+.v2-facility-scope .sf-count .sf-refresh{border:0;background:transparent}
 .v2-facility-scope .sf-category{break-inside:avoid;margin:0 0 10px;border:1px solid #e3eae6;border-radius:14px;background:white;overflow:hidden}
 .v2-facility-scope .sf-category-head{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid #e3eae6;background:#f6f8f7}
 .v2-facility-scope .sf-icon{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:8px;background:#eaf4ee;color:#17664e}
