@@ -45,16 +45,15 @@
 .v2-facility-scope .sf-location-text{flex:1;min-width:0}
 .v2-facility-scope .sf-location-text h4{margin:0;font-size:15px;font-weight:600;line-height:1.5;letter-spacing:-.35px;color:#203a32;white-space:pre-wrap;overflow-wrap:anywhere}
 .v2-facility-scope .sf-location-text .sf-missing{font-size:12px;font-weight:400;color:#677b72}
-.v2-facility-scope .sf-index{flex:none;color:#677b72;font-size:11px;line-height:1.5;font-variant-numeric:tabular-nums;white-space:nowrap}
+.v2-facility-scope .sf-record-name{margin:0 0 4px;color:#677b72;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
 .v2-facility-scope .sf-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .v2-facility-scope .sf-tag{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 7px;border:1px solid #e3eae6;border-radius:6px;background:#f6f8f7;color:#203a32;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 .v2-facility-scope .sf-tag .sf-vector{width:13px;height:13px}
 .v2-facility-scope .sf-tag-strong{border-color:#dce9f2;background:#edf4f9;color:#315d78;font-weight:600}
 .v2-facility-scope .sf-tag-accessible,.v2-facility-scope .sf-tag.status-good{border-color:#d6e8dc;background:#eaf4ee;color:#17664e}
 .v2-facility-scope .sf-tag.status-warn{border-color:#eed9ca;background:#fff3e9;color:#924b28}
-.v2-facility-scope .sf-description{margin:7px 0 0;color:#677b72;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
-.v2-facility-scope .sf-contact{display:inline-flex;align-items:center;gap:7px;max-width:100%;margin-top:10px;padding:7px 10px;border:1px solid #e3eae6;border-radius:8px;background:#eaf4ee;color:#17664e;text-decoration:none;font-size:13px;line-height:1.5}
-.v2-facility-scope .sf-contact .sf-vector{width:14px;height:14px}
+.v2-facility-scope .sf-contact{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100%;margin-top:10px;padding:7px 10px;border:1px solid #e3eae6;border-radius:8px;background:#eaf4ee;color:#17664e;text-decoration:none;font-size:11px;line-height:1.4}
+.v2-facility-scope .sf-contact .sf-vector{width:13px;height:13px}
 .v2-facility-scope .sf-contact span{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .v2-facility-scope .sf-empty,.v2-facility-scope .sf-alert{padding:18px 14px;border:1px solid #e3eae6;border-radius:12px;background:#fff;color:#677b72;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
 .v2-facility-scope .sf-alert{margin:10px 0;background:#edf4f1}

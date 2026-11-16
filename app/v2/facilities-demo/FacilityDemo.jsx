@@ -143,28 +143,28 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
    :<><div className="sf-count" aria-live="polite"><strong>{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong></div>
     {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:shown.map(cat=>{
      return <section className="sf-category" key={cat.id} aria-label={cat.label}>
-      <header className="sf-category-head"><span className="sf-icon"><FacilityIcon name={cat.id}/></span><h3>{cat.label}</h3><span className="sf-num">{cat.items.length}</span></header>
+      <header className="sf-category-head"><span className="sf-icon"><FacilityIcon name={cat.id}/></span><h3>{cat.label}</h3><span className="sf-num">{cat.items.length}{t.records}</span></header>
       <div className="sf-records">{cat.items.map(({row,index,summary:s})=>{
        const state=pick(row,[/^oprtngSitu$|^operSttus$|^oprtngSttus$/i]);
-       return <article className="sf-record" key={cat.id+'-'+index}>
+       return <article className="sf-record" key={cat.id+'-'+index} title={s.originalName}>
+        {s.name!==cat.label&&<div className="sf-record-name">{s.name}</div>}
         <div className="sf-location">
-         {cat.items.length>1&&<span className="sf-index" title={s.originalName}>{cat.id==='locker'?s.name.replace(cat.label,'').replace(/^\s*·\s*/,'')||String(index+1).padStart(2,'0'):String(index+1).padStart(2,'0')}</span>}
          <div className="sf-location-text"><h4 title={s.originalLocation} className={s.location?'':'sf-missing'}>{s.location||t.noLocation}</h4></div>
         </div>
-        {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.lockerCount||s.provider||s.status)&&<div className="sf-meta">
-         {s.floorConnection?<span className="sf-tag sf-tag-strong" aria-label={t.connectedFloors+' '+s.floorConnection}>{s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}
+        {(s.entrance||s.floor||s.floorConnection||s.hours||s.method||s.gateLabel||s.stroller||s.wheelchair||s.restroomInfo||s.lockerCount||s.provider||s.status)&&<div className="sf-meta">
+         {s.floorConnection?<span className="sf-tag sf-tag-strong">{t.connectedFloors} {s.floorConnection}</span>:s.floor&&<span className="sf-tag sf-tag-strong">{s.floor}</span>}
          {s.entrance&&<span className="sf-tag">{lang==='en'?'Exit '+s.entrance:s.entrance+t.exitSuffix}</span>}
          {s.gateLabel&&<span className="sf-tag">{s.gateLabel}</span>}
          {s.wheelchair&&<span className="sf-tag sf-tag-accessible"><FacilityIcon name="accessible"/>{s.wheelchair}</span>}
          {s.status&&<span className={'sf-tag sf-status'+(state==='M'?' status-good':state?' status-warn':'')}>{state==='M'&&<FacilityIcon name="check"/>}{s.status}</span>}
          {s.lockerCount&&<span className="sf-tag">{s.lockerCount}</span>}
          {s.hours&&<span className="sf-tag"><FacilityIcon name="clock"/>{t.hours} · {s.hours}</span>}
+         {s.restroomInfo&&<span className="sf-tag sf-tag-restroom">{s.restroomInfo}</span>}
          {s.method&&<span className="sf-tag">{t.usageMethod} · {s.method}</span>}
          {['Y','N'].includes(s.stroller)&&<span className="sf-tag">{t.stroller} · {s.stroller==='Y'?t.yes:t.no}</span>}
          {s.provider&&<span className="sf-tag">{s.provider}</span>}
         </div>}
-        {s.restroomInfo&&<p className="sf-description">{s.restroomInfo}</p>}
-        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}><FacilityIcon name="phone"/><span>{s.phone.replace(/^(02)(\d{3,4})(\d{4})$/, '$1-$2-$3').replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><FacilityIcon name="arrow"/></a>}
+        {s.phone&&<a className="sf-contact" href={'tel:'+s.phone} aria-label={(cat.id==='customerOffice'?t.officePhone:t.helpPhone)+' '+s.phone}><FacilityIcon name="phone"/><span>{cat.id==='customerOffice'?t.officePhone:t.helpPhone}</span><span>{s.phone.replace(/^(02)(\d{3,4})(\d{4})$/, '$1-$2-$3').replace(/^(\d{4})(\d{4})$/, '$1-$2')}</span><FacilityIcon name="arrow"/></a>}
        </article>;
       })}</div>
      </section>;

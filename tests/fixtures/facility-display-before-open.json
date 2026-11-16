@@ -1,0 +1,526 @@
+{
+  "baselineCommit": "06b7d58884e1156de2867e74481f83d50192146d",
+  "note": "Expected visible information extracted from the pre-redesign info() and describe() functions using the facility-guide UI fixtures. Only presentation changed; each value must remain visible.",
+  "languages": {
+    "ko": [
+      {
+        "id": "toilet",
+        "label": "화장실",
+        "records": [
+          {
+            "name": "화장실",
+            "location": "지하1층 지하상가 연결통로앞",
+            "gateLabel": "개찰구 밖",
+            "wheelchair": "휠체어 접근 가능",
+            "restroomInfo": "일반(남,여) / 교통약자(남,여)",
+            "floor": "B1",
+            "entrance": "8번 출구"
+          }
+        ]
+      },
+      {
+        "id": "elevator",
+        "label": "엘리베이터",
+        "records": [
+          {
+            "name": "엘리베이터 01",
+            "location": "8,9번 출입구 사이",
+            "status": "사용 가능",
+            "floorConnection": "연결 층 B1 ↔ 1F"
+          },
+          {
+            "name": "엘리베이터 02",
+            "location": "동대문(1) 방면8-3",
+            "status": "보수 중",
+            "floorConnection": "연결 층 B1 ↔ B2"
+          },
+          {
+            "name": "엘리베이터 03",
+            "location": "종로3가 방면3-2",
+            "status": "사용 가능"
+          },
+          {
+            "name": "엘리베이터 04",
+            "location": "장자호수공원 방면6-1",
+            "status": "사용 가능"
+          }
+        ]
+      },
+      {
+        "id": "escalator",
+        "label": "에스컬레이터",
+        "records": [
+          {
+            "name": "에스컬레이터 01",
+            "location": "동대문 방면1-1",
+            "status": "사용 가능"
+          },
+          {
+            "name": "에스컬레이터 02",
+            "location": "동대문 방면2-1",
+            "status": "사용 가능"
+          },
+          {
+            "name": "에스컬레이터 03",
+            "location": "동대문 방면3-1",
+            "status": "사용 가능"
+          },
+          {
+            "name": "에스컬레이터 04",
+            "location": "동대문 방면4-1",
+            "status": "사용 가능"
+          },
+          {
+            "name": "에스컬레이터 05",
+            "location": "미등록장소 3번 출입구 옆",
+            "status": "사용 가능"
+          }
+        ]
+      },
+      {
+        "id": "locker",
+        "label": "물품보관함",
+        "records": [
+          {
+            "name": "물품보관함 · 1~19",
+            "location": "대합실 중앙",
+            "lockerCount": "19 칸",
+            "hours": "평일 05:00–01:00",
+            "phone": "1877-1265",
+            "phoneLabel": "보관함 문의"
+          }
+        ]
+      },
+      {
+        "id": "nursing",
+        "label": "수유실",
+        "records": [
+          {
+            "name": "수유실",
+            "location": "고객안전실 내부",
+            "hours": "영업시간내",
+            "method": "1인가족 단독사용",
+            "floor": "B1",
+            "stroller": "유모차 접근 · 가능"
+          }
+        ]
+      },
+      {
+        "id": "atm",
+        "label": "ATM",
+        "records": [
+          {
+            "name": "ATM",
+            "location": "대합실 중앙",
+            "hours": "05:00~24:00",
+            "provider": "효성티앤에스",
+            "floor": "B1"
+          }
+        ]
+      },
+      {
+        "id": "customerOffice",
+        "label": "고객안전실",
+        "records": [
+          {
+            "name": "고객안전실",
+            "location": "B1층 대합실",
+            "hours": "05:00~00:00",
+            "phone": "02-6110-1291",
+            "phoneLabel": "고객안전실 문의"
+          }
+        ]
+      }
+    ],
+    "en": [
+      {
+        "id": "toilet",
+        "label": "Restroom",
+        "records": [
+          {
+            "name": "Restroom",
+            "location": "B1 · Underground shopping arcade · In front of Connecting passage",
+            "gateLabel": "Outside fare gates",
+            "wheelchair": "Wheelchair access",
+            "restroomInfo": "Standard (men/women) / Accessible (men/women)",
+            "floor": "B1",
+            "entrance": "Exit 8"
+          }
+        ]
+      },
+      {
+        "id": "elevator",
+        "label": "Elevator",
+        "records": [
+          {
+            "name": "Elevator 01",
+            "location": "Between Exit 8,9",
+            "status": "Available",
+            "floorConnection": "Connects floors B1 ↔ 1F"
+          },
+          {
+            "name": "Elevator 02",
+            "location": "Toward Dongdaemun (1) · 8-3",
+            "status": "Under maintenance",
+            "floorConnection": "Connects floors B1 ↔ B2"
+          },
+          {
+            "name": "Elevator 03",
+            "location": "Toward Jongno 3(sam)-ga · 3-2",
+            "status": "Available"
+          },
+          {
+            "name": "Elevator 04",
+            "location": "Toward Jangja Lake Park · 6-1",
+            "status": "Available"
+          }
+        ]
+      },
+      {
+        "id": "escalator",
+        "label": "Escalator",
+        "records": [
+          {
+            "name": "Escalator 01",
+            "location": "Toward Dongdaemun · 1-1",
+            "status": "Available"
+          },
+          {
+            "name": "Escalator 02",
+            "location": "Toward Dongdaemun · 2-1",
+            "status": "Available"
+          },
+          {
+            "name": "Escalator 03",
+            "location": "Toward Dongdaemun · 3-1",
+            "status": "Available"
+          },
+          {
+            "name": "Escalator 04",
+            "location": "Toward Dongdaemun · 4-1",
+            "status": "Available"
+          },
+          {
+            "name": "Escalator 05",
+            "location": "Korean source: 미등록장소 3번 출입구 옆",
+            "status": "Available"
+          }
+        ]
+      },
+      {
+        "id": "locker",
+        "label": "Lockers",
+        "records": [
+          {
+            "name": "Lockers · 1~19",
+            "location": "Concourse · Center",
+            "lockerCount": "19 lockers",
+            "hours": "Weekdays 05:00–01:00",
+            "phone": "1877-1265",
+            "phoneLabel": "Locker help"
+          }
+        ]
+      },
+      {
+        "id": "nursing",
+        "label": "Nursing room",
+        "records": [
+          {
+            "name": "Nursing room",
+            "location": "Inside Customer service office",
+            "hours": "During business hours",
+            "method": "One family at a time",
+            "floor": "B1",
+            "stroller": "Stroller access · Yes"
+          }
+        ]
+      },
+      {
+        "id": "atm",
+        "label": "ATM",
+        "records": [
+          {
+            "name": "ATM",
+            "location": "Concourse · Center",
+            "hours": "05:00~24:00",
+            "provider": "Hyosung TNS",
+            "floor": "B1"
+          }
+        ]
+      },
+      {
+        "id": "customerOffice",
+        "label": "Station office",
+        "records": [
+          {
+            "name": "Station office",
+            "location": "B1 · Concourse",
+            "hours": "05:00~00:00",
+            "phone": "02-6110-1291",
+            "phoneLabel": "Call station office"
+          }
+        ]
+      }
+    ],
+    "ja": [
+      {
+        "id": "toilet",
+        "label": "トイレ",
+        "records": [
+          {
+            "name": "トイレ",
+            "location": "地下1階 · 地下商店街 · 連絡通路の前",
+            "gateLabel": "改札外",
+            "wheelchair": "車いす対応",
+            "restroomInfo": "一般（男性・女性）／バリアフリー（男性・女性）",
+            "floor": "地下1階",
+            "entrance": "8番出口"
+          }
+        ]
+      },
+      {
+        "id": "elevator",
+        "label": "エレベーター",
+        "records": [
+          {
+            "name": "エレベーター 01",
+            "location": "8,9番出口の間",
+            "status": "利用可能",
+            "floorConnection": "連絡階 地下1階 ↔ 1階"
+          },
+          {
+            "name": "エレベーター 02",
+            "location": "トンデムン (1)方面 · 8-3",
+            "status": "修理中",
+            "floorConnection": "連絡階 地下1階 ↔ 地下2階"
+          },
+          {
+            "name": "エレベーター 03",
+            "location": "チョンノサムガ方面 · 3-2",
+            "status": "利用可能"
+          },
+          {
+            "name": "エレベーター 04",
+            "location": "チャンジャホスゴンウォン方面 · 6-1",
+            "status": "利用可能"
+          }
+        ]
+      },
+      {
+        "id": "escalator",
+        "label": "エスカレーター",
+        "records": [
+          {
+            "name": "エスカレーター 01",
+            "location": "トンデムン方面 · 1-1",
+            "status": "利用可能"
+          },
+          {
+            "name": "エスカレーター 02",
+            "location": "トンデムン方面 · 2-1",
+            "status": "利用可能"
+          },
+          {
+            "name": "エスカレーター 03",
+            "location": "トンデムン方面 · 3-1",
+            "status": "利用可能"
+          },
+          {
+            "name": "エスカレーター 04",
+            "location": "トンデムン方面 · 4-1",
+            "status": "利用可能"
+          },
+          {
+            "name": "エスカレーター 05",
+            "location": "韓国語原文: 미등록장소 3번 출입구 옆",
+            "status": "利用可能"
+          }
+        ]
+      },
+      {
+        "id": "locker",
+        "label": "ロッカー",
+        "records": [
+          {
+            "name": "ロッカー · 1~19",
+            "location": "コンコース · 中央",
+            "lockerCount": "19 個",
+            "hours": "平日 05:00–01:00",
+            "phone": "1877-1265",
+            "phoneLabel": "ロッカー問い合わせ"
+          }
+        ]
+      },
+      {
+        "id": "nursing",
+        "label": "授乳室",
+        "records": [
+          {
+            "name": "授乳室",
+            "location": "駅係員室内",
+            "hours": "営業時間内",
+            "method": "1家族ずつ利用",
+            "floor": "地下1階",
+            "stroller": "ベビーカー利用 · 可能"
+          }
+        ]
+      },
+      {
+        "id": "atm",
+        "label": "ATM",
+        "records": [
+          {
+            "name": "ATM",
+            "location": "コンコース · 中央",
+            "hours": "05:00~24:00",
+            "provider": "Hyosung TNS",
+            "floor": "地下1階"
+          }
+        ]
+      },
+      {
+        "id": "customerOffice",
+        "label": "駅務室",
+        "records": [
+          {
+            "name": "駅務室",
+            "location": "地下1階 · コンコース",
+            "hours": "05:00~00:00",
+            "phone": "02-6110-1291",
+            "phoneLabel": "駅務室へ電話"
+          }
+        ]
+      }
+    ],
+    "zh": [
+      {
+        "id": "toilet",
+        "label": "洗手间",
+        "records": [
+          {
+            "name": "洗手间",
+            "location": "地下1层 · 地下商街 · 连接通道前",
+            "gateLabel": "闸机外",
+            "wheelchair": "轮椅可通行",
+            "restroomInfo": "普通（男/女）／无障碍（男/女）",
+            "floor": "地下1层",
+            "entrance": "8号出口"
+          }
+        ]
+      },
+      {
+        "id": "elevator",
+        "label": "电梯",
+        "records": [
+          {
+            "name": "电梯 01",
+            "location": "8,9号出口之间",
+            "status": "可使用",
+            "floorConnection": "连接楼层 地下1层 ↔ 1层"
+          },
+          {
+            "name": "电梯 02",
+            "location": "往东大门 (1) · 8-3",
+            "status": "维修中",
+            "floorConnection": "连接楼层 地下1层 ↔ 地下2层"
+          },
+          {
+            "name": "电梯 03",
+            "location": "往钟路三街 · 3-2",
+            "status": "可使用"
+          },
+          {
+            "name": "电梯 04",
+            "location": "往长者湖水公园 · 6-1",
+            "status": "可使用"
+          }
+        ]
+      },
+      {
+        "id": "escalator",
+        "label": "自动扶梯",
+        "records": [
+          {
+            "name": "自动扶梯 01",
+            "location": "往东大门 · 1-1",
+            "status": "可使用"
+          },
+          {
+            "name": "自动扶梯 02",
+            "location": "往东大门 · 2-1",
+            "status": "可使用"
+          },
+          {
+            "name": "自动扶梯 03",
+            "location": "往东大门 · 3-1",
+            "status": "可使用"
+          },
+          {
+            "name": "自动扶梯 04",
+            "location": "往东大门 · 4-1",
+            "status": "可使用"
+          },
+          {
+            "name": "自动扶梯 05",
+            "location": "韩文原文: 미등록장소 3번 출입구 옆",
+            "status": "可使用"
+          }
+        ]
+      },
+      {
+        "id": "locker",
+        "label": "储物柜",
+        "records": [
+          {
+            "name": "储物柜 · 1~19",
+            "location": "站厅 · 中央",
+            "lockerCount": "19 个",
+            "hours": "工作日 05:00–01:00",
+            "phone": "1877-1265",
+            "phoneLabel": "储物柜咨询"
+          }
+        ]
+      },
+      {
+        "id": "nursing",
+        "label": "母婴室",
+        "records": [
+          {
+            "name": "母婴室",
+            "location": "车站服务室内",
+            "hours": "营业时间内",
+            "method": "每次限一户家庭使用",
+            "floor": "地下1层",
+            "stroller": "婴儿车通行 · 可以"
+          }
+        ]
+      },
+      {
+        "id": "atm",
+        "label": "ATM",
+        "records": [
+          {
+            "name": "ATM",
+            "location": "站厅 · 中央",
+            "hours": "05:00~24:00",
+            "provider": "Hyosung TNS",
+            "floor": "地下1层"
+          }
+        ]
+      },
+      {
+        "id": "customerOffice",
+        "label": "车站服务室",
+        "records": [
+          {
+            "name": "车站服务室",
+            "location": "地下1层 · 站厅",
+            "hours": "05:00~00:00",
+            "phone": "02-6110-1291",
+            "phoneLabel": "致电车站服务室"
+          }
+        ]
+      }
+    ]
+  }
+}

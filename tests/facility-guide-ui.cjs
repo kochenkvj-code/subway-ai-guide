@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const assert=require('node:assert/strict');
 
 (async()=>{
+ const legacy=JSON.parse(await fs.readFile('tests/fixtures/facility-display-before-open.json','utf8')).languages;
  const categories=[
   {id:'toilet',items:[{dtlPstn:'지하1층 지하상가 연결통로앞',stnFlr:'B1',vcntEntrcNo:'8',gateInoutSe:'외부',whlchrAcsPsbltyYn:'Y',rstrmInfo:'일반(남,여) / 교통약자(남,여)'}]},
   {id:'elevator',items:[
@@ -46,12 +47,25 @@ const assert=require('node:assert/strict');
   for(const lang of ['ko','en','ja','zh']){
    await page.goto('http://localhost:3106/?station=0154&view=facility&lang='+lang);
    const scope=await allVisible();
+   for(const category of legacy[lang]){
+    const section=scope.locator('.sf-category').filter({has:page.getByRole('heading',{name:category.label,exact:true})});
+    assert.equal(await section.locator('.sf-record').count(),category.records.length);
+    for(const [index,fields]of category.records.entries()){
+     const record=section.locator('.sf-record').nth(index),text=await record.innerText();
+     for(const [field,value]of Object.entries(fields)){
+      const visibleText=field==='name'&&value===category.label?await section.innerText():text;
+      assert.ok(visibleText.includes(value),lang+' '+category.id+' '+index+' lost legacy '+field+': '+value);
+     }
+    }
+   }
    assert.equal(await scope.locator('.sf-contact[href="tel:0261101291"]').count(),1);
    assert.equal(await scope.locator('.sf-contact[href="tel:18771265"]').count(),1);
    assert.ok((await scope.innerText()).includes('02-6110-1291'));
    assert.ok((await scope.innerText()).includes('05:00'));
    const toilet=scope.locator('.sf-category').filter({has:page.getByRole('heading',{name:names[lang][0],exact:true})});
    assert.equal(await toilet.locator('.sf-tag-accessible').count(),1);
+   assert.equal(await toilet.locator('.sf-tag-restroom').count(),1);
+   assert.equal(await scope.locator('.sf-contact span').first().evaluate(el=>getComputedStyle(el).fontSize),await scope.locator('.sf-tag').first().evaluate(el=>getComputedStyle(el).fontSize),'phone text matches information chips');
    if(lang!=='ko')assert.ok((await scope.innerText()).includes(({en:'Korean source',ja:'韓国語原文',zh:'韩文原文'})[lang]+': 미등록장소 3번 출입구 옆'));
    for(const width of [320,390,768]){
     await page.setViewportSize({width,height:844});
@@ -63,14 +77,18 @@ const assert=require('node:assert/strict');
    assert.equal(await scope.locator('.sf-record').count(),14);
    await page.setViewportSize({width:390,height:844});
    await scope.locator('input').fill('6-1');assert.equal(await scope.locator('.sf-record').count(),1);
+   assert.ok((await scope.locator('.sf-record').innerText()).includes(names[lang][1]+' 04'),'a single search result keeps its original elevator number');
    await scope.locator('.sf-clear').click();assert.equal(await scope.locator('.sf-record').count(),14);
+   await scope.locator('input').fill('1~19');assert.equal(await scope.locator('.sf-record').count(),1);
+   assert.ok((await scope.locator('.sf-record-name').innerText()).includes('1~19'),'a single locker keeps its range');
+   await scope.locator('.sf-clear').click();
    await scope.locator('input').fill('no-such-facility');assert.equal(await scope.locator('.sf-record').count(),0);
    await scope.locator('.sf-clear').click();
    await scope.evaluate(el=>el.scrollTop=0);
    await fs.mkdir('work/facility-redesign/production-ui',{recursive:true});
    await page.screenshot({path:'work/facility-redesign/production-ui/'+lang+'.png'});
    await scope.locator('.sf-record').last().scrollIntoViewIfNeeded();assert.ok(await scope.locator('.sf-footer').isVisible());
-   checks.push(lang+': all 14 records, source status, chips, phone, 7 filters, search, 320/390/768px');
+   checks.push(lang+': all pre-redesign information retained across 14 records; facility and locker numbers remain after search; toilet details in a chip; phone matches chip text; 7 filters, 320/390/768px');
   }
   await page.goto('http://localhost:3106/v2?station=0154&view=facility&lang=en');await allVisible();checks.push('existing /v2 entry uses the same complete facility guide');
   await page.goto('http://localhost:3106/v2/facilities-demo');await allVisible();assert.ok(await page.locator('.sf-hero').isVisible());checks.push('standalone facility page');
