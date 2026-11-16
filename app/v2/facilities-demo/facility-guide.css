@@ -28,7 +28,7 @@
 .v2-facility-scope .sf-filter small{font-size:11px;color:#677b72}
 .v2-facility-scope .sf-filter[aria-pressed=true]{background:#205c47;border-color:#205c47;color:white}
 .v2-facility-scope .sf-filter[aria-pressed=true] small{color:inherit;opacity:.8}
-.v2-facility-scope .sf-refresh{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:37px;border:1px solid #e3eae6;border-radius:9px;padding:7px 10px;background:#fff;color:#677b72;font-size:11px;line-height:1.4}
+.v2-facility-scope .sf-refresh{display:inline-flex;align-items:center;justify-content:center;min-width:37px;min-height:37px;border:1px solid #e3eae6;border-radius:9px;padding:7px;background:#fff;color:#677b72;font-size:11px;line-height:1.4}
 .v2-facility-scope.sf-compact .sf-filter-refresh{margin-left:auto;padding:7px 6px;border:0;background:transparent;font-size:11px}
 .v2-facility-scope .sf-filter-refresh .sf-vector{width:14px;height:14px}
 .v2-facility-scope .sf-count{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12px;color:#677b72}
@@ -59,5 +59,4 @@
 .v2-facility-scope .sf-alert{margin:10px 0;background:#edf4f1}
 .v2-facility-scope .sf-empty{text-align:center}
 .v2-facility-scope .sf-alert button{border:0;background:transparent;color:#17664e;font-size:12px;padding:7px}
-.v2-facility-scope .sf-footer{margin:14px 2px 0;color:#677b72;font-size:11px;line-height:1.7}
 @media(max-width:370px){.v2-facility-scope .sf-page{padding:16px 11px 24px}.v2-facility-scope .sf-record{padding:11px 12px}.v2-facility-scope.sf-compact .sf-context-heading h2,.v2-facility-scope .sf-hero h2{font-size:18px}}

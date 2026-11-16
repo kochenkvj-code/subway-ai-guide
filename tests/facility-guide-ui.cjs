@@ -47,6 +47,9 @@ const assert=require('node:assert/strict');
   for(const lang of ['ko','en','ja','zh']){
    await page.goto('http://localhost:3106/?station=0154&view=facility&lang='+lang);
    const scope=await allVisible();
+   assert.equal((await scope.locator('.sf-refresh').innerText()).trim(),'');
+   assert.ok(await scope.locator('.sf-refresh').getAttribute('aria-label'));
+   assert.equal(await scope.locator('.sf-footer').count(),0);
    for(const category of legacy[lang]){
     const section=scope.locator('.sf-category').filter({has:page.getByRole('heading',{name:category.label,exact:true})});
     assert.equal(await section.locator('.sf-record').count(),category.records.length);
@@ -87,7 +90,7 @@ const assert=require('node:assert/strict');
    await scope.evaluate(el=>el.scrollTop=0);
    await fs.mkdir('work/facility-redesign/production-ui',{recursive:true});
    await page.screenshot({path:'work/facility-redesign/production-ui/'+lang+'.png'});
-   await scope.locator('.sf-record').last().scrollIntoViewIfNeeded();assert.ok(await scope.locator('.sf-footer').isVisible());
+   await scope.locator('.sf-record').last().scrollIntoViewIfNeeded();assert.ok(await scope.locator('.sf-record').last().isVisible());
    checks.push(lang+': all pre-redesign information retained across 14 records; facility and locker numbers remain after search; toilet details in a chip; phone matches chip text; 7 filters, 320/390/768px');
   }
   await page.goto('http://localhost:3106/v2?station=0154&view=facility&lang=en');await allVisible();checks.push('existing /v2 entry uses the same complete facility guide');
