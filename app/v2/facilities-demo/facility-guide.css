@@ -80,7 +80,7 @@
 .v2-facility-scope.sf-compact .sf-context-heading h2{font-size:18px;line-height:1.35;font-weight:750;letter-spacing:-.6px;color:#203a32}
 .v2-facility-scope .sf-context-heading .sf-context-station{display:flex;width:100%;max-width:100%;min-width:0;padding:0;gap:5px;font-weight:650;color:#203a32;white-space:nowrap;align-items:center;justify-content:flex-end;line-height:19px}
 .v2-facility-scope .sf-context-heading .sf-context-station b{width:19px;height:19px;flex:0 0 19px;align-self:center;font-size:10px;line-height:1}
-.v2-facility-scope .sf-context-heading .sf-context-station>span{display:block;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:19px;text-align:right}
+.v2-facility-scope .sf-context-heading .sf-context-station>span{display:block;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:19px;text-align:left}
 .v2-facility-scope .sf-view-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 0 4px;padding:3px;border-radius:11px;background:#e8eeeb}
 .v2-facility-scope .sf-view-tabs button{min-width:0;min-height:39px;padding:6px 5px;border:0;border-radius:8px;background:transparent;color:#64796f;font-size:13px;line-height:1.4;font-weight:600}
 .v2-facility-scope .sf-view-tabs button[aria-selected=true]{background:#fff;color:#205c47;box-shadow:0 1px 4px #152b2220}
