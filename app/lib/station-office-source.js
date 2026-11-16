@@ -27,17 +27,20 @@ function parseGov(text){
  return {items,count:Number(body.totalCount||data.totalCount||items.length)};
 }
 async function callGov(key){
- const pageSize=100;let all=[],count=null;
- for(let page=1;page<=10;page++){
+ const pageSize=100;
+ const readPage=async page=>{
   const url=new URL('https://apis.data.go.kr/B553766/facility/getFcCstct');
   for(const [k,v] of Object.entries({serviceKey:key,dataType:'XML',numOfRows:String(pageSize),pageNo:String(page)}))url.searchParams.set(k,v);
   const res=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!res.ok)throw Error('GOV_HTTP_'+res.status);
-  const parsed=parseGov(await res.text());
-  all.push(...parsed.items);if(count===null)count=parsed.count;
-  if(all.length>=count||parsed.items.length<pageSize)break;
- }
- return {items:all,count:count??all.length};
+  return parseGov(await res.text());
+ };
+ const first=await readPage(1),pages=Math.ceil(first.count/pageSize);
+ if(pages>10)throw Error('SOURCE_TOO_LARGE');
+ const remaining=await Promise.all(Array.from({length:Math.max(0,pages-1)},(_,i)=>readPage(i+2)));
+ const items=[...first.items,...remaining.flatMap(page=>page.items)];
+ if(items.length<first.count)throw Error('INCOMPLETE_SOURCE');
+ return {items,count:first.count};
 }
 async function callSeoul(key){
  // Seoul Open Data API uses a path key, unlike the B553766 query-key API.
@@ -62,17 +65,18 @@ function normalizeRow(r){
 async function fetchSource(){
  const key=process.env[keyName]?.trim();if(!key)throw Error('NOT_CONFIGURED');
  const seoulKey=/^[0-9a-f]{32}$/i.test(key);
- let source=null,provider=null,failed=null;
- try{
-  if(seoulKey){source=await callSeoul(key);provider='서울 열린데이터광장';}
-  else{source=await callGov(key);provider='공공데이터포털 B553766';}
- }catch(e){failed=e.message;}
+ let source=null,provider=null;
+ const portalKey=process.env.SEOUL_METRO_FACILITY_API_KEY?.trim();
+ // The government provider is already verified in production. Try it directly
+ // instead of waiting on the failing Seoul endpoint on every cold request.
+ if(seoulKey&&portalKey){
+  try{source=await callGov(portalKey);provider='공공데이터포털 B553766 (기존 시설 키)';}catch{}
+ }
  if(!source){
-  // A separate existing government-portal key is always sent only to its own provider.
-  const portalKey=process.env.SEOUL_METRO_FACILITY_API_KEY?.trim();
-  if(seoulKey&&portalKey){
-   try{source=await callGov(portalKey);provider='공공데이터포털 B553766 (기존 시설 키)';}catch{}
-  }
+  try{
+   if(seoulKey){source=await callSeoul(key);provider='서울 열린데이터광장';}
+   else{source=await callGov(key);provider='공공데이터포털 B553766';}
+  }catch{}
  }
  if(!source)throw Error(seoulKey?'SEOUL_SOURCE_FAILED':'PORTAL_SOURCE_FAILED');
  return {provider,records:source.items.map(normalizeRow),count:source.count};

@@ -6,6 +6,8 @@ import {facilityCopy} from './facility-copy';
 import {translateFacilityText} from '../../lib/facility-i18n';
 import FacilityIcon from './FacilityIcon';
 import './facility-guide.css';
+const officeResponses=new Map();
+const officeResponseTtl=10*60*1000;
 const TYPES=[
  ['toilet','화장실','WC','기본 편의'],
  ['elevator','엘리베이터','↕','이동·접근성'],
@@ -65,13 +67,21 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
  },[stationContext?.stationCode,active,nonce]);
  useEffect(()=>{
   if(!active)return;
-  setOffice(null);
-  if(stationContext?.line==='9'||stationContext?.stationCode==='2810'){setOfficeLoading(false);return;}
-  const controller=new AbortController(),code=stationContext?.stationCode||'0154';
-  setOfficeLoading(true);
-  fetch('/api/v2/station-office?stationCode='+encodeURIComponent(code),{cache:'no-store',signal:controller.signal})
-   .then(async response=>{const result=await response.json();if(!response.ok||!result.ok||result.stationCode!==code)throw Error('OFFICE_UNAVAILABLE');if(!controller.signal.aborted)setOffice(result);})
-   .catch(()=>{if(!controller.signal.aborted)setOffice({status:'unavailable'});})
+  const code=stationContext?.stationCode||'0154';
+  if(stationContext?.line==='9'||code==='2810'){setOffice(null);setOfficeLoading(false);return;}
+  const saved=officeResponses.get(code),cached=saved&&Date.now()-saved.at<officeResponseTtl?saved.data:null;
+  setOffice(cached);setOfficeLoading(!cached);
+  if(cached&&nonce===0)return;
+  const controller=new AbortController();
+  fetch('/api/v2/station-office?stationCode='+encodeURIComponent(code),{signal:controller.signal})
+   .then(async response=>{
+    const result=await response.json();if(!response.ok||!result.ok||result.stationCode!==code)throw Error('OFFICE_UNAVAILABLE');
+    if(!controller.signal.aborted){
+     if(result.category?.items?.length){officeResponses.set(code,{at:Date.now(),data:result});if(officeResponses.size>300)officeResponses.delete(officeResponses.keys().next().value);}
+     setOffice(result);
+    }
+   })
+   .catch(()=>{if(!controller.signal.aborted&&!cached)setOffice({status:'unavailable'});})
    .finally(()=>{if(!controller.signal.aborted)setOfficeLoading(false);});
   return()=>controller.abort();
  },[stationContext?.stationCode,active,nonce]);
@@ -123,11 +133,12 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   });
   return {...cat,items};
  }).filter(cat=>cat.items.length>0);
- const shownTotal=shown.reduce((n,category)=>n+category.items.length,0);
+ const refreshButton=<button className="sf-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button>;
+ const stationBadge=<span className="sf-context-station" title={stationLabel}><b style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</b><span>{stationLabel}</span></span>;
  return <div ref={scopeRef} className={"v2-facility-scope"+(embedded?" sf-compact":"")}><main className="sf-page">
-  {!embedded&&<div className="sf-station-row"><div className="sf-station"><span className="sf-line" style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</span><span>{stationLabel}</span></div></div>}
-  {embedded&&<div className="sf-compact-intro"><div className="sf-context-heading"><h2>{t.oneScreenTitle}</h2><span className="sf-context-station" title={stationLabel}><b style={{background:stationContext?.color||'#1954a1'}}>{stationContext?.line||'1'}</b><span>{stationLabel}</span></span></div><p>{t.oneScreenIntro}</p></div>}
-  {!embedded&&<div className="sf-hero"><h2>{t.oneScreenTitle}</h2><p className="sf-intro">{t.oneScreenIntro}</p></div>}
+  {!embedded&&<div className="sf-station-row"><div className="sf-station-actions">{stationBadge}{refreshButton}</div></div>}
+  {embedded&&<div className="sf-compact-intro"><div className="sf-context-heading"><h2>{t.oneScreenTitle}</h2><div className="sf-station-actions">{stationBadge}{refreshButton}</div></div></div>}
+  {!embedded&&<div className="sf-hero"><h2>{t.oneScreenTitle}</h2></div>}
   <label className="sf-search"><FacilityIcon name="search"/><input type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} aria-label={t.search}/>{q&&<button className="sf-clear" type="button" onClick={()=>setQ('')} aria-label={t.clear}><FacilityIcon name="close"/></button>}</label>
   {(embedded||(!loading&&(data?.ok||office?.category)&&available.length>0))&&<nav className="sf-filter-scroll" aria-label={t.facilityTypes}>
     <div className="sf-filters">
@@ -143,7 +154,7 @@ export default function FacilityDemo({embedded=false,stationContext=null,lang='k
   {loading?<div className="sf-empty" role="status">{t.loading}</div>
    :!data?.ok&&!office?.category?<div className="sf-alert" role="alert">{t.failed}<button type="button" onClick={reload}>{t.retry}</button></div>
    :available.length===0?<div className="sf-empty">{t.empty}</div>
-   :<><div className="sf-count"><strong aria-live="polite">{keyword||filter!=='all'?t.filtered+' '+shownTotal:t.available+' '+total} {t.records}</strong><button className="sf-refresh" type="button" aria-label={t.retry} onClick={reload} disabled={loading}><FacilityIcon name="refresh"/></button></div>
+   :<>
     {shown.length===0?<div className="sf-empty">{t.noMatch}</div>:<div className="sf-categories">{shown.map(cat=>{
      return <section className="sf-category" key={cat.id} aria-label={cat.label}>
       <header className="sf-category-head"><span className="sf-icon"><FacilityIcon name={cat.id}/></span><h3>{cat.label}</h3><span className="sf-num">{cat.items.length}{t.records}</span></header>

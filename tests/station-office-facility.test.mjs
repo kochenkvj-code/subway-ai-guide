@@ -54,3 +54,18 @@ test('XML provider transport preserves location and phone',async()=>{
 test('provider failures return a retryable response without exposing credentials or misreporting missing data',async()=>{
  const {GET}=await loadModule('app/api/v2/station-office/route.js',{...globals,fetch:async()=>{throw Error('fixture-secret');}});const response=await GET({url:'https://test/api?stationCode=0154'});assert.equal(response.status,503);assert.equal((await response.json()).error,'OFFICE_UNAVAILABLE');
 });
+
+test('verified portal is used first, remaining pages run concurrently, and only successful station responses are publicly cached',{timeout:3000},async()=>{
+ let releaseSecond,startedSecond=false,calls=0;
+ const {GET}=await loadModule('app/api/v2/station-office/route.js',{process:{env:{SEOUL_METRO_STATION_OFFICE_API_KEY:'a'.repeat(32),SEOUL_METRO_FACILITY_API_KEY:'portal-fixture'}},fetch:async value=>{
+  const u=new URL(value);assert.equal(u.origin,'https://apis.data.go.kr');assert.equal(u.searchParams.get('serviceKey'),'portal-fixture');calls++;
+  const page=Number(u.searchParams.get('pageNo'));
+  if(page===2){startedSecond=true;await new Promise(resolve=>{releaseSecond=resolve;});}
+  if(page===3){assert.ok(startedSecond);releaseSecond();}
+  return Response.json({response:{header:{resultCode:'00'},body:{totalCount:records.length,items:{item:records.slice((page-1)*100,page*100)}}}});
+ }});
+ const response=await GET({url:'https://test/api?stationCode=0154'});
+ assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/s-maxage=600/);assert.match(response.headers.get('cache-control'),/stale-while-revalidate=3600/);
+ assert.equal((await response.json()).stationCode,'0154');assert.equal(calls,3);
+ const invalid=await GET({url:'https://test/api?stationCode=9999'});assert.equal(invalid.status,400);assert.equal(invalid.headers.get('cache-control'),'no-store');
+});

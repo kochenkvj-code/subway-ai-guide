@@ -10,6 +10,6 @@ export async function GET(request){
  if(station.line==='9'||station.stationCode==='2810')return Response.json({ok:true,stationCode:station.stationCode,status:'excluded',category:null},{headers});
  try{
   const source=await loadStationOfficeSource();
-  return Response.json({ok:true,stationCode:station.stationCode,...stationOfficeFor(station,source.records)},{headers});
+  return Response.json({ok:true,stationCode:station.stationCode,...stationOfficeFor(station,source.records)},{headers:{'Cache-Control':'public, max-age=0, s-maxage=600, stale-while-revalidate=3600'}});
  }catch{return Response.json({ok:false,error:'OFFICE_UNAVAILABLE'},{status:503,headers});}
 }

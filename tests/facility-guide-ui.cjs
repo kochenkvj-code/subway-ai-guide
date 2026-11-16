@@ -22,7 +22,7 @@ const assert=require('node:assert/strict');
  const office={id:'customerOffice',items:[{dtlPstn:'B1층 대합실',operInstTelno:'0261101291',utztnPsbltyHr:'05:00~00:00'}]};
  const names={ko:['화장실','엘리베이터','고객안전실','물품보관함','에스컬레이터','수유실','ATM'],en:['Restroom','Elevator','Station office','Lockers','Escalator','Nursing room','ATM'],ja:['トイレ','エレベーター','駅務室','ロッカー','エスカレーター','授乳室','ATM'],zh:['洗手间','电梯','车站服务室','储物柜','自动扶梯','母婴室','ATM']};
  const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--port','3106']);
- let output='',browser,fail=false,partial=false,empty=false,officeFail=false;
+ let output='',browser,fail=false,partial=false,empty=false,officeFail=false,officeCalls=0;
  server.stdout.on('data',d=>output+=d);server.stderr.on('data',d=>output+=d);
  try{
   for(let i=0;i<100&&!output.includes('Ready');i++)await new Promise(r=>setTimeout(r,100));assert.ok(output.includes('Ready'),output);
@@ -32,7 +32,7 @@ const assert=require('node:assert/strict');
   await page.route('**/api/**',async route=>{
    const url=new URL(route.request().url()),code=url.searchParams.get('stationCode')||'0154';
    if(url.pathname==='/api/v2/facilities')return route.fulfill({status:fail?503:200,json:fail?{ok:false}:{ok:true,stationCode:code,categories:empty?[]:categories,partial}});
-   if(url.pathname==='/api/v2/station-office')return route.fulfill({status:officeFail?503:200,json:officeFail?{ok:false}:{ok:true,stationCode:code,status:empty?'missing':'direct',category:empty?null:office}});
+   if(url.pathname==='/api/v2/station-office'){officeCalls++;return route.fulfill({status:officeFail?503:200,json:officeFail?{ok:false}:{ok:true,stationCode:code,status:empty?'missing':'direct',category:empty?null:office}});}
    return route.fulfill({json:{ok:true,count:0,positions:[],groups:[]}});
   });
   async function allVisible(){
@@ -49,7 +49,10 @@ const assert=require('node:assert/strict');
    const scope=await allVisible();
    assert.equal((await scope.locator('.sf-refresh').innerText()).trim(),'');
    assert.ok(await scope.locator('.sf-refresh').getAttribute('aria-label'));
-   assert.equal(await scope.locator('.sf-count > .sf-refresh').count(),1,'refresh belongs at the end of the facility-count row');
+   assert.equal(await scope.locator('.sf-station-actions > .sf-refresh').count(),1);
+   assert.equal(await scope.locator('.sf-compact-intro p,.sf-count strong').count(),0);
+   const badge=await scope.locator('.sf-context-station').evaluate(el=>({weight:Number(getComputedStyle(el).fontWeight),circle:el.querySelector('b').getBoundingClientRect().width}));
+   assert.ok(badge.weight>=650);assert.equal(badge.circle,17);
    assert.equal(await scope.locator('.sf-filter-scroll .sf-refresh').count(),0);
    assert.equal(await scope.locator('.sf-footer').count(),0);
    for(const category of legacy[lang]){
@@ -124,6 +127,13 @@ const assert=require('node:assert/strict');
   await page.goto('http://localhost:3106/wide?station=0154');await page.locator('.wide-menu-grid').waitFor();
   await page.locator('.wide-menu-grid button').filter({hasText:'시설안내'}).click();await allVisible();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checks.push('wide view shares the same cards without overflow');
+  await page.goto('http://localhost:3106/?station=0154&view=facility&lang=en');await allVisible();
+  const beforeReopen=officeCalls;
+  await page.locator('.v2-home-button').click();await page.locator('.v2-grid button').filter({hasText:'Facilities'}).click();await allVisible();
+  assert.equal(officeCalls,beforeReopen,'reopening the same station reuses the recent office response');
+  const refreshed=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/v2/station-office');
+  await page.locator('.sf-refresh').click();await refreshed;await allVisible();assert.equal(officeCalls,beforeReopen+1,'manual refresh still requests office updates');
+  checks.push('same-station reopen uses memory cache; manual refresh still fetches updates');
   await page.setViewportSize({width:390,height:844});
   partial=true;await page.goto('http://localhost:3106/?station=0154&view=facility&lang=ko');await allVisible();assert.ok((await page.locator('.sf-alert').innerText()).includes('일부'));partial=false;
   fail=true;await page.goto('http://localhost:3106/?station=0154&view=facility&lang=en');await page.locator('.sf-contact').waitFor();assert.equal(await page.locator('.sf-record').count(),1);fail=false;
