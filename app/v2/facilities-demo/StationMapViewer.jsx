@@ -4,10 +4,10 @@ import {createPortal} from 'react-dom';
 import './station-map.css';
 
 const TEXT={
- ko:{title:'역 이용 및 비상대피 안내도',view:'전체화면으로 확대',zoom:'확대·축소',reset:'원래 크기',close:'닫기',missing:'이 역의 이용안내도는 아직 제공되지 않습니다.',hint:'두 손가락으로 확대하거나 화면을 움직여 위치를 확인하세요.',credit:'자료: 서울교통공사 · 2026.08.31. 기준',retry:'이미지를 불러오지 못했습니다.'},
- en:{title:'Station & emergency evacuation map',view:'View full-screen map',zoom:'Zoom',reset:'Reset',close:'Close',missing:'No station map is available for this station.',hint:'Pinch to zoom and drag to explore the station.',credit:'Source: Seoul Metro · Aug 31, 2026',retry:'Unable to load the station map.'},
- ja:{title:'駅構内・非常避難案内図',view:'全画面で拡大',zoom:'拡大・縮小',reset:'元のサイズ',close:'閉じる',missing:'この駅の案内図はまだ提供されていません。',hint:'指2本で拡大し、スワイプして位置を確認できます。',credit:'資料: ソウル交通公社 · 2026.08.31',retry:'案内図を読み込めませんでした。'},
- zh:{title:'车站及紧急疏散导览图',view:'全屏查看',zoom:'缩放',reset:'恢复原尺寸',close:'关闭',missing:'该站暂无导览图。',hint:'双指缩放，拖动查看车站布局。',credit:'资料：首尔交通公社 · 2026.08.31',retry:'无法加载车站导览图。'}
+ ko:{title:'역 이용 및 비상대피 안내도',view:'전체화면으로 확대',zoom:'확대·축소',reset:'원래 크기',close:'닫기',missing:'이 역의 이용안내도는 아직 제공되지 않습니다.',hint:'두 손가락으로 확대하거나 화면을 움직여 위치를 확인하세요.',retry:'이미지를 불러오지 못했습니다.'},
+ en:{title:'Station & emergency evacuation map',view:'View full-screen map',zoom:'Zoom',reset:'Reset',close:'Close',missing:'No station map is available for this station.',hint:'Pinch to zoom and drag to explore the station.',retry:'Unable to load the station map.'},
+ ja:{title:'駅構内・非常避難案内図',view:'全画面で拡大',zoom:'拡大・縮小',reset:'元のサイズ',close:'閉じる',missing:'この駅の案内図はまだ提供されていません。',hint:'指2本で拡大し、スワイプして位置を確認できます。',retry:'案内図を読み込めませんでした。'},
+ zh:{title:'车站及紧急疏散导览图',view:'全屏查看',zoom:'缩放',reset:'恢复原尺寸',close:'关闭',missing:'该站暂无导览图。',hint:'双指缩放，拖动查看车站布局。',retry:'无法加载车站导览图。'}
 };
 const MAP_ALIASES={'2:이대':'이대입구','4:불암산':'당고개'};
 function mapPath(station){
@@ -54,7 +54,6 @@ export default function StationMapViewer({stationContext,lang='ko'}){
  const title=String(stationContext?.names?.[lang]||stationContext?.names?.ko||'종로5가');
  const failed=path===null||unavailable;
  return <section className="sf-map-section" aria-label={t.title}>
-  <div className="sf-map-title"><strong>{title} · {t.title}</strong></div>
   {failed?<div className="sf-map-empty" role="status">{path===null?t.missing:t.retry}</div>:<>
    <button type="button" className="sf-map-preview" onClick={()=>{setZoom(1);setOpen(true);}} aria-label={t.view}>
     <img src={path} alt={title+' '+t.title} loading="lazy" onError={()=>setUnavailable(true)}/>
@@ -62,7 +61,6 @@ export default function StationMapViewer({stationContext,lang='ko'}){
    </button>
    <p className="sf-map-help">{t.hint}</p>
   </>}
-  <p className="sf-map-credit">{t.credit}</p>
   {open&&!failed&&createPortal(<div className="sf-map-overlay" role="dialog" aria-modal="true" aria-label={title+' '+t.title}>
    <div className="sf-map-toolbar">
     <strong>{title}</strong>

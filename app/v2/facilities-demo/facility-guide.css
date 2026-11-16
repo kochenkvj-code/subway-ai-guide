@@ -1,7 +1,7 @@
 .v2-facility-scope{width:100%;height:100%;min-height:0;overflow-y:auto;container-type:inline-size;background:#f6f8f7;color:#203a32;-webkit-overflow-scrolling:touch;--sf-page-pad:14px}
 .v2-facility-scope *{box-sizing:border-box}
 .v2-facility-scope .sf-page{max-width:920px;margin:0 auto;padding:18px var(--sf-page-pad) 24px}
-.v2-facility-scope.sf-compact .sf-page{padding-top:10px}
+.v2-facility-scope.sf-compact .sf-page{padding-top:8px}
 /* Widen only the active facilities workspace; other menus retain their width. */
 .v2-design-refresh .v2-workspace:has(.v2-feature-pane:not([hidden]) > .v2-facility-scope){max-width:920px}
 .v2-facility-scope button,.v2-facility-scope input{font-family:inherit}
@@ -71,23 +71,23 @@
 .v2-facility-scope .sf-empty{text-align:center}
 .v2-facility-scope .sf-alert button{border:0;background:transparent;color:#17664e;font-size:12px;padding:7px}
 @container (min-width:620px){.v2-facility-scope .sf-categories{column-count:2;column-gap:12px}}
-@media(max-width:370px){.v2-facility-scope{--sf-page-pad:11px}.v2-facility-scope .sf-page{padding-top:16px}.v2-facility-scope.sf-compact .sf-page{padding-top:10px}.v2-facility-scope.sf-compact .sf-context-heading h2,.v2-facility-scope .sf-hero h2{font-size:18px}}
+@media(max-width:370px){.v2-facility-scope{--sf-page-pad:11px}.v2-facility-scope .sf-page{padding-top:16px}.v2-facility-scope.sf-compact .sf-page{padding-top:8px}.v2-facility-scope.sf-compact .sf-context-heading h2,.v2-facility-scope .sf-hero h2{font-size:18px}}
 
 /* Facility header and mode selector, preserving the existing facility record presentation */
-.v2-facility-scope .sf-compact-intro{margin:0 0 11px}
+.v2-facility-scope .sf-compact-intro{margin:0 0 7px}
 .v2-facility-scope .sf-context-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;min-width:0}
-.v2-facility-scope .sf-context-heading h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px;line-height:1.45;margin:0;font-weight:600;color:#60776e}
-.v2-facility-scope.sf-compact .sf-context-heading h2{font-size:15px;line-height:1.45;font-weight:600;color:#60776e}
+.v2-facility-scope .sf-context-heading h2{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:1.35;margin:0;font-weight:750;letter-spacing:-.6px;color:#203a32}
+.v2-facility-scope.sf-compact .sf-context-heading h2{font-size:18px;line-height:1.35;font-weight:750;letter-spacing:-.6px;color:#203a32}
 .v2-facility-scope .sf-context-heading .sf-context-station{flex:0 1 auto;max-width:58%;min-width:0;padding:0;font-weight:700;color:#203a32;white-space:nowrap}
 .v2-facility-scope .sf-context-heading .sf-context-station b{width:19px;height:19px;font-size:10px}
 .v2-facility-scope .sf-context-heading .sf-context-station>span{text-align:right}
-.v2-facility-scope .sf-view-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 0 12px;padding:4px;border-radius:11px;background:#e8eeeb}
-.v2-facility-scope .sf-view-tabs button{min-width:0;min-height:41px;padding:7px 5px;border:0;border-radius:8px;background:transparent;color:#64796f;font-size:13px;line-height:1.4;font-weight:600}
+.v2-facility-scope .sf-view-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 0 4px;padding:3px;border-radius:11px;background:#e8eeeb}
+.v2-facility-scope .sf-view-tabs button{min-width:0;min-height:39px;padding:6px 5px;border:0;border-radius:8px;background:transparent;color:#64796f;font-size:13px;line-height:1.4;font-weight:600}
 .v2-facility-scope .sf-view-tabs button[aria-selected=true]{background:#fff;color:#205c47;box-shadow:0 1px 4px #152b2220}
-.v2-facility-scope .sf-filter-scroll{margin-top:0}
+.v2-facility-scope .sf-filter-scroll{margin-top:0;margin-bottom:6px;padding-top:4px;padding-bottom:5px}
 @media(max-width:370px){
  .v2-facility-scope .sf-context-heading{gap:6px}
- .v2-facility-scope.sf-compact .sf-context-heading h2{font-size:12px}
+ .v2-facility-scope.sf-compact .sf-context-heading h2{font-size:16px}
  .v2-facility-scope .sf-context-heading .sf-context-station{max-width:62%;font-size:11px}
  .v2-facility-scope .sf-view-tabs button{font-size:12px}
 }
