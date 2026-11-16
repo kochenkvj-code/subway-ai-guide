@@ -1,14 +1,18 @@
 import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 import path from 'node:path';
 const fixed=Date.parse('2026-11-01T03:00:00Z');
 class Clock extends Date {constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
 async function load(fetch,env={LOST112_PORTAL_API_KEY:'test-only',LOST112_POLICE_API_KEY:'test-only'}){
  const context=vm.createContext({Date:Clock,URL,Response,AbortSignal,Map,Set,Promise,JSON,Number,String,process:{env},fetch});const cache=new Map();
- async function module(file){file=path.resolve(file);if(cache.has(file))return cache.get(file);const text=await fs.readFile(file,'utf8');const m=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(text));},{context}):new vm.SourceTextModule(text,{context,identifier:file});cache.set(file,m);await m.link(ref=>module(path.resolve(path.dirname(file),ref.endsWith('.json')?ref:ref+'.js')));return m;}
- const api=await module('app/api/v2/lost-found/route.js');await api.evaluate();return {get:query=>api.namespace.GET({url:'http://localhost/api/v2/lost-found?'+new URLSearchParams(query)}),filter:cache.get(path.resolve('app/lib/lost-found-filter.js')).namespace};
+ function module(file){file=path.resolve(file);if(cache.has(file))return cache.get(file);const text=readFileSync(file,'utf8');const m=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(text));},{context,identifier:file}):new vm.SourceTextModule(text,{context,identifier:file});cache.set(file,m);return m;}
+ // Let the VM link the whole graph once. Recursively linking each dependency
+ // can hand a still-linking shared module to a sibling import on slower CI.
+ const api=module('app/api/v2/lost-found/route.js');
+ await api.link((ref,parent)=>module(path.resolve(path.dirname(parent.identifier),ref.endsWith('.json')?ref:ref+'.js')));
+ await api.evaluate();return {get:query=>api.namespace.GET({url:'http://localhost/api/v2/lost-found?'+new URLSearchParams(query)}),filter:cache.get(path.resolve('app/lib/lost-found-filter.js')).namespace};
 }
 const xml=(rows,total=rows.length)=>'<response><header><resultCode>00</resultCode></header><body><items>'+rows.map(x=>'<item>'+Object.entries(x).map(([k,v])=>'<'+k+'>'+v+'</'+k+'>').join('')+'</item>').join('')+'</items><totalCount>'+total+'</totalCount></body></response>';
 const row=(id,place='종로5가역',date='2026-10-30',status='')=>({atcId:id,fdSn:'1',fdPrdtNm:'검은 지갑',depPlace:place,fdYmd:date,csteSteNm:status});
