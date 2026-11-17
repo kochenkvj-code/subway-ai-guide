@@ -250,3 +250,4 @@
 .route-lab .rl-all-stop-lines .rl-line-short{min-width:16px;min-height:16px;height:16px;padding:0 3px;font-size:9px;line-height:16px;border-radius:5px}
 .route-lab .rl-submit-row{display:grid;grid-template-columns:minmax(0,37fr) minmax(0,63fr);gap:8px;margin-top:12px}.route-lab .rl-submit-row select{min-width:0;width:100%;border:1px solid #bfd5ca;border-radius:10px;background:#fff;color:#285540;padding:10px;font:inherit;font-size:13px}.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;padding:12px 8px;white-space:normal}.rl-share>button{width:100%;padding:12px;border:1px solid #a9cdbc;border-radius:10px;background:#edf7f1;color:#245c46;font-size:13px;margin:12px 0}
 .rl-shared .rl-top a{display:inline-flex;align-items:center;min-height:36px;margin-top:8px;padding:6px 12px;border:1px solid #ffffff66;border-radius:8px;color:#fff;text-decoration:none;font-size:13px}
+.route-lab .rl-submit-row.rl-submit-full{grid-template-columns:minmax(0,1fr)}

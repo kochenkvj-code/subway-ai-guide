@@ -9,7 +9,9 @@ import './route-lab.css';
 
 import RouteResult,{COPY,EXAMPLES,RESULT_ACTIONS,normalizeStation,lineColor,normalizeLine,lineName,stationLabel,matchesForQuery,buildRouteUrl} from './RouteResult';
 import RouteShareButton from './RouteShareButton';
+import {useStaffTools} from '../StaffTools';
 export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,routeRequest=null,navigationSnapshot=null}){
+ const staffAccess=useStaffTools();
  const [standaloneLang,setStandaloneLang]=useState('ko'),[originCode,setOriginCode]=useState(stationContext?.stationCode||'0154');
  const [selectedResultLang,setSelectedResultLang]=useState(null),[resultLang,setResultLang]=useState(language),[routeProof,setRouteProof]=useState(null),[placeProof,setPlaceProof]=useState(null);
  const lang=embedded&&COPY[language]?language:standaloneLang;
@@ -37,6 +39,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const t=COPY[lang],actions=RESULT_ACTIONS[resultLang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const originName=origin.names[lang]||origin.names.ko;
  const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
+ const searchResultLanguage=staffAccess.admin?(selectedResultLang||lang):lang;
  const stationMatches=useMemo(()=>matchesForQuery(query,lang),[query,lang]);
  useEffect(()=>{
   const el=suggestionList.current;if(!el){setMoreSuggestions(false);return;}
@@ -105,7 +108,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!signal.aborted){
    setRoute(result.route);setRouteProof(result.shareProof||null);
    recordStat('route_search','success',lang);
-   if(embedded)saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route,routeProof:result.shareProof||null,placeProof:placeResult?.shareProof||null,resultLang:selectedResultLang||lang});
+   if(embedded)saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route,routeProof:result.shareProof||null,placeProof:placeResult?.shareProof||null,resultLang:searchResultLanguage});
   }
  }
  const processedRouteRequest=useRef(null);
@@ -123,7 +126,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   requestRef.current?.abort();const ctrl=new AbortController();requestRef.current=ctrl;scrollPendingRef.current=true;
   setFocused(false);setError('');setRoute(null);setPlace(null);setAiMs(null);resetFeedback();
   if(embedded)saveNavigation('route:form',{query:term,route:null,place:null,aiMs:null});
-  const outputLang=selectedResultLang||lang;setResultLang(outputLang);setRouteProof(null);setPlaceProof(null);
+  const outputLang=searchResultLanguage;setResultLang(outputLang);setRouteProof(null);setPlaceProof(null);
   const matches=typeof requestedTerm==='string'?matchesForQuery(term,lang):stationMatches;
   const selected=typeof requestedTerm==='string'?null:picked;
   const exact=matches.find(s=>[s.ko,s.en,s.ja,s.zh,s.ko+'역'].some(x=>normalizeStation(x)===normalizeStation(term)));
@@ -173,7 +176,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-wrap"><div ref={suggestionList} onScroll={updateSuggestionHint} className="rl-match-list" role="listbox" aria-label={t.suggest}>{stationMatches.slice(0,6).map(s=>{const lines=(s.lines||[s.line]).map(line=>lineName(normalizeLine(line),lang)).join(' · ');return <button key={s.code} type="button" role="option" aria-selected="false" title={stationLabel(s,lang)+' · '+lines} onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><strong>{stationLabel(s,lang)}</strong><small>{lines}</small></button>;})}</div>{moreSuggestions&&<span className="rl-suggestion-hint" aria-hidden="true">›</span>}</div>}
      
      <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);resetFeedback();if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
-     <div className="rl-submit-row"><select aria-label="Result language" value={selectedResultLang||lang} disabled={!!loading} onChange={e=>setSelectedResultLang(e.target.value)}>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([id,label])=><option key={id} value={id}>{label}</option>)}</select>
+     <div className={'rl-submit-row'+(staffAccess.admin?'':' rl-submit-full')}>{staffAccess.admin&&<select aria-label="Result language" value={selectedResultLang||lang} disabled={!!loading} onChange={e=>setSelectedResultLang(e.target.value)}>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([id,label])=><option key={id} value={id}>{label}</option>)}</select>}
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button></div>
      
     </form>
