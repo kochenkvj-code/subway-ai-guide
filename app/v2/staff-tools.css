@@ -1,11 +1,16 @@
-.v2-design-refresh .v2-access-qr{flex:0 0 34px;width:34px;height:38px;padding:7px;border:0;background:transparent;color:#557768;cursor:pointer;margin-left:auto}
-.v2-design-refresh .v2-access-qr svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.v2-design-refresh .v2-access-qr+.v2-home-button{margin-left:0}
-.v2-interpreter-entry{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:650;color:#23614c;text-decoration:none;min-height:34px;padding:4px 9px;border:1px solid #bed5c8;border-radius:9px;white-space:nowrap}
-.v2-ai-footer:has(.v2-interpreter-entry){gap:8px;flex-wrap:wrap;justify-content:space-between}
+.v2-design-refresh .v2-ai-title-row{display:flex;align-items:center;gap:9px;min-width:0;margin:0 0 6px}
+.v2-design-refresh .v2-ai .v2-ai-title-row>h1{flex:1 1 auto;min-width:0;margin:0;text-wrap:balance}
+.v2-design-refresh .v2-ai-title-row>.v2-interpreter-entry{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid #cfe0d5;border-radius:11px;background:#ffffffd1;color:#2d6952;text-decoration:none;box-shadow:0 1px 2px #1846320a}
+.v2-design-refresh .v2-ai-title-row>.v2-interpreter-entry svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.v2-design-refresh .v2-ai-title-row>.v2-interpreter-entry:hover{background:#fff;border-color:#9dc5ac}
+.v2-design-refresh .v2-ai-title-row>.v2-interpreter-entry:focus-visible{outline:3px solid #8dbba0;outline-offset:2px}
+.v2-design-refresh .v2-view-header>.v2-access-qr{display:grid;place-items:center;align-self:center;flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;border:0;border-radius:10px;background:transparent;color:#587368;box-shadow:none;cursor:pointer}
+.v2-design-refresh .v2-view-header>.v2-access-qr svg{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.v2-design-refresh .v2-view-header>.v2-access-qr:hover{background:#f0f5f2;color:#285a43}
+.v2-design-refresh .v2-view-header>.v2-access-qr+.v2-home-button{margin-left:0}
+.v2-design-refresh .v2-chat-workspace .v2-view-header>.v2-access-qr{order:1;margin-left:0;flex:0 0 34px;width:34px}
 .sag-qr-dialog{box-sizing:border-box;position:fixed;width:min(360px,calc(100vw - 28px));max-height:calc(100dvh - 28px);overflow:auto;border:1px solid #d6e4dc;border-radius:18px;padding:26px 16px 18px;color:#24483b;text-align:center;background:#fff;box-shadow:0 16px 60px #112e3c33}
 .sag-qr-dialog::backdrop{background:#142e3c88}
 .sag-qr-dialog h2{font-size:18px;margin:10px 0}.sag-qr-dialog p{font-size:13px;line-height:1.6;margin:10px 0;overflow-wrap:anywhere}.sag-qr-dialog img{max-width:100%;height:auto;display:block;margin:auto}
 .sag-qr-dialog button{font:inherit;font-size:13px;padding:9px 16px;border:1px solid #bcd5c8;border-radius:9px;background:#eff7f2;color:#245d48;cursor:pointer}.sag-qr-dialog .sag-qr-close{position:absolute;right:8px;top:8px;border:0;background:none;font-size:22px;padding:0;width:36px;height:36px}.sag-qr-dialog .sag-qr-english{font-size:11px;color:#658174}
 /* Chat's privacy text has order:1 and Home order:2 in the existing stylesheet. */
-.v2-design-refresh .v2-chat-workspace .v2-view-header>.v2-access-qr{order:1;margin-left:0}

@@ -24,7 +24,7 @@ export function useStaffTools(){
 }
 export function InterpreterButton({stationCode,lang}){
  const t=words[lang]||words.en;
- return <a className="v2-interpreter-entry" href={'/interpreter-test?station='+encodeURIComponent(stationCode)}><span aria-hidden="true">↔</span>{t.interpreter}</a>;
+ return <a className="v2-interpreter-entry" href={'/interpreter-test?station='+encodeURIComponent(stationCode)} title={t.interpreter} aria-label={t.interpreter}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 8 6 6m-7 0 6-6 2-3H3m5-3v3M13 21l5-11 5 11m-8-4h6"/></svg></a>;
 }
 export function AccessQR({stationCode,stationName,view,menuName,basePath,lang}){
  const [open,setOpen]=useState(false),[qr,setQr]=useState(''),[link,setLink]=useState(''),[copied,setCopied]=useState(false),[error,setError]=useState('');

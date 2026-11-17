@@ -315,9 +315,9 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
 
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i aria-hidden="true"/><span className="v2-eyebrow-text">YOUR AI STATION GUIDE</span></span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
-        <h1>{t.title}</h1><p>{t.description}</p>
+        <div className="v2-ai-title-row"><h1>{t.title}</h1>{staffTools.interpreter&&<InterpreterButton stationCode={stationContext?.stationCode||'0154'} lang={lang}/>}</div><p>{t.description}</p>
         <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question,{fromHomeComposer:true});}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onFocus={()=>{homeFocusScroll.current=window.scrollY;}} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
-        <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div>{staffTools.interpreter&&<InterpreterButton stationCode={stationContext?.stationCode||'0154'} lang={lang}/>}</div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
+        <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div></div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
       </section>
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
       <nav className="v2-grid" aria-label={t.quick}>{menuItems.map((item,index)=><button key={item.id} onClick={()=>navigate(item.id)}><span className={'v2-icon v2-icon-'+item.id}><Icon name={item.icon}/>{item.id==='feedback'&&feedbackCount>0&&<span className="sf-badge" aria-label={feedbackCopy[lang].badge+': '+feedbackCount}>{feedbackCount}</span>}</span><strong>{t.menu[index]}</strong>{!item.action&&!['timetable','tour','found','facility','lost','feedback'].includes(item.id)&&<small>{t.pending}</small>}</button>)}</nav>
