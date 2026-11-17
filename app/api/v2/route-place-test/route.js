@@ -1,3 +1,4 @@
+import {signRouteResult} from '../../../lib/route-share-proof';
 import {passengerLanguageRule,passengerSystemRule} from '../../../lib/v2-response-language';
 import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
@@ -64,14 +65,17 @@ export async function POST(request){
   const geminiMs=Date.now()-geminiStartedAt;
   const candidate=data.candidates?.[0],complete=candidate?.finishReason==='STOP';
   const text=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim()||'';
-  const parsed=parsePlaceAnswer(text,complete);
+  const placeTag=text.match(/<place_name>([^<>\n]{1,150})<\/place_name>/i);
+  const displayName=placeTag?.[1]?.trim()||query;
+  const parsed=parsePlaceAnswer(text.replace(/<place_name>[\s\S]*?<\/place_name>/gi,''),complete);
   const routeStationDebug=inspectRouteStationMetadata(text,candidate?.finishReason||null);
   const grounding=candidate?.groundingMetadata||{};
   const sources=(grounding.groundingChunks||[]).filter(c=>c.web?.uri?.startsWith('https://')).slice(0,6).map(c=>({title:c.web.title||'Source',url:c.web.uri}));
   // A search-grounded answer may not expose a groundingChunks array. Lack of
   // citation cards is not evidence that the station recommendation was wrong.
   if(!parsed.answer)return respond({ok:false,error:'AI_FORMAT_ERROR'},502);
-  return respond({ok:true,...parsed,...routeStationDebug,place:query,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
+  const shareProof=parsed.status==='found'&&parsed.station?signRouteResult('place',{...parsed,place:displayName,sources,stationCode:station.stationCode,language:lang}):null;
+  return respond({ok:true,...parsed,...routeStationDebug,shareProof,place:displayName,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
  }catch(error){
   console.error('[route-place-test]',error?.name||'Error','elapsedMs',Date.now()-startedAt);
   return respond({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);

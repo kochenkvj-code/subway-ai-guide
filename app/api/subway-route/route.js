@@ -1,3 +1,4 @@
+import {signRouteResult} from '../../lib/route-share-proof';
 import officialStations from "../../data/seoulMetroOfficialStations.json";
 import { getStationByCode } from '../../lib/station-master';
 // Seoul Metro shortest-route API: independent of app/api/google-search/route.js.
@@ -189,7 +190,9 @@ export async function GET(request) {
 
   try {
     const route = summarizeRoute(data.body || {}, destination, searchedAt, origin);
-    return Response.json({ ok: true, route }, { headers: { "Cache-Control": "no-store" } });
+    const {diagnostics,...passengerRoute}=route;
+    const shareProof=origin&&selectedStation?signRouteResult('official',{originCode:origin.stationCode,destinationCode:selectedStation.code,mode,route:passengerRoute,searchedAt:new Date().toISOString()}):null;
+    return Response.json({ ok: true, route, shareProof }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return errorResponse(e?.message || "경로를 해석하는 중 문제가 발생했습니다.", 422, "PARSE_ROUTE");
   }

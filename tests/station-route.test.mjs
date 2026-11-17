@@ -7,6 +7,7 @@ async function handler(fetch,key='fixture') {
  const context=vm.createContext({Response,AbortSignal,URL,URLSearchParams,Date,Intl,Map,Set,process:{env:key?{SEOUL_METRO_API_KEY:key}:{}},fetch});
  const cache=new Map();
  async function load(file){
+  if(file.endsWith('/route-share-proof.js'))return new vm.SyntheticModule(['signRouteResult'],function(){this.setExport('signRouteResult',()=>null);},{context});
   if(cache.has(file))return cache.get(file);
   const text=await fs.readFile(file,'utf8');
   const mod=file.endsWith('.json')?new vm.SyntheticModule(['default'],function(){this.setExport('default',JSON.parse(text));},{context}):new vm.SourceTextModule(text,{context});

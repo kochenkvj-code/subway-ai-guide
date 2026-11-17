@@ -20,7 +20,7 @@ const {parsePlaceAnswer,resolveOfficialStop,inspectRouteStationMetadata}=policy.
 const reply=(station='삼성역')=>`코엑스몰은 2호선 삼성역이나 9호선 봉은사역에서 갈 수 있습니다. 공식 경로는 별도로 확인해 주세요.
 <route_station>${station}</route_station>
 <menu_recommendation>route</menu_recommendation>`;
-const page=await read('app/v2/route-lab/RouteLab.jsx');
+const page=(await read('app/v2/route-lab/RouteLab.jsx'))+'\n'+(await read('app/v2/route-lab/RouteResult.jsx'));
 const standalone=await read('app/v2/route-lab/page.jsx');
 const v2=await read('app/v2/V2Guide.jsx');
 const api=await read('app/api/v2/route-place-test/route.js');
@@ -140,7 +140,7 @@ test('route API uses dedicated wayfinding prompt and preserves model settings',(
  assert.match(api,/tools:\[\{googleSearch:\{\}\}\]/);
  assert.match(api,/maxOutputTokens:1200/);
  assert.match(api,/thinkingLevel:'LOW'/);
- assert.match(api,/parsePlaceAnswer\(text,complete\)/);
+ assert.match(api,/parsePlaceAnswer\(text\.replace\(/);
  assert.match(api,/getStationByCode\(body\.stationCode\)/);
  assert.doesNotMatch(api,/if\(!sources\.length&&parsed\.status==='found'/);
  assert.match(api,/request\.headers\.get\('origin'\)/);
@@ -275,7 +275,7 @@ test('V2 inherited station language and preserved other menus',()=>{
 test('V2 route form and result are browser history entries',()=>{
  assert.ok(v2.includes("key==='route:form'||key==='route:result'"));
  assert.ok(page.includes("navigationSnapshot.data?.routeState"));
- assert.ok(page.includes("saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route})"));
+ assert.ok(page.includes("saveNavigation('route:result',{query:searchTerm,place:placeResult,route:result.route,routeProof:"));
  assert.ok(page.includes("saveNavigation('route:form',{query:value,picked:null,route:null,place:null,aiMs:null})"));
 });
 test('simple transfer label and Google Maps fallback',()=>{
