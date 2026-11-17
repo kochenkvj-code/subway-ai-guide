@@ -1,0 +1,15 @@
+create role anon; create role authenticated; create role service_role bypassrls;
+create schema realtime;
+create table realtime.messages(topic text,extension text,payload jsonb);
+alter table realtime.messages enable row level security;
+create function realtime.topic() returns text language sql as $$select current_setting('realtime.topic',true)$$;
+create function realtime.send(payload jsonb,event text,topic text,private boolean) returns void language sql as $$insert into realtime.messages values(topic,'broadcast',payload)$$;
+create table public.interpreter_test_rooms(id uuid primary key,station_code varchar not null,staff_token_hash text not null,guest_invite_hash text not null,guest_token_hash text,staff_lang varchar not null default 'ko',guest_lang varchar not null default 'en',creator_ip_hash text not null,message_count smallint not null default 0 check(message_count between 0 and 50),created_at timestamptz not null default now(),last_active_at timestamptz not null default now(),expires_at timestamptz not null,closed_at timestamptz);
+create table public.interpreter_test_messages(id uuid primary key,room_id uuid not null references public.interpreter_test_rooms(id) on delete cascade,sender varchar not null check(sender in ('staff','guest')),source_lang varchar not null,target_lang varchar not null,original text not null check(char_length(original) between 1 and 500),translated text not null check(char_length(translated) between 1 and 1500),created_at timestamptz not null default now());
+alter table public.interpreter_test_rooms enable row level security;
+alter table public.interpreter_test_messages enable row level security;
+grant all on public.interpreter_test_rooms,public.interpreter_test_messages to service_role;
+grant usage on schema realtime to anon,authenticated,service_role;
+grant select on realtime.messages to anon,authenticated;
+grant all on realtime.messages to service_role;
+grant execute on function realtime.send(jsonb,text,text,boolean) to service_role;

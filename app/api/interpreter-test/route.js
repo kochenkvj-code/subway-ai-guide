@@ -1,6 +1,7 @@
 import {createHash,createHmac,randomBytes,randomUUID,timingSafeEqual} from 'node:crypto';
 import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
+import {allowRoomCreation} from '../../lib/staff-access';
 import {getStationByCode} from '../../lib/station-master';
 
 export const runtime='nodejs';
@@ -140,6 +141,11 @@ export async function GET(request){
   const id=input.get('room');
   const checked=await getActive(id,tokenOf(request));
   if(checked.error)return roomError(checked);
+  if(input.get('realtime')==='1'){
+   const key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   if(!key||!checked.room.realtime_topic)return reply({ok:false,error:'realtime-unavailable'},503);
+   return reply({ok:true,url:process.env.SUPABASE_URL,key,topic:checked.room.realtime_topic,expiresAt:checked.room.expires_at});
+  }
   const messages=await database('interpreter_test_messages',params({
    room_id:'eq.'+id,select:'id,sender,source_lang,target_lang,original,translated,created_at',
    order:'created_at.asc,id.asc',limit:'45'
@@ -160,6 +166,7 @@ export async function POST(request){
  try{
   const action=body.action;
   if(action==='create'){
+   if(!allowRoomCreation(request,body))return reply({ok:false,error:'staff-required'},403);
    if(!/^\d{4}$/.test(String(body.stationCode||''))||!getStationByCode(body.stationCode))return reply({ok:false,error:'invalid-station'},400);
    const staffLang=LANG[body.lang]?body.lang:'ko';
    const clientIp=(request.headers.get('x-vercel-forwarded-for')||request.headers.get('x-forwarded-for')||'unknown').split(',')[0].trim().slice(0,100);
@@ -205,31 +212,31 @@ export async function POST(request){
    return reply({ok:true,room:publicRoom(rows[0],role)});
   }
   if(action==='close'){
-   // Delete conversation content immediately, but retain the non-content room
-   // record until expiry so closing/reopening cannot evade per-IP limits.
-   await database('interpreter_test_messages',params({room_id:'eq.'+id}),{method:'DELETE'});
-   await database('interpreter_test_rooms',params({id:'eq.'+id,closed_at:'is.null'}),{
-    method:'PATCH',body:{closed_at:new Date().toISOString()}
-   });
+   await database('rpc/interpreter_close','',{method:'POST',body:{p_room:id}});
    return reply({ok:true,closed:true});
   }
   if(action==='send'){
    const text=typeof body.text==='string'?body.text.trim():'';
    if(!text||text.length>MAX_CHARS)return reply({ok:false,error:'message-length'},400);
    if(!room.guest_token_hash)return reply({ok:false,error:'waiting-for-guest'},409);
-   if(room.message_count>=MAX_MESSAGES)return reply({ok:false,error:'message-limit'},429);
-   const from=role==='staff'?room.staff_lang:room.guest_lang;
-   const to=role==='staff'?room.guest_lang:room.staff_lang;
-   const translation=await translate(text,from,to);
-   const fresh=await getRoom(id);
-   if(isExpired(fresh)||!fresh.guest_token_hash)return reply({ok:false,error:'room-ended'},410);
-   if(fresh.message_count>=MAX_MESSAGES)return reply({ok:false,error:'message-limit'},429);
-   const record={id:randomUUID(),room_id:id,sender:role,source_lang:from,target_lang:to,original:text,translated:translation};
-   const added=(await database('interpreter_test_messages','',{method:'POST',body:record}))[0];
-   await database('interpreter_test_rooms',params({id:'eq.'+id,closed_at:'is.null'}),{
-    method:'PATCH',body:{last_active_at:new Date().toISOString(),message_count:fresh.message_count+1}
-   });
-   return reply({ok:true,message:{id:added.id,sender:role,original:text,translated:translation}});
+   // Old tabs without request IDs still work; upgraded clients preserve the ID across retries.
+   const requestId=body.requestId===undefined?randomUUID():body.requestId;
+   if(!validUUID(requestId))return reply({ok:false,error:'invalid-request'},400);
+   const attempt=randomUUID();
+   const args={p_room:id,p_sender:role,p_request:requestId,p_attempt:attempt};
+   const claimed=await database('rpc/interpreter_claim','',{method:'POST',body:{...args,p_fingerprint:sha(text)}});
+   if(claimed.error)return reply({ok:false,error:claimed.error},claimed.error==='room-ended'?410:409);
+   if(claimed.state==='completed')return reply({ok:true,duplicate:true});
+   try{
+    const translation=await translate(text,claimed.sourceLang,claimed.targetLang);
+    const finished=await database('rpc/interpreter_finish','',{method:'POST',body:{...args,p_original:text,p_translated:translation}});
+    if(finished.error)return reply({ok:false,error:finished.error},finished.error==='room-ended'?410:409);
+    return reply({ok:true,messageId:finished.messageId});
+   }catch(error){
+    // The conditional update cannot turn a committed result into a failed request.
+    await database('rpc/interpreter_fail','',{method:'POST',body:args}).catch(()=>{});
+    throw error;
+   }
   }
   return reply({ok:false,error:'unknown-action'},400);
  }catch(e){

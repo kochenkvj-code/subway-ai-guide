@@ -2,6 +2,8 @@
 
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import QRCode from 'qrcode';
+import {startInterpreterSync} from '../lib/interpreter-sync';
+import {connectInterpreter} from '../lib/interpreter-realtime-client';
 import './interpreter.css';
 
 const API='/api/interpreter-test';
@@ -48,6 +50,9 @@ async function api(action,body={},token=''){
 }
 
 export default function InterpreterTestPage(){
+ const [access,setAccess]=useState(null);
+ const [stationPin,setStationPin]=useState('');
+ const pendingSend=useRef(null);
  const [mode,setMode]=useState('idle');
  const [stationCode,setStationCode]=useState('0154');
  const [entryLang,setEntryLang]=useState('ko');
@@ -78,11 +83,12 @@ export default function InterpreterTestPage(){
  const t=copy[currentLang]||copy.ko;
  const language=LANGS.find(x=>x.id===currentLang)||LANGS[0];
  const label=id=>LANGS.find(x=>x.id===id)?.name||id;
- const sayError=e=>setError(errText[e?.message]||e?.message||copy.ko.error);
+ const sayError=e=>setError(({'staff-required':'관리자 로그인 또는 기준역 번호 확인이 필요합니다.','message-pending':'이 메시지를 처리하고 있습니다. 잠시 후 같은 내용으로 다시 전송해 주세요.','request-conflict':'전송 내용을 확인하고 다시 시도해 주세요.'})[e?.message]||errText[e?.message]||e?.message||copy.ko.error);
  const saveSession=(r,nextToken,nextInvite='')=>{
   try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({room:r.id,token:nextToken,invite:nextInvite}));}catch{}
  };
  const clearSession=()=>{
+  roomRef.current=null;
   try{sessionStorage.removeItem(SESSION_KEY);}catch{}
   voiceRef.current?.abort?.();voiceRef.current=null;setListening(false);
   setMode('idle');setRoom(null);setToken('');setInvite('');setPendingInvite(null);setMessages([]);setDraft('');setShowQr(false);setConnected(false);
@@ -91,6 +97,9 @@ export default function InterpreterTestPage(){
   const lang=getBrowserLang();
   const search=new URLSearchParams(window.location.search);
   const id=search.get('room');
+  if(/^\d{4}$/.test(search.get('station')||''))setStationCode(search.get('station'));
+  setEntryLang(lang);
+  fetch('/api/stats/auth',{cache:'no-store'}).catch(()=>{}).then(()=>fetch('/api/interpreter-access',{cache:'no-store'})).then(r=>r.json()).then(setAccess).catch(()=>setAccess({interpreter:false,mode:'admin'}));
   const invitation=new URLSearchParams(window.location.hash.slice(1)).get('invite')||search.get('invite');
   if(invitation&&id){
    setEntryLang(lang);setPendingInvite({room:id,invite:invitation});setMode('join');
@@ -119,33 +128,28 @@ export default function InterpreterTestPage(){
   });
   const result=await response.json().catch(()=>({ok:false,error:'temporarily-unavailable'}));
   if(!response.ok||!result.ok)throw new Error(result.error||'temporarily-unavailable');
+  if(roomRef.current!==id)return result;
   setRoom(result.room);setMessages(result.messages||[]);setConnected(true);
   return result;
  },[]);
  useEffect(()=>{
   if(mode!=='room'||!room?.id||!token)return;
-  let stopped=false,waiting=false;
-  const id=room.id;
-  async function tick(){
-   if(stopped||waiting||document.visibilityState==='hidden')return;
-   waiting=true;
-   try{
-    await refresh(id,token);
-    if(!stopped)setError('');
-   }catch(e){
-    if(stopped)return;
+  const controller=startInterpreterSync({
+   load:()=>refresh(room.id,token),
+   connect:callbacks=>connectInterpreter({room:room.id,token,...callbacks}),
+   isVisible:()=>document.visibilityState!=='hidden',expiresAt:room.expiresAt,
+   onStatus:setConnected,onError:e=>{
     setConnected(false);
-    if(e.message==='room-not-found'||e.message==='room-ended'||e.message==='invalid-access'){
+    if(['room-not-found','room-ended','invalid-access'].includes(e.message)){
      clearSession();setMode('ended');setError(errText[e.message]);
     }
-   }finally{waiting=false;}
-  }
-  tick();
-  const timer=setInterval(tick,1800);
-  const onVisible=()=>{if(document.visibilityState==='visible')tick();};
+   }
+  });
+  const onVisible=()=>{if(document.visibilityState==='visible')controller.resume();};
   document.addEventListener('visibilitychange',onVisible);
-  return()=>{stopped=true;clearInterval(timer);document.removeEventListener('visibilitychange',onVisible);};
- },[mode,room?.id,token,refresh]);
+  window.addEventListener('online',onVisible);
+  return()=>{controller.stop();document.removeEventListener('visibilitychange',onVisible);window.removeEventListener('online',onVisible);};
+ },[mode,room?.id,room?.expiresAt,token,refresh]);
  useEffect(()=>{
   const el=scrollRef.current;
   if(el&&messages.length)el.scrollTop=el.scrollHeight;
@@ -154,7 +158,7 @@ export default function InterpreterTestPage(){
   if(busy)return;
   setBusy(true);setError('');
   try{
-   const result=await api('create',{stationCode,lang:entryLang});
+   const result=await api('create',{stationCode,lang:entryLang,stationPin});
    roomRef.current=result.room.id;setRoom(result.room);setToken(result.token);
    setInvite(result.invite);setShowQr(true);setMode('room');setMessages([]);
    saveSession(result.room,result.token,result.invite);
@@ -185,7 +189,9 @@ export default function InterpreterTestPage(){
   if(sending||!text||!room?.guestJoined||!token)return;
   setSending(true);setError('');
   try{
-   await api('send',{room:room.id,text},token);
+   if(!pendingSend.current||pendingSend.current.text!==text||pendingSend.current.room!==room.id)pendingSend.current={room:room.id,text,requestId:crypto.randomUUID()};
+   await api('send',pendingSend.current,token);
+   pendingSend.current=null;
    setDraft('');await refresh(room.id,token);
   }catch(e){sayError(e);}finally{setSending(false);}
  }
@@ -235,7 +241,8 @@ export default function InterpreterTestPage(){
    <div><span>SUBWAY AI GUIDE · MOBILE TEST</span><strong>METRO INTERPRETER</strong></div>
    <span className="it-testmark">PILOT</span>
   </header>
-  {mode==='idle'&&<section className="it-card it-start">
+  {mode==='idle'&&!access?.interpreter&&<section className="it-card"><p role="status">{access?'관리자 로그인 후 이용할 수 있습니다.':'이용 권한 확인 중…'}</p><a href="/">홈으로</a></section>}
+  {mode==='idle'&&access?.interpreter&&<section className="it-card it-start">
    <div className="it-icon-hero">🌏</div>
    <span className="it-eyebrow">LIVE TRANSLATION</span>
    <h1>실시간 통역 채팅방</h1>
@@ -245,9 +252,11 @@ export default function InterpreterTestPage(){
     <label>기준역 번호 <input className="it-station" inputMode="numeric" maxLength={4} value={stationCode} onChange={e=>setStationCode(e.target.value.replace(/\D/g,'').slice(0,4))} /></label>
     <label>직원 사용 언어 {renderLanguageSelect(entryLang,setEntryLang)}</label>
    </div>
-   <button className="it-primary" onClick={create} disabled={busy||stationCode.length!==4}>{busy?'통역방 생성 중…':'통역방 만들기 →'}</button>
+   {access?.mode==='station'&&!access.admin&&<label className="it-langlabel">직원 확인 · 기준역 번호 4자리<input type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={stationPin} onChange={e=>setStationPin(e.target.value.replace(/\D/g,''))}/></label>}
+   {!access?.interpreter&&<p role="status">{access?'관리자 로그인 후 이용할 수 있습니다.':'이용 권한 확인 중…'}</p>}
+   <button className="it-primary" onClick={create} disabled={!access?.interpreter||busy||stationCode.length!==4}>{busy?'통역방 생성 중…':'통역방 만들기 →'}</button>
    <div className="it-footnote"><span>✓ 앱 설치 없음</span><span>✓ 1:1 비공개</span><span>✓ 30분 자동 종료</span></div>
-   <p className="it-warning">테스트 기능 · 직원 인증은 아직 적용되지 않았습니다. 실제 민감한 개인정보는 입력하지 마세요.</p>
+   <p className="it-warning">직원·승객을 위한 임시 통역방입니다. 민감한 개인정보는 입력하지 마세요.</p>
   </section>}
   {mode==='join'&&<section className="it-card it-join">
    <div className="it-join-icon">👋</div>

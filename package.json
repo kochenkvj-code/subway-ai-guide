@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-names && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && npm run test:route-lab && npm run test:facility-i18n && npm run test:station-office && next build",
+    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-names && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && npm run test:route-lab && npm run test:facility-i18n && npm run test:station-office && npm run test:interpreter && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs tests/arrival-test-line2-branch-boundary.test.mjs tests/arrival-test-compact-layout.test.mjs tests/position-message.test.mjs tests/position-destination.test.mjs tests/v2-position-arrivals.test.mjs",
@@ -37,15 +37,18 @@
     "test:train-lost-window-ui": "node tests/train-lost-window-ui.cjs",
     "test:station-office": "node --experimental-vm-modules --test tests/station-office-facility.test.mjs",
     "test:station-office-ui": "node --experimental-vm-modules tests/station-office-ui.cjs",
-    "test:stats-visitor-history-ui": "node tests/stats-visitor-history-ui.cjs"
+    "test:stats-visitor-history-ui": "node tests/stats-visitor-history-ui.cjs",
+    "test:interpreter": "node --experimental-vm-modules --test tests/interpreter-api.test.mjs tests/staff-access.test.mjs tests/interpreter-sync.test.mjs",
+    "test:interpreter-db": "node tests/interpreter-db.cjs"
   },
   "dependencies": {
-    "next": "16.0.10",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "@supabase/realtime-js": "2.119.0",
+    "@vercel/analytics": "^1.5.0",
     "@vercel/oidc": "^4.0.0",
     "google-auth-library": "^11.1.0",
-    "@vercel/analytics": "^1.5.0",
-    "qrcode": "1.5.4"
+    "next": "16.0.10",
+    "qrcode": "1.5.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   }
 }
