@@ -219,27 +219,23 @@
 /* The original bordered official subway route result cards are retained. */
 .route-lab.rl-embedded .rl-shell{padding-top:10px}
 
-/* One compact end-of-guidance strip. The first group keeps sharing and
-   searching together, even when the feedback controls wrap on narrow phones. */
-.route-lab .rl-result-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:start;margin-top:10px}
-.route-lab .rl-result-primary{display:flex;align-items:flex-start;gap:5px;min-width:0}
-.route-lab .rl-new-destination{flex:1 1 0;min-width:0;width:auto;min-height:36px;padding:5px 6px;border:1px solid #bcd7ca;border-radius:7px;background:#fff;color:#286d54;font-size:11px;font-weight:750;line-height:1.25;white-space:normal;overflow-wrap:anywhere;text-align:center}
-.route-lab .rl-result-feedback{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
-.route-lab .rl-result-feedback button{flex:1 1 auto;min-width:0;min-height:36px;padding:5px 5px;border:1px solid #d9e5dd;border-radius:7px;background:#fff;color:#286d54;font-size:10px;font-weight:650;line-height:1.25;white-space:nowrap;text-align:center}
+/* Equal-width primary actions with a compact stacked feedback column. */
+.route-lab .rl-result-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,24%);gap:5px;align-items:stretch;margin-top:10px;min-height:54px}
+.route-lab .rl-result-primary{display:flex;align-items:stretch;gap:5px;min-width:0}
+.route-lab .rl-new-destination{flex:1 1 0;min-width:0;width:auto;min-height:54px;padding:6px 5px;border:1px solid #b8d9c8;border-radius:8px;background:#edf7f1;color:#246a4e;font-size:12px;font-weight:750;line-height:1.3;white-space:normal;overflow-wrap:anywhere;text-align:center}
+.route-lab .rl-result-feedback{display:flex;flex-direction:column;align-items:stretch;justify-content:stretch;gap:4px;min-width:0}
+.route-lab .rl-result-feedback button{flex:1 1 0;min-width:0;min-height:25px;padding:3px 2px;border:1px solid #cbded5;border-radius:6px;background:#fff;color:#286d54;font-size:10.5px;font-weight:650;line-height:1.25;white-space:normal;overflow-wrap:anywhere;text-align:center}
 .route-lab .rl-result-feedback button:last-child{color:#647b6f}
-.route-lab .rl-result-feedback>span{display:flex;align-items:center;justify-content:center;min-height:36px;max-width:110px;color:#197656;font-size:10px;font-weight:650;text-align:center;line-height:1.3}
-.route-lab .rl-result-primary .rl-share{flex:0 1 auto;max-width:48%;min-width:0}
-.route-lab .rl-result-primary .rl-share>button{display:flex;align-items:center;justify-content:center;gap:4px;min-height:36px;width:100%;padding:5px 6px;margin:0;border:1px solid #b8d9c8;border-radius:7px;background:#edf7f1;color:#246a4e;font-size:11px;font-weight:750;line-height:1.25;white-space:nowrap}
+.route-lab .rl-result-feedback>span{flex:1;display:flex;align-items:center;justify-content:center;min-height:54px;color:#197656;font-size:10px;font-weight:650;text-align:center;line-height:1.3;overflow-wrap:anywhere}
+.route-lab .rl-result-primary .rl-share{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+.route-lab .rl-result-primary .rl-share>button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;min-height:54px;width:100%;padding:6px 5px;margin:0;border:1px solid #b8d9c8;border-radius:8px;background:#edf7f1;color:#246a4e;font-size:12px;font-weight:750;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
 .route-lab .rl-result-primary .rl-share svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .route-lab .rl-result-primary .rl-share>p{font-size:11px;line-height:1.4;color:#a54c43;overflow-wrap:anywhere;margin:5px 0 0}
-@media(max-width:355px){
- .route-lab .rl-result-actions:has(.rl-share){grid-template-columns:minmax(0,1fr)}
- .route-lab .rl-result-actions:has(.rl-share) .rl-result-feedback{justify-content:stretch}
+@media(max-width:370px){
+ .route-lab .rl-result-primary .rl-share>button,.route-lab .rl-new-destination{font-size:11px}
+ .route-lab .rl-result-feedback button{font-size:10px}
 }
-@media(max-width:390px){
- .route-lab .rl-result-actions:lang(en):has(.rl-share){grid-template-columns:minmax(0,1fr)}
- .route-lab .rl-result-actions:lang(en):has(.rl-share) .rl-result-feedback{justify-content:stretch}
-}
+
 /* Compact single-line destination heading, matching the current / route card. */
 .route-lab .rl-top h1{font-size:clamp(15px,4.5vw,19px);white-space:nowrap;line-height:1.3;letter-spacing:-.6px}
 .route-lab .rl-destination-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;margin:0 0 8px}
@@ -262,8 +258,8 @@
 .rl-all-stop-arrow{flex:none;margin:0 4px;font-size:13px;line-height:1;color:#789381}
 .route-lab .rl-all-stop-lines .rl-line-short{min-width:16px;min-height:16px;height:16px;padding:0 3px;font-size:9px;line-height:16px;border-radius:5px}
 .route-lab .rl-submit-row{display:grid;grid-template-columns:minmax(0,37fr) minmax(0,63fr);gap:7px;margin-top:9px;align-items:stretch}
-.route-lab .rl-submit-row select{min-width:0;width:100%;min-height:36px;height:auto;border:1px solid #bfd5ca;border-radius:8px;background:#fff;color:#285540;padding:3px 9px;font:inherit;font-size:14px;line-height:1.3}
-.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;min-height:36px;height:auto;padding:6px 8px;white-space:normal;border-radius:8px;line-height:1.3;font-size:13px;box-shadow:0 2px 6px #1d806018}
+.route-lab .rl-submit-row select{min-width:0;width:100%;min-height:40px;height:auto;border:1px solid #bfd5ca;border-radius:8px;background:#fff;color:#285540;padding:3px 9px;font:inherit;font-size:14px;line-height:1.3}
+.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;min-height:40px;height:auto;padding:6px 8px;white-space:normal;border-radius:8px;line-height:1.3;font-size:13px;box-shadow:0 2px 6px #1d806018}
 .route-lab .rl-submit-row .rl-submit>span{font-size:16px;line-height:1}
 @media(pointer:coarse){.route-lab .rl-submit-row select{font-size:16px}}
 .rl-shared .rl-top a{display:inline-flex;align-items:center;min-height:36px;margin-top:8px;padding:6px 12px;border:1px solid #ffffff66;border-radius:8px;color:#fff;text-decoration:none;font-size:13px}

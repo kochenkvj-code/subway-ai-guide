@@ -468,7 +468,12 @@ test('result sharing and feedback occupy the compact action strip without alteri
  assert.ok(primary.includes('className="rl-result-primary"'));
  assert.ok(primary.includes('<RouteShareButton'));
  assert.ok(primary.includes('className="rl-new-destination"'));
- assert.ok(css.includes('.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;min-height:36px'));
- assert.ok(css.includes('.route-lab .rl-result-feedback{display:flex;align-items:center'));
+ assert.ok(css.includes('.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;min-height:40px'));
+ assert.ok(css.includes('.route-lab .rl-submit-row select{min-width:0;width:100%;min-height:40px'));
+ assert.ok(css.includes('.route-lab .rl-result-feedback{display:flex;flex-direction:column;align-items:stretch'));
+ assert.ok(css.includes('.route-lab .rl-result-primary .rl-share{flex:1 1 0;'));
+ assert.ok(css.includes('.route-lab .rl-new-destination{flex:1 1 0;'));
+ assert.ok(css.includes('margin-top:10px;min-height:54px'));
+ assert.ok(!css.includes('.rl-result-actions:has(.rl-share)'));
  assert.ok(!css.includes('min-height:66px'));
 });
