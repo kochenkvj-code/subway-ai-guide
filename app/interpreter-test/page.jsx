@@ -2,6 +2,9 @@
 
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import QRCode from 'qrcode';
+import dynamic from 'next/dynamic';
+import {guidanceWords,menuLabel} from './guidance-copy';
+const GuidancePanel=dynamic(()=>import('./GuidancePanel'),{ssr:false});
 import {startInterpreterSync} from '../lib/interpreter-sync';
 import {connectInterpreter} from '../lib/interpreter-realtime-client';
 import {getStationByCode} from '../lib/station-master';
@@ -72,6 +75,8 @@ export default function InterpreterTestPage(){
  const pageRef=useRef(null);
  const [stationPin,setStationPin]=useState('');
  const pendingSend=useRef(null);
+ const [guidancePanel,setGuidancePanel]=useState(null);
+ const guidanceRequest=useRef(null);
  const [mode,setMode]=useState('idle');
  const [stationCode,setStationCode]=useState('0154');
  const [entryLang,setEntryLang]=useState('ko');
@@ -110,6 +115,7 @@ export default function InterpreterTestPage(){
   try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({room:r.id,token:nextToken,invite:nextInvite,...context}));}catch{}
  };
  const clearSession=()=>{
+  setGuidancePanel(prev=>prev?.type==='share'?prev:null);guidanceRequest.current=null;
   roomRef.current=null;
   try{sessionStorage.removeItem(SESSION_KEY);}catch{}
   voiceRef.current?.abort?.();voiceRef.current=null;setListening(false);
@@ -315,6 +321,11 @@ export default function InterpreterTestPage(){
    setDraft('');setVoiceDraft(false);await refresh(room.id,token);
   }catch(e){sayError(e);}finally{setSending(false);setSendingRequestId(null);}
  }
+ async function sendGuidance(type,payload){
+  const key=JSON.stringify({type,payload});if(guidanceRequest.current?.key!==key)guidanceRequest.current={key,id:crypto.randomUUID()};
+  await api('guidance',{room:room.id,type,payload,requestId:guidanceRequest.current.id},token);
+  await refresh(room.id,token);guidanceRequest.current=null;
+ }
  async function closeRoom(){
   if(!room||!token||busy)return;
   if(!window.confirm(t.confirmClose))return;
@@ -387,7 +398,7 @@ export default function InterpreterTestPage(){
    {endedContext?.role==='staff'&&access?.interpreter&&<button className="it-secondary" onClick={newRoom}>{t.newRoom}</button>}
    {endedContext?.role==='guest'&&<p className="it-mutednote">{t.redirect}</p>}
   </section>}
-  {mode==='room'&&room&&<section className="it-chat">
+  {mode==='room'&&room&&<section className="it-chat" inert={!!guidancePanel}>
    <header className="it-room-top">
     <div className="it-room-heading"><h1>{t.title}</h1><StationLabel code={room.stationCode} lang={currentLang}/></div>
     <button className="it-small it-end-button" onClick={closeRoom} disabled={busy}>{t.close}</button>
@@ -418,6 +429,7 @@ export default function InterpreterTestPage(){
       <b>{room.guestJoined?t.ready:t.waitingHint}</b>
      </div>}
      {messages.map(m=>{
+      if(m.type==='menu'||m.type==='route_result')return <div className="it-message it-guidance-card" key={m.id}><button type="button" onClick={()=>setGuidancePanel(m.type==='menu'?{type:'menu',menu:m.payload.menu}:{type:'share',shareId:m.payload.shareId})}><strong>{m.type==='menu'?menuLabel(m.payload.menu,currentLang):guidanceWords[currentLang].result}</strong><span>{guidanceWords[currentLang].send} →</span></button></div>;
       const own=m.sender===role;
       const rendered=own?m.original:m.translated;
       const counterpart=own?m.translated:m.original;
@@ -437,6 +449,7 @@ export default function InterpreterTestPage(){
      <textarea value={draft} onChange={e=>setDraft(e.target.value.slice(0,400))} rows={2} maxLength={400}
       disabled={!room.guestJoined||sending} placeholder={room.guestJoined?t.newMessage:t.waiting} aria-label={t.newMessage}/>
      <div className="it-composer-buttons">
+      {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{voiceRef.current?.abort?.();setGuidancePanel({type:'choose'});}}>＋</button>}
       <button type="button" onClick={voiceInput} disabled={!room.guestJoined||sending} className={'it-voice'+(listening?' listening':'')}>{listening?'■ '+t.stopVoice:<><SmallIcon name="mic"/> {t.voice}</>}</button>
       <button type="submit" disabled={!draft.trim()||!room.guestJoined||sending} className="it-submit">{sending?'…':<><SmallIcon name="send"/> {t.send}</>}</button>
      </div>
@@ -444,6 +457,7 @@ export default function InterpreterTestPage(){
     </form>
    </>}
   </section>}
+  {guidancePanel&&((mode==='room'&&room)||guidancePanel.type==='share')&&<GuidancePanel panel={guidancePanel} room={room} token={token} lang={currentLang} onClose={()=>setGuidancePanel(null)} onSend={sendGuidance}/>}
   {error&&mode!=='ended'&&<div role="alert" className="it-error">{error}<button onClick={()=>setError('')} aria-label="Close">×</button></div>}
  </main>;
 }

@@ -147,12 +147,12 @@ export async function GET(request){
    return reply({ok:true,url:process.env.SUPABASE_URL,key,topic:checked.room.realtime_topic,expiresAt:checked.room.expires_at});
   }
   const messages=await database('interpreter_test_messages',params({
-   room_id:'eq.'+id,select:'id,sender,source_lang,target_lang,original,translated,created_at',
+   room_id:'eq.'+id,select:'id,sender,source_lang,target_lang,original,translated,created_at,message_type,payload',
    order:'created_at.asc,id.asc',limit:'45'
   }));
   return reply({ok:true,room:publicRoom(checked.room,checked.role),messages:messages.map(x=>({
    id:x.id,sender:x.sender,sourceLang:x.source_lang,targetLang:x.target_lang,
-   original:x.original,translated:x.translated,createdAt:x.created_at
+   original:x.message_type&&x.message_type!=='text'?'Guidance: '+new URL(x.message_type==='menu'?'/?'+new URLSearchParams({station:checked.room.station_code,view:x.payload?.menu||'home'}):'/route-share/'+x.payload?.shareId,request.url).href:x.original,translated:x.message_type&&x.message_type!=='text'?'Guidance: '+new URL(x.message_type==='menu'?'/?'+new URLSearchParams({station:checked.room.station_code,view:x.payload?.menu||'home'}):'/route-share/'+x.payload?.shareId,request.url).href:x.translated,createdAt:x.created_at,type:x.message_type||'text',payload:x.payload
   }))});
  }catch(e){
   console.error('[interpreter-test] read',e.name||'Error');
@@ -204,6 +204,12 @@ export async function POST(request){
   const checked=await getActive(id,tokenOf(request));
   if(checked.error)return roomError(checked);
   const {room,role}=checked;
+  if(action==='guidance'){
+   if(role!=='staff')return reply({ok:false,error:'staff-required'},403);
+   if(!validUUID(body.requestId))return reply({ok:false,error:'invalid-request'},400);
+   const result=await database('rpc/interpreter_guidance','',{method:'POST',body:{p_room:id,p_token_hash:sha(tokenOf(request)),p_request:body.requestId,p_type:body.type,p_payload:body.payload||{}}});
+   return result.error?reply({ok:false,error:result.error},409):reply({ok:true,...result});
+  }
   if(action==='language'){
    if(!LANG[body.lang])return reply({ok:false,error:'invalid-language'},400);
    const updates={last_active_at:new Date().toISOString()};

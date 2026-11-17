@@ -88,7 +88,7 @@ return <div lang={lang==='zh'?'zh-CN':lang}>
      <div className="rl-walk-places"><span>{stationLabel(place.station,lang)}</span><span aria-hidden="true">→</span><strong>{place.place||query.trim()}</strong></div>
      <p className="rl-walk-summary">{renderRouteAnswer(place.walk||t.walkingUnknown)}</p>
      <div className="rl-walk-actions">
-       <a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place.place||query.trim())} target="_blank" rel="noopener noreferrer">⌖ {t.mapGoogle} ↗</a>
+       <a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(place.mapQuery||place.place||query.trim())} target="_blank" rel="noopener noreferrer">⌖ {t.mapGoogle} ↗</a>
      </div>
    </section>}
 

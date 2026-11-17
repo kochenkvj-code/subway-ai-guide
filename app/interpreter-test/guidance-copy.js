@@ -1,0 +1,3 @@
+import {copy,menuItems} from '../v2/copy';
+export const guidanceWords={ko:{back:'통역으로 돌아가기',choose:'안내 전달',proxy:'대신 검색해서 전달',menu:'길찾기 메뉴 전달',result:'길찾기 결과',live:'실시간 열차 정보',send:'안내 보기'},en:{back:'Back to conversation',choose:'Share guidance',proxy:'Find a route for passenger',menu:'Send route menu',result:'Route result',live:'Live arrivals',send:'Open guidance'},ja:{back:'通訳に戻る',choose:'案内を送信',proxy:'代わりに経路検索',menu:'経路検索メニューを送信',result:'経路検索結果',live:'列車到着情報',send:'案内を見る'},zh:{back:'返回对话',choose:'发送指南',proxy:'代为查询路线',menu:'发送路线菜单',result:'路线结果',live:'实时列车信息',send:'查看指南'}};
+export function menuLabel(id,lang){const i=menuItems.findIndex(x=>x.id===id);return id==='live'?guidanceWords[lang].live:copy[lang]?.menu[i]||id;}

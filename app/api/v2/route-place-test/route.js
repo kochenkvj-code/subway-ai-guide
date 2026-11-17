@@ -3,7 +3,7 @@ import {passengerLanguageRule,passengerSystemRule} from '../../../lib/v2-respons
 import {getVercelOidcToken} from '@vercel/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 import {getStationByCode} from '../../../lib/station-master';
-import {parsePlaceAnswer,inspectRouteStationMetadata} from '../../../lib/route-place-policy';
+import {parsePlaceAnswer,inspectRouteStationMetadata,sanitizePassengerText} from '../../../lib/route-place-policy';
 import {buildRoutePlacePrompt} from '../../../lib/route-place-prompt';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -74,8 +74,9 @@ export async function POST(request){
   // A search-grounded answer may not expose a groundingChunks array. Lack of
   // citation cards is not evidence that the station recommendation was wrong.
   if(!parsed.answer)return respond({ok:false,error:'AI_FORMAT_ERROR'},502);
-  const shareProof=parsed.status==='found'&&parsed.station?signRouteResult('place',{...parsed,place:displayName,sources,stationCode:station.stationCode,language:lang}):null;
-  return respond({ok:true,...parsed,...routeStationDebug,shareProof,place:displayName,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
+  parsed.answer=sanitizePassengerText(parsed.answer,lang);parsed.walk=sanitizePassengerText(parsed.walk,lang);
+  const shareProof=parsed.status==='found'&&parsed.station?signRouteResult('place',{...parsed,mapQuery:query,place:displayName,sources,stationCode:station.stationCode,language:lang}):null;
+  return respond({ok:true,...parsed,...routeStationDebug,shareProof,mapQuery:query,place:displayName,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
  }catch(error){
   console.error('[route-place-test]',error?.name||'Error','elapsedMs',Date.now()-startedAt);
   return respond({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);

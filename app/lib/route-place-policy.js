@@ -109,3 +109,9 @@ export function parsePlaceAnswer(raw,complete=true){
   stations:station?[station]:[],reason:'',
   walk:station&&validRoute&&walkEntries.length===1?walkEntries[0].value:'',recommendedMenu:station?'route':null};
 }
+
+export function sanitizePassengerText(raw,lang='ko'){
+ return String(raw||'').replace(/<route_station>([^<>]*)<\/route_station>/gi,(_,name)=>{const s=resolveOfficialStop(name);return s?.[lang]||name.trim();})
+ .replace(/<menu_recommendation>[\s\S]*?<\/menu_recommendation>/gi,'')
+ .replace(/<\/?(?:route_station|menu_recommendation|walk_hint|place_name)\b[^>]*>/gi,'').trim();
+}

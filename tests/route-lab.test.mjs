@@ -201,7 +201,7 @@ test('optional walking hint is a safe, single-response extension',()=>{
 
 test('last-mile uses one Google Maps browser link in all four UI languages',()=>{
  assert.match(page,/google\.com\/maps\/search\/\?api=1&query=/);
- assert.match(page,/encodeURIComponent\(place\.place\|\|query\.trim\(\)\)/);
+ assert.match(page,/encodeURIComponent\(place\.mapQuery\|\|place\.place\|\|query\.trim\(\)\)/);
  assert.match(page,/place\.walk\|\|t\.walkingUnknown/);
  assert.match(page,/rl-walk-guide/);
  assert.doesNotMatch(page,/kakaomap:\/\/|by=foot|\/v2\/routing\/walk/);
@@ -282,7 +282,7 @@ test('simple transfer label and Google Maps fallback',()=>{
  assert.ok(page.includes('{stop.transfer&&<span className="rl-all-transfer-label">{t.transfer}</span>}'));
  assert.ok(css.includes('.rl-all-transfer-label{display:inline-flex'));
  assert.doesNotMatch(page,/<svg width="16" height="16"/);
- assert.ok(page.includes("encodeURIComponent(place.place||query.trim())"));
+ assert.ok(page.includes("encodeURIComponent(place.mapQuery||place.place||query.trim())"));
 });
 
 test('changing a route option or destination preserves V2 back-history',()=>{

@@ -23,5 +23,5 @@ export function shareSnapshot(body){
   place=readRouteResult(body.placeProof,'place');
   if(place.status!=='found'||!place.station||place.station.code!==official.destinationCode||place.stationCode!==official.originCode||place.language!==body.language)throw Error('mismatched-results');
  }
- return {version:1,language:body.language,originCode:official.originCode,destinationCode:official.destinationCode,mode:official.mode,route:official.route,place:place?Object.fromEntries(['status','station','place','answer','reason','walk','sources'].map(k=>[k,place[k]??null])):null,searchedAt:official.searchedAt};
+ return {version:1,language:body.language,originCode:official.originCode,destinationCode:official.destinationCode,mode:official.mode,route:official.route,place:place?Object.fromEntries(['status','station','place','answer','reason','walk','sources','mapQuery'].map(k=>[k,place[k]??null])):null,searchedAt:official.searchedAt};
 }

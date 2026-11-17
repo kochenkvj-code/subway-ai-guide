@@ -9,11 +9,10 @@ import './route-lab.css';
 
 import RouteResult,{COPY,EXAMPLES,RESULT_ACTIONS,normalizeStation,lineColor,normalizeLine,lineName,stationLabel,matchesForQuery,buildRouteUrl} from './RouteResult';
 import RouteShareButton from './RouteShareButton';
-import {useStaffTools} from '../StaffTools';
-export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,routeRequest=null,navigationSnapshot=null}){
- const staffAccess=useStaffTools();
+
+export default function UnifiedRouteLab({embedded=false,stationContext=null,language='ko',active=true,onNavigationStep=null,deliveryContext=null,routeRequest=null,navigationSnapshot=null}){
  const [standaloneLang,setStandaloneLang]=useState('ko'),[originCode,setOriginCode]=useState(stationContext?.stationCode||'0154');
- const [selectedResultLang,setSelectedResultLang]=useState(null),[resultLang,setResultLang]=useState(language),[routeProof,setRouteProof]=useState(null),[placeProof,setPlaceProof]=useState(null);
+ const [resultLang,setResultLang]=useState(language),[routeProof,setRouteProof]=useState(null),[placeProof,setPlaceProof]=useState(null);
  const lang=embedded&&COPY[language]?language:standaloneLang;
  const [query,setQuery]=useState(''),[picked,setPicked]=useState(null),[focused,setFocused]=useState(false);
  const suggestionList=useRef(null),[moreSuggestions,setMoreSuggestions]=useState(false);
@@ -34,12 +33,12 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  const navigationRef=useRef(null);
  navigationRef.current=embedded&&active?onNavigationStep:null;
  function saveNavigation(key,overrides={}){
-  navigationRef.current?.(key,{routeState:{originCode,query,picked,mode,place,route,aiMs,resultLang,selectedResultLang,routeProof,placeProof,...overrides}});
+  navigationRef.current?.(key,{routeState:{originCode,query,picked,mode,place,route,aiMs,resultLang,routeProof,placeProof,...overrides}});
  }
  const t=COPY[lang],actions=RESULT_ACTIONS[resultLang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const originName=origin.names[lang]||origin.names.ko;
  const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
- const searchResultLanguage=staffAccess.admin?(selectedResultLang||lang):lang;
+ const searchResultLanguage=lang;
  const stationMatches=useMemo(()=>matchesForQuery(query,lang),[query,lang]);
  useEffect(()=>{
   const el=suggestionList.current;if(!el){setMoreSuggestions(false);return;}
@@ -65,7 +64,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   if(!saved||!getStationByCode(saved.originCode))return;
   scrollPendingRef.current=false;requestRef.current?.abort();requestRef.current=null;setLoading('');setError('');resetFeedback();
   setOriginCode(embedded&&getStationByCode(stationContext?.stationCode)?stationContext.stationCode:saved.originCode);setQuery(saved.query||'');setPicked(saved.picked||null);
-  setResultLang(saved.resultLang||lang);setSelectedResultLang(saved.selectedResultLang||null);setRouteProof(saved.routeProof||null);setPlaceProof(saved.placeProof||null);setMode(saved.mode||'duration');setPlace(saved.place||null);setRoute(saved.route||null);setAiMs(saved.aiMs??null);
+  setResultLang(saved.resultLang||lang);setRouteProof(saved.routeProof||null);setPlaceProof(saved.placeProof||null);setMode(saved.mode||'duration');setPlace(saved.place||null);setRoute(saved.route||null);setAiMs(saved.aiMs??null);
  },[embedded,navigationSnapshot?.serial]);
  useEffect(()=>{if(embedded&&!active){scrollPendingRef.current=false;requestRef.current?.abort();requestRef.current=null;setLoading('');}},[embedded,active]);
  useEffect(()=>()=>requestRef.current?.abort(),[]);
@@ -176,7 +175,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
      {focused&&!picked&&stationMatches.length>0&&<div className="rl-match-wrap"><div ref={suggestionList} onScroll={updateSuggestionHint} className="rl-match-list" role="listbox" aria-label={t.suggest}>{stationMatches.slice(0,6).map(s=>{const lines=(s.lines||[s.line]).map(line=>lineName(normalizeLine(line),lang)).join(' · ');return <button key={s.code} type="button" role="option" aria-selected="false" title={stationLabel(s,lang)+' · '+lines} onMouseDown={e=>e.preventDefault()} onClick={()=>choose(s)}><strong>{stationLabel(s,lang)}</strong><small>{lines}</small></button>;})}</div>{moreSuggestions&&<span className="rl-suggestion-hint" aria-hidden="true">›</span>}</div>}
      
      <div className="rl-route-options"><div role="group" aria-label={t.options}>{['duration','distance','transfer'].map((x,i)=><button type="button" key={x} aria-pressed={mode===x} onClick={()=>{setMode(x);setRoute(null);resetFeedback();if(embedded)saveNavigation('route:form',{mode:x,route:null});}}>{t.modes[i]}</button>)}</div></div>
-     <div className={'rl-submit-row'+(staffAccess.admin?'':' rl-submit-full')}>{staffAccess.admin&&<select aria-label="Result language" value={selectedResultLang||lang} disabled={!!loading} onChange={e=>setSelectedResultLang(e.target.value)}>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([id,label])=><option key={id} value={id}>{label}</option>)}</select>}
+     <div className="rl-submit-row rl-submit-full">
      <button className="rl-submit" type="submit" disabled={!query.trim()||!!loading}>{loading==='place'?t.searchingPlace:loading==='route'?t.searchingRoute:<>{t.search}<span aria-hidden="true">→</span></>}</button></div>
      
     </form>
@@ -186,7 +185,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    <RouteResult place={place} route={route} lang={resultLang} query={query} placeRef={placeRef} resultRef={resultRef}/>
    {(route||place)&&<div className="rl-result-actions" lang={resultLang==='zh'?'zh-CN':resultLang}>
     <div className="rl-result-primary">
-     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton routeProof={routeProof} placeProof={placeProof} language={resultLang} originName={origin.names[resultLang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,resultLang,name=>name)}/>}
+     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton deliveryContext={deliveryContext} routeProof={routeProof} placeProof={placeProof} language={resultLang} originName={origin.names[resultLang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,resultLang,name=>name)}/>}
      <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
     </div>
     <div className="rl-result-feedback" role="group" aria-label={actions.label} aria-live="polite">
