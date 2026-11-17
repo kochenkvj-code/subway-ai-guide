@@ -184,9 +184,11 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    </section>
    {(loading||error)&&<section className={'rl-alert'+(error?' rl-error':'')} role="status"><span>{loading==='place'?'✦':loading==='route'?'🚇':'ⓘ'}</span>{error|| (loading==='place'?t.searchingPlace:t.searchingRoute)}</section>}
    <RouteResult place={place} route={route} lang={resultLang} query={query} placeRef={placeRef} resultRef={resultRef}/>
-   {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton routeProof={routeProof} placeProof={placeProof} language={resultLang} originName={origin.names[resultLang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,resultLang,name=>name)}/>}
-   {(route||place)&&<div className="rl-result-actions">
-    <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
+   {(route||place)&&<div className="rl-result-actions" lang={resultLang==='zh'?'zh-CN':resultLang}>
+    <div className="rl-result-primary">
+     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton routeProof={routeProof} placeProof={placeProof} language={resultLang} originName={origin.names[resultLang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,resultLang,name=>name)}/>}
+     <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
+    </div>
     <div className="rl-result-feedback" role="group" aria-label={actions.label} aria-live="polite">
      {feedback?<span>{actions.thanks}</span>:<>
       <button type="button" onClick={()=>submitFeedback('solved')}>✓ {actions.yes}</button>

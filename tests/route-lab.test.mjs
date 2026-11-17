@@ -459,3 +459,16 @@ test('wayfinding logs only the route request destination and success or failure 
  assert.match(page,/recordStat\('route_search','failure',lang\)/);
  assert.doesNotMatch(page,/RAW_STATION_COPY/);
 });
+
+
+test('result sharing and feedback occupy the compact action strip without altering search behavior',()=>{
+ const start=page.indexOf('className="rl-result-actions"');
+ const end=page.indexOf('className="rl-result-feedback"',start);
+ const primary=page.slice(start,end);
+ assert.ok(primary.includes('className="rl-result-primary"'));
+ assert.ok(primary.includes('<RouteShareButton'));
+ assert.ok(primary.includes('className="rl-new-destination"'));
+ assert.ok(css.includes('.route-lab .rl-submit-row .rl-submit{margin:0;min-width:0;min-height:36px'));
+ assert.ok(css.includes('.route-lab .rl-result-feedback{display:flex;align-items:center'));
+ assert.ok(!css.includes('min-height:66px'));
+});
