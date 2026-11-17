@@ -1,10 +1,11 @@
 'use client';
 
-import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import QRCode from 'qrcode';
 import {startInterpreterSync} from '../lib/interpreter-sync';
 import {connectInterpreter} from '../lib/interpreter-realtime-client';
 import {getStationByCode} from '../lib/station-master';
+import {interpreterViewport} from './viewport';
 import './interpreter.css';
 
 const API='/api/interpreter-test';
@@ -84,6 +85,7 @@ export default function InterpreterTestPage(){
  const [showQr,setShowQr]=useState(false);
  const [busy,setBusy]=useState(false);
  const [sending,setSending]=useState(false);
+ const [sendingRequestId,setSendingRequestId]=useState(null);
  const [error,setError]=useState('');
  const [connected,setConnected]=useState(false);
  const [listening,setListening]=useState(false);
@@ -163,12 +165,66 @@ export default function InterpreterTestPage(){
   const timeout=setTimeout(()=>window.location.replace(homeUrl(endedContext)),5000);
   return()=>clearTimeout(timeout);
  },[mode,endedContext]);
- useEffect(()=>{
+ useLayoutEffect(()=>{
   if(mode!=='room')return;
-  const viewport=window.visualViewport;
-  const resize=()=>pageRef.current?.style.setProperty('--it-viewport',Math.round(viewport?.height||window.innerHeight)+'px');
-  resize();viewport?.addEventListener('resize',resize);window.addEventListener('resize',resize);
-  return()=>{viewport?.removeEventListener('resize',resize);window.removeEventListener('resize',resize);pageRef.current?.style.removeProperty('--it-viewport');};
+  const shell=pageRef.current;
+  if(!shell)return;
+  const viewport=window.visualViewport,body=document.body;
+  body.classList.add('it-viewport-active');
+  let frame=0,restoreFrame=0,previousKeyboard=false,pinOnNext=false,disposed=false;
+  const timers=new Set();
+  const isEditing=()=>{const el=document.activeElement;return !!el&&shell.contains(el)&&el.matches('textarea,input:not([type=checkbox]):not([type=radio]),[contenteditable="true"]');};
+  const layoutHeight=()=>Math.max(window.innerHeight,document.documentElement.clientHeight);
+  const restoreHitMap=()=>{
+   if(disposed||restoreFrame)return;
+   const root=document.scrollingElement;
+   if(!root)return;
+   // Reuse the existing guide's root-scroll recovery for WebKit hit testing.
+   root.scrollTop=1;
+   restoreFrame=requestAnimationFrame(()=>{restoreFrame=0;if(!disposed){root.scrollTop=0;window.scrollTo(0,0);}});
+  };
+  const apply=()=>{
+   frame=0;
+   const editing=isEditing(),height=layoutHeight();
+   const next=interpreterViewport({layoutHeight:height,visualHeight:viewport?.height,offsetTop:viewport?.offsetTop,scale:viewport?.scale,editing});
+   if(!next)return;
+   const list=scrollRef.current;
+   const pin=pinOnNext||!!list&&list.scrollHeight-list.clientHeight-list.scrollTop<64;
+   pinOnNext=false;
+   shell.style.setProperty('--it-viewport',next.height+'px');
+   shell.style.setProperty('--it-top',next.top+'px');
+   shell.classList.toggle('it-keyboard-open',next.keyboard);
+   if(list&&pin)list.scrollTop=list.scrollHeight;
+   // Done can leave the field focused; detect the actual viewport recovery.
+   if(previousKeyboard&&!next.keyboard)restoreHitMap();
+   previousKeyboard=next.keyboard;
+  };
+  const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(apply);};
+  const focusIn=e=>{if(shell.contains(e.target)&&isEditing()){pinOnNext=true;schedule();}};
+  const focusOut=()=>{
+   schedule();
+   // Safari's keyboard animation reports several intermediate viewport sizes.
+   for(const delay of [80,250,550]){
+    const timer=window.setTimeout(()=>{timers.delete(timer);schedule();if(!isEditing())restoreHitMap();},delay);
+    timers.add(timer);
+   }
+  };
+  viewport?.addEventListener('resize',schedule);
+  viewport?.addEventListener('scroll',schedule);
+  window.addEventListener('resize',schedule);
+  document.addEventListener('focusin',focusIn);
+  document.addEventListener('focusout',focusOut);
+  apply();
+  return()=>{
+   disposed=true;cancelAnimationFrame(frame);cancelAnimationFrame(restoreFrame);
+   for(const timer of timers)window.clearTimeout(timer);
+   viewport?.removeEventListener('resize',schedule);viewport?.removeEventListener('scroll',schedule);
+   window.removeEventListener('resize',schedule);
+   document.removeEventListener('focusin',focusIn);document.removeEventListener('focusout',focusOut);
+   body.classList.remove('it-viewport-active');
+   shell.classList.remove('it-keyboard-open');shell.style.removeProperty('--it-viewport');shell.style.removeProperty('--it-top');
+   window.scrollTo(0,0);
+  };
  },[mode]);
  useEffect(()=>{
   if(mode==='room'&&room?.role==='staff'&&room.guestJoined)setShowQr(false);
@@ -214,8 +270,8 @@ export default function InterpreterTestPage(){
  },[mode,room?.id,room?.expiresAt,token,refresh]);
  useEffect(()=>{
   const el=scrollRef.current;
-  if(el&&messages.length)el.scrollTop=el.scrollHeight;
- },[messages.length]);
+  if(el&&(messages.length||sending))el.scrollTop=el.scrollHeight;
+ },[messages.length,sending]);
  async function create(){
   if(busy)return;
   setBusy(true);setError('');
@@ -253,10 +309,11 @@ export default function InterpreterTestPage(){
   setSending(true);setError('');
   try{
    if(!pendingSend.current||pendingSend.current.text!==text||pendingSend.current.room!==room.id)pendingSend.current={room:room.id,text,requestId:crypto.randomUUID()};
+   setSendingRequestId(pendingSend.current.requestId);
    await api('send',pendingSend.current,token);
    pendingSend.current=null;
    setDraft('');setVoiceDraft(false);await refresh(room.id,token);
-  }catch(e){sayError(e);}finally{setSending(false);}
+  }catch(e){sayError(e);}finally{setSending(false);setSendingRequestId(null);}
  }
  async function closeRoom(){
   if(!room||!token||busy)return;
@@ -374,7 +431,7 @@ export default function InterpreterTestPage(){
        {expanded[m.id]&&<div className="it-extra"><span>{own?t.translated:t.original}</span>{counterpart}</div>}
       </div>;
      })}
-     {sending&&<div className="it-sending"><span className="it-spinner"/>{t.working}</div>}
+     {sending&&!messages.some(m=>m.id===sendingRequestId)&&<div className="it-message it-mine it-pending-message" role="status"><div className="it-bubble it-sending"><span className="it-spinner" aria-hidden="true"/>{t.working}</div></div>}
     </div>
     <form className="it-composer" onSubmit={send}>
      <textarea value={draft} onChange={e=>setDraft(e.target.value.slice(0,400))} rows={2} maxLength={400}

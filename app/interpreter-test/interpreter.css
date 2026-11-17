@@ -31,7 +31,10 @@
 .it-mutednote{font-size:11px;color:#768a80;line-height:1.5;text-align:center;margin:0}
 .it-join-station{padding:14px 12px;border-radius:11px;background:#edf5ef;color:#295641}
 .it-join-station .it-station-label{font-size:16px}
-.it-room-page{height:100dvh;height:var(--it-viewport,100dvh);min-height:0;overflow:hidden}
+/* Keep the conversation independent of the document scroll. Track the actual
+   keyboard viewport, including Safari's vertical pan offset. */
+body.it-viewport-active{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2px);background:#fff}
+.it-room-page{position:fixed;top:var(--it-top,0px);left:0;right:0;margin:0 auto;height:100dvh;height:var(--it-viewport,100dvh);min-height:0;overflow:hidden;transition:none;overscroll-behavior:none}
 .it-chat{display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden}
 .it-room-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:56px;padding:8px 12px;border-bottom:1px solid var(--it-border);flex:none}
 .it-room-heading{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
@@ -61,8 +64,8 @@
 .it-msg-tools svg{width:13px;height:13px}
 .it-extra{padding:7px 10px;border:1px solid #e0e9e2;border-radius:9px;background:#fff;font-size:13px;line-height:1.5;color:#456759;max-width:100%;white-space:pre-wrap}
 .it-extra span{display:block;font-size:10px;color:#788e82;margin-bottom:3px}
-.it-sending{display:flex;align-items:center;gap:6px;color:#557968;font-size:12px}
-.it-spinner{width:12px;height:12px;border-radius:50%;border:2px solid #c6e7dd;border-top-color:#079d73;animation:it-spin .7s linear infinite}
+.it-pending-message .it-sending{display:flex;align-items:center;gap:7px;background:#e6f1ea;color:#376b53;border:1px solid #d5e5da;font-size:13px;min-height:36px}
+ .it-spinner{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid #c6e7dd;border-top-color:#079d73;animation:it-spin .7s linear infinite}
 @keyframes it-spin{to{transform:rotate(360deg)}}
 .it-composer{padding:8px 10px max(8px,env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--it-border);flex:none;display:flex;flex-direction:column;gap:7px}
 .it-room-page{padding-bottom:0}
@@ -93,4 +96,11 @@
 .it-error button{border:0;background:transparent;font-size:23px;color:#9e4539;line-height:1;min-width:32px;min-height:32px}
 @media(max-width:360px){.it-header h1,.it-room-top h1{font-size:18px}.it-card{padding:16px 13px;gap:12px}.it-room-top,.it-room-toolbar,.it-presence{padding-left:9px;padding-right:9px}.it-messages{padding-left:8px;padding-right:8px}.it-composer{padding-left:8px;padding-right:8px}.it-qr-card{padding:12px 10px}.it-presence small{font-size:9px}.it-composer-buttons button{font-size:12px}}
 @media(max-height:450px){.it-room-top{min-height:44px;padding-top:4px;padding-bottom:4px}.it-room-heading .it-station-label{display:none}.it-room-toolbar{padding-top:2px;padding-bottom:2px}.it-composer textarea{min-height:38px;height:42px}.it-presence{min-height:26px;padding-top:3px;padding-bottom:3px}}
+.it-keyboard-open .it-room-top{min-height:44px;padding-top:4px;padding-bottom:4px}
+.it-keyboard-open .it-room-heading .it-station-label{display:none}
+.it-keyboard-open .it-presence{min-height:26px;padding-top:3px;padding-bottom:3px}
+.it-keyboard-open .it-room-toolbar{padding-top:2px;padding-bottom:2px}
+.it-keyboard-open .it-room-toolbar select{height:36px}
+.it-keyboard-open .it-composer{padding-bottom:7px}
+.it-keyboard-open .it-composer textarea{height:48px;min-height:48px}
 @media(prefers-reduced-motion:reduce){.it-page *{animation:none!important;scroll-behavior:auto!important}}
