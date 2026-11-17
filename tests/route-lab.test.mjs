@@ -477,3 +477,9 @@ test('result sharing and feedback occupy the compact action strip without alteri
  assert.ok(!css.includes('.rl-result-actions:has(.rl-share)'));
  assert.ok(!css.includes('min-height:66px'));
 });
+
+
+test('interpreter proxy and shared view have isolated presentation selectors',()=>{
+ assert.ok(css.includes('.route-lab.rl-delivery .rl-result-primary .rl-deliver>button'));
+ assert.ok(css.includes('.route-lab .rl-shared-heading{display:flex'));
+});

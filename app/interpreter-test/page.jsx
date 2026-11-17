@@ -3,7 +3,8 @@
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import QRCode from 'qrcode';
 import dynamic from 'next/dynamic';
-import {guidanceWords,menuLabel} from './guidance-copy';
+import {guidanceWords,guidanceUI,menuLabel} from './guidance-copy';
+import GuidanceIcon from './GuidanceIcon';
 const GuidancePanel=dynamic(()=>import('./GuidancePanel'),{ssr:false});
 import {startInterpreterSync} from '../lib/interpreter-sync';
 import {connectInterpreter} from '../lib/interpreter-realtime-client';
@@ -429,7 +430,16 @@ export default function InterpreterTestPage(){
       <b>{room.guestJoined?t.ready:t.waitingHint}</b>
      </div>}
      {messages.map(m=>{
-      if(m.type==='menu'||m.type==='route_result')return <div className="it-message it-guidance-card" key={m.id}><button type="button" onClick={()=>setGuidancePanel(m.type==='menu'?{type:'menu',menu:m.payload.menu}:{type:'share',shareId:m.payload.shareId})}><strong>{m.type==='menu'?menuLabel(m.payload.menu,currentLang):guidanceWords[currentLang].result}</strong><span>{guidanceWords[currentLang].send} →</span></button></div>;
+       if(m.type==='menu'||m.type==='route_result'){
+        const own=m.sender===role,isRoute=m.type==='route_result',g=guidanceWords[currentLang],u=guidanceUI[currentLang],station=getStationByCode(room.stationCode);
+        return <div className={'it-message it-guidance-card '+(own?'it-mine':'it-theirs')} key={m.id}>
+         <span className="it-msg-who">{own?u.sent:u.received}</span>
+         <button type="button" onClick={()=>setGuidancePanel(isRoute?{type:'share',shareId:m.payload.shareId}:{type:'menu',menu:m.payload.menu})}>
+          <span className="it-guidance-card-head"><span className="it-guidance-icon"><GuidanceIcon name={isRoute?'route':m.payload.menu}/></span><span className="it-guidance-card-copy"><strong>{isRoute?g.result:menuLabel(m.payload.menu,currentLang)}</strong><small>{station?.names?.[currentLang]||station?.names?.ko}</small></span></span>
+          <span className="it-guidance-card-action">{isRoute?u.viewRoute:g.send}<GuidanceIcon name="arrow"/></span>
+         </button>
+        </div>;
+       }
       const own=m.sender===role;
       const rendered=own?m.original:m.translated;
       const counterpart=own?m.translated:m.original;
@@ -448,8 +458,8 @@ export default function InterpreterTestPage(){
     <form className="it-composer" onSubmit={send}>
      <textarea value={draft} onChange={e=>setDraft(e.target.value.slice(0,400))} rows={2} maxLength={400}
       disabled={!room.guestJoined||sending} placeholder={room.guestJoined?t.newMessage:t.waiting} aria-label={t.newMessage}/>
-     <div className="it-composer-buttons">
-      {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{voiceRef.current?.abort?.();setGuidancePanel({type:'choose'});}}>＋</button>}
+     <div className={'it-composer-buttons'+(role==='staff'?' it-has-guidance':'')}>
+      {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{document.activeElement?.blur?.();voiceRef.current?.abort?.();setGuidancePanel({type:'choose'});}}><GuidanceIcon name="plus"/></button>}
       <button type="button" onClick={voiceInput} disabled={!room.guestJoined||sending} className={'it-voice'+(listening?' listening':'')}>{listening?'■ '+t.stopVoice:<><SmallIcon name="mic"/> {t.voice}</>}</button>
       <button type="submit" disabled={!draft.trim()||!room.guestJoined||sending} className="it-submit">{sending?'…':<><SmallIcon name="send"/> {t.send}</>}</button>
      </div>

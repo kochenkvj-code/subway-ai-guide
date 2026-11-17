@@ -157,7 +157,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
   requestAnimationFrame(()=>document.getElementById('rl-destination')?.focus());
  }
  const Root=embedded?'section':'main';
- return <Root className={'route-lab'+(embedded?' rl-embedded':'')} lang={lang==='zh'?'zh-CN':lang}>
+ return <Root className={'route-lab'+(embedded?' rl-embedded':'')+(deliveryContext?' rl-delivery':'')} lang={lang==='zh'?'zh-CN':lang}>
   <div className="rl-shell">
    <header className={"rl-top"+(embedded?" rl-top-embedded":"")}>
     {!embedded&&<div className="rl-top-row"><span className="rl-lab-label"><span className="rl-pulse"/> {t.lab}</span>
