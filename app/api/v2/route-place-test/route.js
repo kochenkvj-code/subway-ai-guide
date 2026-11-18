@@ -31,25 +31,29 @@ async function getToken(){
  return result.token;
 }
 export async function POST(request){
- const startedAt=Date.now();
+ const startedAt=Date.now();let stage='request',stageStartedAt=startedAt,diagnosticLang='unknown';
+ const finishStage=()=>console.info('[route-search]',{stage,language:diagnosticLang,outcome:'success',elapsedMs:Date.now()-stageStartedAt});
+ const reply=(data,status=200)=>{console.info('[route-search]',{stage,language:diagnosticLang,outcome:status>=400?'failed':data.routeStationFailure?'unverified':'success',reason:data.error||data.routeStationFailure||null,elapsedMs:Date.now()-stageStartedAt,totalMs:Date.now()-startedAt});return respond(data,status);};
  try{
   const origin=request.headers.get('origin');
-  if(origin&&origin!==new URL(request.url).origin)return respond({ok:false,error:'ORIGIN_REJECTED'},403);
+  if(origin&&origin!==new URL(request.url).origin)return reply({ok:false,error:'ORIGIN_REJECTED'},403);
   const size=Number(request.headers.get('content-length')||0);
-  if(size>4000)return respond({ok:false,error:'REQUEST_TOO_LARGE'},413);
+  if(size>4000)return reply({ok:false,error:'REQUEST_TOO_LARGE'},413);
   const raw=await request.text();
-  if(raw.length>1800)return respond({ok:false,error:'REQUEST_TOO_LARGE'},413);
-  let body;try{body=JSON.parse(raw);}catch{return respond({ok:false,error:'BAD_JSON'},400);}
+  if(raw.length>1800)return reply({ok:false,error:'REQUEST_TOO_LARGE'},413);
+  let body;try{body=JSON.parse(raw);}catch{return reply({ok:false,error:'BAD_JSON'},400);}
   const query=String(body?.query||'').trim();
-  if(query.length<2||query.length>100)return respond({ok:false,error:'BAD_QUERY'},400);
+  if(query.length<2||query.length>100)return reply({ok:false,error:'BAD_QUERY'},400);
   const station=getStationByCode(body.stationCode);
-  if(!station)return respond({ok:false,error:'BAD_STATION'},400);
-  const lang=Object.hasOwn(LANGUAGE,body.lang)?body.lang:'ko';
+  if(!station)return reply({ok:false,error:'BAD_STATION'},400);
+  const lang=Object.hasOwn(LANGUAGE,body.lang)?body.lang:'ko';diagnosticLang=lang;
   // Dedicated place-wayfinding policy; do not apply station-facility chat rules.
   const prompt=buildRoutePlacePrompt(query,lang,station,languageOutputRule(lang));
+  stage='auth';stageStartedAt=Date.now();
   const authStartedAt=Date.now();
   const access=await getToken();
   const authMs=Date.now()-authStartedAt;
+  finishStage();stage='place-search';stageStartedAt=Date.now();
   const geminiStartedAt=Date.now();
   const result=await fetch(`https://aiplatform.googleapis.com/v1/projects/${encodeURIComponent(process.env.GCP_PROJECT_ID)}/locations/global/publishers/google/models/gemini-3.5-flash-lite:generateContent`,{
    method:'POST',headers:{Authorization:'Bearer '+access,'Content-Type':'application/json; charset=utf-8',Accept:'application/json'},
@@ -60,25 +64,25 @@ export async function POST(request){
     generationConfig:{maxOutputTokens:1200,thinkingConfig:{thinkingLevel:'LOW'}}
    }),cache:'no-store',signal:AbortSignal.timeout(45000)
   });
-  if(!result.ok)return respond({ok:false,error:'AI_UPSTREAM_ERROR'},502);
+  if(!result.ok)return reply({ok:false,error:'AI_UPSTREAM_ERROR'},502);
   const data=await result.json();
   const geminiMs=Date.now()-geminiStartedAt;
   const candidate=data.candidates?.[0],complete=candidate?.finishReason==='STOP';
   const text=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim()||'';
-  const placeTag=text.match(/<place_name>([^<>\n]{1,150})<\/place_name>/i);
-  const displayName=placeTag?.[1]?.trim()||query;
-  const parsed=parsePlaceAnswer(text.replace(/<place_name>[\s\S]*?<\/place_name>/gi,''),complete);
+  finishStage();stage='parse-place';stageStartedAt=Date.now();
+  const displayName=query;
+  const parsed=parsePlaceAnswer(text.replace(/<\/?place_name\b[^>]*>/gi,''),complete);
   const routeStationDebug=inspectRouteStationMetadata(text,candidate?.finishReason||null);
   const grounding=candidate?.groundingMetadata||{};
   const sources=(grounding.groundingChunks||[]).filter(c=>c.web?.uri?.startsWith('https://')).slice(0,6).map(c=>({title:c.web.title||'Source',url:c.web.uri}));
   // A search-grounded answer may not expose a groundingChunks array. Lack of
   // citation cards is not evidence that the station recommendation was wrong.
-  if(!parsed.answer)return respond({ok:false,error:'AI_FORMAT_ERROR'},502);
+  if(!parsed.answer)return reply({ok:false,error:'AI_FORMAT_ERROR'},502);
   parsed.answer=sanitizePassengerText(parsed.answer,lang);parsed.walk=sanitizePassengerText(parsed.walk,lang);
   const shareProof=parsed.status==='found'&&parsed.station?signRouteResult('place',{...parsed,mapQuery:query,place:displayName,sources,stationCode:station.stationCode,language:lang}):null;
-  return respond({ok:true,...parsed,...routeStationDebug,shareProof,mapQuery:query,place:displayName,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
+  return reply({ok:true,...parsed,...routeStationDebug,shareProof,mapQuery:query,place:displayName,sources,stationCode:station.stationCode,googleSearchQueries:grounding.webSearchQueries||[],timings:{authMs,geminiMs,totalMs:Date.now()-startedAt}});
  }catch(error){
   console.error('[route-place-test]',error?.name||'Error','elapsedMs',Date.now()-startedAt);
-  return respond({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);
+  return reply({ok:false,error:error?.name==='TimeoutError'?'AI_TIMEOUT':'AI_UNAVAILABLE'},error?.name==='TimeoutError'?504:502);
  }
 }

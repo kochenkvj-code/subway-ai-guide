@@ -20,7 +20,7 @@ function seoulTimestamp() {
   return `${field("year")}-${field("month")}-${field("day")} ${field("hour")}:${field("minute")}:${field("second")}`;
 }
 
-function errorResponse(message, status, code) {
+function routeErrorResponse(message, status, code) {
   return Response.json({ ok: false, error: message, code }, {
     status, headers: { "Cache-Control": "no-store" },
   });
@@ -114,6 +114,8 @@ function summarizeRoute(body, destination, searchedAt, origin = null) {
 }
 
 export async function GET(request) {
+  const startedAt=Date.now();
+  const errorResponse=(message,status,code)=>{console.info('[official-route]',{outcome:'failed',reason:code,elapsedMs:Date.now()-startedAt});return routeErrorResponse(message,status,code);};
   const key = process.env.SEOUL_METRO_API_KEY?.trim();
   if (!key) {
     return errorResponse("Vercel 환경변수 SEOUL_METRO_API_KEY가 없습니다. 추가 후 재배포해 주세요.", 503, "NO_API_KEY");
@@ -192,6 +194,7 @@ export async function GET(request) {
     const route = summarizeRoute(data.body || {}, destination, searchedAt, origin);
     const {diagnostics,...passengerRoute}=route;
     const shareProof=origin&&selectedStation?signRouteResult('official',{originCode:origin.stationCode,destinationCode:selectedStation.code,mode,route:passengerRoute,searchedAt:new Date().toISOString()}):null;
+    console.info('[official-route]',{outcome:'success',elapsedMs:Date.now()-startedAt});
     return Response.json({ ok: true, route, shareProof }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return errorResponse(e?.message || "경로를 해석하는 중 문제가 발생했습니다.", 422, "PARSE_ROUTE");
