@@ -144,7 +144,7 @@
 .v2-position-trains:has(.v2-crowding-heading) .v2-summary-direction{padding-left:6px;padding-right:6px;min-width:0}
 .v2-position-trains:has(.v2-crowding-heading) .v2-summary-direction:first-child{padding-left:0}
 .v2-position-trains:has(.v2-crowding-heading) .v2-summary-direction:last-child{padding-right:0}
-.v2-position-trains .v2-summary-heading.v2-crowding-heading{height:29px;min-height:29px;gap:2px;padding-inline:3px}
+.v2-position-trains .v2-summary-heading.v2-crowding-heading{height:27px;min-height:27px;gap:2px;padding-inline:3px}
 .v2-position-trains .v2-summary-heading>.v2-crowding-indicator{flex-direction:row;gap:2px;width:auto;align-items:center;justify-content:center}
 .v2-position-trains .v2-summary-direction:nth-child(2n) .v2-summary-heading>.v2-crowding-indicator{flex-direction:row-reverse}
 .v2-position-trains .v2-crowding-indicator>svg{width:24px;height:16px}
