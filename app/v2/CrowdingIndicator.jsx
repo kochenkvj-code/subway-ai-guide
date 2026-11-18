@@ -21,7 +21,7 @@ export function CrowdingIndicator({value,lang='ko',numeric=false,onInfo=null}){
  if(level===null)return null;
  const Tag=onInfo?'button':'span';
  return <Tag {...(onInfo?{type:'button',onClick:onInfo}:{})} className="v2-crowding-indicator" lang={lang==='zh'?'zh-CN':lang} aria-label={crowdingDescription(value,lang)} title={crowdingDescription(value,lang)}>
-  <svg viewBox="0 0 30 22" aria-hidden="true">{[0,1,2].map(i=><g key={i} transform={'translate('+i*10+' 0)'} fill="currentColor" opacity={i<level?1:.20}><circle cx="5" cy="3.5" r="2.8"/><path d="M2.1 9Q2.1 7 5 7Q7.9 7 7.9 9L9.4 14H7.4V21H5.7V14H4.3V21H2.6V14H.6Z"/></g>)}</svg>
+  <svg viewBox="0 0 30 22" aria-hidden="true">{[0,1,2].map(i=><g key={i} transform={'translate('+i*10+' 0)'} fill="currentColor" opacity={i<=level?1:.20}><circle cx="5" cy="3.5" r="2.8"/><path d="M2.1 9Q2.1 7 5 7Q7.9 7 7.9 9L9.4 14H7.4V21H5.7V14H4.3V21H2.6V14H.6Z"/></g>)}</svg>
   <span className={'v2-crowding-label'+(numeric?' v2-crowding-number':'')} aria-hidden="true">{numeric?value+'%':(labels[lang]||labels.ko)[level].map((part,i)=><span key={i}>{part}</span>)}</span>
  </Tag>;
 }
