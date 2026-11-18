@@ -137,3 +137,12 @@
 .v2-position-arrivals .v2-arrival-detail-head button:disabled::before{opacity:.55;animation:v2-position-refresh-spin 1.2s linear infinite}
 @keyframes v2-position-refresh-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.v2-position-arrivals .v2-arrival-detail-head button:disabled::before{animation:none}}
+
+/* Home only: stacked compact crowding, single-line labels. */
+.v2-position-trains .v2-summary-heading.v2-crowding-heading{height:30px;min-height:30px;gap:2px}
+.v2-position-trains .v2-summary-heading>.v2-crowding-indicator{flex-direction:column;gap:0;width:34px;align-items:center;justify-content:center}
+.v2-position-trains .v2-crowding-indicator>svg{width:23px;height:15px}
+.v2-position-trains .v2-crowding-indicator .v2-crowding-label{width:auto;max-width:34px;font-size:8px;line-height:9px;white-space:nowrap;letter-spacing:-.3px}
+.v2-position-trains .v2-crowding-indicator .v2-crowding-label:lang(ja){font-size:7px}
+.v2-position-trains .v2-crowding-station{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-position-arrivals .v2-crowding-indicator>svg{width:26px}
