@@ -35,7 +35,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
  function saveNavigation(key,overrides={}){
   navigationRef.current?.(key,{routeState:{originCode,query,picked,mode,place,route,aiMs,resultLang,routeProof,placeProof,...overrides}});
  }
- const t=COPY[lang],actions=RESULT_ACTIONS[resultLang],origin=getStationByCode(originCode)||getStationByCode('0154');
+ const t=COPY[lang],actions=RESULT_ACTIONS[lang],origin=getStationByCode(originCode)||getStationByCode('0154');
  const originName=origin.names[lang]||origin.names.ko;
  const departureLabel=({ko:`${originName} 출발`,en:`From ${originName}`,ja:`${originName}から出発`,zh:`从${originName}出发`})[lang];
  const searchResultLanguage=lang;
@@ -182,10 +182,10 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
     <div className="rl-examples"><strong>{t.examples}</strong><div>{EXAMPLES.slice(0,3).map(ex=><button key={ex.ko} type="button" title={ex[lang]||ex.ko} onClick={()=>{changeQuery(ex[lang]||ex.ko);setFocused(false);}}>{ex[lang]||ex.ko}</button>)}</div></div>
    </section>
    {(loading||error)&&<section className={'rl-alert'+(error?' rl-error':'')} role="status"><span>{loading==='place'?'✦':loading==='route'?'🚇':'ⓘ'}</span>{error|| (loading==='place'?t.searchingPlace:t.searchingRoute)}</section>}
-   <RouteResult place={place} route={route} lang={resultLang} query={query} placeRef={placeRef} resultRef={resultRef}/>
-   {(route||place)&&<div className="rl-result-actions" lang={resultLang==='zh'?'zh-CN':resultLang}>
+   <RouteResult place={place} route={route} lang={lang} query={query} placeRef={placeRef} resultRef={resultRef}/>
+   {(route||place)&&<div className="rl-result-actions" lang={lang==='zh'?'zh-CN':lang}>
     <div className="rl-result-primary">
-     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton deliveryContext={deliveryContext} routeProof={routeProof} placeProof={placeProof} language={resultLang} originName={origin.names[resultLang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,resultLang,name=>name)}/>}
+     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton deliveryContext={deliveryContext} routeProof={routeProof} placeProof={placeProof} language={resultLang} displayLanguage={lang} originName={origin.names[lang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,lang,name=>name)}/>}
      <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
     </div>
     <div className="rl-result-feedback" role="group" aria-label={actions.label} aria-live="polite">

@@ -37,3 +37,13 @@ test('translation failures log safe reasons and stages without source text or to
  await assert.rejects(()=>translateRouteFields({answer:'private-source'},'ko','ja',null),/AI_NOT_CONFIGURED/);
  assert.equal(logs[0][1].stage,'auth');assert.equal(logs[0][1].reason,'AI_NOT_CONFIGURED');assert.doesNotMatch(JSON.stringify(logs),/private-source/);
 });
+
+test('translation prompt names only the target language while preserving existing translation settings',async()=>{
+ const env=Object.fromEntries(['GCP_PROJECT_ID','GCP_PROJECT_NUMBER','GCP_SERVICE_ACCOUNT_EMAIL','GCP_WORKLOAD_IDENTITY_POOL_ID','GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID'].map(key=>[key,'fixture']));
+ for(const [to,name]of [['ko','Korean'],['en','English'],['ja','Japanese'],['zh','Simplified Chinese']]){
+ let sent;
+ const api=await module('app/lib/translate-route-fields.js',name=>name.includes('oidc')?{getVercelOidcToken:()=> 'fixture'}:{ExternalAccountClient:{fromJSON:()=>({getAccessToken:async()=>({token:'fixture'})})}},{AbortSignal,console:{info(){}},process:{env},fetch:async(url,options)=>{sent=JSON.parse(options.body);assert.ok(url.includes('gemini-3.5-flash-lite'));return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({place:'Hotel',answer:'Guidance',walk:'',reason:''})}]}}]});}});
+ await api.translateRouteFields({place:'호텔',answer:'원문',walk:'',reason:''},'ko',to,null);
+ const instruction=sent.systemInstruction.parts[0].text;assert.ok(instruction.startsWith('Translate transit guidance fields into '+name+'.'));assert.doesNotMatch(instruction,/fields from /);assert.equal(sent.generationConfig.thinkingConfig.thinkingLevel,'LOW');assert.equal(sent.generationConfig.temperature,0);assert.equal(sent.generationConfig.maxOutputTokens,3000);
+ }
+});

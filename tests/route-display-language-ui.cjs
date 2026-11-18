@@ -1,0 +1,26 @@
+const {chromium}=require('playwright'),assert=require('node:assert/strict');
+const base=process.env.BASE_URL||'http://localhost:3150';
+const route={originCode:'0154',origin:'종로5가',destination:'을지로입구',totalSeconds:780,totalMeters:3500,fareWon:1550,transferCount:1,itinerary:[{type:'ride',line:'1호선',from:'종로5가',to:'시청',direction:'인천',segments:3,stations:['종로5가','종로3가','종각','시청']},{type:'transfer',station:'시청',fromLine:'1호선',toLine:'2호선'},{type:'ride',line:'2호선',from:'시청',to:'을지로입구',segments:1,stations:['시청','을지로입구']}]};
+(async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const errors=[];let ai=0,official=0,translations=0,shareBody=null,snapshot=null,release=null;
+try{
+ async function client(admin=true){const ctx=await browser.newContext({locale:'ko-KR',viewport:{width:390,height:844}});await ctx.addInitScript(()=>localStorage.setItem('subway_ai_guide_analytics_excluded','1'));const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));const cache={};await page.route('**/api/**',async r=>{const req=r.request(),u=new URL(req.url()),body=req.method()==='POST'?req.postDataJSON():null;
+ if(u.pathname==='/api/stats/auth')return r.fulfill({json:{authenticated:admin}});
+ if(u.pathname==='/api/interpreter-access')return r.fulfill({json:{admin,routeShare:admin}});
+ if(u.pathname==='/api/v2/route-place-test'){ai++;assert.equal(body.lang,'ko');await new Promise(resolve=>{release=resolve;});return r.fulfill({json:{ok:true,status:'found',place:'롯데호텔 서울',mapQuery:'롯데호텔 서울',answer:'한국어 원문 안내',walk:'8번 출구로 나오세요.',station:{code:'0202',ko:'을지로입구',en:'Euljiro 1(il)-ga',ja:'ウルチロイック',zh:'乙支路入口',lines:['2호선']},shareProof:'place'}});}
+ if(u.pathname==='/api/subway-route'){official++;return r.fulfill({json:{ok:true,route,shareProof:'official'}});}
+ if(u.pathname==='/api/route-shares'){if(body){shareBody=body;assert.equal(body.language,'ko');snapshot={language:body.language,originCode:'0154',route,place:{status:'found',place:'롯데호텔 서울',mapQuery:'롯데호텔 서울',answer:'한국어 원문 안내',walk:'8번 출구로 나오세요.',station:{ko:'을지로입구',en:'Euljiro 1(il)-ga',ja:'ウルチロイック',zh:'乙支路入口',lines:['2호선']}},searchedAt:new Date().toISOString()};return r.fulfill({json:{id:'A'.repeat(43),url:base+'/route-share/'+'A'.repeat(43)}});}return r.fulfill({json:{snapshot}});}
+ if(u.pathname==='/api/route-shares/translate'){if(!cache[body.language]){translations++;cache[body.language]={place:'ロッテホテルソウル',answer:'日本語の案内',walk:'8番出口',reason:''};}return r.fulfill({json:{fields:cache[body.language]}});}
+ return r.fulfill({status:503,json:{error:'fixture'}});
+ });return page;}
+ for(const admin of [true,false]){
+ const p=await client(admin);await p.goto(base+'/?station=0154&view=route');await p.locator('#rl-destination').fill('롯데호텔 서울');await p.locator('.rl-submit').click();await p.waitForFunction(()=>document.querySelector('.rl-alert'));while(!release)await new Promise(r=>setTimeout(r,20));
+ const controls=p.locator('.v2-workspace .v2-bottom-languages');await controls.locator('button[lang="en"]').click();release();release=null;await p.locator('.rl-route-card').waitFor();
+ const baseline=[ai,official];
+ for(const [lang,title,map]of [['en','Official subway route','See location on Google Maps'],['ja','公式地下鉄経路','Google マップで場所を確認'],['zh-CN','官方地铁路线','在 Google 地图中查看位置'],['ko','공식 지하철 경로 결과','구글맵에서 위치 보기']]){
+ await controls.locator('button[lang="'+lang+'"]').click();await p.waitForFunction(title=>document.querySelector('.rl-route-card h2')?.textContent===title,title);assert.equal(await p.locator('.rl-ai-answer').innerText(),'한국어 원문 안내');assert.equal(await p.locator('.rl-walk-summary').innerText(),'8번 출구로 나오세요.');assert.equal(await p.locator('.rl-place-name').innerText(),'롯데호텔 서울');assert.ok(decodeURIComponent(await p.locator('.rl-walk-actions a').getAttribute('href')).includes('롯데호텔 서울'));assert.deepEqual([ai,official],baseline);
+ }
+ await controls.locator('button[lang="en"]').click();if(admin){await p.locator('.rl-share>button').click();await p.locator('dialog[open]').waitFor();assert.equal(shareBody.language,'ko');assert.equal(await p.locator('dialog[open] h2').innerText(),'Share directions');await p.locator('.sag-qr-close').click();}else assert.equal(await p.locator('.rl-share>button').count(),0);
+ await p.context().close();
+ }
+ const passenger=await client(false),baseline=[ai,official];await passenger.goto(base+'/route-share/'+'A'.repeat(43)+'?lang=ko');await passenger.getByText('한국어 원문 안내',{exact:true}).waitFor();assert.equal(translations,0);await passenger.locator('.rl-top select').selectOption('ja');await passenger.getByText('日本語の案内',{exact:true}).waitFor();assert.equal(translations,1);await passenger.locator('.rl-top select').selectOption('ko');await passenger.getByText('한국어 원문 안내',{exact:true}).waitFor();await passenger.locator('.rl-top select').selectOption('ja');await passenger.getByText('日本語の案内',{exact:true}).waitFor();assert.equal(translations,1);assert.deepEqual([ai,official],baseline);assert.deepEqual(errors,[]);console.log('PASS live 4-language display, preserved AI text/source language, in-flight switches in admin/nonadmin, zero refetch, localized share controls, same-language no translation, cached passenger translation');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
