@@ -2,10 +2,10 @@
 import {congestionLevel} from '../lib/congestion-data';
 
 const labels={
- ko:[['여유'],['보통'],['혼잡'],['매우혼잡']],
+ ko:[['여유'],['보통'],['혼잡'],['매우','혼잡']],
  en:[['Low'],['Mid'],['High'],['Peak']],
- ja:[['余裕'],['普通'],['混雑'],['非常に混雑']],
- zh:[['宽松'],['一般'],['拥挤'],['非常拥挤']]
+ ja:[['余裕'],['普通'],['混雑'],['大変','混雑']],
+ zh:[['宽松'],['一般'],['拥挤'],['非常','拥挤']]
 };
 const descriptions={ko:'예상 혼잡도 · 30분 평균, 개별 열차 실측값 아님',en:'Estimated crowding · 30-minute average, not individual trains',ja:'予想混雑度・30分平均（各列車の実測値ではありません）',zh:'预计拥挤度 · 30分钟平均值，并非单趟列车实测'};
 export function crowdingClass(value){
@@ -14,7 +14,7 @@ export function crowdingClass(value){
 }
 export function crowdingDescription(value,lang='ko'){
  const level=congestionLevel(value);
- return level===null?'':(descriptions[lang]||descriptions.ko)+' · '+(labels[lang]||labels.ko)[level].join(' ')+' '+value+'%';
+ return level===null?'':(descriptions[lang]||descriptions.ko)+' · '+(labels[lang]||labels.ko)[level].join('')+' '+value+'%';
 }
 export function CrowdingIndicator({value,lang='ko',numeric=false,onInfo=null}){
  const level=congestionLevel(value);
