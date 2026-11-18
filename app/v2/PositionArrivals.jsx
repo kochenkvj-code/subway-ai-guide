@@ -1,10 +1,12 @@
 'use client';
+import {useRef} from 'react';
 import {positionGroups} from '../arrival-test/position/groups';
 import {positionMessage} from '../arrival-test/position/message';
 import {positionDestination,positionStation} from '../arrival-test/position/destination';
 import {stationName} from '../lib/stationNameI18n';
 import graph from '../data/trainLostGraph.json';
 import directions from '../data/trainLostDirection.json';
+import {CrowdingIndicator,crowdingClass,crowdingDescription} from './CrowdingIndicator';
 
 const labels={
  ko:{lead:'다음 열차, 어디쯤 왔을까요?',source:'서울시 실시간 열차 위치정보',refresh:'새로고침',loading:'열차 위치정보 확인 중…',error:'위치정보 조회 실패',unsupported:'선로 연결정보가 없습니다.',empty:'다가오는 열차정보 없음',automatic:'30초 간격 갱신 · 열차 위치 기준',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',raw:'서울시 원문 · JSON',up:'상행',down:'하행',inner:'내선',outer:'외선',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발'},
@@ -36,7 +38,7 @@ function destination(row,lang,station){
 function Arrow({right=false}){
  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={right?'M4 12h16m-6-6 6 6-6 6':'M20 12H4m6-6-6 6 6 6'}/></svg>;
 }
-export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext}){
+export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext,crowding=null}){
  const ui=labels[lang]||labels.ko,station=stationContext;
  const {groups}=rowsFor(state,station);
  // Reverse the visual columns only: down/inner on the left, up/outer on the right.
@@ -44,8 +46,8 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
  const shownGroups=[...groups].reverse();
  return <section className="v2-trains v2-position-trains" aria-label={t.next}>
   <div className="v2-summary-board">{shownGroups.map((group,index)=><div className="v2-summary-direction" key={group.dir}>
-   <button className="v2-summary-heading" title={heading(group,station,lang,ui)} aria-label={heading(group,station,lang,ui)+' · '+t.detail} onClick={onDetails}>
-    {index===0&&<Arrow/>}<span>{heading(group,station,lang,ui)}</span>{index===1&&<Arrow right/>}
+   <button className={"v2-summary-heading"+crowdingClass(crowding?.[group.dir])} title={[heading(group,station,lang,ui),crowdingDescription(crowding?.[group.dir],lang)].filter(Boolean).join(" · ")} aria-label={[heading(group,station,lang,ui),crowdingDescription(crowding?.[group.dir],lang),t.detail].filter(Boolean).join(" · ")} onClick={onDetails}>
+    {index===0&&<Arrow/>}{index===1&&<CrowdingIndicator value={crowding?.[group.dir]} lang={lang}/>}<span className="v2-crowding-station">{heading(group,station,lang,ui)}</span>{index===0&&<CrowdingIndicator value={crowding?.[group.dir]} lang={lang}/>}{index===1&&<Arrow right/>}
    </button>
    {[0,1].map(i=>{
     const item=!state.error&&group.trains[i],d=item?destination(item.row,lang,station):null;
@@ -57,17 +59,19 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
   </div>)}</div>
  </section>;
 }
-export function PositionArrivalDetails({state,lang='ko',t,stationContext}){
+export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowding=null,congestionSlot=null}){
  const ui=labels[lang]||labels.ko,station=stationContext;
  const {groups}=rowsFor(state,station);
  const shownGroups=[...groups].reverse();
+ const info=useRef(null);
+ const crowdText={ko:{title:'예상 열차 혼잡도',note:'서울교통공사 시간대별 평균 혼잡도입니다. 개별 열차의 실측값과 다를 수 있습니다.',close:'닫기'},en:{title:'Estimated crowding',note:'Seoul Metro 30-minute average, not individual train measurements.',close:'Close'},ja:{title:'予想混雑度',note:'ソウル交通公社の時間帯別平均値です。各列車の実測値とは異なります。',close:'閉じる'},zh:{title:'预计列车拥挤度',note:'首尔交通公社时段平均值，并非单趟列车实测值。',close:'关闭'}}[lang]||{title:'예상 열차 혼잡도',note:'30분 평균 통계',close:'닫기'};
  return <section className="v2-arrival-details v2-position-arrivals">
   <div className="v2-arrival-detail-head">
    <div><h2 title={ui.lead}>{ui.lead}</h2></div>
    <button onClick={state.refresh} disabled={state.loading} title={ui.automatic}>{state.loading?ui.loading:ui.refresh}</button>
   </div>
   <div className="v2-position-detail-grid">{shownGroups.map((group,index)=><section className="v2-arrival-group v2-position-detail-column" key={group.dir}>
-    <h3>{index===0&&<Arrow/>}<span>{heading(group,station,lang,ui)} · {direction(group,station?.line,ui)}</span>{index===1&&<Arrow right/>}</h3>
+    {crowdingClass(crowding?.[group.dir])?<h3 className={crowdingClass(crowding?.[group.dir]).trim()} title={crowdingDescription(crowding?.[group.dir],lang)}>{index===0&&<Arrow/>}{index===1&&<CrowdingIndicator value={crowding?.[group.dir]} lang={lang} numeric onInfo={()=>info.current?.showModal()}/>}<span className="v2-crowding-station">{heading(group,station,lang,ui)} · {direction(group,station?.line,ui)}</span>{index===0&&<CrowdingIndicator value={crowding?.[group.dir]} lang={lang} numeric onInfo={()=>info.current?.showModal()}/>}{index===1&&<Arrow right/>}</h3>:<h3>{index===0&&<Arrow/>}<span>{heading(group,station,lang,ui)} · {direction(group,station?.line,ui)}</span>{index===1&&<Arrow right/>}</h3>}
     {[0,1,2].map(i=>{
      // The position feed already ranks all candidates; only the home strip is limited to two.
      const item=!state.error&&group.candidates[i];
@@ -88,5 +92,12 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext}){
      </article>;
     })}
   </section>)}</div>
+  {crowding&&Object.keys(crowding).length>0&&<dialog ref={info} className="v2-crowding-dialog" onClick={e=>{if(e.target===info.current)info.current?.close();}}>
+   <div className="v2-crowding-dialog-content"><h3>{crowdText.title}</h3>
+    {congestionSlot&&<p>{congestionSlot.key.replace('T',' ')} KST</p>}
+    {shownGroups.filter(group=>typeof crowding[group.dir]==='number').map(group=><p key={group.dir}>{heading(group,station,lang,ui)} · {crowding[group.dir]}%</p>)}
+    <p>{crowdText.note}</p><button type="button" onClick={()=>info.current?.close()}>{crowdText.close}</button>
+   </div>
+  </dialog>}
  </section>;
 }
