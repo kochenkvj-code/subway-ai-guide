@@ -154,3 +154,13 @@
 .v2-position-trains .v2-crowding-indicator .v2-crowding-label:lang(zh){font-size:12px;line-height:13px}
 .v2-position-trains .v2-crowding-station{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v2-position-arrivals .v2-crowding-indicator>svg{width:26px}
+
+/* Home crowding: tinted direction cards, stronger existing header, no detail-view changes. */
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-0){--crowd-body:#f2f8f4}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-1){--crowd-body:#f3f7fc}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-2){--crowd-body:#fdf8ed}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-3){--crowd-body:#fdf3f3}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-heading){position:relative;isolation:isolate}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-heading)::before{content:"";position:absolute;inset:0 6px 0 0;z-index:-1;pointer-events:none;background:var(--crowd-body);border-radius:5px}
+.v2-position-trains .v2-summary-direction:nth-child(2n):has(>.v2-crowding-heading)::before{inset:0 0 0 6px}
+.v2-position-trains .v2-summary-direction:has(>.v2-crowding-heading)>.v2-position-train{padding-inline:3px}
