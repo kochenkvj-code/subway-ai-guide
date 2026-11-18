@@ -152,6 +152,5 @@
 .v2-position-trains .v2-crowding-indicator .v2-crowding-label:lang(en),
 .v2-position-trains .v2-crowding-indicator .v2-crowding-label:lang(ja),
 .v2-position-trains .v2-crowding-indicator .v2-crowding-label:lang(zh){font-size:12px;line-height:13px}
-.v2-position-trains .v2-crowding-3 .v2-crowding-indicator .v2-crowding-label:not(:lang(en)){font-size:10px;line-height:11px;flex-direction:column;white-space:nowrap;align-items:center;justify-content:center;letter-spacing:0}
 .v2-position-trains .v2-crowding-station{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v2-position-arrivals .v2-crowding-indicator>svg{width:26px}
