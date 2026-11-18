@@ -1,3 +1,4 @@
+import {uniqueFacilityRecords} from './facility-records';
 // Explicitly approved same-name cross-line mappings. Never choose the first
 // same-name result dynamically, or replace the passenger's base-station code.
 const sharedCodes={
@@ -12,6 +13,7 @@ export function stationOfficeFor(station,records){
  let items=matches(station.stationCode,station.line),sourceCode=station.stationCode;
  if(!items.length&&sharedCodes[station.stationCode]){sourceCode=sharedCodes[station.stationCode].code;items=matches(sourceCode,sharedCodes[station.stationCode].line);}
  if(!items.length)return {status:'missing',category:null};
+ items=uniqueFacilityRecords(items,'customerOffice');
  return {status:sourceCode===station.stationCode?'direct':'shared',sourceStationCode:sourceCode,
   category:{id:'customerOffice',items:items.map(row=>({...row})),count:items.length}};
 }

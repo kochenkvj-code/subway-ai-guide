@@ -1,4 +1,5 @@
 import {providerStation,stationRowMatches} from '../../../lib/station-provider';
+import {uniqueFacilityRecords} from '../../../lib/facility-records';
 // Seoul Metro station facilities. Public demo: show only station-matched, real API records.
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -81,7 +82,7 @@ async function fetchType(type,key,station,line,identity){
       rows.push(...extra.rows.filter(r=>r&&typeof r==='object'&&(identity?stationRowMatches(r,identity):matches(r,station,line))));
     }
   }
-  return rows.map(sanitize);
+  return uniqueFacilityRecords(rows.map(sanitize),type.id);
 }
 async function load(station,line,key,identity){
   const results=await Promise.allSettled(TYPES.map(type=>fetchType(type,key,station,line,identity)));
