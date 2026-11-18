@@ -97,7 +97,7 @@
  box-shadow:inset 0 0 0 1px var(--crowd-border);overflow:hidden;min-width:0;
 }
 .v2-position-trains .v2-summary-heading.v2-crowding-heading{height:24px;min-height:24px}
-.v2-position-arrivals .v2-position-detail-column h3.v2-crowding-heading{height:25px;min-height:25px;padding-top:0;padding-bottom:0}
+.v2-position-arrivals .v2-position-detail-column h3.v2-crowding-heading{height:31px;min-height:31px;padding-top:0;padding-bottom:0}
 .v2-position-arrivals .v2-crowding-indicator>svg{height:18px}
 .v2-position-arrivals .v2-crowding-label.v2-crowding-number{line-height:12px}
 .v2-crowding-heading .v2-crowding-station{
@@ -164,3 +164,10 @@
 .v2-position-trains .v2-summary-direction:has(>.v2-crowding-heading)::before{content:"";position:absolute;inset:0 6px 0 0;z-index:-1;pointer-events:none;background:var(--crowd-body);border-radius:5px}
 .v2-position-trains .v2-summary-direction:nth-child(2n):has(>.v2-crowding-heading)::before{inset:0 0 0 6px}
 .v2-position-trains .v2-summary-direction:has(>.v2-crowding-heading)>.v2-position-train{padding-inline:3px}
+
+/* Detail crowding: same two-tone palette as the home direction cards. */
+.v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-0){--crowd-card-bg:#f2f8f4}
+.v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-1){--crowd-card-bg:#f3f7fc}
+.v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-2){--crowd-card-bg:#fdf8ed}
+.v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-3){--crowd-card-bg:#fdf3f3}
+.v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-heading)>:is(.v2-position-detail-card,.v2-position-empty){background:var(--crowd-card-bg)}
