@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {congestionSlot,compactCongestionRow,selectCongestion,decodeCongestionPage,congestionLevel,parseCongestionValue} from '../app/lib/congestion-data.js';
+import {congestionSlot,compactCongestionRow,selectCongestion,decodeCongestionPage,congestionLevel,parseCongestionValue,stationCrowdingSource} from '../app/lib/congestion-data.js';
 const station={stationCode:'0154',line:'1',names:{ko:'종로5가'}};
 const sample=(over={})=>({DOW_SE:'평일',LINE:'1호선',STTN_NO:154,DPTRE_STTN:'종로5가',UP_DOWN_SE:'상선',TIME1630:'65.2',...over});
 test('KST half-hour and calendar weekday selection',()=>{
@@ -46,4 +46,21 @@ test('confirmed special statistical identities resolve both live directions with
  assert.deepEqual(selectCongestion(rows,e,slot),{'0':36,'1':54});
  assert.deepEqual(selectCongestion(rows.filter(r=>r.code!=='9006'),e,slot),{'1':54});
  assert.deepEqual(selectCongestion([...rows,compactCongestionRow(sample({LINE:'6',STTN_NO:9006,UP_DOWN_SE:'하선',TIME1630:38}))],e,slot),{'1':54});
+});
+
+test('API station hour categories agree with live values at every supplied slot, including holidays, overnight and duplicates',()=>{
+ const s={stationCode:'2812',line:'8',names:{ko:'천호'}};
+ const row=(dir,slots,day='평일')=>compactCongestionRow(sample({LINE:'8',STTN_NO:2812,UP_DOWN_SE:dir,DOW_SE:day,...slots}));
+ const rows=[row('상선',{TIME1800:77,TIME1830:81,TIME0030:25}),row('하선',{TIME1800:49.1,TIME1830:50}),row('상선',{TIME1800:61},'일요일'),row('상선',{TIME1830:82})];
+ const src=stationCrowdingSource(rows,s);
+ const seq=src.data['8:2812'];
+ assert.equal(seq[26],'1');assert.equal(seq[27],'4');assert.equal(seq[42+26],'0');assert.equal(seq[42+27],'1');assert.equal(seq[39],'0');
+ for(const [now,index] of [['2026-11-19T18:14:00+09:00',26],['2026-11-19T18:45:00+09:00',27],['2026-11-20T00:40:00+09:00',39],['2026-12-25T18:14:00+09:00',4*42+26]]){
+  const slot=congestionSlot(Date.parse(now)),values=selectCongestion(rows,s,slot);
+  const dayIndex=['평일','토요일','일요일'].indexOf(slot.day);
+  assert.equal(seq[index],String(congestionLevel(values['0'])??4));
+  assert.equal(seq[index+42],String(congestionLevel(values['1'])??4));
+  assert.equal(Math.floor(index/84),dayIndex);
+ }
+ assert.deepEqual(stationCrowdingSource(rows,{line:'8',stationCode:'2810'}).data,{});
 });

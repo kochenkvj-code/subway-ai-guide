@@ -1,10 +1,19 @@
 // Seoul subwConfusion: station / direction / day / half-hour statistics.
 const norm=v=>String(v??'').normalize('NFKC').trim();
-const days=['일요일','평일','평일','평일','평일','평일','토요일'];
+// Official 2026 calendar + 2026 additions: KASA plcyBrfNo=431; election day 2026-06-03.
+const holidays2026=new Set(['01-01','02-16','02-17','02-18','03-01','03-02','05-01','05-05','05-24','05-25','06-03','06-06','07-17','08-15','08-17','09-24','09-25','09-26','10-03','10-05','10-09','12-25']);
+export function defaultDay(clock){return clock.weekday===0||(clock.businessDate.startsWith('2026-')&&holidays2026.has(clock.businessDate.slice(5)))?'공휴일':clock.weekday===6?'주말':'평일';}
+const apiDays={'평일':'평일','주말':'토요일','공휴일':'일요일'};
+export function congestionField(hour,half){
+ return 'TIME'+String(hour%24).padStart(2,'0')+(half?'30':'00');
+}
+
 export function congestionSlot(now=Date.now()){
  const seoul=new Date(now+9*3600000);
- const hh=String(seoul.getUTCHours()).padStart(2,'0'),mm=seoul.getUTCMinutes()<30?'00':'30';
- return {day:days[seoul.getUTCDay()],field:'TIME'+hh+mm,key:seoul.toISOString().slice(0,10)+'T'+hh+':'+mm,minute:seoul.getUTCHours()*60+Number(mm)};
+ const hour=seoul.getUTCHours(),half=seoul.getUTCMinutes()>=30?1:0,hh=String(hour).padStart(2,'0'),mm=half?'30':'00';
+ const serviceDate=new Date(seoul.getTime());if(hour<5)serviceDate.setUTCDate(serviceDate.getUTCDate()-1);
+ const day=apiDays[defaultDay({weekday:serviceDate.getUTCDay(),businessDate:serviceDate.toISOString().slice(0,10)})];
+ return {day,field:congestionField(hour,half),key:seoul.toISOString().slice(0,10)+'T'+hh+':'+mm,minute:hour*60+Number(mm)};
 }
 export function normalizeStationCode(value){
  const s=norm(value);
@@ -82,4 +91,26 @@ export function decodeCongestionPage(data,start,end){
  const total=Number(p.list_total_count);
  if(!Number.isInteger(total)||total<1||total>10000||p.row.length!==Math.min(end,total)-start+1)throw Error('UPSTREAM_PAGE');
  return {total,rows:p.row};
+}
+
+export function stationCrowdingSource(rows,station,fetchedAt=null){
+ const identities=new Set((crowdingSources(station)||[{code:station.stationCode}]).map(s=>s.code));
+ const allowed=rows.filter(r=>r.line===station.line&&identities.has(r.code));
+ const result={};
+ for(const code of identities){
+  const sequences=[];
+  for(const day of ['평일','토요일','일요일'])for(const dir of ['0','1']){
+   const matching=allowed.filter(r=>r.code===code&&r.day===day&&r.dir===dir);
+   let sequence='';
+   for(let h=5;h<=25;h++)for(const half of [0,1]){
+    const field=congestionField(h,half);
+    const unique=new Set(matching.map(r=>r.slots[field]).filter(v=>typeof v==='number'));
+    const level=unique.size===1?congestionLevel([...unique][0]):null;
+    sequence+=String(level??4);
+   }
+   sequences.push(sequence);
+  }
+  if(allowed.some(r=>r.code===code))result[station.line+':'+code]=sequences.join('');
+ }
+ return {data:result,hours:[5,25],slotsPerHour:2,thresholds:CONGESTION_THRESHOLDS,sourceDate:null,fetchedAt,source:'api'};
 }

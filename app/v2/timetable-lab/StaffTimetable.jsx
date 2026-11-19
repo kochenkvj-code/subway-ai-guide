@@ -1,19 +1,33 @@
 'use client';
 import {useEffect,useState} from 'react';
 import dynamic from 'next/dynamic';
-import {copy} from './copy';
+import {CONGESTION_THRESHOLDS} from '../../lib/congestion-data';
 const TimetableLab=dynamic(()=>import('./TimetableLab'),{ssr:false});
+const empty={data:{},hours:[5,25],slotsPerHour:2,thresholds:CONGESTION_THRESHOLDS,sourceDate:null,source:'api'};
 export default function StaffTimetable({lang,stationContext}){
- const [source,setSource]=useState(null),[failed,setFailed]=useState(false),[retry,setRetry]=useState(0);
- const t=copy[lang]||copy.ko;
+ const code=stationContext?.stationCode||'0154';
+ const [source,setSource]=useState(null);
  useEffect(()=>{
-  const controller=new AbortController();
-  setFailed(false);setSource(null);
-  fetch('/api/v2/timetable-lab/crowding',{cache:'no-store',signal:controller.signal})
-   .then(async r=>{if(!r.ok)throw Error('unavailable');const data=await r.json();if(!data?.data||!Array.isArray(data.thresholds))throw Error('invalid');if(!controller.signal.aborted)setSource(data);})
-   .catch(()=>{if(!controller.signal.aborted)setFailed(true);});
-  return()=>controller.abort();
- },[retry]);
- if(!source)return <div className="tl-staff-loading" role={failed?'alert':'status'}>{failed?t.failed:t.loading}{failed&&<button type="button" onClick={()=>setRetry(n=>n+1)}>{t.retry}</button>}</div>;
- return <TimetableLab embedded crowdingSource={source} stationContext={stationContext} language={lang}/>;
+  let stopped=false,pending=false,controller;
+  setSource(null);
+  async function load(){
+   if(stopped||pending||document.visibilityState!=='visible')return;
+   pending=true;controller=new AbortController();
+   try{
+    const r=await fetch('/api/v2/timetable-lab/crowding?station='+encodeURIComponent(code),{cache:'no-store',signal:controller.signal});
+    if(!r.ok)throw Error('unavailable');
+    const data=await r.json();
+    if(data.stationCode!==code||!data?.data||!Array.isArray(data.thresholds))throw Error('invalid');
+    if(!stopped)setSource(data);
+   }catch{if(!stopped)setSource(null);}
+   finally{pending=false;}
+  }
+  void load();
+  // Revalidate the tiny per-station response periodically; upstream data is shared and cached daily.
+  const timer=setInterval(load,300000);
+  const wake=()=>{if(document.visibilityState==='visible')void load();};
+  document.addEventListener('visibilitychange',wake);
+  return()=>{stopped=true;clearInterval(timer);controller?.abort();document.removeEventListener('visibilitychange',wake);};
+ },[code]);
+ return <TimetableLab embedded crowdingSource={source?.stationCode===code?source:empty} stationContext={stationContext} language={lang}/>;
 }

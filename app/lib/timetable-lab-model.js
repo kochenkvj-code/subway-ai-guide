@@ -17,9 +17,7 @@ export function serviceClock(date=new Date()){
  const businessDate=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(noon);
  return {businessDate,weekday:noon.getUTCDay(),minutes:(hour<5?hour+24:hour)*60+Number(parts.minute),hour:hour<5?hour+24:hour,calendarDate};
 }
-// Official 2026 calendar + 2026 additions: KASA plcyBrfNo=431; election day 2026-06-03.
-const holidays2026=new Set(['01-01','02-16','02-17','02-18','03-01','03-02','05-01','05-05','05-24','05-25','06-03','06-06','07-17','08-15','08-17','09-24','09-25','09-26','10-03','10-05','10-09','12-25']);
-export function defaultDay(clock){return clock.weekday===0||(clock.businessDate.startsWith('2026-')&&holidays2026.has(clock.businessDate.slice(5)))?'공휴일':clock.weekday===6?'주말':'평일';}
+export {defaultDay} from './congestion-data';
 export function serviceMinute(value){
  const m=String(value||'').match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);if(!m||Number(m[1])>29||Number(m[2])>59)return null;
  const h=Number(m[1]);return (h<5?h+24:h)*60+Number(m[2]);

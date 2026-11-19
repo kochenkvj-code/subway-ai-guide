@@ -87,14 +87,17 @@ test('administrator-only timetable has a server guard and passenger menu retains
 });
 
 test('protected crowding dataset rejects anonymous and forged callers',async()=>{
- const {GET}=await loadModule('app/api/v2/timetable-lab/crowding/route.js');
+ let calls=0;
+ const sample={DOW_SE:'평일',LINE:1,STTN_NO:154,UP_DOWN_SE:'하선',TIME1800:69.3};
+ const {GET}=await loadModule('app/api/v2/timetable-lab/crowding/route.js',{console:{info(){},warn(){}},process:{env:{STATS_ADMIN_PASSWORD:'test-only',SEOUL_CONGESTION_API_KEY:'fixture'}},fetch:async()=>{calls++;return Response.json({subwConfusion:{RESULT:{CODE:'INFO-000'},list_total_count:1,row:[sample]}});}});
  const expiry=String(Date.now()+60000),cookie=expiry+'.'+createHmac('sha256','test-only').update('staff-access:'+expiry).digest('hex');
  assert.equal((await GET({})).status,403);
  assert.equal((await GET({cookies:{get:()=>({value:cookie+'x'})}})).status,403);
- const authorized=await GET({cookies:{get:()=>({value:cookie})}});
+ assert.equal(calls,0);
+ const authorized=await GET({url:'https://test/api/v2/timetable-lab/crowding?station=0154',cookies:{get:()=>({value:cookie})}});
  assert.equal(authorized.status,200);
  assert.match(authorized.headers.get('cache-control'),/private, no-store/);
- assert.deepEqual((await authorized.json()).thresholds,[50,80,110]);
+ const body=await authorized.json();assert.deepEqual(body.thresholds,[50,80,110]);assert.equal(body.source,'api');assert.equal(body.sourceDate,null);assert.equal(body.data['1:0154'][42+26],'1');assert.equal(calls,1);
 });
 
 test('embedded timetable uses the fixed station and anchors hour shortcuts below the controls',()=>{
