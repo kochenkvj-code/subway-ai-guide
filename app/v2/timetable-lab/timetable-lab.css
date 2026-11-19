@@ -8,3 +8,34 @@
 @media(min-width:620px){.tl-shell{padding-top:26px}.tl-hour-grid button{min-height:40px}.tl-column h3{font-size:14px}.tl-column li{font-size:14px;padding:7px 11px;gap:16px;min-height:35px}.tl-column li time{font-size:16px}.tl-hour-heading{padding-top:11px}.tl-footer button{font-size:12px}}
 @media(max-width:350px){.tl-shell{padding-left:12px;padding-right:12px}.tl-column ol{padding-left:7px;padding-right:7px}.tl-column li{gap:5px;padding-left:3px;padding-right:2px}.tl-column li time{flex-basis:18px}.tl-top h1{font-size:18px}.tl-controls button{padding-left:7px;padding-right:7px}}
 @media(prefers-reduced-motion:reduce){.tl-page *{animation:none!important;scroll-behavior:auto!important}}
+
+/* Timetable lab refinement: compact controls, aligned direction headers, right-hand navigation. */
+.tl-shell{padding-top:12px}
+.tl-top{margin-bottom:9px}
+.tl-test{margin-bottom:2px}
+.tl-days{gap:4px;margin-bottom:8px}
+.tl-days button{min-height:34px}
+.tl-hour-grid{gap:4px}
+.tl-hour-grid button{min-height:32px}
+.tl-controls{margin:9px 0 8px;gap:8px;align-items:center}
+.tl-controls>.tl-control-context{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;flex:1}
+.tl-service-day{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;font-size:10px;line-height:1.25;color:var(--muted)}
+.tl-selected-hour{margin:0;color:var(--ink);font-size:17px;font-weight:650;line-height:1.22;letter-spacing:-.35px;font-variant-numeric:tabular-nums;overflow-wrap:normal}
+.tl-selected-hour small{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:0}
+.tl-controls>.tl-control-actions{display:flex;gap:5px;flex:0 0 auto;align-items:center}
+.tl-controls button{min-height:34px;font-weight:500}
+.tl-column>header{height:auto;min-height:36px;padding:7px 5px;gap:2px}
+.tl-column h3{line-height:1.35;font-size:13px;font-weight:600}
+.tl-column header small{font-size:10px;line-height:1.3}
+.tl-column ol{padding-top:2px;padding-bottom:5px}
+.tl-column li{min-height:30px;padding-top:5px;padding-bottom:5px;gap:7px;line-height:1.5}
+.tl-next i{top:12px}
+@supports(grid-template-rows:subgrid){.tl-table{grid-template-rows:auto 1fr}.tl-column{display:grid;grid-row:1 / span 2;grid-template-rows:subgrid;gap:0}.tl-column>header{align-self:stretch}}
+.tl-hour-nav{position:fixed;right:max(0px,calc((100vw - 920px)/2));top:60vh;top:60dvh;transform:translateY(-50%);z-index:15;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.tl-hour-nav .tl-arrow{position:relative;left:auto;right:auto;top:auto;transform:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:0;background:transparent;box-shadow:none;pointer-events:auto;isolation:isolate;color:#315f49!important}
+.tl-hour-nav .tl-arrow::before{content:'';position:absolute;inset:2px 0 2px 12px;border:1px solid #b9d1c3;border-right:0;border-radius:12px 0 0 12px;background:rgba(229,240,233,.84);box-shadow:0 2px 5px #203a320d;z-index:-1}
+.tl-hour-nav .tl-arrow svg{margin-left:11px}
+.tl-hour-nav .tl-arrow:disabled{opacity:.23;pointer-events:none}
+.tl-hour-nav .tl-arrow:active::before{background:#cfe5d8}
+@media(min-width:620px){.tl-shell{padding-top:20px}.tl-hour-grid button{min-height:36px}.tl-column>header{min-height:40px}.tl-column h3{font-size:14px}.tl-column li{min-height:34px;padding-top:6px;padding-bottom:6px;gap:12px}.tl-selected-hour{font-size:19px}}
+@media(max-width:350px){.tl-control-actions button{padding-left:6px;padding-right:6px}.tl-selected-hour{font-size:15px}.tl-column h3{font-size:12px}.tl-column li{gap:5px}}
