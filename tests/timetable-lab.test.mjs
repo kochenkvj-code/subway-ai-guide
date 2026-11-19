@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {createHmac} from 'node:crypto';
 import {loadAppModule} from './helpers/load-app-module.mjs';import {loadModule} from './station-menu-loader.mjs';
 const model=await loadAppModule('app/lib/timetable-lab-model.js');const live=JSON.parse(fs.readFileSync('tests/fixtures/timetable-lab-live.json')).stations;
 test('actual API samples classify ordinary, forks, branches, loop and terminals without editing shared direction data',()=>{
@@ -29,9 +29,14 @@ test('Kkachisan line 2 is available via timetable-only official identity; blank 
 test('server paginates, filters exact station identity, caches complete results and keeps credentials out of responses',async()=>{
  let calls=0;const row={stnCd:'0154',stnNm:'종로5가',lineNm:'1호선',trainno:'1',trainDptreTm:'05:30:00',upbdnbSe:'상행',arvlStnNm:'동대문'};
  const {GET}=await loadModule('app/api/v2/timetable-lab/route.js',{fetch:async value=>{calls++;const u=new URL(value);assert.equal(u.searchParams.get('stnCd'),'0154');const rows=u.searchParams.get('pageNo')==='1'?[row,{...row,stnCd:'0155',stnNm:'동대문'}]:[{...row}];return Response.json({response:{header:{resultCode:'00'},body:{totalCount:1001,items:{item:rows}}}});}});
- const response=await GET({url:'https://test/api?stationCode=0154&day='+encodeURIComponent('평일')});assert.equal(response.status,200);const b=await response.json();assert.equal(b.rows.length,1);assert.equal(calls,4);assert.equal(JSON.stringify(b).includes('serviceKey'),false);
- await GET({url:'https://test/api?stationCode=0154&day='+encodeURIComponent('평일')});assert.equal(calls,4);
- assert.equal((await GET({url:'https://test/api?stationCode=9999'})).status,400);
+ const expiry=String(Date.now()+60000),cookie=expiry+'.'+createHmac('sha256','test-only').update('staff-access:'+expiry).digest('hex');
+ const cookies={get:name=>name==='sag_staff_access'?{value:cookie}:undefined};
+ assert.equal((await GET({url:'https://test/api?stationCode=0154'})).status,403);
+ assert.equal((await GET({url:'https://test/api?stationCode=0154',cookies:{get:()=>({value:cookie+'x'})}})).status,403);
+ assert.equal(calls,0);
+ const response=await GET({cookies,url:'https://test/api?stationCode=0154&day='+encodeURIComponent('평일')});assert.equal(response.status,200);const b=await response.json();assert.equal(b.rows.length,1);assert.equal(calls,4);assert.equal(JSON.stringify(b).includes('serviceKey'),false);
+ await GET({cookies,url:'https://test/api?stationCode=0154&day='+encodeURIComponent('평일')});assert.equal(calls,4);
+ assert.equal((await GET({cookies,url:'https://test/api?stationCode=9999'})).status,400);
 });
 
 test('historical graph/provider names display canonical Buramsan without changing shared data',()=>{const result=model.compileTimetable(live['0410'],model.timetableStation('0410'),'2026-11-19');assert.ok(result.columns.some(c=>c.next==='불암산'));assert.equal(result.columns.some(c=>c.next==='당고개'),false);});
@@ -67,4 +72,13 @@ test('timetable data and passenger-facing real-time classification share thresho
  assert.equal(JSON.stringify(cm.crowdingThresholds),JSON.stringify(shared.CONGESTION_THRESHOLDS));
  const cols=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
  assert.equal(JSON.stringify(cm.crowdingHalves(model.timetableStation('0221'),'평일',18,cols)),'[[3,2],[2,1]]');
+});
+
+test('administrator-only timetable has a server guard and passenger menu retains its original component',()=>{
+ const page=fs.readFileSync('app/v2/timetable-lab/page.jsx','utf8'),guide=fs.readFileSync('app/v2/V2Guide.jsx','utf8'),client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8');
+ assert.match(page,/if\(!staffAuthorized\(\{cookies:await cookies\(\)\}\)\)notFound\(\)/);
+ assert.match(guide,/next==='timetable'&&staffTools.admin===true/);
+ assert.match(guide,/mounted.timetable&&staffTools.admin!==true/);
+ assert.match(client,/createCrowdingModel\(crowdingSource\)/);
+ assert.doesNotMatch(client,/from ['"]\.\.\/\.\.\/lib\/timetable-lab-crowding['"]/);
 });

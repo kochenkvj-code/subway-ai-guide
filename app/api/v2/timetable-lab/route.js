@@ -1,11 +1,12 @@
 import {timetableStation,serviceClock,compileTimetable} from '../../../lib/timetable-lab-model';
 import {stationRowMatches} from '../../../lib/station-provider';
+import {staffAuthorized} from '../../../lib/staff-access';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 export const maxDuration=60;
 const cache=new Map(),pending=new Map();
 const endpoint='https://apis.data.go.kr/B553766/schedule/getTrainSch';
-const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'private, no-store, max-age=0','X-Content-Type-Options':'nosniff'}});
 function unpack(data){
  const header=data?.response?.header||data?.header||{},body=data?.response?.body||data?.body;
  const code=String(header.resultCode??'');
@@ -25,6 +26,7 @@ async function loadDirection(station,day,direction,key){
  const seen=new Set();return {direction,ok:true,total:first.total,rows:rows.filter(row=>{const k=JSON.stringify(Object.keys(row).sort().map(key=>[key,row[key]]));if(seen.has(k))return false;seen.add(k);return true;})};
 }
 export async function GET(request){
+ if(!staffAuthorized(request))return json({ok:false,error:'FORBIDDEN'},403);
  const q=new URL(request.url).searchParams,station=timetableStation(q.get('stationCode'));
  const day=q.get('day')||'평일';
  if(!station||!['평일','주말','공휴일','상시'].includes(day))return json({ok:false,error:'INVALID_QUERY'},400);

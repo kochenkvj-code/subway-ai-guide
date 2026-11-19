@@ -3,13 +3,14 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {timetableStation,timetableStations,serviceClock,defaultDay} from '../../lib/timetable-lab-model';
 import {officialStationName} from '../../lib/officialStations';
 import {copy} from './copy';
-import {crowdingHalves,crowdingGradient,crowdingColors,crowdingSourceDate,crowdingThresholds} from '../../lib/timetable-lab-crowding';
+import {createCrowdingModel,crowdingGradient,crowdingColors} from '../../lib/timetable-lab-crowding-view';
 import './timetable-lab.css';
 const days=['평일','주말','공휴일'];
 const colors={1:'#24559b',2:'#219052',3:'#ef8928',4:'#238cc4',5:'#9256ab',6:'#a77935',7:'#687a32',8:'#d13e78',9:'#ae8c35'};
 const responses=new Map();
 const two=n=>String(n).padStart(2,'0');
-export default function TimetableLab(){
+export default function TimetableLab({crowdingSource}){
+ const {crowdingHalves,crowdingSourceDate,crowdingThresholds}=useMemo(()=>createCrowdingModel(crowdingSource),[crowdingSource]);
  const [ready,setReady]=useState(false);
  const [code,setCode]=useState('0154'),[lang,setLang]=useState('ko'),[clock,setClock]=useState(()=>serviceClock()),[day,setDay]=useState(()=>defaultDay(serviceClock()));
  const [hour,setHour]=useState(null),[express,setExpress]=useState(false),[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(false),[retry,setRetry]=useState(0),[anim,setAnim]=useState('');
@@ -19,7 +20,7 @@ export default function TimetableLab(){
  const stationName=name=>{const canonical=timetableStations.find(s=>s.line===station.line&&s.aliases?.includes(name))?.names.ko||name;return officialStationName(canonical,lang,value=>value);},stationLabel=s=>stationName(s.names.ko);
  useEffect(()=>{const q=new URLSearchParams(location.search),s=timetableStation(q.get('station'));if(s)setCode(s.stationCode);const raw=q.get('lang')||navigator.language?.split('-')[0];if(copy[raw])setLang(raw);setReady(true);},[]);
  useEffect(()=>{const timer=setInterval(()=>{const next=serviceClock();setClock(next);if(dayRef.current!==next.businessDate){dayRef.current=next.businessDate;setDay(defaultDay(next));setHour(null);}},30000);return()=>clearInterval(timer);},[]);
- useEffect(()=>{const u=new URL(location.href);u.searchParams.set('station',code);u.searchParams.set('lang',lang);history.replaceState(history.state,'',u.pathname+u.search);},[code,lang]);
+ useEffect(()=>{if(!ready)return;const u=new URL(location.href);u.searchParams.set('station',code);u.searchParams.set('lang',lang);history.replaceState(history.state,'',u.pathname+u.search);},[ready,code,lang]);
  useEffect(()=>{
  if(!ready)return;
  const key=code+'|'+day+'|'+clock.businessDate,cached=responses.get(key),controller=new AbortController();let live=true;
