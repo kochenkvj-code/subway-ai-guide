@@ -246,3 +246,10 @@
 .tl-embedded .tl-hour-nav{right:max(0px,calc((100vw - 620px)/2));z-index:5;top:50dvh}
 .tl-staff-loading{padding:30px 14px;text-align:center;color:#52685a;font-size:13px}
 .tl-staff-loading button{margin-left:8px;border:1px solid #cbdcd2;border-radius:8px;background:#fff;padding:7px 10px;color:#205c47}
+
+/* The integrated timetable has no duplicate station / refresh row.
+   The rail follows the start of the departure results, not the viewport midpoint. */
+.tl-embedded .tl-rail-anchor{height:0;width:100%;pointer-events:none}
+.tl-embedded .tl-hour-nav{top:var(--tl-rail-top,100vh);right:var(--tl-rail-right,0px);transform:none;max-height:var(--tl-rail-height,0px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;visibility:hidden;overscroll-behavior:contain}
+.tl-embedded .tl-hour-nav::-webkit-scrollbar{display:none}
+.tl-embedded .tl-hour-nav>.tl-arrow,.tl-embedded .tl-hour-nav .tl-shortcuts{flex-shrink:0}

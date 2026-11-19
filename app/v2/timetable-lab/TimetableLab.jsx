@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {timetableStation,timetableStations,serviceClock,defaultDay} from '../../lib/timetable-lab-model';
 import {officialStationName} from '../../lib/officialStations';
 import {copy} from './copy';
@@ -15,7 +15,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  const [code,setCode]=useState(()=>timetableStation(stationContext?.stationCode)?.stationCode||'0154'),[localLang,setLang]=useState('ko'),[clock,setClock]=useState(()=>serviceClock()),[day,setDay]=useState(()=>defaultDay(serviceClock()));
  const lang=embedded?language:localLang;
  const [hour,setHour]=useState(null),[express,setExpress]=useState(false),[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(false),[retry,setRetry]=useState(0),[anim,setAnim]=useState('');
- const [query,setQuery]=useState('');const picker=useRef(null),crowdHelp=useRef(null),timer=useRef(null),dayRef=useRef(clock.businessDate);
+ const [query,setQuery]=useState('');const picker=useRef(null),crowdHelp=useRef(null),timer=useRef(null),dayRef=useRef(clock.businessDate),railAnchor=useRef(null),railRef=useRef(null);
  const station=timetableStation(code)||timetableStation('0154'),t=copy[lang];
  const directionLabel=name=>lang==='en'?`To ${stationName(name)}`:`${stationName(name)} ${t.toward}`;
  const stationName=name=>{const canonical=timetableStations.find(s=>s.line===station.line&&s.aliases?.includes(name))?.names.ko||name;return officialStationName(canonical,lang,value=>value);},stationLabel=s=>stationName(s.names.ko);
@@ -54,17 +54,40 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  const selectedCrowd=crowdFor(selected);
  const hasCrowd=hours.some(h=>crowdFor(h).flat().some(v=>v!==null));
  const referenceDay=t.crowdDays[days.indexOf(day)];
+ // The embedded rail must stay below the time controls and above the shared bottom tabs.
+ useLayoutEffect(()=>{
+  if(!embedded)return;
+  const rail=railRef.current,anchor=railAnchor.current,pane=anchor?.closest('.v2-feature-pane');
+  if(!rail||!anchor||!pane)return;
+  function position(){
+   const bounds=pane.getBoundingClientRect(),start=anchor.getBoundingClientRect().top;
+   const top=Math.max(start+2,bounds.top+Math.min(108,bounds.height*.22));
+   const available=Math.floor(bounds.bottom-top-8);
+   rail.style.setProperty('--tl-rail-top',top+'px');
+   rail.style.setProperty('--tl-rail-right',Math.max(0,window.innerWidth-bounds.right)+'px');
+   rail.style.setProperty('--tl-rail-height',Math.max(0,available)+'px');
+   rail.style.visibility=available>=40?'visible':'hidden';
+  }
+  position();
+  pane.addEventListener('scroll',position,{passive:true});
+  window.addEventListener('resize',position);
+  window.visualViewport?.addEventListener('resize',position);
+  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(position);
+  observer?.observe(pane);observer?.observe(anchor.parentElement);
+  return()=>{pane.removeEventListener('scroll',position);window.removeEventListener('resize',position);window.visualViewport?.removeEventListener('resize',position);observer?.disconnect();};
+ },[embedded,hasCrowd,lang,loading,error,data?.hasExpress]);
  function goNow(){setDay(defaultDay(clock));setHour(null);setExpress(false);}
  const hourDescription=(h,halves)=>halves.map((levels,half)=>levels.map((level,i)=>level===null?'':two(h%24)+':'+(half?'30':'00')+' '+directionLabel(columns[i].next)+': '+t.crowdLevels[level]).filter(Boolean).join(' · ')).filter(Boolean).join(' / ');
  const exampleColumns=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
  const exampleCrowd=crowdingHalves({line:'2',stationCode:'0221',names:{ko:'역삼'}},'평일',18,exampleColumns);
  const exampleName=name=>officialStationName(name,lang,value=>value);
  return <div className={'tl-page'+(embedded?' tl-embedded':'')} lang={lang==='zh'?'zh-CN':lang}><section className="tl-shell">
- <header className="tl-top">{!embedded&&<div><p className="tl-test">{t.test}</p><h1>{t.title}</h1></div>}<div className="tl-station-tools"><button className="tl-station" onClick={()=>picker.current?.showModal()} aria-label={t.change}><b style={{background:colors[station.line]}}>{station.line}</b><strong>{stationLabel(station)}</strong><span aria-hidden="true">⌄</span></button><button className="tl-refresh" onClick={()=>setRetry(n=>n+1)} aria-label={t.refresh}>↻</button></div></header>
+ {!embedded&&<header className="tl-top"><div><p className="tl-test">{t.test}</p><h1>{t.title}</h1></div><div className="tl-station-tools"><button className="tl-station" onClick={()=>picker.current?.showModal()} aria-label={t.change}><b style={{background:colors[station.line]}}>{station.line}</b><strong>{stationLabel(station)}</strong><span aria-hidden="true">⌄</span></button><button className="tl-refresh" onClick={()=>setRetry(n=>n+1)} aria-label={t.refresh}>↻</button></div></header>}
  <div className="tl-days" role="group" aria-label={t.days.join(' / ')}>{days.map((value,i)=><button key={value} aria-pressed={day===value} onClick={()=>{setDay(value);setHour(null);}}>{t.days[i]}</button>)}</div>
  <div className="tl-hour-grid" role="group" aria-label={t.hour}>{hours.map(value=>{const levels=crowdFor(value),description=hourDescription(value,levels);return <button key={value} onClick={()=>chooseHour(value)} aria-pressed={selected===value} aria-label={(value>=24?t.nextDay+' ':'')+two(value%24)+':00'} aria-description={description||undefined} title={description||undefined} className={levels.flat().some(v=>v!==null)?'tl-crowded-hour':undefined}>{levels.flat().some(v=>v!==null)&&<span className="tl-crowd-halves" aria-hidden="true">{levels.map((half,i)=><span key={i} style={{backgroundImage:crowdingGradient(half)}}/>)}</span>}<span className="tl-hour-number">{two(value%24)}</span>{value>=24&&<sup aria-hidden="true">+1</sup>}</button>;})}</div>
  {hasCrowd&&<div className="tl-crowd-legend" aria-label={t.crowdTitle}><div className="tl-crowd-keys">{t.crowdLevels.map((level,i)=><span key={level}><i style={{background:crowdingColors[i]}}/>{level}</span>)}</div><button type="button" className="tl-crowd-help" onClick={()=>crowdHelp.current?.showModal()} aria-label={t.crowdHelpTitle}>{t.crowdHelp} <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M10 9v5" strokeLinecap="round"/><circle cx="10" cy="6" r=".8" fill="currentColor" stroke="none"/></svg></button></div>}
 
+ {embedded&&<div ref={railAnchor} className="tl-rail-anchor" aria-hidden="true"/>}
  {loading?<div className="tl-state" role="status"><span className="tl-spinner"/>{t.loading}</div>:error?<div className="tl-state" role="alert">{t.failed}<button onClick={()=>setRetry(n=>n+1)}>{t.retry}</button></div>:<>
  {data?.issues?.length>0&&<p className="tl-alert" role="status">{data.issues.some(i=>i.type==='request')?t.partial:t.unclassified}</p>}
  {!data?.rows?.length?<div className="tl-state">{data?.issues?.some(i=>i.type==='request')?t.failed:data?.issues?.some(i=>i.type==='unclassified')?t.unclassified:t.noData}{day==='공휴일'&&<small>{t.missingHoliday}</small>}</div>:<div className={'tl-table '+(anim?'tl-slide-'+anim:'')} style={{'--columns':data.columns.length}}>
@@ -72,7 +95,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  </div>}
  </>}
  <p className="tl-note">{t.note}</p>{hasCrowd&&<p className="tl-note tl-crowd-note">{t.crowdNote} · {referenceDay} · {crowdingSourceDate}</p>}{day==='주말'&&<p className="tl-note tl-data-note">{t.weekend}</p>}{!clock.businessDate.startsWith('2026-')&&<p className="tl-note">{t.holidayYear}</p>}
- <div className="tl-hour-nav" role="group" aria-label={t.hour}>
+ <div ref={railRef} className="tl-hour-nav" role="group" aria-label={t.hour}>
  <button type="button" className="tl-arrow tl-arrow-left" disabled={hours.indexOf(selected)===0||loading} title={t.previous} aria-label={t.previous} onClick={()=>shift(-1)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
  <button type="button" className="tl-arrow tl-now" title={t.now} aria-label={t.now} onClick={goNow}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v5.5l3.5 2"/></svg></button>
  <button type="button" className="tl-arrow tl-arrow-right" disabled={hours.indexOf(selected)===hours.length-1||loading} title={t.next} aria-label={t.next} onClick={()=>shift(1)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
@@ -82,7 +105,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  <button type="button" className="tl-arrow tl-shortcut" disabled={loading||error||!data?.rows?.length} title={t.first} onClick={()=>jumpBoundary(false)}><span>{t.first}</span></button>
  </div></div>
  {!embedded&&<footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>}
- <dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>
+ {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
  <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog" aria-label={t.crowdHelpTitle}><header><h2>{t.crowdHelpTitle}</h2><button onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
  <div className="tl-help-example">
   <p className="tl-example-title"><strong><b className="tl-example-line" style={{background:colors[2]}}>2</b><span className="tl-example-station">{exampleName('역삼')}</span></strong><span>{t.exampleDay} {t.exampleHour}</span></p><strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>

@@ -96,3 +96,13 @@ test('protected crowding dataset rejects anonymous and forged callers',async()=>
  assert.match(authorized.headers.get('cache-control'),/private, no-store/);
  assert.deepEqual((await authorized.json()).thresholds,[50,80,110]);
 });
+
+test('embedded timetable uses the fixed station and anchors hour shortcuts below the controls',()=>{
+ const client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8'),css=fs.readFileSync('app/v2/timetable-lab/timetable-lab.css','utf8');
+ assert.match(client,/\{!embedded&&<header className="tl-top"/);
+ assert.match(client,/\{!embedded&&<dialog ref=\{picker\}/);
+ assert.ok(client.indexOf('className="tl-rail-anchor"')>client.indexOf('className="tl-crowd-legend"'));
+ assert.match(client,/Math.max\(start\+2,bounds.top/);
+ assert.match(client,/bounds.bottom-top-8/);
+ assert.match(css,/\.tl-embedded \.tl-hour-nav\{top:var\(--tl-rail-top/);
+});
