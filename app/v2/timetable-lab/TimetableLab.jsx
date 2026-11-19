@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import {timetableStation,timetableStations,serviceClock,defaultDay} from '../../lib/timetable-lab-model';
+import {timetableStation,timetableStations,serviceClock,defaultDay,nextDeparturesByColumn} from '../../lib/timetable-lab-model';
 import {officialStationName} from '../../lib/officialStations';
 import {copy} from './copy';
 import {createCrowdingModel,crowdingGradient,crowdingColors} from '../../lib/timetable-lab-crowding-view';
@@ -37,7 +37,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  const filtered=useMemo(()=>(data?.rows||[]).filter(row=>!express||row.express),[data,express]);
  const rows=filtered.filter(row=>Math.floor(row.minute/60)===selected);
  const current=day===defaultDay(clock)&&data?.businessDate===clock.businessDate;
- const next=current?filtered.find(row=>row.minute>=clock.minutes):null;
+ const nextByColumn=useMemo(()=>current?nextDeparturesByColumn(filtered,clock.minutes):new Map(),[current,filtered,clock.minutes]);
  const matches=useMemo(()=>timetableStations.filter(s=>{const q=query.toLowerCase().replace(/\s/g,'');return !q||[s.stationCode,...Object.values(s.names),...s.aliases].some(x=>String(x).toLowerCase().replace(/\s/g,'').includes(q));}).slice(0,query?24:12),[query]);
  function chooseHour(value,direction=''){setHour(value);setAnim(direction);clearTimeout(timer.current);timer.current=setTimeout(()=>setAnim(''),180);}
  function shift(delta){const index=hours.indexOf(selected)+delta;if(index>=0&&index<hours.length)chooseHour(hours[index],delta<0?'back':'forward');}
@@ -76,7 +76,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
   observer?.observe(pane);observer?.observe(anchor.parentElement);
   return()=>{pane.removeEventListener('scroll',position);window.removeEventListener('resize',position);window.visualViewport?.removeEventListener('resize',position);observer?.disconnect();};
  },[embedded,hasCrowd,lang,loading,error,data?.hasExpress]);
- function goNow(){setDay(defaultDay(clock));setHour(null);setExpress(false);}
+ function goNow(){const now=serviceClock();setClock(now);setDay(defaultDay(now));setHour(null);setExpress(false);}
  const hourDescription=(h,halves)=>halves.map((levels,half)=>levels.map((level,i)=>level===null?'':two(h%24)+':'+(half?'30':'00')+' '+directionLabel(columns[i].next)+': '+t.crowdLevels[level]).filter(Boolean).join(' · ')).filter(Boolean).join(' / ');
  const exampleColumns=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
  const exampleCrowd=crowdingHalves({line:'2',stationCode:'0221',names:{ko:'역삼'}},'평일',18,exampleColumns);
@@ -91,7 +91,7 @@ export default function TimetableLab({crowdingSource,embedded=false,stationConte
  {loading?<div className="tl-state" role="status"><span className="tl-spinner"/>{t.loading}</div>:error?<div className="tl-state" role="alert">{t.failed}<button onClick={()=>setRetry(n=>n+1)}>{t.retry}</button></div>:<>
  {data?.issues?.length>0&&<p className="tl-alert" role="status">{data.issues.some(i=>i.type==='request')?t.partial:t.unclassified}</p>}
  {!data?.rows?.length?<div className="tl-state">{data?.issues?.some(i=>i.type==='request')?t.failed:data?.issues?.some(i=>i.type==='unclassified')?t.unclassified:t.noData}{day==='공휴일'&&<small>{t.missingHoliday}</small>}</div>:<div className={'tl-table '+(anim?'tl-slide-'+anim:'')} style={{'--columns':data.columns.length}}>
- {columns.map((column,index)=>{const items=rows.filter(row=>row.column===column.id);return <section className="tl-column" key={column.id}><header><h3 aria-label={directionLabel(column.next)}>{columns.length===2?<><span className="tl-heading-arrow" aria-hidden="true">{index===0?'←':''}</span>{stationName(column.next)}<span className="tl-heading-arrow" aria-hidden="true">{index===1?'→':''}</span></>:directionLabel(column.next)}</h3>{column.branch&&<small>{t.branch[column.branch]||column.branch}</small>}</header><ol>{items.length?items.map((row,i)=>{const level=selectedCrowd[row.minute%60<30?0:1]?.[index],name=row.destination?stationName(row.destination):'—';return <li key={row.time+'|'+row.number+'|'+i} className={(current&&row.minute<clock.minutes?'tl-past ':'')+(next===row?'tl-next ':'')+(level!=null?'tl-crowd-row':'')} data-crowd-level={level!=null?level:undefined} aria-label={[next===row?t.upcoming:'',row.express?(row.kind==='limited'?t.limited:t.expressTag):'',name].filter(Boolean).join(' · ')}><time className={level!=null?'tl-crowd-minute':undefined} title={level!=null?t.crowdTitle+' · '+t.crowdLevels[level]:undefined}>{two(row.minute%60)}</time><div className="tl-row-dest"><span title={name}>{name}</span>{row.express&&<small className="tl-express" title={row.kind==='limited'?t.limited:t.expressTag}>{row.kind==='limited'?t.limitedShort:t.expressShort}</small>}</div>{next===row&&<i aria-hidden="true"/>}</li>}):<li className="tl-no-hour">{t.noHour}</li>}</ol></section>;})}
+ {columns.map((column,index)=>{const items=rows.filter(row=>row.column===column.id),next=nextByColumn.get(column.id);return <section className="tl-column" key={column.id}><header><h3 aria-label={directionLabel(column.next)}>{columns.length===2?<><span className="tl-heading-arrow" aria-hidden="true">{index===0?'←':''}</span>{stationName(column.next)}<span className="tl-heading-arrow" aria-hidden="true">{index===1?'→':''}</span></>:directionLabel(column.next)}</h3>{column.branch&&<small>{t.branch[column.branch]||column.branch}</small>}</header><ol>{items.length?items.map((row,i)=>{const level=selectedCrowd[row.minute%60<30?0:1]?.[index],name=row.destination?stationName(row.destination):'—';return <li key={row.time+'|'+row.number+'|'+i} className={(current&&row.minute<clock.minutes?'tl-past ':'')+(next===row?'tl-next ':'')+(level!=null?'tl-crowd-row':'')} data-crowd-level={level!=null?level:undefined} aria-label={[next===row?t.upcoming:'',row.express?(row.kind==='limited'?t.limited:t.expressTag):'',name].filter(Boolean).join(' · ')}><time className={level!=null?'tl-crowd-minute':undefined} title={level!=null?t.crowdTitle+' · '+t.crowdLevels[level]:undefined}>{two(row.minute%60)}</time><div className="tl-row-dest"><span title={name}>{name}</span>{row.express&&<small className="tl-express" title={row.kind==='limited'?t.limited:t.expressTag}>{row.kind==='limited'?t.limitedShort:t.expressShort}</small>}</div>{next===row&&<i aria-hidden="true"/>}</li>}):<li className="tl-no-hour">{t.noHour}</li>}</ol></section>;})}
  </div>}
  </>}
  <p className="tl-note">{t.note}</p>{hasCrowd&&<p className="tl-note tl-crowd-note">{t.crowdNote} · {referenceDay} · {crowdingSourceDate}</p>}{day==='주말'&&<p className="tl-note tl-data-note">{t.weekend}</p>}{!clock.businessDate.startsWith('2026-')&&<p className="tl-note">{t.holidayYear}</p>}

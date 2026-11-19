@@ -86,3 +86,15 @@ export function compileTimetable(source,station,businessDate){
  if(excluded.invalidTime)issues.push({type:'invalidTime',count:excluded.invalidTime});
  return {columns:timetableColumnOrder(station,[...columns.values()]),rows,excluded,issues,hasExpress:rows.some(r=>r.express),hours:rows.length?Array.from({length:Math.max(25,Math.floor(rows.at(-1).minute/60))-4},(_,i)=>i+5):Array.from({length:21},(_,i)=>i+5)};
 }
+
+// Find the next scheduled departure independently for every direction.
+// The caller supplies the active day and any express-only filter.
+export function nextDeparturesByColumn(rows,minute){
+ const next=new Map();
+ for(const row of rows){
+  if(row.minute<minute)continue;
+  const previous=next.get(row.column);
+  if(!previous||row.minute<previous.minute)next.set(row.column,row);
+ }
+ return next;
+}

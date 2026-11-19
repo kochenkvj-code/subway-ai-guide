@@ -160,3 +160,16 @@ test('timetable row tint and express abbreviation keep the departure label and b
  assert.match(css,/\.tl-row-dest>\.tl-express\{flex:none;[^}]*white-space:nowrap/);
  assert.equal(copy.en.expressShort,'Exp.');assert.equal(copy.en.limitedShort,'Ltd.');
 });
+
+test('next departure highlight is selected independently for each direction, never just the earliest train overall',()=>{
+ const leftPast={column:'left',minute:1079},left={column:'left',minute:1082},leftLater={column:'left',minute:1086},right={column:'right',minute:1084},branch={column:'branch',minute:1100};
+ const rows=[leftPast,leftLater,right,left,branch];const next=model.nextDeparturesByColumn(rows,1081);
+ assert.equal(next.size,3);assert.equal(next.get('left'),left);assert.equal(next.get('right'),right);assert.equal(next.get('branch'),branch);
+ assert.equal(model.nextDeparturesByColumn(rows,1082).get('left'),left);
+ assert.equal(model.nextDeparturesByColumn(rows,1087).has('left'),false);
+ assert.equal(model.nextDeparturesByColumn(rows,1101).size,0);
+ const e=model.compileTimetable(live['2611'],model.timetableStation('2611'),'2026-11-19');
+ const upcoming=model.nextDeparturesByColumn(e.rows,480);assert.equal(upcoming.size,2);
+ const s=model.compileTimetable(live['0211'],model.timetableStation('0211'),'2026-11-19');assert.equal(model.nextDeparturesByColumn(s.rows,480).size,3);
+ const client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8');assert.match(client,/nextByColumn.get\(column.id\)/);
+});
