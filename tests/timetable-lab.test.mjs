@@ -151,9 +151,11 @@ test('hour tiles and guide use vertical white direction separators without horiz
 
 test('timetable row tint and express abbreviation keep the departure label and badge in one line',async()=>{
  const client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8'),css=fs.readFileSync('app/v2/timetable-lab/timetable-lab.css','utf8'),{copy}=await loadAppModule('app/v2/timetable-lab/copy.js');
- assert.match(client,/tl-crowd-row/);assert.match(client,/--tl-row-crowd/);
+ assert.match(client,/tl-crowd-row/);assert.match(client,/data-crowd-level=\{level!=null\?level:undefined\}/);assert.doesNotMatch(client,/<time[^>]*backgroundColor:/);
  assert.match(client,/t.limitedShort:t.expressShort/);
- assert.match(css,/\.tl-column li\.tl-crowd-row\{background:color-mix\(in srgb,var\(--tl-row-crowd\) 15%,white\)/);
+ assert.match(css,/\.tl-column li\.tl-crowd-row::before\{[^}]*border-radius:5px;background:var\(--tl-row-bg\)/);
+ assert.match(css,/time\.tl-crowd-minute\{background:transparent;border-radius:0;color:var\(--tl-minute-ink\)/);
+ assert.match(css,/--tl-row-bg:#fcf0d9/);assert.match(css,/--tl-row-bg:#e7f0fa/);
  assert.match(css,/\.tl-row-dest>span\{[^}]*text-overflow:ellipsis;white-space:nowrap/);
  assert.match(css,/\.tl-row-dest>\.tl-express\{flex:none;[^}]*white-space:nowrap/);
  assert.equal(copy.en.expressShort,'Exp.');assert.equal(copy.en.limitedShort,'Ltd.');
