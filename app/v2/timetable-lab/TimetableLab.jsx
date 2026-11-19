@@ -54,8 +54,8 @@ export default function TimetableLab(){
  const referenceDay=t.crowdDays[days.indexOf(day)];
  function goNow(){setDay(defaultDay(clock));setHour(null);setExpress(false);}
  const hourDescription=(h,halves)=>halves.map((levels,half)=>levels.map((level,i)=>level===null?'':two(h%24)+':'+(half?'30':'00')+' '+directionLabel(columns[i].next)+': '+t.crowdLevels[level]).filter(Boolean).join(' · ')).filter(Boolean).join(' / ');
- const exampleColumns=[{next:'교대',providerDir:'0'},{next:'역삼',providerDir:'1'}];
- const exampleCrowd=crowdingHalves({line:'2',stationCode:'0222',names:{ko:'강남'}},'평일',18,exampleColumns);
+ const exampleColumns=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
+ const exampleCrowd=crowdingHalves({line:'2',stationCode:'0221',names:{ko:'역삼'}},'평일',18,exampleColumns);
  const exampleName=name=>officialStationName(name,lang,value=>value);
  return <div className="tl-page" lang={lang==='zh'?'zh-CN':lang}><main className="tl-shell">
  <header className="tl-top"><div><p className="tl-test">{t.test}</p><h1>{t.title}</h1></div><div className="tl-station-tools"><button className="tl-station" onClick={()=>picker.current?.showModal()} aria-label={t.change}><b style={{background:colors[station.line]}}>{station.line}</b><strong>{stationLabel(station)}</strong><span aria-hidden="true">⌄</span></button><button className="tl-refresh" onClick={()=>setRetry(n=>n+1)} aria-label={t.refresh}>↻</button></div></header>
@@ -82,9 +82,9 @@ export default function TimetableLab(){
  <footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>
  <dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>
  <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog" aria-label={t.crowdHelpTitle}><header><h2>{t.crowdHelpTitle}</h2><button onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
- <p className="tl-example-title">{exampleName('강남')} · {t.days[0]} · 18:00</p>
+ <p className="tl-example-title">{exampleName('역삼')} · {t.days[0]} · 18:00</p>
  <div className="tl-help-example">
-  <span/><strong className="tl-example-direction">← {exampleName('교대')}</strong><strong className="tl-example-direction">{exampleName('역삼')} →</strong>
+  <span/><strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
   <div className="tl-example-times"><span>18:00–18:30</span><span>18:30–19:00</span></div>
   <div className="tl-example-tile">
    <div className="tl-example-quadrants">{exampleCrowd.flat().map((level,i)=><div className="tl-help-cell" key={i} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div>
