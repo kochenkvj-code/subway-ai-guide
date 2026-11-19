@@ -144,6 +144,7 @@ test('hour tiles and guide use vertical white direction separators without horiz
  assert.match(client,/data-directions=\{columns.length===3\?3:2\}/);
  assert.match(css,/\.tl-crowd-halves::after\{[^}]*linear-gradient\(to right,[^}]*#fff/);
  assert.match(css,/\.tl-crowd-halves\[data-directions="3"\]::after\{[^}]*100% \/ 3[^}]*200% \/ 3/);
- assert.match(css,/\.tl-example-quadrants \.tl-help-cell:nth-child\(2n\)\{border-left:1px solid #fff\}/);
+ assert.match(css,/\.tl-example-quadrants \.tl-help-cell:nth-child\(2n\)\{border-left:1px solid rgba\(255,255,255,\.6\)\}/);
+ assert.match(css,/\.tl-crowd-halves::after\{[^}]*opacity:\.6;/);
  assert.match(css,/\.tl-example-quadrants \.tl-help-cell:nth-child\(n\+3\)\{border-top:0\}/);
 });

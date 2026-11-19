@@ -119,7 +119,7 @@
 .tl-example-quadrants{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;min-height:120px}
 .tl-example-quadrants .tl-help-cell{min-height:60px;padding:9px 4px 4px;font-size:12px;font-weight:600;align-content:start}
 .tl-example-quadrants .tl-help-cell:nth-child(n+3){align-content:end;padding:4px 4px 9px}
-.tl-example-quadrants .tl-help-cell:nth-child(2n){border-left:1px solid #fff}
+.tl-example-quadrants .tl-help-cell:nth-child(2n){border-left:1px solid rgba(255,255,255,.6)}
 .tl-example-quadrants .tl-help-cell:nth-child(n+3){border-top:0}
 .tl-help-example .tl-help-hour{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:0;font-size:37px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums;color:#172d23;text-shadow:0 1px 2px #ffffffa0;pointer-events:none}
 .tl-help-steps{display:grid;gap:7px}
@@ -267,6 +267,6 @@
 @media(max-width:350px){.tl-page .tl-crowd-group,.tl-page .tl-crowd-group>.tl-crowd-help{font-size:10px}.tl-page .tl-crowd-legend>.tl-current-station{font-size:11px}}
 
 /* Direction boundaries are solid white; successive half-hours remain continuous. */
-.tl-hour-grid button .tl-crowd-halves::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent calc(50% - .5px),#fff calc(50% - .5px),#fff calc(50% + .5px),transparent calc(50% + .5px))}
+.tl-hour-grid button .tl-crowd-halves::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;background:linear-gradient(to right,transparent calc(50% - .5px),#fff calc(50% - .5px),#fff calc(50% + .5px),transparent calc(50% + .5px))}
 .tl-hour-grid button .tl-crowd-halves[data-directions="3"]::after{background:linear-gradient(to right,transparent calc(100% / 3 - .5px),#fff calc(100% / 3 - .5px),#fff calc(100% / 3 + .5px),transparent calc(100% / 3 + .5px),transparent calc(200% / 3 - .5px),#fff calc(200% / 3 - .5px),#fff calc(200% / 3 + .5px),transparent calc(200% / 3 + .5px))}
 .tl-crowd-dialog .tl-help-mini-grid{row-gap:0;column-gap:1px}
