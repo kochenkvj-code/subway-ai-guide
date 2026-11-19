@@ -233,3 +233,6 @@
 /* Two-line example heading; retain the shared left-column axis. */
 .tl-crowd-dialog .tl-example-title>span{white-space:nowrap}
 .tl-page[lang=en] .tl-crowd-dialog .tl-example-title>span{font-size:10px;letter-spacing:-.2px}
+
+/* Match the time range labels to the emphasis of the example heading. */
+.tl-crowd-dialog .tl-example-times>span{font-weight:650}
