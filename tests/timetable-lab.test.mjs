@@ -77,8 +77,22 @@ test('timetable data and passenger-facing real-time classification share thresho
 test('administrator-only timetable has a server guard and passenger menu retains its original component',()=>{
  const page=fs.readFileSync('app/v2/timetable-lab/page.jsx','utf8'),guide=fs.readFileSync('app/v2/V2Guide.jsx','utf8'),client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8');
  assert.match(page,/if\(!staffAuthorized\(\{cookies:await cookies\(\)\}\)\)notFound\(\)/);
- assert.match(guide,/next==='timetable'&&staffTools.admin===true/);
- assert.match(guide,/mounted.timetable&&staffTools.admin!==true/);
+ assert.match(guide,/mounted.timetable&&<div className="v2-feature-pane"/);
+ assert.match(guide,/staffTools.admin===true\?\(view==='timetable'&&<StaffTimetable/);
+ assert.doesNotMatch(guide,/staffTimetableUrl/);
+ assert.match(page,/redirect\('\/\?'\+params\)/);
+ assert.match(client,/\{!embedded&&<footer className="tl-footer"/);
  assert.match(client,/createCrowdingModel\(crowdingSource\)/);
  assert.doesNotMatch(client,/from ['"]\.\.\/\.\.\/lib\/timetable-lab-crowding['"]/);
+});
+
+test('protected crowding dataset rejects anonymous and forged callers',async()=>{
+ const {GET}=await loadModule('app/api/v2/timetable-lab/crowding/route.js');
+ const expiry=String(Date.now()+60000),cookie=expiry+'.'+createHmac('sha256','test-only').update('staff-access:'+expiry).digest('hex');
+ assert.equal((await GET({})).status,403);
+ assert.equal((await GET({cookies:{get:()=>({value:cookie+'x'})}})).status,403);
+ const authorized=await GET({cookies:{get:()=>({value:cookie})}});
+ assert.equal(authorized.status,200);
+ assert.match(authorized.headers.get('cache-control'),/private, no-store/);
+ assert.deepEqual((await authorized.json()).thresholds,[50,80,110]);
 });

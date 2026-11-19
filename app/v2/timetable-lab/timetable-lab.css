@@ -236,3 +236,13 @@
 
 /* Match the time range labels to the emphasis of the example heading. */
 .tl-crowd-dialog .tl-example-times>span{font-weight:650}
+
+/* Staff timetable uses the existing V2 workspace header and bottom navigation.
+   Only the feature body scrolls; the hour rail stays within the workspace. */
+.tl-page.tl-embedded{min-height:100%;width:100%;font-family:inherit;letter-spacing:normal}
+.tl-embedded .tl-shell{width:100%;max-width:none;padding:12px 13px 28px;margin:0}
+.tl-embedded .tl-top{justify-content:flex-end;margin-bottom:9px}
+.tl-embedded .tl-station-tools{max-width:100%;justify-content:flex-end}
+.tl-embedded .tl-hour-nav{right:max(0px,calc((100vw - 620px)/2));z-index:5;top:50dvh}
+.tl-staff-loading{padding:30px 14px;text-align:center;color:#52685a;font-size:13px}
+.tl-staff-loading button{margin-left:8px;border:1px solid #cbdcd2;border-radius:8px;background:#fff;padding:7px 10px;color:#205c47}
