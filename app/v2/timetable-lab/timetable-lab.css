@@ -214,3 +214,15 @@
 .tl-example-times>span{display:block;width:100%;box-sizing:border-box;margin:0;padding:0;text-align:center;letter-spacing:0}
 .tl-help-scale-card .tl-help-range{gap:2px}
 @media(max-width:350px){.tl-help-example{grid-template-columns:76px minmax(0,1fr) minmax(0,1fr)}.tl-example-title>strong,.tl-example-title>span{font-size:11px}}
+
+/* Align the complete line badge/station group and both time labels to the same column axis. */
+.tl-crowd-dialog>header{margin-bottom:26px}
+.tl-help-example{justify-content:center;justify-items:stretch}
+.tl-crowd-dialog .tl-help-example>.tl-example-title{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;margin:0;width:100%;text-align:center}
+.tl-crowd-dialog .tl-example-title>strong{display:flex;align-items:center;justify-content:center;gap:3px;width:100%;padding:0;margin:0;font:inherit;font-size:12px;font-weight:650;line-height:1.22}
+.tl-crowd-dialog .tl-example-title>span{font-size:12px;font-weight:650;line-height:1.22}
+.tl-example-line{display:grid;place-items:center;flex:none;width:15px;height:15px;border-radius:50%;color:white;font-size:9px;font-weight:600;line-height:1}
+.tl-example-station{min-width:0;overflow-wrap:anywhere;text-align:center}
+.tl-example-times{padding:0;justify-items:center}
+.tl-example-times>span{text-align:center;padding:0;margin:0}
+@media(max-width:350px){.tl-crowd-dialog .tl-example-title>strong,.tl-crowd-dialog .tl-example-title>span{font-size:11px}}
