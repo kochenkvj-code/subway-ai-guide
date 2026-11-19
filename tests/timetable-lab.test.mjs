@@ -56,7 +56,15 @@ test('static crowding is station/day/hour scoped and does not guess ambiguous di
 test('half-hour data preserves Gangnam direction differences and missing early slots',async()=>{
  const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
  const station=model.timetableStation('0222'),cols=[{next:'교대',providerDir:'0'},{next:'역삼',providerDir:'1'}];
- assert.equal(JSON.stringify(cm.crowdingHalves(station,'평일',18,cols)),'[[2,1],[1,0]]');
+ assert.equal(JSON.stringify(cm.crowdingHalves(station,'평일',18,cols)),'[[3,2],[3,1]]');
  assert.equal(JSON.stringify(cm.timetableCrowding(station,'평일',5,cols,0)),'[null,null]');
  assert.equal(JSON.stringify(cm.crowdingHalves(station,'평일',25,cols)),'[[null,null],[null,null]]');
+});
+
+test('timetable data and passenger-facing real-time classification share thresholds',async()=>{
+ const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
+ const shared=await loadAppModule('app/lib/congestion-data.js');
+ assert.equal(JSON.stringify(cm.crowdingThresholds),JSON.stringify(shared.CONGESTION_THRESHOLDS));
+ const cols=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
+ assert.equal(JSON.stringify(cm.crowdingHalves(model.timetableStation('0221'),'평일',18,cols)),'[[3,2],[2,1]]');
 });

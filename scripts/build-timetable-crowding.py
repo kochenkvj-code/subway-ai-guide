@@ -12,6 +12,9 @@ from zipfile import ZipFile
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 RID = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id'
 DAYS = ('평일', '토요일', '일요일')
+# Use the same thresholds as the real-time screens; the JSON carries a copy for testing.
+policy_source = (Path(__file__).resolve().parents[1] / 'app/lib/congestion-data.js').read_text(encoding='utf-8')
+THRESHOLDS = json.loads(re.search(r'export const CONGESTION_THRESHOLDS\s*=\s*(\[[^\]]+\]);', policy_source).group(1))
 DIRS = {'상선': 0, '상행': 0, '내선': 0, '내선순환': 0,
         '하선': 1, '하행': 1, '외선': 1, '외선순환': 1}
 
@@ -82,11 +85,11 @@ def convert(path, source_date):
                 for hour in range(5, 26):
                     for minute in (0, 30):
                         value = values.get((hour, minute))
-                        levels.append(str(4 if value is None else 0 if value < 80 else 1 if value < 130 else 2 if value < 150 else 3))
+                        levels.append(str(4 if value is None else sum(value >= limit for limit in THRESHOLDS)))
                 data.setdefault(key, ['4' * 42] * 6)[index] = ''.join(levels)
     if not data:
         raise ValueError('Empty dataset')
-    return {'sourceDate': source_date, 'hours': [5, 25], 'slotsPerHour': 2, 'data': {k: ''.join(v) for k, v in sorted(data.items())}}
+    return {'sourceDate': source_date, 'hours': [5, 25], 'slotsPerHour': 2, 'data': {k: ''.join(v) for k, v in sorted(data.items())}, 'thresholds': THRESHOLDS}
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ test('direction mapping inner/outer and missing or unsupported records',()=>{
  assert.equal(compactCongestionRow(sample({LINE:'2',UP_DOWN_SE:'외선'})).dir,'1');
  assert.equal(compactCongestionRow(sample({UP_DOWN_SE:'unknown'})),null);
  for(const v of [null,'','-',0,'0',false,-1])assert.equal(parseCongestionValue(v),null);
- assert.deepEqual([79,80,129,130,149,150].map(congestionLevel),[0,1,1,2,2,3]);
+ assert.deepEqual([49.99,50,79.99,80,109.99,110].map(congestionLevel),[0,1,1,2,2,3]);
 });
 test('only complete successful pages accepted, never an error payload',()=>{
  const good={subwConfusion:{RESULT:{CODE:'INFO-000'},list_total_count:2,row:[sample(),sample()]}};

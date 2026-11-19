@@ -6,7 +6,7 @@ import {positionDestination,positionStation} from '../arrival-test/position/dest
 import {stationName} from '../lib/stationNameI18n';
 import graph from '../data/trainLostGraph.json';
 import directions from '../data/trainLostDirection.json';
-import {CrowdingIndicator,crowdingClass,crowdingDescription} from './CrowdingIndicator';
+import {CrowdingIndicator,crowdingClass,crowdingDescription,crowdingPolicyDescription} from './CrowdingIndicator';
 
 const labels={
  ko:{lead:'다음 열차, 어디쯤 왔을까요?',source:'서울시 실시간 열차 위치정보',refresh:'새로고침',loading:'열차 위치정보 확인 중…',error:'위치정보 조회 실패',unsupported:'선로 연결정보가 없습니다.',empty:'다가오는 열차정보 없음',automatic:'30초 간격 갱신 · 열차 위치 기준',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',raw:'서울시 원문 · JSON',up:'상행',down:'하행',inner:'내선',outer:'외선',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발'},
@@ -96,7 +96,7 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowdin
    <div className="v2-crowding-dialog-content"><h3>{crowdText.title}</h3>
     {congestionSlot&&<p>{congestionSlot.key.replace('T',' ')} KST</p>}
     {shownGroups.filter(group=>typeof crowding[group.dir]==='number').map(group=><p key={group.dir}>{heading(group,station,lang,ui)} · {crowding[group.dir]}%</p>)}
-    <p>{crowdText.note}</p><button type="button" onClick={()=>info.current?.close()}>{crowdText.close}</button>
+    <p>{crowdText.note}</p><p>{crowdingPolicyDescription(lang)}</p><button type="button" onClick={()=>info.current?.close()}>{crowdText.close}</button>
    </div>
   </dialog>}
  </section>;

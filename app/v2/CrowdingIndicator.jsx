@@ -8,13 +8,15 @@ const labels={
  zh:[['宽松'],['一般'],['注意'],['拥挤']]
 };
 const descriptions={ko:'예상 혼잡도 · 30분 평균, 개별 열차 실측값 아님',en:'Estimated crowding · 30-minute average, not individual trains',ja:'予想混雑度・30分平均（各列車の実測値ではありません）',zh:'预计拥挤度 · 30分钟平均值，并非单趟列车实测'};
+const policy={"ko":"시민 이용 편의를 위한 자체 혼잡도 분류 기준입니다 (50%·80%·110%).","en":"Passenger guidance uses custom crowding thresholds (50%, 80%, 110%).","ja":"利用者向けの独自の混雑度区分です（50%・80%・110%）。","zh":"为方便乘客出行，采用自定义拥挤度分级标准（50%、80%、110%）。"};
+export function crowdingPolicyDescription(lang='ko'){return policy[lang]||policy.ko;}
 export function crowdingClass(value){
  const level=congestionLevel(value);
  return level===null?'':' v2-crowding-heading v2-crowding-'+level;
 }
 export function crowdingDescription(value,lang='ko'){
  const level=congestionLevel(value);
- return level===null?'':(descriptions[lang]||descriptions.ko)+' · '+(labels[lang]||labels.ko)[level].join('')+' '+value+'%';
+ return level===null?'':(descriptions[lang]||descriptions.ko)+' · '+(labels[lang]||labels.ko)[level].join('')+' '+value+'% · '+crowdingPolicyDescription(lang);
 }
 export function CrowdingIndicator({value,lang='ko',numeric=false,onInfo=null}){
  const level=congestionLevel(value);

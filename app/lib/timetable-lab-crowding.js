@@ -1,5 +1,6 @@
 // Static Seoul Metro 2026-09-30 statistical categories, not live crowding.
 import source from '../data/timetable-crowding.json';
+export const crowdingThresholds=source.thresholds;
 export const crowdingSourceDate=source.sourceDate;
 export const crowdingColors=['#86cfa0','#86b8eb','#f5b64e','#ef8585','#ffffff'];
 export function timetableCrowding(station,day,hour,columns,half=0){

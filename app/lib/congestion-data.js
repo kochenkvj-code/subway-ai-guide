@@ -22,9 +22,11 @@ export function normalizeDirection(value,line){
  if(['하행','하선'].includes(s))return '1';
  return null;
 }
+// Passenger-facing guidance levels; raw percentages remain unchanged.
+export const CONGESTION_THRESHOLDS=[50,80,110];
 export function congestionLevel(value){
  if(typeof value!=='number'||!Number.isFinite(value)||value<0)return null;
- return value<80?0:value<130?1:value<150?2:3;
+ return CONGESTION_THRESHOLDS.filter(boundary=>value>=boundary).length;
 }
 export function parseCongestionValue(raw){
  if(typeof raw!=='number'&&typeof raw!=='string')return null;
