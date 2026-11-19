@@ -25,6 +25,8 @@ export function serviceMinute(value){
  const h=Number(m[1]);return (h<5?h+24:h)*60+Number(m[2]);
 }
 const branches={'성수지선':['성수','용답','신답','용두','신설동'],'신정지선':['신도림','도림천','양천구청','신정네거리','까치산']};
+// Provider/graph historical label; canonical display is isolated to this timetable.
+const displayName=name=>name==='당고개'?'불암산':name;
 const clean=x=>String(x||'').replace(/역$/,'').replace(/\s/g,'');
 function reaches(network,start,destination,blocked){
  const todo=[start],seen=new Set([blocked]);while(todo.length){const node=todo.shift();if(node===destination)return true;if(seen.has(node))continue;seen.add(node);todo.push(...(network[node]||[]).filter(n=>!seen.has(n)));}return false;
@@ -61,9 +63,9 @@ export function compileTimetable(source,station,businessDate){
    const next=nextStop(station,raw);
    if(!next){excluded.unclassified++;continue;}
    const id=next.next+'|'+next.branch,kind=String(raw.trainKnd||''),express=/^(Y|1|true)$/i.test(String(raw.etrnYn))||/급행|특급/.test(kind);
-   const entry={column:id,minute,time:raw.trainDptreTm,destination:String(raw.arvlStnNm||''),express,kind:/특급/.test(kind)?'limited':'express',number:String(raw.trainno||'')};
+   const entry={column:id,minute,time:raw.trainDptreTm,destination:displayName(String(raw.arvlStnNm||'')),express,kind:/특급/.test(kind)?'limited':'express',number:String(raw.trainno||'')};
    const key=JSON.stringify([entry.column,entry.minute,entry.destination,entry.number]);if(seen.has(key)){excluded.duplicates++;continue;}seen.add(key);
-   columns.set(id,{id,next:next.next,branch:next.branch});rows.push(entry);
+   columns.set(id,{id,next:displayName(next.next),branch:next.branch});rows.push(entry);
   }
  }
  rows.sort((a,b)=>a.minute-b.minute||a.number.localeCompare(b.number));

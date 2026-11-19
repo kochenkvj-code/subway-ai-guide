@@ -20,7 +20,7 @@ The timetable key is a protected Vercel Secret and cannot be exported to this wo
 | Jangam 2711 | UP records are arrival-only; DOWN has 85 real departures toward Dobongsan |
 | Sanggye 0410 | Old validity intervals excluded; 466 current departures; graph alias labels localized through official station names |
 | Bongeunsa 4129 | Real express Y flags verified. trainKnd was null in this sample; no real limited-express-kind sample was obtained |
-| Kkachisan line 2 0200 | Official directory identity used only in the test adapter because shared master lacks this identity. Existing operating legacy API supplied 111 outward departures to Sindorim; full new endpoint verified after final deployment |
+| Kkachisan line 2 0200 | Official directory identity used only in the test adapter because shared master lacks this identity. Existing operating legacy API supplied 111 outward departures to Sindorim; full new endpoint verified live: 111 departures, 111 arrival-only rows excluded, no unclassified rows |
 
 Weekday and weekend responses differ for Jongno 5-ga and Seongsu. `공휴일` returned empty data for Jongno 5-ga, Seongsu, Sindorim, Yongdap, Gangdong, Eungam and Sanggye; `상시` was also empty in queried Jongno 5-ga / Seongsu samples. These are data availability findings, not proof of no trains running. No fallback from holiday to another day was added. Weekend is labeled Weekend rather than claiming an independently verified Saturday-only mapping.
 
@@ -34,8 +34,8 @@ Facility-guide reference colors, type hierarchy, borders and spacing; 7-column h
 Calendar: 2026 holidays include the published 2026 calendar, election day, and KASA's 2026 additions for Labour Day/Constitution Day. Other years show a warning and retain weekday/weekend selection; expand verified calendar coverage before operating deployment. The source's separate holiday schedule remains unavailable in audited stations.
 
 ## Tests
-- Full `npm run build`: 321 tests, zero failures; Next production build succeeded.
-- Six timetable regressions: genuine provider samples for branching/one-way/terminal/express/validity, overnight boundary, official-only Kkachisan identity, unknown-direction warning, station validation, pagination and cache. Fixtures are 66 KB of selected public provider records, not fabricated source evidence.
+- Full `npm run build`: 322 tests, zero failures; Next production build succeeded.
+- Seven timetable regressions: genuine provider samples for branching/one-way/terminal/express/validity, overnight boundary, official-only Kkachisan identity, unknown-direction warning, station validation, pagination and cache. Fixtures are 66 KB of selected public provider records, not fabricated source evidence.
 - Browser: ten full actual-response replays, 1/2/3 columns, four languages at 320/390/768/1100 widths, zero refetch on hour/overlay/language/filter/dialog, first/last, error vs missing data and line 2 Kkachisan selector.
 - Chromium mobile/touch browser used. WebKit installation was blocked by the environment's download policy (HTTP 403). Physical iPhone Safari interaction was not tested and must not be claimed as verified.
 - The deployed endpoint/page are connected to real provider data; fixtures are only for repeatable local browser regression.
@@ -47,7 +47,7 @@ Calendar: 2026 holidays include the published 2026 calendar, election day, and K
 - https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431 (2026 additions)
 
 ## Release / rollback
-Two production-target deployments were needed: one isolated data verification endpoint, then the complete test page. Zero preview deployments. Existing operating timetable has no modifications.
+Three production-target deployments were needed: isolated data verification endpoint, complete test page, then a historical station-name display correction found during final live verification. Zero preview deployments. Existing operating timetable has no modifications.
 Rollback tag before both: `rollback-before-timetable-lab-20261119` -> `30029da39fa5dccbfcca9470bf099a1612a47296`.
 Previous production: `dpl_6VReH5f5TDP9vhDEnLTNaUPRAJAr` (`subway-ai-guide-h93joqnj4-t5-b.vercel.app`).
 Source verification commit: `a2882ee9274b1acb61c8b5ebac309aa9a7428e85`, deployment `dpl_JBffGXfMTGXWAEL5CSx3PaYuJgqA`.

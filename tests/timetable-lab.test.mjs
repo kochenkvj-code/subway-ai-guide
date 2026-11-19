@@ -33,3 +33,5 @@ test('server paginates, filters exact station identity, caches complete results 
  await GET({url:'https://test/api?stationCode=0154&day='+encodeURIComponent('평일')});assert.equal(calls,4);
  assert.equal((await GET({url:'https://test/api?stationCode=9999'})).status,400);
 });
+
+test('historical graph/provider names display canonical Buramsan without changing shared data',()=>{const result=model.compileTimetable(live['0410'],model.timetableStation('0410'),'2026-11-19');assert.ok(result.columns.some(c=>c.next==='불암산'));assert.equal(result.columns.some(c=>c.next==='당고개'),false);});
