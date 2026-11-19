@@ -53,7 +53,7 @@ test('static crowding is station/day/hour scoped and does not guess ambiguous di
  assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('0154'),'평일',14,r.columns)),'[0,0]');
  assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('0154'),'평일',25,r.columns)),'[null,null]');
  const e=model.compileTimetable(live['2611'],model.timetableStation('2611'),'2026-11-19');
- assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('2611'),'평일',8,e.columns)),'[null,null]');
+ assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('2611'),'평일',8,e.columns)),'[1,0]');
  const g=model.compileTimetable(live['2549'],model.timetableStation('2549'),'2026-11-19');
  assert.equal(cm.timetableCrowding(model.timetableStation('2549'),'평일',8,g.columns).filter(i=>i!==null).length,1);
 });
@@ -116,4 +116,25 @@ test('station and crowding legend share one row with fixed group spacing and onl
  assert.match(css,/\.tl-current-station>strong\{[^}]*text-overflow:ellipsis;white-space:nowrap/);
  assert.match(css,/\.tl-crowd-group>\.tl-crowd-help\{[^}]*text-overflow:clip/);
  assert.deepEqual(Object.values(copy).map(t=>t.crowdHelp),['혼잡도 보는 법','Guide','混雑度の見方','拥挤度说明']);
+});
+
+test('confirmed Seongsu and Eungam departure columns use distinct original statistical identities',async()=>{
+ const cm=await loadAppModule('app/lib/timetable-lab-crowding.js'),source=JSON.parse(fs.readFileSync('app/data/timetable-crowding.json','utf8'));
+ for(const [code,ids,dirs] of [['0211',['0211','9001','9002'],[0,1,1]],['2611',['2611','9006'],[1,1]]]){
+  const station=model.timetableStation(code),columns=model.compileTimetable(live[code],station,'2026-11-19').columns;
+  for(const [d,day] of ['평일','주말','공휴일'].entries())for(let h=5;h<=25;h++)for(const half of [0,1]){
+   const expected=ids.map((id,i)=>{const n=Number(source.data[station.line+':'+id][(d*2+dirs[i])*42+(h-5)*2+half]);return n<4?n:null});
+   assert.equal(JSON.stringify(cm.timetableCrowding(station,day,h,columns,half)),JSON.stringify(expected),code+' '+day+' '+h+' '+half);
+  }
+ }
+});
+test('single departure direction colors exactly one half, and two or three directions retain equal widths',async()=>{
+ const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
+ assert.equal(cm.crowdingGradient([0],'left'),'linear-gradient(to right,#86cfa0 0% 50%,#ffffff 50% 100%)');
+ assert.equal(cm.crowdingGradient([0],'right'),'linear-gradient(to right,#ffffff 0% 50%,#86cfa0 50% 100%)');
+ assert.equal(cm.crowdingGradient([null],'left'),undefined);
+ assert.equal(cm.crowdingGradient([0,1]),'linear-gradient(to right,#86cfa0 0% 50%,#86b8eb 50% 100%)');
+ assert.ok(cm.crowdingGradient([0,1,2]).includes('#f5b64e'));
+ const s=model.timetableStation('0246');
+ assert.equal(JSON.stringify(cm.timetableCrowding(s,'평일',18,[{next:'용두',providerDir:'0',branch:'성수지선'}])),'[0]');
 });

@@ -45,17 +45,33 @@ export function compactCongestionRow(row){
  }
  return {day,line,code,dir,slots};
 }
+// Approved statistical identities, independent of timetable and position-provider directions.
+const specialCrowding={
+ '2:0211':[
+  {next:'건대입구',code:'0211',dir:'0',liveDir:'0'},
+  {next:'뚝섬',code:'9001',dir:'1',liveDir:'1'},
+  {next:'용답',code:'9002',dir:'1',liveDir:null}
+ ],
+ '6:2611':[
+  {next:'새절',code:'2611',dir:'1',liveDir:'1'},
+  {next:'역촌',code:'9006',dir:'1',liveDir:'0'}
+ ]
+};
+export function crowdingSources(station){return specialCrowding[station.line+':'+station.stationCode]||null;}
 export function selectCongestion(rows,station,slot){
  const values={};const ambiguous=new Set();
+ const special=crowdingSources(station);
  // Use exact station number, line, and provider direction, never visual column or name.
  // For the 6-line loop, upstream hints are not through trains at the chosen platform.
  const syntheticUp=station.line==='6'&&['역촌','불광','독바위','연신내','구산'].includes(station.names?.ko);
  for(const row of rows){
-  if(row.code!==station.stationCode||row.line!==station.line||row.day!==slot.day||(syntheticUp&&row.dir==='0'))continue;
+  if(row.line!==station.line||row.day!==slot.day||(syntheticUp&&row.dir==='0'))continue;
+  const target=special?special.find(s=>s.code===row.code&&s.dir===row.dir)?.liveDir:row.code===station.stationCode?row.dir:null;
+  if(target==null)continue;
   const value=row.slots[slot.field];
   if(typeof value!=='number')continue;
-  if(Object.hasOwn(values,row.dir)&&values[row.dir]!==value)ambiguous.add(row.dir);
-  else values[row.dir]=value;
+  if(Object.hasOwn(values,target)&&values[target]!==value)ambiguous.add(target);
+  else values[target]=value;
  }
  for(const dir of ambiguous)delete values[dir];
  return values;

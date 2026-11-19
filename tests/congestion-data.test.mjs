@@ -28,3 +28,22 @@ test('only complete successful pages accepted, never an error payload',()=>{
  assert.throws(()=>decodeCongestionPage({RESULT:{CODE:'ERROR-301'}},1,1000));
  assert.throws(()=>decodeCongestionPage({...good,subwConfusion:{...good.subwConfusion,row:[sample()]}},1,1000));
 });
+
+test('confirmed special statistical identities resolve both live directions without mixing the Seongsu shuttle or wrong lines',()=>{
+ const slot=congestionSlot(Date.parse('2026-11-18T07:44:00Z'));
+ const rows=[
+  sample({LINE:'2',STTN_NO:211,UP_DOWN_SE:'내선',TIME1630:45}),
+  sample({LINE:'2',STTN_NO:211,UP_DOWN_SE:'외선',TIME1630:99}),
+  sample({LINE:'2',STTN_NO:9001,UP_DOWN_SE:'외선',TIME1630:72}),
+  sample({LINE:'2',STTN_NO:9002,UP_DOWN_SE:'외선',TIME1630:22}),
+  sample({LINE:'6',STTN_NO:2611,UP_DOWN_SE:'하선',TIME1630:54}),
+  sample({LINE:'6',STTN_NO:9006,UP_DOWN_SE:'하선',TIME1630:36}),
+  sample({LINE:'6',STTN_NO:9006,UP_DOWN_SE:'상선',TIME1630:88}),
+  sample({LINE:'5',STTN_NO:9006,UP_DOWN_SE:'하선',TIME1630:199})
+ ].map(compactCongestionRow);
+ assert.deepEqual(selectCongestion(rows,{line:'2',stationCode:'0211',names:{ko:'성수'}},slot),{'0':45,'1':72});
+ const e={line:'6',stationCode:'2611',names:{ko:'응암'}};
+ assert.deepEqual(selectCongestion(rows,e,slot),{'0':36,'1':54});
+ assert.deepEqual(selectCongestion(rows.filter(r=>r.code!=='9006'),e,slot),{'1':54});
+ assert.deepEqual(selectCongestion([...rows,compactCongestionRow(sample({LINE:'6',STTN_NO:9006,UP_DOWN_SE:'하선',TIME1630:38}))],e,slot),{'1':54});
+});
