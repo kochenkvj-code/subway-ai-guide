@@ -1,4 +1,5 @@
-import {providerStation,stationRowMatches} from '../../../lib/station-provider';
+import {timetableStation,serviceClock,compileTimetable} from '../../../lib/timetable-lab-model';
+import {stationRowMatches} from '../../../lib/station-provider';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 export const maxDuration=60;
@@ -24,16 +25,18 @@ async function loadDirection(station,day,direction,key){
  const seen=new Set();return {direction,ok:true,total:first.total,rows:rows.filter(row=>{const k=JSON.stringify(Object.keys(row).sort().map(key=>[key,row[key]]));if(seen.has(k))return false;seen.add(k);return true;})};
 }
 export async function GET(request){
- const q=new URL(request.url).searchParams,station=providerStation(q.get('stationCode'));
+ const q=new URL(request.url).searchParams,station=timetableStation(q.get('stationCode'));
  const day=q.get('day')||'평일';
  if(!station||!['평일','주말','공휴일','상시'].includes(day))return json({ok:false,error:'INVALID_QUERY'},400);
  const key=process.env.SEOUL_METRO_TIMETABLE_API_KEY?.trim();if(!key)return json({ok:false,error:'NOT_CONFIGURED'},503);
- const id=station.stationCode+'|'+day,cached=cache.get(id);if(cached&&Date.now()-cached.at<300000)return json(cached.data);
+ const clock=serviceClock();
+ const id=station.stationCode+'|'+day+'|'+clock.businessDate,cached=cache.get(id);if(cached&&Date.now()-cached.at<300000)return json(cached.data);
  try{
  if(!pending.has(id))pending.set(id,(async()=>{
  const requested=station.line==='2'?['내선','외선','상행','하행']:['상행','하행'];
  const groups=await Promise.all(requested.map(async direction=>{try{return await loadDirection(station,day,direction,key);}catch(e){return {direction,ok:false,error:['UPSTREAM_HTTP','UPSTREAM_RESULT','TOO_MANY_ROWS'].includes(e.message)?e.message:e.name==='TimeoutError'?'TIMEOUT':'UPSTREAM_UNAVAILABLE',rows:[]};}}));
- const data={ok:groups.some(g=>g.ok),stationCode:station.stationCode,station:station.names.ko,line:station.line,day,groups,updatedAt:new Date().toISOString()};
+ const source={groups};
+ const data={ok:groups.some(g=>g.ok),stationCode:station.stationCode,station:station.names.ko,line:station.line,day,businessDate:clock.businessDate,groups:groups.map(({rows,...g})=>({...g,count:rows.length})),...compileTimetable(source,station,clock.businessDate),updatedAt:new Date().toISOString()};
  if(groups.every(g=>g.ok)){cache.set(id,{at:Date.now(),data});if(cache.size>60)cache.delete(cache.keys().next().value);}return data;
  })().finally(()=>pending.delete(id)));
  const data=await pending.get(id);return json(data,data.ok?200:502);

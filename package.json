@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-names && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && npm run test:route-lab && npm run test:facility-i18n && npm run test:facility-records && npm run test:station-office && npm run test:interpreter && npm run test:route-sharing && npm run test:guidance && next build",
+    "build": "npm run test:keyboard-viewport && npm run test:v2-chat && npm run test:train-lost && npm run test:station-master && npm run test:station-names && npm run test:station-entry && npm run test:station-route && npm run test:lost-found && npm run test:arrivals && npm run test:route-lab && npm run test:facility-i18n && npm run test:facility-records && npm run test:station-office && npm run test:interpreter && npm run test:route-sharing && npm run test:guidance && npm run test:timetable-lab && next build",
     "start": "next start",
     "test:chat-context": "node --experimental-vm-modules --test tests/chat-history.test.mjs tests/chat-provider.test.mjs",
     "test:arrivals": "node --experimental-vm-modules --test tests/train-arrivals.test.mjs tests/train-arrival-api.test.mjs tests/arrival-test-line2-branch-boundary.test.mjs tests/arrival-test-compact-layout.test.mjs tests/position-message.test.mjs tests/position-destination.test.mjs tests/v2-position-arrivals.test.mjs tests/congestion-data.test.mjs",
@@ -42,6 +42,7 @@
     "test:interpreter": "node --experimental-vm-modules --test tests/interpreter-api.test.mjs tests/staff-access.test.mjs tests/interpreter-sync.test.mjs",
     "test:interpreter-db": "node tests/interpreter-db.cjs",
     "test:route-sharing": "node --experimental-vm-modules --test tests/route-sharing.test.mjs",
+    "test:timetable-lab": "node --experimental-vm-modules --test tests/timetable-lab.test.mjs",
     "test:guidance": "node --experimental-vm-modules --test tests/guidance.test.mjs"
   },
   "dependencies": {
