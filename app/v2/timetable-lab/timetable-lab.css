@@ -253,3 +253,15 @@
 .tl-embedded .tl-hour-nav{top:var(--tl-rail-top,100vh);right:var(--tl-rail-right,0px);transform:none;max-height:var(--tl-rail-height,0px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;visibility:hidden;overscroll-behavior:contain}
 .tl-embedded .tl-hour-nav::-webkit-scrollbar{display:none}
 .tl-embedded .tl-hour-nav>.tl-arrow,.tl-embedded .tl-hour-nav .tl-shortcuts{flex-shrink:0}
+
+/* One line in all four languages: only the station name can shrink. */
+.tl-page .tl-crowd-legend{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:12px;min-width:0;white-space:nowrap}
+.tl-page .tl-crowd-legend>.tl-current-station{display:flex;align-items:center;flex:1 1 0;min-width:0;gap:4px;flex-wrap:nowrap;color:var(--ink);font-size:12px;line-height:1.4}
+.tl-current-line{display:grid;place-items:center;flex:none;width:16px;height:16px;border-radius:50%;font-size:10px;line-height:1;font-weight:650;color:white}
+.tl-current-station>strong{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.tl-page .tl-crowd-legend>.tl-crowd-group{display:flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:12px;white-space:nowrap;margin-left:auto;min-width:max-content}
+.tl-crowd-group>.tl-crowd-keys{display:flex;align-items:center;flex:0 0 auto;flex-wrap:nowrap;gap:6px;white-space:nowrap}
+.tl-crowd-group .tl-crowd-keys>span{display:inline-flex;align-items:center;gap:3px;flex:none;white-space:nowrap;overflow:visible;text-overflow:clip}
+.tl-crowd-group .tl-crowd-keys i{flex:none}
+.tl-crowd-group>.tl-crowd-help{flex:none;margin:0;white-space:nowrap;overflow:visible;text-overflow:clip}
+@media(max-width:350px){.tl-page .tl-crowd-group,.tl-page .tl-crowd-group>.tl-crowd-help{font-size:10px}.tl-page .tl-crowd-legend>.tl-current-station{font-size:11px}}

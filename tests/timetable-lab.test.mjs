@@ -106,3 +106,14 @@ test('embedded timetable uses the fixed station and anchors hour shortcuts below
  assert.match(client,/bounds.bottom-top-8/);
  assert.match(css,/\.tl-embedded \.tl-hour-nav\{top:var\(--tl-rail-top/);
 });
+
+test('station and crowding legend share one row with fixed group spacing and only the station truncates',async()=>{
+ const client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8'),css=fs.readFileSync('app/v2/timetable-lab/timetable-lab.css','utf8'),{copy}=await loadAppModule('app/v2/timetable-lab/copy.js');
+ assert.match(client,/\(embedded\|\|hasCrowd\).*tl-current-station.*hasCrowd&&<div className="tl-crowd-group"/);
+ assert.match(css,/\.tl-page \.tl-crowd-legend\{[^}]*flex-wrap:nowrap;gap:12px/);
+ assert.match(css,/\.tl-page \.tl-crowd-legend>\.tl-crowd-group\{[^}]*flex-wrap:nowrap;gap:12px/);
+ assert.match(css,/\.tl-crowd-group>\.tl-crowd-keys\{[^}]*gap:6px/);
+ assert.match(css,/\.tl-current-station>strong\{[^}]*text-overflow:ellipsis;white-space:nowrap/);
+ assert.match(css,/\.tl-crowd-group>\.tl-crowd-help\{[^}]*text-overflow:clip/);
+ assert.deepEqual(Object.values(copy).map(t=>t.crowdHelp),['혼잡도 보는 법','Guide','混雑度の見方','拥挤度说明']);
+});
