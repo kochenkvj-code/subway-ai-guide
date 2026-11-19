@@ -39,3 +39,10 @@
 .tl-hour-nav .tl-arrow:active::before{background:#cfe5d8}
 @media(min-width:620px){.tl-shell{padding-top:20px}.tl-hour-grid button{min-height:36px}.tl-column>header{min-height:40px}.tl-column h3{font-size:14px}.tl-column li{min-height:34px;padding-top:6px;padding-bottom:6px;gap:12px}.tl-selected-hour{font-size:19px}}
 @media(max-width:350px){.tl-control-actions button{padding-left:6px;padding-right:6px}.tl-selected-hour{font-size:15px}.tl-column h3{font-size:12px}.tl-column li{gap:5px}}
+
+/* Single-line date/hour context and first/last shortcuts. */
+.tl-controls>.tl-control-context{flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:3px 8px}
+.tl-service-day{font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl-selected-hour{font-size:17px;white-space:nowrap}
+.tl-control-actions button{min-width:39px;min-height:34px;padding:5px 9px}
+@media(max-width:350px){.tl-controls{gap:5px}.tl-controls>.tl-control-context{gap:2px 5px}.tl-control-actions button{min-width:34px;padding:5px 6px}.tl-selected-hour{font-size:16px}}
