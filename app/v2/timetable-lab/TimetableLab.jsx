@@ -83,7 +83,7 @@ export default function TimetableLab(){
  <dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>
  <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog" aria-label={t.crowdHelpTitle}><header><h2>{t.crowdHelpTitle}</h2><button onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
  <div className="tl-help-example">
-  <p className="tl-example-title"><strong>{exampleName('역삼')}</strong><span>{t.exampleDay} {t.exampleHour}</span></p><strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
+  <p className="tl-example-title"><strong>{exampleName('역삼')}</strong><span>{t.exampleDay}</span><span>{t.exampleHour}</span></p><strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
   <div className="tl-example-times"><span>18:00–18:30</span><span>18:30–19:00</span></div>
   <div className="tl-example-tile">
    <div className="tl-example-quadrants">{exampleCrowd.flat().map((level,i)=><div className="tl-help-cell" key={i} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div>
@@ -92,9 +92,9 @@ export default function TimetableLab(){
  </div>
  <div className="tl-help-steps">
   {t.crowdHelpSteps.map(([heading,detail],i)=><div className="tl-help-step" key={i}><span className="tl-help-symbol" aria-hidden="true">{i===0?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h18M7 8l-4 4 4 4m10-8 4 4-4 4"/></svg>:i===1?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M8 7l4-4 4 4m-8 10 4 4 4-4"/></svg>:<span className="tl-help-mini-grid">{crowdingColors.slice(0,4).map(color=><i key={color} style={{background:color}}/>)}</span>}</span><div><strong>{heading}</strong><span>{detail}</span></div></div>)}
- </div>
- <div className="tl-help-scale" role="img" aria-label={t.crowdLevels.map((label,i)=>label+' '+(i===0?' < '+crowdingThresholds[0]+'%':i===3?' ≥ '+crowdingThresholds[2]+'%':crowdingThresholds[i-1]+'% – < '+crowdingThresholds[i]+'%')).join(' · ')}>
+ <div className="tl-help-scale tl-help-step tl-help-scale-card" role="img" aria-label={t.crowdLevels.map((label,i)=>label+' '+(i===0?' < '+crowdingThresholds[0]+'%':i===3?' ≥ '+crowdingThresholds[2]+'%':crowdingThresholds[i-1]+'% – < '+crowdingThresholds[i]+'%')).join(' · ')}>
   <div className="tl-help-scale-ranges" aria-hidden="true">{t.crowdLevels.map((label,i)=><div className="tl-help-range" key={i}><span className="tl-help-range-label" style={{background:crowdingColors[i]}}>{label}</span><span className="tl-help-range-value">{t.crowdRange(i,crowdingThresholds)}</span></div>)}</div>
+ </div>
  </div>
  <p className="tl-help-note">{t.crowdNote} · {crowdingSourceDate}<br/>{t.crowdPolicy}</p>
  <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button></dialog>

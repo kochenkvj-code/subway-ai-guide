@@ -191,3 +191,16 @@
 .tl-help-range-label{display:grid;place-items:center;width:100%;max-width:64px;min-height:28px;box-sizing:border-box;border-radius:999px;color:#203a32;font-size:12px;font-weight:600;line-height:1.3;padding:3px 2px}
 .tl-help-range-value{font-size:10px;line-height:1.3;color:#52685a;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.15px}
 @media(max-width:350px){.tl-help-example{grid-template-columns:76px minmax(0,1fr) minmax(0,1fr)}.tl-example-title>strong,.tl-example-title>span{font-size:11px}.tl-help-scale-ranges{gap:4px}.tl-help-range-label{min-height:26px;font-size:11px}.tl-help-range-value{font-size:9px;letter-spacing:-.3px}}
+
+/* Final guide: three-line example metadata, four equally sized explanation cards. */
+.tl-crowd-dialog>header{margin-bottom:19px}
+.tl-crowd-dialog .tl-help-example>.tl-example-title{gap:1px;padding:2px 3px 5px}
+.tl-example-title>strong,.tl-example-title>span{font-size:12px;font-weight:650;line-height:1.22;color:#203a32}
+.tl-help-steps{grid-auto-rows:1fr;gap:7px}
+.tl-help-steps>.tl-help-step{box-sizing:border-box;min-width:0;min-height:50px;padding:6px 9px}
+.tl-help-steps>.tl-help-scale-card{margin:0;max-width:none;width:100%;display:flex;align-items:center;justify-content:center}
+.tl-help-scale-card>.tl-help-scale-ranges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;align-items:center;min-width:0}
+.tl-help-scale-card .tl-help-range{gap:2px}
+.tl-help-scale-card .tl-help-range-label{min-height:22px;max-width:64px;font-size:11px;line-height:1.2;padding:2px}
+.tl-help-scale-card .tl-help-range-value{font-size:9.5px;line-height:1.2}
+@media(max-width:350px){.tl-example-title>strong,.tl-example-title>span{font-size:11px}.tl-help-steps>.tl-help-step{padding:6px 7px}.tl-help-scale-card>.tl-help-scale-ranges{gap:3px}.tl-help-scale-card .tl-help-range-value{font-size:9px;letter-spacing:-.35px}}
