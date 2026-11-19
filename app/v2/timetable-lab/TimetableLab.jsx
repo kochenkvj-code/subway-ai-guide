@@ -3,7 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {timetableStation,timetableStations,serviceClock,defaultDay} from '../../lib/timetable-lab-model';
 import {officialStationName} from '../../lib/officialStations';
 import {copy} from './copy';
-import {crowdingHalves,crowdingGradient,crowdingColors,crowdingSourceDate} from '../../lib/timetable-lab-crowding';
+import {crowdingHalves,crowdingGradient,crowdingColors,crowdingSourceDate,crowdingThresholds} from '../../lib/timetable-lab-crowding';
 import './timetable-lab.css';
 const days=['평일','주말','공휴일'];
 const colors={1:'#24559b',2:'#219052',3:'#ef8928',4:'#238cc4',5:'#9256ab',6:'#a77935',7:'#687a32',8:'#d13e78',9:'#ae8c35'};
@@ -93,6 +93,10 @@ export default function TimetableLab(){
  </div>
  <div className="tl-help-steps">
   {t.crowdHelpSteps.map(([heading,detail],i)=><div className="tl-help-step" key={i}><span className="tl-help-symbol" aria-hidden="true">{i===0?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h18M7 8l-4 4 4 4m10-8 4 4-4 4"/></svg>:i===1?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M8 7l4-4 4 4m-8 10 4 4 4-4"/></svg>:<span className="tl-help-mini-grid">{crowdingColors.slice(0,4).map(color=><i key={color} style={{background:color}}/>)}</span>}</span><div><strong>{heading}</strong><span>{detail}</span></div></div>)}
+ </div>
+ <div className="tl-help-scale" role="img" aria-label={t.crowdLevels.map((label,i)=>label+' '+(i===0?' < '+crowdingThresholds[0]+'%':i===3?' ≥ '+crowdingThresholds[2]+'%':crowdingThresholds[i-1]+'% – < '+crowdingThresholds[i]+'%')).join(' · ')}>
+  <div className="tl-help-scale-band">{t.crowdLevels.map((label,i)=><span key={i} style={{background:crowdingColors[i]}}>{label}</span>)}</div>
+  <div className="tl-help-scale-marks" aria-hidden="true">{crowdingThresholds.map((value,i)=><span key={value} style={{left:(i+1)*25+'%'}}>{value}%</span>)}</div>
  </div>
  <p className="tl-help-note">{t.crowdNote} · {crowdingSourceDate}<br/>{t.crowdPolicy}</p>
  <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button></dialog>
