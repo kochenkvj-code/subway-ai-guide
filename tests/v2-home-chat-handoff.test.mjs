@@ -44,3 +44,23 @@ test('blocked same-tab storage fails closed, so UI can use its normal fallback',
  assert.throws(()=>stageHomeChatHandoff(blocked,'id','x'),/blocked/);
  assert.equal(takeHomeChatHandoff(blocked,'id'),null);
 });
+
+import {HOME_KEYBOARD_RESET_PARAM,HOME_KEYBOARD_RESET_KEY,needsHomeDocumentReset,stageHomeKeyboardReset,takeHomeKeyboardReset} from '../app/v2/home-chat-handoff.js';
+test('iPhone home keyboard Done resets any subsequent menu document, but ordinary navigation remains SPA',()=>{
+ const input={userAgent:'iPhone Safari',view:'home',next:'timetable',keyboardUsed:true};
+ assert.equal(needsHomeDocumentReset(input),true);
+ for(const next of ['live','facility','route','chat','lost'])assert.equal(needsHomeDocumentReset({...input,next}),true);
+ for(const over of [{keyboardUsed:false},{userAgent:'iPad'},{userAgent:'Android'},{next:'home'},{view:'route'},{keepHomeScroll:true},{routeQuery:'서울역'}])assert.equal(needsHomeDocumentReset({...input,...over}),false);
+ assert.equal(HOME_KEYBOARD_RESET_PARAM,'keyboardReset');
+});
+test('keyboard reset draft is private, single use and expires without triggering chat',()=>{
+ const s=storage();
+ stageHomeKeyboardReset(s,'nonce','서울역 가는 법',1000);
+ assert.equal(takeHomeKeyboardReset(s,'nonce',1100),'서울역 가는 법');
+ assert.equal(s.getItem(HOME_KEYBOARD_RESET_KEY),null);
+ assert.equal(takeHomeKeyboardReset(s,'nonce',1200),null);
+ stageHomeKeyboardReset(s,'old','draft',1000);
+ assert.equal(takeHomeKeyboardReset(s,'old',47000),null);
+ stageHomeKeyboardReset(s,'old','draft',1000);
+ assert.equal(takeHomeKeyboardReset(s,'different',2000),null);
+});

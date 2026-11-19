@@ -270,3 +270,13 @@
 .tl-hour-grid button .tl-crowd-halves::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.6;background:linear-gradient(to right,transparent calc(50% - .5px),#fff calc(50% - .5px),#fff calc(50% + .5px),transparent calc(50% + .5px))}
 .tl-hour-grid button .tl-crowd-halves[data-directions="3"]::after{background:linear-gradient(to right,transparent calc(100% / 3 - .5px),#fff calc(100% / 3 - .5px),#fff calc(100% / 3 + .5px),transparent calc(100% / 3 + .5px),transparent calc(200% / 3 - .5px),#fff calc(200% / 3 - .5px),#fff calc(200% / 3 + .5px),transparent calc(200% / 3 + .5px))}
 .tl-crowd-dialog .tl-help-mini-grid{row-gap:0;column-gap:1px}
+
+/* C: quiet full-row crowding tint, with the original stronger minute chip.
+   Express/limited badges never wrap; only the destination may ellipsize. */
+.tl-column li:not(.tl-no-hour){align-items:center;min-height:33px}
+.tl-column li.tl-crowd-row{background:color-mix(in srgb,var(--tl-row-crowd) 15%,white);border-bottom-color:#dce6df}
+.tl-column li.tl-crowd-row.tl-next{box-shadow:inset 0 0 0 1px #82b297;border-radius:6px}
+.tl-column li>.tl-row-dest{display:flex;align-items:center;gap:4px;flex:1;min-width:0;white-space:nowrap}
+.tl-row-dest>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-row-dest>.tl-express{flex:none;margin-left:0;white-space:nowrap;padding:0 3px;line-height:1.5}
+.tl-column li>.tl-row-dest>span{overflow-wrap:normal}

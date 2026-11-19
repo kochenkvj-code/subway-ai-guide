@@ -9,7 +9,7 @@ import { iconPaths } from './icons';
 import './v2.css';
 import './design-refresh.css';
 import {keyboardWorkspaceHeight} from './keyboard-viewport';
-import {HOME_CHAT_HANDOFF_KEY,HOME_CHAT_HANDOFF_PARAM,isIOSPhone,stageHomeChatHandoff,takeHomeChatHandoff} from './home-chat-handoff';
+import {HOME_CHAT_HANDOFF_KEY,HOME_CHAT_HANDOFF_PARAM,isIOSPhone,stageHomeChatHandoff,takeHomeChatHandoff,HOME_KEYBOARD_RESET_PARAM,needsHomeDocumentReset,stageHomeKeyboardReset,takeHomeKeyboardReset} from './home-chat-handoff';
 import usePositionArrivals from './usePositionArrivals';
 import useStationCongestion from './useStationCongestion';
 import { PositionTrainSummary, PositionArrivalDetails } from './PositionArrivals';
@@ -37,7 +37,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   const tourStation=stationContext||station;
   const foundStation=stationContext?lostFoundStation(stationContext.stationCode):station;
   const [lang,setLang]=useState(initialLanguage),[view,setView]=useState('home'),[mounted,setMounted]=useState({}),[question,setQuestion]=useState(''),[chatRequest,setChatRequest]=useState(null),[chatBusy,setChatBusy]=useState(false),[routeRequest,setRouteRequest]=useState(null);
-  const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),homeComposerResync=useRef(false),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
+  const homeScroll=useRef(0),homeFocusScroll=useRef(0),homeKeyboardUsed=useRef(false),homeSubmitPending=useRef(false),homeSubmitCancel=useRef(null),homeComposerResync=useRef(false),titleRef=useRef(null),started=useRef(false),requestSequence=useRef(0);
   const feedbackBack=useRef(null);
   const chatWorkspace=useRef(null);
   const [restoration,setRestoration]=useState(null),[detail,setDetail]=useState(false),[visits,setVisits]=useState({});
@@ -79,9 +79,14 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     // Switching the station in the SPA is not a new site visit; StationEntry
     // records the station change with its own timestamp before remounting.
     const switchedStation=window.history.state?.sagStationSwitch===true;
-    window.history.replaceState({...(window.history.state||{}),sagStationSwitch:false,sagV2:true,sagV2Depth:0},'',window.location.href);
-    // An iPhone keyboard handoff is likewise the same visit.
-    if(!switchedStation&&!new URLSearchParams(window.location.search).has(HOME_CHAT_HANDOFF_PARAM))
+    const url=new URL(window.location.href),resetToken=url.searchParams.get(HOME_KEYBOARD_RESET_PARAM);
+    if(resetToken){
+      try{const draft=takeHomeKeyboardReset(window.sessionStorage,resetToken);if(draft!==null)setQuestion(draft);}catch{}
+      url.searchParams.delete(HOME_KEYBOARD_RESET_PARAM);
+    }
+    window.history.replaceState({...(window.history.state||{}),sagStationSwitch:false,sagV2:true,sagV2Depth:resetToken?1:0},'',url.pathname+url.search+url.hash);
+    // Both iPhone document handoffs are the same visit.
+    if(!switchedStation&&!resetToken&&!url.searchParams.has(HOME_CHAT_HANDOFF_PARAM))
       recordStat('page_view','visit',initialLanguage,stationContext?.stationCode?'station:'+stationContext.stationCode:null);
   },[]);
   useEffect(()=>{
@@ -117,6 +122,15 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
     if(['timetable','tour','found','facility','lost','feedback','live'].includes(next))recordStat('quick_menu',next,lang);
     if(item?.action && next==='route')recordStat('quick_menu',item.action,lang);
     const url=new URL(window.location.href);url.searchParams.delete('place');if(next==='home')url.searchParams.delete('view');else url.searchParams.set('view',next);
+    if(needsHomeDocumentReset({userAgent:window.navigator.userAgent,view,next,keyboardUsed:homeKeyboardUsed.current,keepHomeScroll,routeQuery})){
+      const token=window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2);
+      try{stageHomeKeyboardReset(window.sessionStorage,token,question);}catch{}
+      url.searchParams.set(HOME_KEYBOARD_RESET_PARAM,token);
+      url.searchParams.set('lang',lang);
+      document.activeElement?.blur?.();
+      window.location.assign(url.pathname+url.search+url.hash);
+      return;
+    }
     window.history.pushState({...(window.history.state||{}),sagV2:true,sagKey:null,sagData:null,sagDetail:false,sagV2Depth:(window.history.state?.sagV2Depth||0)+1},'',url.pathname+url.search+url.hash);activate(next);
   }
   function back(){if(view==='route'&&routeRequest){const steps=(window.history.state?.sagV2Depth||0)-routeRequest.returnDepth;if(steps>0){window.history.go(-steps);return;}}if((window.history.state?.sagV2Depth||0)>0)window.history.back();else navigate('home');}
@@ -127,6 +141,9 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
   function send(text,{fromHomeComposer=false}={}){
     const clean=text.trim();
     if(!clean||chatBusy||homeSubmitPending.current)return;
+    // Example questions selected after Done must preserve the actual submitted
+    // question through the established fresh-document chat handoff as well.
+    fromHomeComposer=fromHomeComposer||(view==='home'&&homeKeyboardUsed.current);
     if(fromHomeComposer&&isIOSPhone(window.navigator.userAgent)){
       // Unlike tabs/quick-menu entry, the home input has just opened the
       // iPhone keyboard. Repeated scroll fixes cannot reset the hit-test map
@@ -319,7 +336,7 @@ export default function V2Guide({station=DEFAULT_FEEDBACK_STATION,stationContext
       <section className="v2-ai">
         <div className="v2-ai-top"><span className="v2-eyebrow"><i aria-hidden="true"/><span className="v2-eyebrow-text">YOUR AI STATION GUIDE</span></span><div className="v2-ai-station-tools">{stationTools||<strong>{t.station}</strong>}</div></div>
         <div className="v2-ai-title-row"><h1>{t.title}</h1>{staffTools.interpreter&&<InterpreterButton stationCode={stationContext?.stationCode||'0154'} lang={lang}/>}</div><p>{t.description}</p>
-        <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question,{fromHomeComposer:true});}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onFocus={()=>{homeFocusScroll.current=window.scrollY;}} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
+        <form className="v2-ask" onSubmit={e=>{e.preventDefault();send(question,{fromHomeComposer:true});}}><input aria-label={t.placeholder} placeholder={t.placeholder} value={question} onFocus={()=>{homeFocusScroll.current=window.scrollY;if(isIOSPhone(window.navigator.userAgent))homeKeyboardUsed.current=true;}} onChange={e=>setQuestion(e.target.value)} maxLength={500} required disabled={chatBusy}/><button aria-label={t.send} disabled={chatBusy}><Icon name="arrow"/></button></form>
         <div className="v2-ai-footer"><div className="v2-examples">{t.examples.map(q=><button key={q} disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div></div>{chatBusy&&<span className="v2-waiting" role="status">{t.waiting}</span>}
       </section>
       <div className="v2-section-title"><h2>{t.quick}</h2><span>{t.quickSub}</span></div>
