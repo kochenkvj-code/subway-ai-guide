@@ -204,3 +204,13 @@
 .tl-help-scale-card .tl-help-range-label{min-height:22px;max-width:64px;font-size:11px;line-height:1.2;padding:2px}
 .tl-help-scale-card .tl-help-range-value{font-size:9.5px;line-height:1.2}
 @media(max-width:350px){.tl-example-title>strong,.tl-example-title>span{font-size:11px}.tl-help-steps>.tl-help-step{padding:6px 7px}.tl-help-scale-card>.tl-help-scale-ranges{gap:3px}.tl-help-scale-card .tl-help-range-value{font-size:9px;letter-spacing:-.35px}}
+
+/* Center every label on the actual left-column axis, not an intrinsic text box. */
+.tl-crowd-dialog>header{margin-bottom:24px}
+.tl-help-example{width:min(100%,286px);grid-template-columns:82px minmax(0,1fr) minmax(0,1fr);margin:0 auto 16px;column-gap:0}
+.tl-crowd-dialog .tl-help-example>.tl-example-title{grid-column:1;grid-row:1;display:grid;justify-self:stretch;justify-items:stretch;align-content:center;align-self:stretch;gap:1px;width:100%;box-sizing:border-box;margin:0;padding:0;text-align:center}
+.tl-example-title>strong,.tl-example-title>span{display:block;width:100%;box-sizing:border-box;margin:0;padding:0;text-align:center;font-size:12px;font-weight:650;line-height:1.22;letter-spacing:0}
+.tl-example-times{grid-column:1;grid-row:2;justify-self:stretch;justify-items:stretch;width:100%;box-sizing:border-box;margin:0;padding:0;text-align:center}
+.tl-example-times>span{display:block;width:100%;box-sizing:border-box;margin:0;padding:0;text-align:center;letter-spacing:0}
+.tl-help-scale-card .tl-help-range{gap:2px}
+@media(max-width:350px){.tl-help-example{grid-template-columns:76px minmax(0,1fr) minmax(0,1fr)}.tl-example-title>strong,.tl-example-title>span{font-size:11px}}
