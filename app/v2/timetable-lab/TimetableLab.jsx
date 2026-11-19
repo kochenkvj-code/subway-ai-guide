@@ -3,7 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {timetableStation,timetableStations,serviceClock,defaultDay} from '../../lib/timetable-lab-model';
 import {officialStationName} from '../../lib/officialStations';
 import {copy} from './copy';
-import {timetableCrowding,crowdingGradient,crowdingColors,crowdingSourceDate} from '../../lib/timetable-lab-crowding';
+import {crowdingHalves,crowdingGradient,crowdingColors,crowdingSourceDate} from '../../lib/timetable-lab-crowding';
 import './timetable-lab.css';
 const days=['평일','주말','공휴일'];
 const colors={1:'#24559b',2:'#219052',3:'#ef8928',4:'#238cc4',5:'#9256ab',6:'#a77935',7:'#687a32',8:'#d13e78',9:'#ae8c35'};
@@ -13,7 +13,7 @@ export default function TimetableLab(){
  const [ready,setReady]=useState(false);
  const [code,setCode]=useState('0154'),[lang,setLang]=useState('ko'),[clock,setClock]=useState(()=>serviceClock()),[day,setDay]=useState(()=>defaultDay(serviceClock()));
  const [hour,setHour]=useState(null),[express,setExpress]=useState(false),[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(false),[retry,setRetry]=useState(0),[anim,setAnim]=useState('');
- const [query,setQuery]=useState('');const picker=useRef(null),timer=useRef(null),dayRef=useRef(clock.businessDate);
+ const [query,setQuery]=useState('');const picker=useRef(null),crowdHelp=useRef(null),timer=useRef(null),dayRef=useRef(clock.businessDate);
  const station=timetableStation(code)||timetableStation('0154'),t=copy[lang];
  const directionLabel=name=>lang==='en'?`To ${stationName(name)}`:`${stationName(name)} ${t.toward}`;
  const stationName=name=>{const canonical=timetableStations.find(s=>s.line===station.line&&s.aliases?.includes(name))?.names.ko||name;return officialStationName(canonical,lang,value=>value);},stationLabel=s=>stationName(s.names.ko);
@@ -48,22 +48,25 @@ export default function TimetableLab(){
   chooseHour(Math.floor(minute/60));
  }
  const columns=data?.columns||[];
- const crowdFor=h=>timetableCrowding(station,day,h,columns);
+ const crowdFor=h=>crowdingHalves(station,day,h,columns);
  const selectedCrowd=crowdFor(selected);
- const hasCrowd=hours.some(h=>crowdFor(h).some(v=>v!==null));
+ const hasCrowd=hours.some(h=>crowdFor(h).flat().some(v=>v!==null));
  const referenceDay=t.crowdDays[days.indexOf(day)];
  function goNow(){setDay(defaultDay(clock));setHour(null);setExpress(false);}
- const hourDescription=(h,levels)=>levels.map((level,i)=>level===null?'':directionLabel(columns[i].next)+': '+t.crowdLevels[level]).filter(Boolean).join(' · ');
+ const hourDescription=(h,halves)=>halves.map((levels,half)=>levels.map((level,i)=>level===null?'':two(h%24)+':'+(half?'30':'00')+' '+directionLabel(columns[i].next)+': '+t.crowdLevels[level]).filter(Boolean).join(' · ')).filter(Boolean).join(' / ');
+ const exampleColumns=[{next:'교대',providerDir:'0'},{next:'역삼',providerDir:'1'}];
+ const exampleCrowd=crowdingHalves({line:'2',stationCode:'0222',names:{ko:'강남'}},'평일',18,exampleColumns);
+ const exampleName=name=>officialStationName(name,lang,value=>value);
  return <div className="tl-page" lang={lang==='zh'?'zh-CN':lang}><main className="tl-shell">
  <header className="tl-top"><div><p className="tl-test">{t.test}</p><h1>{t.title}</h1></div><div className="tl-station-tools"><button className="tl-station" onClick={()=>picker.current?.showModal()} aria-label={t.change}><b style={{background:colors[station.line]}}>{station.line}</b><strong>{stationLabel(station)}</strong><span aria-hidden="true">⌄</span></button><button className="tl-refresh" onClick={()=>setRetry(n=>n+1)} aria-label={t.refresh}>↻</button></div></header>
  <div className="tl-days" role="group" aria-label={t.days.join(' / ')}>{days.map((value,i)=><button key={value} aria-pressed={day===value} onClick={()=>{setDay(value);setHour(null);}}>{t.days[i]}</button>)}</div>
- <div className="tl-hour-grid" role="group" aria-label={t.hour}>{hours.map(value=>{const levels=crowdFor(value),description=hourDescription(value,levels);return <button key={value} onClick={()=>chooseHour(value)} aria-pressed={selected===value} aria-label={(value>=24?t.nextDay+' ':'')+two(value%24)+':00'} aria-description={description||undefined} title={description||undefined} className={levels.some(v=>v!==null)?'tl-crowded-hour':undefined} style={{backgroundImage:crowdingGradient(levels)}}><span>{two(value%24)}</span>{value>=24&&<sup aria-hidden="true">+1</sup>}</button>;})}</div>
- {hasCrowd&&<div className="tl-crowd-legend" aria-label={t.crowdTitle}><span className="tl-crowd-title">{t.crowdTitle}</span><div>{t.crowdLevels.map((level,i)=><span key={level}><i style={{background:crowdingColors[i],borderColor:['#94c9a6','#94b9dd','#eac775','#e5a0a0'][i]}}/>{level}</span>)}</div></div>}
+ <div className="tl-hour-grid" role="group" aria-label={t.hour}>{hours.map(value=>{const levels=crowdFor(value),description=hourDescription(value,levels);return <button key={value} onClick={()=>chooseHour(value)} aria-pressed={selected===value} aria-label={(value>=24?t.nextDay+' ':'')+two(value%24)+':00'} aria-description={description||undefined} title={description||undefined} className={levels.flat().some(v=>v!==null)?'tl-crowded-hour':undefined}>{levels.flat().some(v=>v!==null)&&<span className="tl-crowd-halves" aria-hidden="true">{levels.map((half,i)=><span key={i} style={{backgroundImage:crowdingGradient(half)}}/>)}</span>}<span className="tl-hour-number">{two(value%24)}</span>{value>=24&&<sup aria-hidden="true">+1</sup>}</button>;})}</div>
+ {hasCrowd&&<div className="tl-crowd-legend" aria-label={t.crowdTitle}><span className="tl-crowd-title">{t.crowdTitle}</span><div>{t.crowdLevels.map((level,i)=><span key={level}><i style={{background:crowdingColors[i]}}/>{level}</span>)}</div><button type="button" className="tl-crowd-help" onClick={()=>crowdHelp.current?.showModal()} aria-label={t.crowdHelpTitle}><span aria-hidden="true">ⓘ</span> {t.crowdHelp}</button></div>}
 
  {loading?<div className="tl-state" role="status"><span className="tl-spinner"/>{t.loading}</div>:error?<div className="tl-state" role="alert">{t.failed}<button onClick={()=>setRetry(n=>n+1)}>{t.retry}</button></div>:<>
  {data?.issues?.length>0&&<p className="tl-alert" role="status">{data.issues.some(i=>i.type==='request')?t.partial:t.unclassified}</p>}
  {!data?.rows?.length?<div className="tl-state">{data?.issues?.some(i=>i.type==='request')?t.failed:data?.issues?.some(i=>i.type==='unclassified')?t.unclassified:t.noData}{day==='공휴일'&&<small>{t.missingHoliday}</small>}</div>:<div className={'tl-table '+(anim?'tl-slide-'+anim:'')} style={{'--columns':data.columns.length}}>
- {columns.map((column,index)=>{const items=rows.filter(row=>row.column===column.id),level=selectedCrowd[index];return <section className="tl-column" key={column.id}><header className={level===null?undefined:'tl-crowd-header tl-crowd-'+level} style={level===null?undefined:{backgroundColor:crowdingColors[level]}} title={level===null?undefined:t.crowdTitle+' · '+t.crowdLevels[level]}><h3 aria-label={directionLabel(column.next)}>{columns.length===2?<><span className="tl-heading-arrow" aria-hidden="true">{index===0?'←':''}</span>{stationName(column.next)}<span className="tl-heading-arrow" aria-hidden="true">{index===1?'→':''}</span></>:directionLabel(column.next)}</h3>{column.branch&&<small>{t.branch[column.branch]||column.branch}</small>}</header><ol>{items.length?items.map((row,i)=><li key={row.time+'|'+row.number+'|'+i} className={(current&&row.minute<clock.minutes?'tl-past ':'')+(next===row?'tl-next':'')} aria-label={next===row?t.upcoming:undefined}><time>{two(row.minute%60)}</time><div><span>{row.destination?stationName(row.destination):'—'}</span>{row.express&&<small className="tl-express">{row.kind==='limited'?t.limited:t.expressTag}</small>}</div>{next===row&&<i aria-hidden="true"/>}</li>):<li className="tl-no-hour">{t.noHour}</li>}</ol></section>;})}
+ {columns.map((column,index)=>{const items=rows.filter(row=>row.column===column.id);return <section className="tl-column" key={column.id}><header><h3 aria-label={directionLabel(column.next)}>{columns.length===2?<><span className="tl-heading-arrow" aria-hidden="true">{index===0?'←':''}</span>{stationName(column.next)}<span className="tl-heading-arrow" aria-hidden="true">{index===1?'→':''}</span></>:directionLabel(column.next)}</h3>{column.branch&&<small>{t.branch[column.branch]||column.branch}</small>}</header><ol>{items.length?items.map((row,i)=><li key={row.time+'|'+row.number+'|'+i} className={(current&&row.minute<clock.minutes?'tl-past ':'')+(next===row?'tl-next':'')} aria-label={next===row?t.upcoming:undefined}><time className={selectedCrowd[row.minute%60<30?0:1]?.[index]!=null?'tl-crowd-minute':undefined} style={selectedCrowd[row.minute%60<30?0:1]?.[index]!=null?{backgroundColor:crowdingColors[selectedCrowd[row.minute%60<30?0:1][index]]}:undefined} title={selectedCrowd[row.minute%60<30?0:1]?.[index]!=null?t.crowdTitle+' · '+t.crowdLevels[selectedCrowd[row.minute%60<30?0:1][index]]:undefined}>{two(row.minute%60)}</time><div><span>{row.destination?stationName(row.destination):'—'}</span>{row.express&&<small className="tl-express">{row.kind==='limited'?t.limited:t.expressTag}</small>}</div>{next===row&&<i aria-hidden="true"/>}</li>):<li className="tl-no-hour">{t.noHour}</li>}</ol></section>;})}
  </div>}
  </>}
  <p className="tl-note">{t.note}</p>{hasCrowd&&<p className="tl-note tl-crowd-note">{t.crowdNote} · {referenceDay} · {crowdingSourceDate}</p>}{day==='주말'&&<p className="tl-note tl-data-note">{t.weekend}</p>}{!clock.businessDate.startsWith('2026-')&&<p className="tl-note">{t.holidayYear}</p>}
@@ -78,5 +81,12 @@ export default function TimetableLab(){
  </div></div>
  <footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>
  <dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>
+ <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog" aria-label={t.crowdHelpTitle}><header><h2>{t.crowdHelpTitle}</h2><button onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
+ <p className="tl-example-title">{exampleName('강남')} · {t.days[0]} · 18:00</p>
+ <div className="tl-help-example"><span/><strong>← {exampleName('교대')}</strong><strong>{exampleName('역삼')} →</strong>
+ {exampleCrowd.map((half,i)=><div className="tl-help-row" key={i}><span>{i===0?'18:00–18:30':'18:30–19:00'}</span>{half.map((level,j)=><div className="tl-help-cell" key={j} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div>)}
+ <strong className="tl-help-hour" aria-hidden="true">18</strong></div>
+ <p>{t.crowdHelpDirections}</p><p>{t.crowdHelpMinutes}</p><p className="tl-help-note">{t.crowdNote} · {crowdingSourceDate}</p>
+ <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button></dialog>
  </main></div>;
 }

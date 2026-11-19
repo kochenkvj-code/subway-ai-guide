@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert the published Seoul Metro XLSX to compact timetable-only hourly levels."""
+"""Convert the published Seoul Metro XLSX to compact timetable-only half-hour levels."""
 import argparse
 import json
 import math
@@ -80,13 +80,13 @@ def convert(path, source_date):
                         values[hour, minute] = value
                 levels = []
                 for hour in range(5, 26):
-                    parts = [values[hour, m] for m in (0, 30) if (hour, m) in values]
-                    avg = sum(parts) / len(parts) if parts else None
-                    levels.append(str(4 if avg is None else 0 if avg < 80 else 1 if avg < 130 else 2 if avg < 150 else 3))
-                data.setdefault(key, ['4' * 21] * 6)[index] = ''.join(levels)
+                    for minute in (0, 30):
+                        value = values.get((hour, minute))
+                        levels.append(str(4 if value is None else 0 if value < 80 else 1 if value < 130 else 2 if value < 150 else 3))
+                data.setdefault(key, ['4' * 42] * 6)[index] = ''.join(levels)
     if not data:
         raise ValueError('Empty dataset')
-    return {'sourceDate': source_date, 'hours': [5, 25], 'data': {k: ''.join(v) for k, v in sorted(data.items())}}
+    return {'sourceDate': source_date, 'hours': [5, 25], 'slotsPerHour': 2, 'data': {k: ''.join(v) for k, v in sorted(data.items())}}
 
 
 if __name__ == '__main__':

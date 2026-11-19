@@ -75,3 +75,30 @@
 .tl-column:last-child ol{padding-right:23px}
 @media(min-width:620px){.tl-column:last-child ol{padding-right:25px}}
 @media(max-height:560px){.tl-hour-nav{top:50dvh;gap:1px}.tl-hour-nav .tl-arrow{height:35px}.tl-hour-nav .tl-shortcuts{gap:1px;margin-top:4px}}
+
+/* A: half-hour crowding lives on hours and departure minutes, never headers. */
+.tl-hour-grid button.tl-crowded-hour{overflow:hidden;background:white}
+.tl-hour-grid button .tl-crowd-halves{position:absolute;inset:0;z-index:-1;display:grid;grid-template-rows:1fr 1fr;pointer-events:none}
+.tl-hour-grid button .tl-crowd-halves>span{display:block;min-height:0;background-color:white}
+.tl-hour-grid button .tl-hour-number{position:relative;z-index:1;color:#172d23;font-weight:600}
+.tl-hour-grid button[aria-pressed=true] .tl-hour-number{font-weight:750}
+.tl-hour-grid button[aria-pressed=true]{border:2px solid #164d36}
+.tl-hour-grid button sup{z-index:1;color:#294d40}
+.tl-column li time.tl-crowd-minute{color:#172d23;font-weight:600;border-radius:4px;text-align:center;padding:2px 3px;line-height:1.3;min-width:23px}
+.tl-column li.tl-past time.tl-crowd-minute{color:#35443a}
+.tl-crowd-legend{gap:5px;flex-wrap:wrap}
+.tl-crowd-legend>div{gap:6px}
+.tl-crowd-legend i{width:10px;height:10px;border:1px solid #0002}
+.tl-crowd-help{border:0;background:none;color:#205c47;font:inherit;font-weight:600;white-space:nowrap;padding:5px 2px;min-height:26px}
+.tl-crowd-dialog{max-width:min(360px,calc(100vw - 28px));padding:16px;color:#203a32}
+.tl-crowd-dialog p{font-size:12px;line-height:1.55;margin:8px 0}
+.tl-crowd-dialog .tl-example-title{font-weight:600;font-size:13px}
+.tl-help-example{display:grid;grid-template-columns:minmax(60px,.9fr) 1fr 1fr;position:relative;gap:2px;text-align:center;align-items:stretch;margin:12px 0}
+.tl-help-example>strong{font-size:12px;padding:4px 0;overflow-wrap:anywhere}
+.tl-help-row{display:contents}
+.tl-help-row>span{font-size:10px;align-self:center;white-space:nowrap;padding-right:2px}
+.tl-help-cell{display:grid;place-items:center;min-height:46px;font-size:12px;font-weight:600;padding:4px}
+.tl-help-hour{display:none}
+.tl-crowd-dialog .tl-help-note{font-size:11px;color:var(--muted)}
+.tl-help-close{width:100%;min-height:36px;margin-top:5px;background:#edf5ef;border:1px solid #dce5df;border-radius:8px;color:#205c47;font:inherit;font-size:13px}
+@media(max-width:350px){.tl-crowd-legend{font-size:9px}.tl-crowd-legend>div{gap:4px}.tl-column li time.tl-crowd-minute{min-width:21px;padding-inline:2px}}

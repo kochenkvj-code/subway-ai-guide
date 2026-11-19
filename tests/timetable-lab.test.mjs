@@ -52,3 +52,11 @@ test('static crowding is station/day/hour scoped and does not guess ambiguous di
  const g=model.compileTimetable(live['2549'],model.timetableStation('2549'),'2026-11-19');
  assert.equal(cm.timetableCrowding(model.timetableStation('2549'),'평일',8,g.columns).filter(i=>i!==null).length,1);
 });
+
+test('half-hour data preserves Gangnam direction differences and missing early slots',async()=>{
+ const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
+ const station=model.timetableStation('0222'),cols=[{next:'교대',providerDir:'0'},{next:'역삼',providerDir:'1'}];
+ assert.equal(JSON.stringify(cm.crowdingHalves(station,'평일',18,cols)),'[[2,1],[1,0]]');
+ assert.equal(JSON.stringify(cm.timetableCrowding(station,'평일',5,cols,0)),'[null,null]');
+ assert.equal(JSON.stringify(cm.crowdingHalves(station,'평일',25,cols)),'[[null,null],[null,null]]');
+});
