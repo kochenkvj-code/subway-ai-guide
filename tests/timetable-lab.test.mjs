@@ -138,3 +138,12 @@ test('single departure direction colors exactly one half, and two or three direc
  const s=model.timetableStation('0246');
  assert.equal(JSON.stringify(cm.timetableCrowding(s,'평일',18,[{next:'용두',providerDir:'0',branch:'성수지선'}])),'[0]');
 });
+
+test('hour tiles and guide use vertical white direction separators without horizontal time separators',()=>{
+ const client=fs.readFileSync('app/v2/timetable-lab/TimetableLab.jsx','utf8'),css=fs.readFileSync('app/v2/timetable-lab/timetable-lab.css','utf8');
+ assert.match(client,/data-directions=\{columns.length===3\?3:2\}/);
+ assert.match(css,/\.tl-crowd-halves::after\{[^}]*linear-gradient\(to right,[^}]*#fff/);
+ assert.match(css,/\.tl-crowd-halves\[data-directions="3"\]::after\{[^}]*100% \/ 3[^}]*200% \/ 3/);
+ assert.match(css,/\.tl-example-quadrants \.tl-help-cell:nth-child\(2n\)\{border-left:1px solid #fff\}/);
+ assert.match(css,/\.tl-example-quadrants \.tl-help-cell:nth-child\(n\+3\)\{border-top:0\}/);
+});
