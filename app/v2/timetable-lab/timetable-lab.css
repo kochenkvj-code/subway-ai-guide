@@ -226,3 +226,6 @@
 .tl-example-times{padding:0;justify-items:center}
 .tl-example-times>span{text-align:center;padding:0;margin:0}
 @media(max-width:350px){.tl-crowd-dialog .tl-example-title>strong,.tl-crowd-dialog .tl-example-title>span{font-size:11px}}
+
+/* Use the same full-width left and right guides as the four explanation cards. */
+.tl-crowd-dialog .tl-help-example{width:100%;max-width:none;margin:0 0 16px;grid-template-columns:clamp(76px,29%,94px) minmax(0,1fr) minmax(0,1fr);column-gap:0;justify-content:stretch}
