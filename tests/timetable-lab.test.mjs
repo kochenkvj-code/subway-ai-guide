@@ -35,3 +35,20 @@ test('server paginates, filters exact station identity, caches complete results 
 });
 
 test('historical graph/provider names display canonical Buramsan without changing shared data',()=>{const result=model.compileTimetable(live['0410'],model.timetableStation('0410'),'2026-11-19');assert.ok(result.columns.some(c=>c.next==='불암산'));assert.equal(result.columns.some(c=>c.next==='당고개'),false);});
+
+test('timetable follows the main visual order and preserves real provider direction independently',()=>{
+ for(const [code,expected] of Object.entries({'0154':['종로3가','동대문'],'0211':['건대입구','뚝섬','용답'],'0234':['문래','대림','도림천'],'2611':['새절','역촌']})){
+ const r=model.compileTimetable(live[code],model.timetableStation(code),'2026-11-19');
+ assert.equal(JSON.stringify(r.columns.map(c=>c.next)),JSON.stringify(expected),code);
+ }
+});
+test('static crowding is station/day/hour scoped and does not guess ambiguous directions',async()=>{
+ const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
+ const r=model.compileTimetable(live['0154'],model.timetableStation('0154'),'2026-11-19');
+ assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('0154'),'평일',14,r.columns)),'[0,0]');
+ assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('0154'),'평일',25,r.columns)),'[null,null]');
+ const e=model.compileTimetable(live['2611'],model.timetableStation('2611'),'2026-11-19');
+ assert.equal(JSON.stringify(cm.timetableCrowding(model.timetableStation('2611'),'평일',8,e.columns)),'[null,null]');
+ const g=model.compileTimetable(live['2549'],model.timetableStation('2549'),'2026-11-19');
+ assert.equal(cm.timetableCrowding(model.timetableStation('2549'),'평일',8,g.columns).filter(i=>i!==null).length,1);
+});

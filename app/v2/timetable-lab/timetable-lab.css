@@ -46,3 +46,32 @@
 .tl-selected-hour{font-size:17px;white-space:nowrap}
 .tl-control-actions button{min-width:39px;min-height:34px;padding:5px 9px}
 @media(max-width:350px){.tl-controls{gap:5px}.tl-controls>.tl-control-context{gap:2px 5px}.tl-control-actions button{min-width:34px;padding:5px 6px}.tl-selected-hour{font-size:16px}}
+
+/* Static crowding palette and right-hand-only controls; timetable area stays full width. */
+.tl-hour-grid{margin-bottom:9px}
+.tl-hour-grid button{position:relative;isolation:isolate}
+.tl-hour-grid button sup{font-size:8px;line-height:1;color:var(--muted);position:absolute;right:3px;top:3px}
+.tl-hour-grid button[aria-pressed=true]{border:2px solid #205c47;box-shadow:none;color:#203a32;font-weight:700}
+.tl-hour-grid button.tl-crowded-hour{background-color:#fff}
+.tl-crowd-legend{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;margin:0 1px 8px;color:var(--muted);font-size:10px;line-height:1.4}
+.tl-crowd-legend>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tl-crowd-legend>div>span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.tl-crowd-legend i{width:9px;height:9px;border:1px solid;border-radius:2px;display:inline-block}
+.tl-column h3 .tl-heading-arrow{font-size:13px;color:inherit;font-weight:500;margin:0 3px}
+.tl-crowd-header{color:#237d52}
+.tl-crowd-header.tl-crowd-1{color:#296caa}
+.tl-crowd-header.tl-crowd-2{color:#91600b}
+.tl-crowd-header.tl-crowd-3{color:#b13a3a}
+.tl-crowd-note{margin-top:3px}
+.tl-hour-nav{gap:3px;top:60vh;top:clamp(154px,60dvh,calc(100dvh - 205px))}
+.tl-hour-nav .tl-arrow{width:44px;height:44px}
+.tl-hour-nav .tl-arrow::before{inset:1px 0 1px 8px;background:rgba(232,241,235,.95)}
+.tl-hour-nav .tl-arrow svg{margin-left:7px}
+.tl-hour-nav .tl-shortcuts{display:flex;flex-direction:column;gap:3px;margin-top:6px;pointer-events:none}
+.tl-hour-nav .tl-shortcut{font-size:11px!important;font-weight:600;line-height:1.1}
+.tl-hour-nav .tl-shortcut span{margin-left:7px;white-space:nowrap}
+.tl-hour-nav .tl-shortcut[aria-pressed=true]::before{background:#cde6d6;border-color:#80ae94}
+.tl-hour-nav .tl-now::before{background:rgba(218,237,224,.96)}
+.tl-column:last-child ol{padding-right:23px}
+@media(min-width:620px){.tl-column:last-child ol{padding-right:25px}}
+@media(max-height:560px){.tl-hour-nav{top:50dvh;gap:1px}.tl-hour-nav .tl-arrow{height:35px}.tl-hour-nav .tl-shortcuts{gap:1px;margin-top:4px}}

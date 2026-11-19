@@ -51,6 +51,17 @@ function nextStop(station,row){
  if(candidates.length>1&&dest&&dest!==name){const found=candidates.filter(next=>reaches(network,next,dest,name));if(found.length===1)return {next:found[0],branch:''};}
  return null;
 }
+// Presentation order mirrors PositionTrainSummary: down/up except line 2 inner/outer.
+export function timetableColumnOrder(station,columns){
+ const rank=c=>{
+  if(station.line==='6'&&station.names.ko==='응암')return c.next==='새절'?0:c.next==='역촌'?1:2;
+  const branchJunction=station.line==='2'&&['성수','신도림'].includes(station.names.ko);
+  if(branchJunction&&c.branch)return 3;
+  if(c.providerDir!=='0'&&c.providerDir!=='1')return 2;
+  return c.providerDir===(station.line==='2'?'0':'1')?0:1;
+ };
+ return [...columns].sort((a,b)=>rank(a)-rank(b)||a.next.localeCompare(b.next,'ko'));
+}
 export function compileTimetable(source,station,businessDate){
  const reference=businessDate+'T12:00:00';
  const issues=[],rows=[],columns=new Map();const excluded={expired:0,arrivalOnly:0,invalidTime:0,unclassified:0,duplicates:0};const seen=new Set();
@@ -65,11 +76,13 @@ export function compileTimetable(source,station,businessDate){
    const id=next.next+'|'+next.branch,kind=String(raw.trainKnd||''),express=/^(Y|1|true)$/i.test(String(raw.etrnYn))||/급행|특급/.test(kind);
    const entry={column:id,minute,time:raw.trainDptreTm,destination:displayName(String(raw.arvlStnNm||'')),express,kind:/특급/.test(kind)?'limited':'express',number:String(raw.trainno||'')};
    const key=JSON.stringify([entry.column,entry.minute,entry.destination,entry.number]);if(seen.has(key)){excluded.duplicates++;continue;}seen.add(key);
-   columns.set(id,{id,next:displayName(next.next),branch:next.branch});rows.push(entry);
+   const rawDir=['상행','내선'].includes(raw.upbdnbSe)?'0':['하행','외선'].includes(raw.upbdnbSe)?'1':null;
+   const previous=columns.get(id);
+   columns.set(id,{id,next:displayName(next.next),branch:next.branch,providerDir:previous&&previous.providerDir!==rawDir?null:rawDir});rows.push(entry);
   }
  }
  rows.sort((a,b)=>a.minute-b.minute||a.number.localeCompare(b.number));
  if(excluded.unclassified)issues.push({type:'unclassified',count:excluded.unclassified});
  if(excluded.invalidTime)issues.push({type:'invalidTime',count:excluded.invalidTime});
- return {columns:[...columns.values()].sort((a,b)=>Boolean(a.branch)-Boolean(b.branch)||a.next.localeCompare(b.next,'ko')),rows,excluded,issues,hasExpress:rows.some(r=>r.express),hours:rows.length?Array.from({length:Math.max(25,Math.floor(rows.at(-1).minute/60))-4},(_,i)=>i+5):Array.from({length:21},(_,i)=>i+5)};
+ return {columns:timetableColumnOrder(station,[...columns.values()]),rows,excluded,issues,hasExpress:rows.some(r=>r.express),hours:rows.length?Array.from({length:Math.max(25,Math.floor(rows.at(-1).minute/60))-4},(_,i)=>i+5):Array.from({length:21},(_,i)=>i+5)};
 }
