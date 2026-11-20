@@ -10,6 +10,7 @@ import {startInterpreterSync} from '../lib/interpreter-sync';
 import {connectInterpreter} from '../lib/interpreter-realtime-client';
 import {getStationByCode} from '../lib/station-master';
 import {interpreterViewport} from './viewport';
+import {createInterpreterVoice,interpreterVoiceError} from '../lib/interpreter-voice';
 import './interpreter.css';
 
 const API='/api/interpreter-test';
@@ -100,6 +101,7 @@ export default function InterpreterTestPage(){
  const [copied,setCopied]=useState(false);
  const scrollRef=useRef(null);
  const voiceRef=useRef(null);
+ useEffect(()=>()=>{voiceRef.current?.abort();},[]);
  const roomRef=useRef(null);
  const inviteLink=useMemo(()=>{
   if(typeof window==='undefined'||!room?.id||!invite)return '';
@@ -301,6 +303,7 @@ export default function InterpreterTestPage(){
   }catch(e){if(['room-not-found','room-ended'].includes(e.message))finishRoom();else sayError(e);}finally{setBusy(false);}
  }
  async function changeLanguage(newLang){
+  voiceRef.current?.abort();
   if(!room){setEntryLang(newLang);return;}
   if(busy||!token)return;
   setBusy(true);setError('');
@@ -313,6 +316,7 @@ export default function InterpreterTestPage(){
   e?.preventDefault?.();
   const text=draft.trim();
   if(sending||!text||!room?.guestJoined||!token)return;
+  voiceRef.current?.abort();
   setSending(true);setError('');
   try{
    if(!pendingSend.current||pendingSend.current.text!==text||pendingSend.current.room!==room.id)pendingSend.current={room:room.id,text,requestId:crypto.randomUUID()};
@@ -340,21 +344,21 @@ export default function InterpreterTestPage(){
   catch{setError('링크 복사에 실패했습니다. QR코드를 사용해 주세요.');}
  }
  function voiceInput(){
-  if(voiceRef.current){voiceRef.current.stop();voiceRef.current=null;setListening(false);return;}
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){setError('이 브라우저는 음성인식을 지원하지 않습니다. 문자 입력을 이용해 주세요.');return;}
-  const recognizer=new SR();
-  recognizer.lang=locale(currentLang);recognizer.interimResults=false;
-  recognizer.continuous=false;recognizer.maxAlternatives=1;
-  recognizer.onresult=event=>{
-   const sentence=Array.from(event.results||[]).map(x=>x[0]?.transcript||'').join(' ').trim();
-   if(sentence){setVoiceDraft(true);setDraft(v=>v.trim()?v.trim()+' '+sentence:sentence);}
-  };
-  recognizer.onerror=event=>{if(event.error!=='aborted')setError('음성인식 오류 ['+event.error+'] · 직접 입력도 가능합니다.');setListening(false);voiceRef.current=null;};
-  recognizer.onend=()=>{setListening(false);voiceRef.current=null;};
-  try{recognizer.start();voiceRef.current=recognizer;setListening(true);setError('');}
-  catch{setError('마이크를 시작할 수 없습니다.');setListening(false);}
+  if(voiceRef.current&&!voiceRef.current.stopping){voiceRef.current.stop();return;}
+  voiceRef.current?.abort();
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Recognition){setError(interpreterVoiceError('unsupported',currentLang));return;}
+  const original=draft.trim(),language=currentLang;
+  let session;
+  try{session=createInterpreterVoice({Recognition,locale:locale(language),
+   onText:text=>{setError(value=>value===interpreterVoiceError('delayed',language)?'':value);setVoiceDraft(true);setDraft(((original?original+' ':'')+text).slice(0,400));},
+   onListening:setListening,onError:code=>setError(interpreterVoiceError(code,language)),
+   onDone:()=>{if(voiceRef.current===session)voiceRef.current=null;}
+  });
+  }catch{setError(interpreterVoiceError('start-failed',language));setListening(false);return;}
+  voiceRef.current=session;setError('');session.start();
  }
+
  function speak(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
@@ -456,7 +460,7 @@ export default function InterpreterTestPage(){
      {sending&&!messages.some(m=>m.id===sendingRequestId)&&<div className="it-message it-mine it-pending-message" role="status"><div className="it-bubble it-sending"><span className="it-spinner" aria-hidden="true"/>{t.working}</div></div>}
     </div>
     <form className="it-composer" onSubmit={send}>
-     <textarea value={draft} onChange={e=>setDraft(e.target.value.slice(0,400))} rows={2} maxLength={400}
+     <textarea value={draft} onChange={e=>{voiceRef.current?.abort();setDraft(e.target.value.slice(0,400));}} rows={2} maxLength={400}
       disabled={!room.guestJoined||sending} placeholder={room.guestJoined?t.newMessage:t.waiting} aria-label={t.newMessage}/>
      <div className={'it-composer-buttons'+(role==='staff'?' it-has-guidance':'')}>
       {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{document.activeElement?.blur?.();voiceRef.current?.abort?.();setGuidancePanel({type:'choose'});}}><GuidanceIcon name="plus"/></button>}

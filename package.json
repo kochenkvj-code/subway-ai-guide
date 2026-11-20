@@ -39,7 +39,7 @@
     "test:station-office": "node --experimental-vm-modules --test tests/station-office-facility.test.mjs",
     "test:station-office-ui": "node --experimental-vm-modules tests/station-office-ui.cjs",
     "test:stats-visitor-history-ui": "node tests/stats-visitor-history-ui.cjs",
-    "test:interpreter": "node --experimental-vm-modules --test tests/interpreter-api.test.mjs tests/staff-access.test.mjs tests/interpreter-sync.test.mjs",
+    "test:interpreter": "node --experimental-vm-modules --test tests/interpreter-api.test.mjs tests/staff-access.test.mjs tests/interpreter-sync.test.mjs tests/interpreter-voice.test.mjs",
     "test:interpreter-db": "node tests/interpreter-db.cjs",
     "test:route-sharing": "node --experimental-vm-modules --test tests/route-sharing.test.mjs",
     "test:timetable-lab": "node --experimental-vm-modules --test tests/timetable-lab.test.mjs",

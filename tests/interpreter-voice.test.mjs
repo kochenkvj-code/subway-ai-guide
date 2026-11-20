@@ -1,0 +1,17 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {loadAppModule} from './helpers/load-app-module.mjs';
+const {createInterpreterVoice,interpreterVoiceError}=await loadAppModule('app/lib/interpreter-voice.js');
+function fixture(locale){let now=0,id=0;const jobs=new Map(),text=[],state=[],errors=[],events=[];
+ class Recognition{constructor(){events.push(this);}start(){}stop(){}abort(){this.aborted=true;}}
+ const timers={setTimeout:(fn,ms)=>{jobs.set(++id,{fn,time:now+ms});return id;},clearTimeout:id=>jobs.delete(id)};
+ function tick(ms){const end=now+ms;while(true){const next=[...jobs].sort((a,b)=>a[1].time-b[1].time)[0];if(!next||next[1].time>end)break;now=next[1].time;jobs.delete(next[0]);next[1].fn();}now=end;}
+ let done=0;const session=createInterpreterVoice({Recognition,locale,onText:t=>text.push(t),onListening:v=>state.push(v),onError:e=>errors.push(e),onDone:()=>done++,timers});
+ return {session,r:events[0],tick,text,state,errors,jobs,get done(){return done;}};
+}
+test('all four locales are passed unchanged and interim Japanese/Chinese text is surfaced before final/end',()=>{
+ for(const [locale,speech]of [['ko-KR','안녕하세요'],['en-US','Hello'],['ja-JP','こんにちは'],['zh-CN','你好']]){const f=fixture(locale);f.session.start();assert.equal(f.r.lang,locale);assert.equal(f.r.interimResults,true);f.r.onresult({results:[[{transcript:speech}]]});assert.equal(f.text.at(-1),speech);assert.equal(f.done,0);f.r.onend();assert.equal(f.done,1);assert.equal(f.state.at(-1),false);assert.equal(f.errors.length,0);assert.equal(f.jobs.size,0);}
+});
+test('slow Safari results are not aborted: notify after 15 seconds but accept a late result',()=>{const f=fixture('ja-JP');f.session.start();f.tick(15000);assert.equal(f.done,0);assert.equal(f.errors[0],'delayed');assert.equal(f.r.aborted,undefined);f.tick(30000);f.r.onresult({results:[[{transcript:'遅れて届いた結果'}]]});assert.equal(f.text.at(-1),'遅れて届いた結果');f.r.onend();assert.equal(f.done,1);});
+test('manual stop releases the listening UI immediately and still accepts late final text',()=>{const f=fixture('zh-CN');f.session.start();f.session.stop();assert.equal(f.state.at(-1),false);assert.equal(f.session.stopping,true);assert.equal(f.done,0);f.tick(20000);f.r.onresult({results:[[{transcript:'迟到的结果'}]]});assert.equal(f.text.at(-1),'迟到的结果');f.r.onend();assert.equal(f.done,1);assert.equal(f.jobs.size,0);});
+test('late callbacks after abort are ignored and cannot overwrite new language/session input',()=>{const f=fixture('ja-JP');f.session.start();const late=f.r.onresult,end=f.r.onend;f.session.abort();late({results:[[{transcript:'late'}]]});end();assert.equal(f.text.length,0);assert.equal(f.done,1);assert.equal(f.errors.length,0);});
+test('language unsupported and no-speech have localized errors, final and repeated partial snapshots do not append duplicates',()=>{const f=fixture('zh-CN');f.session.start();for(const text of ['你','你好','你好'])f.r.onresult({results:[[{transcript:text}]]});assert.equal(f.text.at(-1),'你好');f.r.onerror({error:'language-not-supported'});assert.equal(f.errors[0],'language-not-supported');for(const lang of ['ko','en','ja','zh'])assert.ok(interpreterVoiceError(f.errors[0],lang));});
+test('explicit abort recovers a completely silent recognizer without leaving timers',()=>{const f=fixture('zh-CN');f.session.start();f.session.abort();f.tick(120000);assert.equal(f.done,1);assert.equal(f.state.at(-1),false);assert.equal(f.jobs.size,0);assert.equal(f.errors.length,0);});
