@@ -89,14 +89,31 @@ function summarize(rows,date,station,total){
     explanation:'시간대별 교통카드 승하차 집계이며 열차 내부 또는 승강장의 실시간 혼잡도는 아닙니다.'};
 }
 async function collect(key,date,station){
-  const first=await fetchPage(key,date,station,1,PAGE_SIZE);
+  let effectiveStation=station;
+  let first=await fetchPage(key,date,effectiveStation,1,PAGE_SIZE);
   if(first.error)throw Error(first.error);
+  if(first.total===0){
+    // Some providers match station codes without leading zeroes; verify rather than assume no traffic.
+    const alternate=cleanCode(station);
+    if(alternate!==station){
+      const retry=await fetchPage(key,date,alternate,1,PAGE_SIZE);
+      if(retry.error)throw Error(retry.error);
+      if(retry.total>0){effectiveStation=alternate;first=retry;}
+    }
+    if(first.total===0){
+      // Distinguish an empty source date from a station-filter mismatch.
+      const dayProbe=await fetchPage(key,date,'',1,5);
+      if(dayProbe.error)throw Error(dayProbe.error);
+      if(dayProbe.total>0)throw Error('UPSTREAM_FILTER_MISMATCH');
+      return {...summarize([],date,station,0),sourceDiagnostic:'NO_RECORDS_FOR_DATE'};
+    }
+  }
   if(first.total>MAX_PAGES*PAGE_SIZE)throw Error('UPSTREAM_LIMIT');
   const raw=[...first.rows];
   const pages=Math.ceil(first.total/PAGE_SIZE);
   for(let page=2;page<=pages;page+=2){
     const n=[page,page+1].filter(x=>x<=pages);
-    const data=await Promise.all(n.map(x=>fetchPage(key,date,station,(x-1)*PAGE_SIZE+1,x*PAGE_SIZE)));
+    const data=await Promise.all(n.map(x=>fetchPage(key,date,effectiveStation,(x-1)*PAGE_SIZE+1,x*PAGE_SIZE)));
     for(const result of data){
       if(result.error)throw Error(result.error);
       raw.push(...result.rows);
