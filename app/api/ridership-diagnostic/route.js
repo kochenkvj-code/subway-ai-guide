@@ -13,7 +13,7 @@ async function inspect(key,host,date,suffix){
   const root=body?.getStnPsgr;
   const result=root?.RESULT||body?.RESULT||body?.errorMessage||{};
   const rows=root?.row||[];
-  return {host,date,station:suffix,status:response.status,json:true,keys:Object.keys(body||{}),
+  return {host,date,station:suffix,status:response.status,json:true,keys:Object.keys(body||{}), responseHeader:body?.response?.header||null, responseBodyKeys:Object.keys(body?.response?.body||{}), responseBodyTotal:body?.response?.body?.totalCount??null,
    providerCode:String(result.CODE||result.code||''),providerMessage:String(result.MESSAGE||result.message||'').slice(0,180),
    count:Number(root?.list_total_count??-1),
    rowCount:Array.isArray(rows)?rows.length:-1,
