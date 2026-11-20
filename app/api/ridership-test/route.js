@@ -32,9 +32,20 @@ async function fetchPage(key,date,station,start,end){
       if(!r.ok){lastError='UPSTREAM_HTTP';continue;}
       let body;
       try{body=await r.json();}catch{lastError='UPSTREAM_JSON';continue;}
-      const service=body?.[SERVICE]||body?.getStnPsgr||Object.entries(body||{}).find(([k])=>k.toLowerCase()===SERVICE.toLowerCase())?.[1];
+      const envelope=body?.response;
+      if(envelope){
+        const header=envelope.header||{},node=envelope.body||{};
+        const code=text(header.resultCode||'');
+        if(!['00','0','INFO-000'].includes(code))return {error:'UPSTREAM_RESULT',providerCode:code};
+        const value=node.items?.item??node.items??node.item??[];
+        const rows=Array.isArray(value)?value:value&&typeof value==='object'?[value]:[];
+        const total=Math.max(0,Number(node.totalCount??0));
+        if(total>0&&!rows.length){lastError='UPSTREAM_SCHEMA';continue;}
+        return {rows,total};
+      }
+      const service=body?.[SERVICE]||Object.entries(body||{}).find(([k])=>k.toLowerCase()===SERVICE.toLowerCase())?.[1];
       const result=service?.RESULT||body?.RESULT||{};
-      const code=text(result.CODE||body?.errorMessage?.code);
+      const code=text(result.CODE);
       if(code==='INFO-200')return {rows:[],total:0};
       if(code&&code!=='INFO-000')return {error:'UPSTREAM_RESULT',providerCode:code};
       if(!service||!Array.isArray(service.row)){
