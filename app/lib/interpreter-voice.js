@@ -1,27 +1,72 @@
-// Browser recognition only; never sends audio or transcripts to an additional service.
-export function createInterpreterVoice({Recognition,locale,onText,onListening,onError,onDone,timers={setTimeout:(fn,ms)=>globalThis.setTimeout(fn,ms),clearTimeout:id=>globalThis.clearTimeout(id)}}){
- const recognizer=new Recognition();let active=false,closed=false,stopping=false,latest='',notice=null;
- recognizer.lang=locale;recognizer.interimResults=true;recognizer.continuous=false;recognizer.maxAlternatives=1;
- function clearNotice(){if(notice!==null)timers.clearTimeout(notice);notice=null;}
- function finish(error){
-  if(closed)return;closed=true;active=false;clearNotice();
-  recognizer.onresult=recognizer.onerror=recognizer.onend=null;
-  try{recognizer.abort();}catch{}
-  onListening(false);onDone();if(error&&error!=='aborted')onError(error);
+// Speech events and message delivery are independent. No extra audio service is used.
+const browserTimers={setTimeout:(fn,ms)=>globalThis.setTimeout(fn,ms),clearTimeout:id=>globalThis.clearTimeout(id)};
+export function createInterpreterVoice({Recognition,locale,onText,onFinal=()=>{},onListening,onError,onDone=()=>{},timers=browserTimers}){
+ let wanted=false,disposed=false,current=null,restart=null,emptyEnds=0;
+ const pauses=new Set();
+ function clearRestart(){if(restart!==null)timers.clearTimeout(restart);restart=null;}
+ function detach(){
+  const old=current;current=null;
+  if(old){old.rec.onresult=old.rec.onerror=old.rec.onend=null;try{old.rec.abort();}catch{}}
+  onListening(false);
  }
- recognizer.onresult=event=>{
-  if(!active)return;
-  const text=Array.from(event.results||[]).map(row=>row[0]?.transcript||'').join(' ').trim();
-  if(text){latest=text;clearNotice();onText(text);}
- };
- recognizer.onerror=event=>{if(active)finish(event.error||'unknown');};
- recognizer.onend=()=>{if(active)finish(latest?'':'no-speech');};
+ function fail(code){wanted=false;clearRestart();detach();onError(code);onDone();}
+ function begin(){
+  clearRestart();if(disposed||!wanted||pauses.size||current)return;
+  let rec;try{rec=new Recognition();}catch{fail('start-failed');return;}
+  const session={rec,seen:new Set(),heard:false};current=session;
+  rec.lang=locale;rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
+  const valid=()=>!disposed&&current===session;
+  rec.onresult=event=>{
+   if(!valid())return;
+   const results=Array.from(event.results||[]),finals=[];
+   for(let i=event.resultIndex||0;i<results.length;i++){
+    const row=results[i],text=(row[0]?.transcript||'').trim();
+    if(row.isFinal&&!session.seen.has(i)){session.seen.add(i);if(text)finals.push(text);}
+   }
+   const interim=results.filter(row=>!row.isFinal).map(row=>row[0]?.transcript||'').join(' ').trim();
+   if(interim||finals.length){session.heard=true;emptyEnds=0;}
+   // Capture the entire event before callbacks can pause/abort the native session.
+   onText(interim);for(const text of finals)onFinal(text);
+  };
+  rec.onerror=event=>{if(!valid())return;if(event.error==='no-speech'){return;}fail(event.error||'unknown');};
+  rec.onend=()=>{
+   if(!valid())return;current=null;rec.onresult=rec.onerror=rec.onend=null;onListening(false);
+   if(!wanted){onDone();return;}
+   if(pauses.size)return;
+   if(!session.heard&&++emptyEnds>=3){fail('no-speech');return;}
+   restart=timers.setTimeout(begin,300);
+  };
+  try{rec.start();if(valid())onListening(true);}catch{fail('start-failed');}
+ }
  return {
-  // Slow Safari results must not be discarded by a fixed-duration abort.
-  start(){if(active||closed)return;active=true;onListening(true);notice=timers.setTimeout(()=>{notice=null;if(active&&!latest)onError('delayed');},15000);try{recognizer.start();}catch{finish('start-failed');}},
-  stop(){if(!active||stopping)return;stopping=true;onListening(false);try{recognizer.stop();}catch{finish(latest?'':'start-failed');}},
-  get stopping(){return stopping;},
-  abort(){finish();}
+  start(){if(disposed)return;wanted=true;emptyEnds=0;begin();},
+  // OFF stops further capture; a final result already being resolved is still accepted.
+  stop(){wanted=false;clearRestart();onListening(false);if(current){try{current.rec.stop();}catch{detach();}}},
+  pause(reason){pauses.add(reason);clearRestart();detach();},
+  resume(reason){pauses.delete(reason);begin();},
+  get wanted(){return wanted;},
+  get stopping(){return !wanted;},
+  abort(){disposed=true;wanted=false;clearRestart();detach();onDone();}
+ };
+}
+
+// One transport request at a time, retaining the same ID on retry.
+export function createInterpreterOutbox({send,onChange,onError,onIdle=()=>{},limit=36}){
+ let items=[],active=false,failed=false,closed=false;
+ const snapshot=()=>({items:[...items],active,failed});
+ const emit=()=>{if(!closed)onChange(snapshot());};
+ async function pump(){
+  if(closed||active||failed||!items.length)return;
+  active=true;emit();const item=items[0];
+  try{await send(item);if(closed)return;items.shift();}
+  catch(error){if(closed)return;failed=true;onError(error);}
+  finally{if(!closed){active=false;emit();if(!failed){if(items.length)pump();else onIdle();}}}
+ }
+ return {
+  enqueue(item){if(closed||items.length>=limit)return false;items.push(item);emit();pump();return true;},
+  retry(){if(closed)return;failed=false;emit();pump();},
+  get state(){return snapshot();},
+  close(){closed=true;items=[];}
  };
 }
 

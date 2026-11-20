@@ -10,7 +10,8 @@ import {startInterpreterSync} from '../lib/interpreter-sync';
 import {connectInterpreter} from '../lib/interpreter-realtime-client';
 import {getStationByCode} from '../lib/station-master';
 import {interpreterViewport} from './viewport';
-import {createInterpreterVoice,interpreterVoiceError} from '../lib/interpreter-voice';
+import {createInterpreterVoice,createInterpreterOutbox,interpreterVoiceError} from '../lib/interpreter-voice';
+import {voiceCopy} from './voice-copy';
 import './interpreter.css';
 
 const API='/api/interpreter-test';
@@ -76,7 +77,7 @@ export default function InterpreterTestPage(){
  const contextRef=useRef({role:'staff',stationCode:'0154',lang:'ko'});
  const pageRef=useRef(null);
  const [stationPin,setStationPin]=useState('');
- const pendingSend=useRef(null);
+
  const [guidancePanel,setGuidancePanel]=useState(null);
  const guidanceRequest=useRef(null);
  const [mode,setMode]=useState('idle');
@@ -96,13 +97,23 @@ export default function InterpreterTestPage(){
  const [error,setError]=useState('');
  const [connected,setConnected]=useState(false);
  const [listening,setListening]=useState(false);
- const [voiceDraft,setVoiceDraft]=useState(false);
+ const [voiceText,setVoiceText]=useState('');
+ const [voiceWanted,setVoiceWanted]=useState(false);
+ const [outgoing,setOutgoing]=useState({items:[],active:false,failed:false});
+ const [pendingLanguage,setPendingLanguage]=useState('');
+ const outboxRef=useRef(null),languageJob=useRef(null),pendingLanguageRef=useRef('');
+ const speechRef=useRef(null),previewRef=useRef(''),draftRef=useRef('');
  const [expanded,setExpanded]=useState({});
  const [copied,setCopied]=useState(false);
  const scrollRef=useRef(null);
  const voiceRef=useRef(null);
- useEffect(()=>()=>{voiceRef.current?.abort();},[]);
+ useEffect(()=>{
+  const visibility=()=>{if(document.hidden)voiceRef.current?.pause('background');else voiceRef.current?.resume('background');};
+  document.addEventListener('visibilitychange',visibility);
+  return ()=>{document.removeEventListener('visibilitychange',visibility);voiceRef.current?.abort();outboxRef.current?.close();if(speechRef.current){speechRef.current.onend=speechRef.current.onerror=null;window.speechSynthesis?.cancel();}};
+ },[]);
  const roomRef=useRef(null);
+ useEffect(()=>{if(!guidancePanel)voiceRef.current?.resume('guidance');},[guidancePanel]);
  const inviteLink=useMemo(()=>{
   if(typeof window==='undefined'||!room?.id||!invite)return '';
   return window.location.origin+'/interpreter-test?room='+encodeURIComponent(room.id)+(getStationByCode(room.stationCode)?'&station='+encodeURIComponent(room.stationCode):'')+'#invite='+encodeURIComponent(invite);
@@ -110,6 +121,7 @@ export default function InterpreterTestPage(){
  const role=room?.role||'staff';
  const currentLang=(mode==='ended'?endedContext?.lang:room?(role==='staff'?room.staffLang:room.guestLang):entryLang)||entryLang;
  const t={...copy[currentLang],...screenCopy[currentLang]};
+ const v=voiceCopy[currentLang]||voiceCopy.en;
  const home=homeUrl(mode==='ended'?endedContext:mode==='room'?roomContext(room,contextRef.current):{stationCode:mode==='join'?inviteStation:stationCode,lang:entryLang});
  const label=id=>LANGS.find(x=>x.id===id)?.name||id;
  const sayError=e=>setError(({'staff-required':'관리자 로그인 또는 기준역 번호 확인이 필요합니다.','message-pending':'이 메시지를 처리하고 있습니다. 잠시 후 같은 내용으로 다시 전송해 주세요.','request-conflict':'전송 내용을 확인하고 다시 시도해 주세요.'})[e?.message]||errText[e?.message]||e?.message||copy.ko.error);
@@ -122,7 +134,10 @@ export default function InterpreterTestPage(){
   roomRef.current=null;
   try{sessionStorage.removeItem(SESSION_KEY);}catch{}
   voiceRef.current?.abort?.();voiceRef.current=null;setListening(false);
-  pendingSend.current=null;setVoiceDraft(false);setExpanded({});setCopied(false);setQrData('');
+  outboxRef.current?.close();outboxRef.current=null;setOutgoing({items:[],active:false,failed:false});
+  pendingLanguageRef.current='';setPendingLanguage('');setVoiceWanted(false);previewRef.current='';draftRef.current='';setVoiceText('');setSending(false);setSendingRequestId(null);
+  if(speechRef.current){speechRef.current.onend=speechRef.current.onerror=null;speechRef.current=null;window.speechSynthesis?.cancel();}
+ setExpanded({});setCopied(false);setQrData('');
   setMode('idle');setRoom(null);setToken('');setInvite('');setPendingInvite(null);setMessages([]);setDraft('');setShowQr(false);setConnected(false);
  };
  const finishRoom=()=>{
@@ -302,29 +317,65 @@ export default function InterpreterTestPage(){
    saveSession(result.room,result.token);
   }catch(e){if(['room-not-found','room-ended'].includes(e.message))finishRoom();else sayError(e);}finally{setBusy(false);}
  }
- async function changeLanguage(newLang){
-  voiceRef.current?.abort();
-  if(!room){setEntryLang(newLang);return;}
-  if(busy||!token)return;
-  setBusy(true);setError('');
+ // The pending callback always sees the latest room/draft; native speech callbacks do not.
+ languageJob.current=async()=>{
+  const newLang=pendingLanguageRef.current;
+  if(!newLang||!room||!token||outboxRef.current?.state.items.length||previewRef.current||draftRef.current)return;
+  pendingLanguageRef.current='';setPendingLanguage('');setBusy(true);setError('');
+  voiceRef.current?.abort();voiceRef.current=null;setVoiceWanted(false);
   try{
    const result=await api('language',{room:room.id,lang:newLang},token);
    if(roomRef.current===room.id){setRoom(result.room);contextRef.current=roomContext(result.room,contextRef.current);saveSession(result.room,token,invite);}
-  }catch(e){sayError(e);}finally{setBusy(false);}
+  }catch(e){if(roomRef.current===room.id)sayError(e);}finally{setBusy(false);}
+ };
+ function changeLanguage(newLang){
+  if(!room){setEntryLang(newLang);return;}
+  if(busy||!token)return;
+  voiceRef.current?.pause('language');
+  pendingLanguageRef.current=newLang;setPendingLanguage(newLang);languageJob.current?.();
  }
+ function getOutbox(){
+  if(outboxRef.current)return outboxRef.current;
+  const id=room.id,accessToken=token;
+  const queue=createInterpreterOutbox({
+   send:async item=>{
+    if(roomRef.current!==id)throw new Error('room-ended');
+    await api('send',{room:id,text:item.text,requestId:item.requestId},accessToken);
+    // Storage succeeded. A refresh failure must not resend or retranslate this item.
+    if(roomRef.current===id)try{await refresh(id,accessToken);}catch(e){sayError(e);}
+   },
+   onChange:state=>{
+    setOutgoing(state);setSending(state.active);setSendingRequestId(state.active?state.items[0]?.requestId:null);
+    if(state.items.length>=8)voiceRef.current?.pause('buffer');
+    else if(!state.failed)voiceRef.current?.resume('buffer');
+   },
+   onError:e=>{voiceRef.current?.pause('send-error');if(['room-ended','room-not-found'].includes(e.message))finishRoom();else sayError(e);},
+   onIdle:()=>languageJob.current?.()
+  });
+  outboxRef.current=queue;return queue;
+ }
+ function enqueueText(text,language){
+  // Native recognition can produce more than the API's 400-character maximum.
+  // Split at code-point boundaries, preserving every character and order.
+  const parts=[];let part='';
+  for(const char of text){if(part.length+char.length>400){parts.push(part);part='';}part+=char;}
+  if(part.trim())parts.push(part);
+  const queue=getOutbox();
+  for(let i=0;i<parts.length;i++){
+   if(!queue.enqueue({text:parts[i],language,requestId:crypto.randomUUID()})){
+    voiceRef.current?.pause('overflow');stopVoice();setError(v.full);
+    const remainder=parts.slice(i).join('');previewRef.current+=remainder;setVoiceText(previewRef.current);return false;
+   }
+  }
+  return true;
+ }
+ function stopVoice(){voiceRef.current?.stop();setVoiceWanted(false);}
  async function send(e){
   e?.preventDefault?.();
-  const text=draft.trim();
-  if(sending||!text||!room?.guestJoined||!token)return;
-  voiceRef.current?.abort();
-  setSending(true);setError('');
-  try{
-   if(!pendingSend.current||pendingSend.current.text!==text||pendingSend.current.room!==room.id)pendingSend.current={room:room.id,text,requestId:crypto.randomUUID()};
-   setSendingRequestId(pendingSend.current.requestId);
-   await api('send',pendingSend.current,token);
-   pendingSend.current=null;
-   setDraft('');setVoiceDraft(false);await refresh(room.id,token);
-  }catch(e){sayError(e);}finally{setSending(false);setSendingRequestId(null);}
+  const text=(draftRef.current||previewRef.current).trim();
+  if(!text||!room?.guestJoined||!token||outgoing.failed)return;
+  voiceRef.current?.abort();voiceRef.current=null;setVoiceWanted(false);previewRef.current='';draftRef.current='';setDraft('');setVoiceText('');setError('');
+  enqueueText(text,currentLang);
  }
  async function sendGuidance(type,payload){
   const key=JSON.stringify({type,payload});if(guidanceRequest.current?.key!==key)guidanceRequest.current={key,id:crypto.randomUUID()};
@@ -344,27 +395,35 @@ export default function InterpreterTestPage(){
   catch{setError('링크 복사에 실패했습니다. QR코드를 사용해 주세요.');}
  }
  function voiceInput(){
-  if(voiceRef.current&&!voiceRef.current.stopping){voiceRef.current.stop();return;}
+  if(voiceRef.current?.wanted){stopVoice();return;}
+  if(outgoing.failed||outgoing.items.length>=8||pendingLanguageRef.current)return;
+  // Do not mix an existing typed/unfinished draft into automatic speech.
+  if(draftRef.current||previewRef.current){setError(v.retained);return;}
   voiceRef.current?.abort();
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Recognition){setError(interpreterVoiceError('unsupported',currentLang));return;}
-  const original=draft.trim(),language=currentLang;
+  const language=currentLang,id=room.id;
   let session;
-  try{session=createInterpreterVoice({Recognition,locale:locale(language),
-   onText:text=>{setError(value=>value===interpreterVoiceError('delayed',language)?'':value);setVoiceDraft(true);setDraft(((original?original+' ':'')+text).slice(0,400));},
-   onListening:setListening,onError:code=>setError(interpreterVoiceError(code,language)),
-   onDone:()=>{if(voiceRef.current===session)voiceRef.current=null;}
+  session=createInterpreterVoice({Recognition,locale:locale(language),
+   onText:text=>{if(voiceRef.current!==session||roomRef.current!==id)return;previewRef.current=text;setVoiceText(text);},
+   onFinal:text=>{if(roomRef.current===id&&voiceRef.current===session)enqueueText(text,language);},
+   onListening:setListening,
+   onError:code=>{setVoiceWanted(false);setError(interpreterVoiceError(code,language));}
   });
-  }catch{setError(interpreterVoiceError('start-failed',language));setListening(false);return;}
-  voiceRef.current=session;setError('');session.start();
+  voiceRef.current=session;setVoiceWanted(true);setError('');
+  if(speechRef.current)session.pause('speech');
+  session.start();
  }
-
  function speak(text){
   if(!('speechSynthesis' in window))return;
+  voiceRef.current?.pause('speech');
+  if(speechRef.current)speechRef.current.onend=speechRef.current.onerror=null;
   window.speechSynthesis.cancel();
-  const speech=new SpeechSynthesisUtterance(text);
+  const speech=new SpeechSynthesisUtterance(text);speechRef.current=speech;
   speech.lang=locale(currentLang);speech.rate=.95;
-  window.speechSynthesis.speak(speech);
+  const done=()=>{if(speechRef.current!==speech)return;speechRef.current=null;voiceRef.current?.resume('speech');};
+  speech.onend=done;speech.onerror=done;
+  try{window.speechSynthesis.speak(speech);}catch{done();}
  }
  function changeEntryLanguage(value){
   setEntryLang(value);
@@ -460,18 +519,20 @@ export default function InterpreterTestPage(){
      {sending&&!messages.some(m=>m.id===sendingRequestId)&&<div className="it-message it-mine it-pending-message" role="status"><div className="it-bubble it-sending"><span className="it-spinner" aria-hidden="true"/>{t.working}</div></div>}
     </div>
     <form className="it-composer" onSubmit={send}>
-     <textarea value={draft} onChange={e=>{voiceRef.current?.abort();setDraft(e.target.value.slice(0,400));}} rows={2} maxLength={400}
-      disabled={!room.guestJoined||sending} placeholder={room.guestJoined?t.newMessage:t.waiting} aria-label={t.newMessage}/>
+     <textarea value={draft||voiceText} onFocus={()=>{if(voiceRef.current?.wanted){voiceRef.current.pause('typing');setVoiceWanted(false);voiceRef.current.stop();}}} onChange={e=>{voiceRef.current?.abort();voiceRef.current=null;setVoiceWanted(false);previewRef.current='';setVoiceText('');draftRef.current=e.target.value.slice(0,400);setDraft(draftRef.current);if(!draftRef.current)languageJob.current?.();}} rows={2} maxLength={400}
+      disabled={!room.guestJoined} placeholder={room.guestJoined?t.newMessage:t.waiting} aria-label={t.newMessage}/>
      <div className={'it-composer-buttons'+(role==='staff'?' it-has-guidance':'')}>
-      {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{document.activeElement?.blur?.();voiceRef.current?.abort?.();setGuidancePanel({type:'choose'});}}><GuidanceIcon name="plus"/></button>}
-      <button type="button" onClick={voiceInput} disabled={!room.guestJoined||sending} className={'it-voice'+(listening?' listening':'')}>{listening?'■ '+t.stopVoice:<><SmallIcon name="mic"/> {t.voice}</>}</button>
-      <button type="submit" disabled={!draft.trim()||!room.guestJoined||sending} className="it-submit">{sending?'…':<><SmallIcon name="send"/> {t.send}</>}</button>
+      {role==='staff'&&<button type="button" className="it-guidance-add" aria-label={guidanceWords[currentLang].choose} disabled={!room.guestJoined||sending} onClick={()=>{document.activeElement?.blur?.();voiceRef.current?.pause('guidance');setGuidancePanel({type:'choose'});}}><GuidanceIcon name="plus"/></button>}
+      <button type="button" onClick={voiceInput} aria-pressed={voiceWanted} disabled={!room.guestJoined||busy||(!voiceWanted&&(outgoing.failed||!!pendingLanguage||outgoing.items.length>=8))} className={'it-voice'+(listening?' listening':'')}>{voiceWanted?'■ '+t.stopVoice:<><SmallIcon name="mic"/> {t.voice}</>}</button>
+      <button type="submit" disabled={!(draft||voiceText).trim()||!room.guestJoined||outgoing.failed} className="it-submit">{<><SmallIcon name="send"/> {t.send}</>}</button>
      </div>
-     {(listening||(voiceDraft&&draft.trim()))&&<p>{t.check}</p>}
+     {voiceWanted&&<p role="status">{listening?v.auto:v.paused}</p>}
+     {pendingLanguage&&<div className="it-voice-status" role="status">{v.pending} <button type="button" onClick={()=>{pendingLanguageRef.current='';setPendingLanguage('');voiceRef.current?.resume('language');}}>{v.cancel}</button></div>}
+     {outgoing.items.length>0&&<details className="it-outbox" open={outgoing.failed}><summary>{v.queue} · {outgoing.items.length}</summary>{outgoing.failed&&<p role="alert">{v.failed}{error&&<> {error}</>}</p>}<ol>{outgoing.items.map(item=><li key={item.requestId}>{item.text}</li>)}</ol>{outgoing.failed&&<button type="button" onClick={()=>{setError('');outboxRef.current?.retry();voiceRef.current?.resume('send-error');}}>{v.retry}</button>}</details>}
     </form>
    </>}
   </section>}
   {guidancePanel&&((mode==='room'&&room)||guidancePanel.type==='share')&&<GuidancePanel panel={guidancePanel} room={room} token={token} lang={currentLang} onClose={()=>setGuidancePanel(null)} onSend={sendGuidance}/>}
-  {error&&mode!=='ended'&&<div role="alert" className="it-error">{error}<button onClick={()=>setError('')} aria-label="Close">×</button></div>}
+  {error&&!outgoing.failed&&mode!=='ended'&&<div role="alert" className="it-error">{error}<button onClick={()=>setError('')} aria-label="Close">×</button></div>}
  </main>;
 }

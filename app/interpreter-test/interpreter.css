@@ -158,3 +158,8 @@ body.it-viewport-active{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2p
 .it-guidance-card-action svg{width:14px;height:14px}
 .it-guidance-panel .route-lab .rl-query-box input{font-size:16px}
 @media(max-width:350px){.it-guidance-options{gap:2px}.it-guidance-options strong{font-size:10px}.it-guidance-icon{width:38px;height:38px}.it-guidance-return{font-size:10px}}
+.it-voice-status,.it-outbox{font-size:12px;line-height:1.5;color:#476357}
+.it-voice-status button,.it-outbox button{border:1px solid #cddfd1;border-radius:8px;padding:6px 9px;color:#28684f;background:#edf5ee;font:inherit}
+.it-outbox summary{cursor:pointer;padding:3px 0}
+.it-outbox ol{margin:5px 0;padding-left:22px;max-height:112px;overflow-y:auto;overflow-wrap:anywhere}
+.it-outbox p{margin:4px 0}
