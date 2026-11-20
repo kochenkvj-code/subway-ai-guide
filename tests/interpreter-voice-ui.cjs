@@ -2,7 +2,7 @@ const{chromium}=require('playwright'),assert=require('node:assert/strict');
 const base=process.env.BASE_URL||'http://localhost:3180',id='11111111-1111-4111-8111-111111111111';
 (async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const errors=[],attempts=[],messages=[{id:'welcome',sender:'staff',sourceLang:'ko',targetLang:'zh',original:'안녕하세요',translated:'你好'}];let lang='ja',releaseFirst,holdFirst=true,failNext=false,releaseFailure,holdFailure=false;
 try{const c=await browser.newContext({locale:'ja-JP',viewport:{width:390,height:844}});await c.addInitScript(id=>{
- localStorage.setItem('subway_ai_guide_analytics_excluded','1');sessionStorage.setItem('metro-interpreter-test-v1',JSON.stringify({room:id,token:'guest-token',role:'guest',stationCode:'0154',lang:'ja'}));window.voiceInstances=[];window.SpeechRecognition=window.webkitSpeechRecognition=class{constructor(){window.voiceInstances.push(this);}start(){}stop(){this.stopped=true;}abort(){this.aborted=true;}};
+ localStorage.setItem('subway_ai_guide_analytics_excluded','1');sessionStorage.setItem('metro-interpreter-test-v1',JSON.stringify({room:id,token:'guest-token',role:'guest',stationCode:'0154',lang:'ja'}));window.voiceInstances=[];window.SpeechRecognition=window.webkitSpeechRecognition=class{constructor(){window.voiceInstances.push(this);}start(){}stop(){this.stopped=true;if(window.autoFinalize&&this.pendingText){const text=this.pendingText;this.pendingText='';setTimeout(()=>{this.onresult?.({resultIndex:0,results:[Object.assign([{transcript:text+'。'}],{isFinal:true})]});this.onend?.();},20);}}abort(){this.aborted=true;}};
  window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{cancel(){},speak(speech){window.lastSpeech=speech;}}});
  },id);const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.route('**/api/**',async r=>{const req=r.request(),u=new URL(req.url()),b=req.method()==='POST'?req.postDataJSON():{};
  if(u.pathname==='/api/stats/auth')return r.fulfill({json:{authenticated:false}});if(u.pathname==='/api/interpreter-access')return r.fulfill({json:{admin:false,interpreter:false}});
@@ -39,6 +39,17 @@ try{const c=await browser.newContext({locale:'ja-JP',viewport:{width:390,height:
  await p.locator('.it-voice').click();await listen.click();await p.evaluate(()=>lastSpeech.onend());await p.waitForFunction(n=>voiceInstances.length===n+1,before+1);
  // Two finalized utterances survive a failed request and retry with the SAME ID.
  holdFailure=true;failNext=true;const prior=attempts.length;await event([['失败后保留',true],['下一句',true]]);await p.waitForFunction(()=>document.querySelector('.it-outbox summary')?.textContent.includes('2'));releaseFailure();await p.locator('.it-outbox button').waitFor();assert.equal(await p.locator('.it-voice.listening').count(),0);assert.match(await p.locator('.it-outbox').innerText(),/失败后保留/);await p.screenshot({path:'work/continuous-interpreter-retry-mobile.png',fullPage:true});await p.locator('.it-outbox button').click();await p.waitForFunction(()=>!document.querySelector('.it-outbox'));assert.equal(attempts[prior].requestId,attempts[prior+1].requestId);assert.deepEqual(attempts.slice(prior).map(x=>x.text),['失败后保留','失败后保留','下一句']);
+ // Safari-shaped fixture: Chinese remains interim until native stop requests finalization.
+ await p.evaluate(()=>{window.autoFinalize=true;});
+ const chineseStart=attempts.length;
+ for(let i=0;i<10;i++){
+  await p.waitForFunction(()=>{const r=voiceInstances.at(-1);return !!r.onresult&&!r.stopped;});
+  const text='我要去明洞'+i;
+  await p.evaluate(text=>{const r=voiceInstances.at(-1);r.pendingText=text;r.onresult({resultIndex:0,results:[Object.assign([{transcript:text}],{isFinal:false})]});},text);
+  await p.getByText(text+'。',{exact:true}).waitFor();
+ }
+ assert.deepEqual(attempts.slice(chineseStart).map(x=>x.text),Array.from({length:10},(_,i)=>'我要去明洞'+i+'。'));
+ await p.waitForFunction(()=>{const r=voiceInstances.at(-1);return !!r.onresult&&!r.stopped;});
  // Explicit microphone OFF also prevents restarts after an ordinary onend.
  await p.locator('.it-voice.listening').click();const count=await p.evaluate(()=>voiceInstances.length);await p.evaluate(()=>voiceInstances.at(-1).onend());await p.waitForTimeout(450);assert.equal(await p.evaluate(()=>voiceInstances.length),count);
  assert.deepEqual(errors,[]);await p.screenshot({path:'work/continuous-interpreter-mobile.png',fullPage:true});console.log('PASS: Japanese/Chinese interim; 10+ utterances; duplicate finals; ordered sends during translation; deferred language switch; same-ID retry; manual input; TTS pause/resume; stale callbacks; explicit OFF. Mock recognition and API, not physical Safari.');
