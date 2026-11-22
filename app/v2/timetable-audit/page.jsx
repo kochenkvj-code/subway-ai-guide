@@ -139,3 +139,5 @@ export default function TimetableAudit(){
   </>}
   <footer>이 페이지는 읽기 전용 진단용이야. 실제 운행·도착정보와 계획 시간표는 다를 수 있으며 기존 시간표 화면은 변경하지 않았어.</footer>
  </div></main>;
+
+}
