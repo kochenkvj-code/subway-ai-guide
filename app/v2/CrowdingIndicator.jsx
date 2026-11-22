@@ -2,13 +2,13 @@
 import {congestionLevel} from '../lib/congestion-data';
 
 const labels={
- ko:[['여유'],['보통'],['주의'],['혼잡']],
- en:[['Low'],['Mid'],['High'],['Peak']],
- ja:[['余裕'],['普通'],['注意'],['混雑']],
- zh:[['宽松'],['一般'],['注意'],['拥挤']]
+ ko:[['여유'],['보통'],['밀집'],['혼잡']],
+ en:[['Low'],['Moderate'],['Busy'],['Crowded']],
+ ja:[['余裕'],['普通'],['密集'],['混雑']],
+ zh:[['宽松'],['一般'],['密集'],['拥挤']]
 };
-const descriptions={ko:'예상 혼잡도 · 30분 평균, 개별 열차 실측값 아님',en:'Estimated crowding · 30-minute average, not individual trains',ja:'予想混雑度・30分平均（各列車の実測値ではありません）',zh:'预计拥挤度 · 30分钟平均值，并非单趟列车实测'};
-const policy={"ko":"시민 이용 편의를 위한 자체 혼잡도 분류 기준입니다 (50%·80%·110%).","en":"Passenger guidance uses custom crowding thresholds (50%, 80%, 110%).","ja":"利用者向けの独自の混雑度区分です（50%・80%・110%）。","zh":"为方便乘客出行，采用自定义拥挤度分级标准（50%、80%、110%）。"};
+const descriptions={ko:'시간대별 예상 혼잡도 · 실시간 열차 위치와 별개의 30분 평균 통계',en:'Estimated crowding · 30-minute average, not live train occupancy',ja:'時間帯別の予想混雑度・30分平均（個別列車の実測値ではありません）',zh:'时段预计拥挤度 · 30分钟平均值，并非单趟列车实时数据'};
+const policy={"ko":"시민 이용 편의를 위한 자체 혼잡도 분류 기준입니다 (35%·75%·110%).","en":"Passenger guidance uses custom crowding thresholds (35%, 75%, 110%).","ja":"利用者向けの独自の混雑度区分です（35%・75%・110%）。","zh":"为方便乘客出行，采用自定义拥挤度分级标准（35%、75%、110%）。"};
 export function crowdingPolicyDescription(lang='ko'){return policy[lang]||policy.ko;}
 export function crowdingClass(value){
  const level=congestionLevel(value);

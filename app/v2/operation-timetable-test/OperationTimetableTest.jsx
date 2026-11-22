@@ -7,6 +7,29 @@ import {operationTimetableColumns} from '../../lib/operation-timetable-model';
 import {CONGESTION_THRESHOLDS} from '../../lib/congestion-data';
 import {createCrowdingModel,crowdingGradient,crowdingColors} from '../../lib/timetable-lab-crowding-view';
 import '../timetable-lab/timetable-lab.css';
+
+function CrowdGuideScene({level}){
+ const standing=[[],[88],[40,62,86],[24,41,58,75,92,106]][level];
+ return <svg viewBox="0 0 120 78" focusable="false" aria-hidden="true">
+  <rect width="120" height="78" rx="9" fill="#e7f2fb"/>
+  <rect x="7" y="8" width="106" height="48" rx="5" fill="#c2def1" stroke="#8ca9be" strokeWidth="1.5"/>
+  <path d="M12 8h96" stroke="#7893a7" strokeWidth="2"/>
+  {[25,60,95].map(x=><g key={x}><path d={"M"+x+" 9v8"} stroke="#607f95" strokeWidth="1.6"/><path d={"M"+(x-3)+" 20q3 7 6 0q-3-7-6 0"} fill="none" stroke="#607f95" strokeWidth="1.4"/></g>)}
+  <rect x="12" y="55" width="96" height="19" rx="4" fill="#8dafe0"/>
+  {[29,69].map((x,i)=><g key={x}>
+   <circle cx={x} cy="47" r="6.4" fill={i===0?"#d9ac8a":"#edc09e"}/>
+   <path d={"M"+(x-9)+" 66v-9q9-10 18 0v9"} fill={i===0?"#446fa8":"#f3e3ce"}/>
+   <path d={"M"+(x-7)+" 44q6-10 13 0"} stroke="#455366" strokeWidth="3" fill="none"/>
+  </g>)}
+  {standing.map((x,i)=><g key={x}>
+   <path d={"M"+x+" 47V27"} stroke="#64768b" strokeWidth="2"/>
+   <circle cx={x} cy={34+(i%2)*3} r="6.7" fill={i%2?"#e7b48d":"#c79578"}/>
+   <path d={"M"+(x-9)+" 62v-12q9-10 18 0v12"} fill={["#315b86","#587f9d","#ded1ba","#3f6b7a"][i%4]}/>
+   <path d={"M"+(x-6)+" "+(31+(i%2)*3)+"q6-8 12 0"} stroke="#394657" strokeWidth="3" fill="none"/>
+  </g>)}
+ </svg>;
+}
+
 const days=['평일','주말','공휴일'];
 const emptySource={data:{},hours:[5,25],thresholds:CONGESTION_THRESHOLDS,sourceDate:null};
 const testWords={ko:{test:'신규 API 테스트',days:['평일','토요일','공휴일'],unknown:'방면 미확인',refreshWarning:'이전 정상 조회 자료입니다. 갱신에 실패했습니다.'},en:{test:'New API test',days:['Weekdays','Saturday','Holidays'],unknown:'Direction unavailable',refreshWarning:'Showing the last successful result. Refresh failed.'},ja:{test:'新APIテスト',days:['平日','土曜日','祝日'],unknown:'方面未確認',refreshWarning:'更新に失敗したため前回のデータを表示しています。'},zh:{test:'新API测试',days:['工作日','星期六','节假日'],unknown:'方向未确认',refreshWarning:'更新失败，正在显示上次成功查询的数据。'}};
@@ -132,22 +155,37 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  </div></div>
  {!embedded&&<footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>}
  {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
- <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog" aria-label={t.crowdHelpTitle}><header><h2>{t.crowdHelpTitle}</h2><button onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
- <div className="tl-help-example">
-  <p className="tl-example-title"><strong><b className="tl-example-line" style={{background:colors[2]}}>2</b><span className="tl-example-station">{exampleName('역삼')}</span></strong><span>{t.exampleDay} {t.exampleHour}</span></p><strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
-  <div className="tl-example-times"><span>18:00–18:30</span><span>18:30–19:00</span></div>
-  <div className="tl-example-tile">
-   <div className="tl-example-quadrants">{exampleCrowd.flat().map((level,i)=><div className="tl-help-cell" key={i} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div>
-   <strong className="tl-help-hour">18</strong>
+ <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog tl-guide-dialog" lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
+  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
+  <div className="tl-guide-body">
+   <div className="tl-guide-intro"><strong>{t.crowdTitle} (%)</strong><p>{t.crowdGuideDefinition}</p></div>
+   <section className="tl-guide-section">
+    <h3>{t.crowdGuideGrades}</h3>
+    <div className="tl-guide-grades">{t.crowdLevels.map((level,i)=><div className="tl-guide-grade" key={level}>
+     <div className="tl-guide-scene"><CrowdGuideScene level={i}/></div>
+     <div className="tl-guide-grade-content"><div className="tl-guide-grade-head"><strong style={{background:crowdingColors[i]}}>{level}</strong><b>{t.crowdRange(i,crowdingThresholds)}</b></div><p>{t.crowdGuideDescriptions[i]}</p></div>
+    </div>)}</div>
+   </section>
+   <section className="tl-guide-section tl-guide-benchmarks">
+    <h3>{t.crowdGuideBenchmarks}</h3>
+    <div className="tl-guide-benchmark-grid">{t.crowdGuideBenchmarksData.map(([number,description])=><div key={number} className="tl-guide-benchmark"><b>{number}</b><span>{description}</span></div>)}</div>
+   </section>
+   <section className="tl-guide-section tl-guide-reading">
+    <h3>{t.crowdGuideReading}</h3>
+    <div className="tl-guide-reading-card">
+     <div className="tl-help-example">
+      <p className="tl-example-title"><strong><b className="tl-example-line" style={{background:colors[2]}}>2</b><span className="tl-example-station">{exampleName('역삼')}</span></strong><span>{t.exampleDay} {t.exampleHour}</span></p>
+      <strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
+      <div className="tl-example-times"><span>18:00–18:30</span><span>18:30–19:00</span></div>
+      <div className="tl-example-tile"><div className="tl-example-quadrants">{exampleCrowd.flat().map((level,i)=><div className="tl-help-cell" key={i} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div><strong className="tl-help-hour">18</strong></div>
+     </div>
+     <div className="tl-guide-reading-steps">{t.crowdHelpSteps.map(([heading,detail],i)=><div className="tl-guide-reading-step" key={heading}><b>{i+1}</b><p><strong>{heading}</strong><span>{detail}</span></p></div>)}
+     </div>
+    </div>
+   </section>
+   <section className="tl-guide-section tl-guide-notice"><h3>{t.crowdGuideNotice}</h3><p>{t.crowdGuideNoticeText}</p>{crowdingSourceDate&&<p>{crowdingSourceDate}</p>}</section>
+   <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
   </div>
- </div>
- <div className="tl-help-steps">
-  {t.crowdHelpSteps.map(([heading,detail],i)=><div className="tl-help-step" key={i}><span className="tl-help-symbol" aria-hidden="true">{i===0?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h18M7 8l-4 4 4 4m10-8 4 4-4 4"/></svg>:i===1?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M8 7l4-4 4 4m-8 10 4 4 4-4"/></svg>:<span className="tl-help-mini-grid">{crowdingColors.slice(0,4).map(color=><i key={color} style={{background:color}}/>)}</span>}</span><div><strong>{heading}</strong><span>{detail}</span></div></div>)}
- <div className="tl-help-scale tl-help-step tl-help-scale-card" role="img" aria-label={t.crowdLevels.map((label,i)=>label+' '+(i===0?' < '+crowdingThresholds[0]+'%':i===3?' ≥ '+crowdingThresholds[2]+'%':crowdingThresholds[i-1]+'% – < '+crowdingThresholds[i]+'%')).join(' · ')}>
-  <div className="tl-help-scale-ranges" aria-hidden="true">{t.crowdLevels.map((label,i)=><div className="tl-help-range" key={i}><span className="tl-help-range-label" style={{background:crowdingColors[i]}}>{label}</span><span className="tl-help-range-value">{t.crowdRange(i,crowdingThresholds)}</span></div>)}</div>
- </div>
- </div>
- <p className="tl-help-note">{t.crowdNote}{crowdingSourceDate?' · '+crowdingSourceDate:''}<br/>{t.crowdPolicy}</p>
- <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button></dialog>
+ </dialog>
  </section></div>;
 }

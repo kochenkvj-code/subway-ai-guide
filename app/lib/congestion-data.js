@@ -32,7 +32,7 @@ export function normalizeDirection(value,line){
  return null;
 }
 // Passenger-facing guidance levels; raw percentages remain unchanged.
-export const CONGESTION_THRESHOLDS=[50,80,110];
+export const CONGESTION_THRESHOLDS=[35,75,110];
 export function congestionLevel(value){
  if(typeof value!=='number'||!Number.isFinite(value)||value<0)return null;
  return CONGESTION_THRESHOLDS.filter(boundary=>value>=boundary).length;

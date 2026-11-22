@@ -287,3 +287,53 @@
 .tl-row-dest>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tl-row-dest>.tl-express{flex:none;margin-left:0;white-space:nowrap;padding:0 3px;line-height:1.5}
 .tl-column li>.tl-row-dest>span{overflow-wrap:normal}
+
+
+/* 2026-11 passenger guide — responsive illustrated levels, compact benchmarks, prominent 2x2 reading example. */
+.tl-crowd-dialog.tl-guide-dialog{width:min(94vw,430px);max-width:430px;max-height:min(90dvh,900px);padding:0;overflow-y:auto;overscroll-behavior:contain;border-radius:18px;border:1px solid #d4e1ec;color:#203a32}
+.tl-guide-dialog>.tl-guide-header{position:sticky;top:0;z-index:4;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px;background:linear-gradient(105deg,#16375c,#105caa);color:white;padding:12px 16px}
+.tl-guide-dialog>.tl-guide-header h2{font-size:17px;font-weight:750;color:white}
+.tl-guide-dialog>.tl-guide-header button{min-width:36px;min-height:36px;padding:0;color:#fff;font-size:26px}
+.tl-guide-body{display:grid;gap:16px;padding:14px 13px 16px}
+.tl-guide-intro{display:grid;gap:5px;padding:11px 12px;border-radius:11px;background:#edf4fc;color:#244363}
+.tl-guide-intro>strong{font-size:13px}
+.tl-guide-dialog .tl-guide-intro p{font-size:11px;line-height:1.5;margin:0}
+.tl-guide-section{display:grid;gap:9px;min-width:0}
+.tl-guide-section>h3{font-size:14px;font-weight:760;margin:0;padding-left:9px;line-height:1.45;border-left:4px solid #1879db;color:#19324b}
+.tl-guide-grades{display:grid;gap:7px}
+.tl-guide-grade{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:8px;border:1px solid #e5edf4;background:#f9fbfe;border-radius:11px;padding:6px;min-width:0}
+.tl-guide-scene{width:100%;overflow:hidden;border-radius:8px}
+.tl-guide-scene svg{display:block;width:100%;height:auto}
+.tl-guide-grade-content{min-width:0;display:grid;gap:4px}
+.tl-guide-grade-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.tl-guide-grade-head>strong{display:inline-flex;justify-content:center;align-items:center;min-width:51px;min-height:26px;border-radius:7px;color:#173e38;font-size:13px;font-weight:780}
+.tl-guide-grade-head>b{font-size:12px;color:#213b50;font-weight:740;white-space:nowrap}
+.tl-guide-dialog .tl-guide-grade-content p{font-size:11px;line-height:1.42;color:#45596b;margin:0}
+.tl-guide-benchmarks{gap:7px}
+.tl-guide-benchmark-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.tl-guide-benchmark{display:grid;align-content:center;gap:4px;min-width:0;padding:8px 3px;text-align:center;background:#f0f4f8;border-radius:8px}
+.tl-guide-benchmark b{font-size:14px;line-height:1.2;color:#1e3654;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl-guide-benchmark span{font-size:10px;color:#4d6377;line-height:1.35}
+.tl-guide-reading{gap:10px}
+.tl-guide-reading>h3{background:#e9f2ff;padding:10px 10px 10px 12px;border-left:5px solid #1879db;border-radius:7px;font-size:16px}
+.tl-guide-reading-card{border:1px solid #d6e5f5;border-radius:12px;padding:13px 9px 12px;background:#f7fbff;min-width:0}
+.tl-guide-reading .tl-help-example{width:100%;max-width:350px;grid-template-columns:78px minmax(0,1fr) minmax(0,1fr);margin:0 auto 12px;column-gap:0}
+.tl-guide-reading .tl-help-example .tl-example-title{font-size:12px}
+.tl-guide-reading .tl-example-title>strong,.tl-guide-reading .tl-example-title>span{font-size:12px}
+.tl-guide-reading .tl-example-direction{font-size:13px}
+.tl-guide-reading .tl-example-times{font-size:11px}
+.tl-guide-reading .tl-example-tile,.tl-guide-reading .tl-example-quadrants{min-height:162px}
+.tl-guide-reading .tl-example-quadrants .tl-help-cell,.tl-guide-reading .tl-example-quadrants .tl-help-cell:nth-child(n+3){font-size:14px;min-height:81px;line-height:1.3}
+.tl-guide-reading .tl-help-example .tl-help-hour{font-size:42px}
+.tl-guide-reading-steps{display:grid;gap:7px}
+.tl-guide-reading-step{display:flex;align-items:flex-start;gap:9px;min-width:0}
+.tl-guide-reading-step>b{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:50%;background:#1879db;color:white;font-size:10px}
+.tl-guide-reading-step p{display:grid;gap:1px;font-size:11px;line-height:1.45;margin:0;min-width:0}
+.tl-guide-reading-step strong{font-size:11px;color:#214f91}
+.tl-guide-reading-step span{color:#465c70}
+.tl-guide-notice{padding:11px;background:#edf4fc;border-radius:10px;gap:5px}
+.tl-guide-notice>h3{border:0;padding:0;color:#1d466f;font-size:12px}
+.tl-guide-dialog .tl-guide-notice p{font-size:10.5px;line-height:1.55;margin:0;color:#4b6176}
+.tl-guide-dialog .tl-help-close{margin:0;min-height:42px;font-size:13px;font-weight:650}
+.v2-position-trains .v2-summary-crowding-note{font-size:10px;line-height:1.45;color:#64758b;text-align:center;margin:6px 2px 0}
+@media(max-width:350px){.tl-crowd-dialog.tl-guide-dialog{width:calc(100vw - 16px)}.tl-guide-body{padding:12px 10px}.tl-guide-grade{grid-template-columns:84px minmax(0,1fr);gap:6px}.tl-guide-grade-head>b{font-size:11px}.tl-guide-reading .tl-help-example{grid-template-columns:69px minmax(0,1fr) minmax(0,1fr)}.tl-guide-reading .tl-example-title>strong,.tl-guide-reading .tl-example-title>span{font-size:10.5px}.tl-guide-reading .tl-example-quadrants .tl-help-cell{font-size:12px}}

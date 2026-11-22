@@ -16,7 +16,7 @@ const base=process.env.BASE_URL||'http://localhost:3191';
      return r.fulfill({json:{ok:true,stationCode:code,line:model.timetableStation(code).line,day,businessDate:model.serviceClock().businessDate,...adapter.compileOperationTimetable(empty?[]:makeRows(code),model.timetableStation(code)),source:{dataset:'15098251',revision:'fixture',cacheState:'fresh'}}});
     }
     if(u.pathname==='/api/v2/timetable-lab/crowding'){
-     if(crowdFail)return r.fulfill({status:503,json:{error:'fixture'}});const code=u.searchParams.get('station'),s=model.timetableStation(code);return r.fulfill({json:{stationCode:code,data:{[s.line+':'+code]:'0'.repeat(84)+'1'.repeat(84)+'2'.repeat(84)},hours:[5,25],thresholds:[50,80,110],sourceDate:null}});
+     if(crowdFail)return r.fulfill({status:503,json:{error:'fixture'}});const code=u.searchParams.get('station'),s=model.timetableStation(code);return r.fulfill({json:{stationCode:code,data:{[s.line+':'+code]:'0'.repeat(84)+'1'.repeat(84)+'2'.repeat(84)},hours:[5,25],thresholds:[35,75,110],sourceDate:null}});
     }
     return r.fulfill({status:503,json:{error:'fixture'}});
    });

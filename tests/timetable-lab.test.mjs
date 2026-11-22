@@ -69,7 +69,9 @@ test('half-hour data preserves Gangnam direction differences and missing early s
 test('timetable data and passenger-facing real-time classification share thresholds',async()=>{
  const cm=await loadAppModule('app/lib/timetable-lab-crowding.js');
  const shared=await loadAppModule('app/lib/congestion-data.js');
- assert.equal(JSON.stringify(cm.crowdingThresholds),JSON.stringify(shared.CONGESTION_THRESHOLDS));
+ assert.equal(JSON.stringify(shared.CONGESTION_THRESHOLDS),'[35,75,110]');
+ // Historical fixture is retained only for legacy regression coverage, not rendered by the administrator.
+ assert.equal(JSON.stringify(cm.crowdingThresholds),'[50,80,110]');
  const cols=[{next:'강남',providerDir:'0'},{next:'선릉',providerDir:'1'}];
  assert.equal(JSON.stringify(cm.crowdingHalves(model.timetableStation('0221'),'평일',18,cols)),'[[3,2],[2,1]]');
 });
@@ -97,7 +99,7 @@ test('protected crowding dataset rejects anonymous and forged callers',async()=>
  const authorized=await GET({url:'https://test/api/v2/timetable-lab/crowding?station=0154',cookies:{get:()=>({value:cookie})}});
  assert.equal(authorized.status,200);
  assert.match(authorized.headers.get('cache-control'),/private, no-store/);
- const body=await authorized.json();assert.deepEqual(body.thresholds,[50,80,110]);assert.equal(body.source,'api');assert.equal(body.sourceDate,null);assert.equal(body.data['1:0154'][42+26],'1');assert.equal(calls,1);
+ const body=await authorized.json();assert.deepEqual(body.thresholds,[35,75,110]);assert.equal(body.source,'api');assert.equal(body.sourceDate,null);assert.equal(body.data['1:0154'][42+26],'1');assert.equal(calls,1);
 });
 
 test('embedded timetable uses the fixed station and anchors hour shortcuts below the controls',()=>{

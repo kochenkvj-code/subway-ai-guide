@@ -20,7 +20,7 @@ test('direction mapping inner/outer and missing or unsupported records',()=>{
  assert.equal(compactCongestionRow(sample({LINE:'2',UP_DOWN_SE:'외선'})).dir,'1');
  assert.equal(compactCongestionRow(sample({UP_DOWN_SE:'unknown'})),null);
  for(const v of [null,'','-',0,'0',false,-1])assert.equal(parseCongestionValue(v),null);
- assert.deepEqual([49.99,50,79.99,80,109.99,110].map(congestionLevel),[0,1,1,2,2,3]);
+ assert.deepEqual([34.99,35,74.99,75,109.99,110].map(congestionLevel),[0,1,1,2,2,3]);
 });
 test('only complete successful pages accepted, never an error payload',()=>{
  const good={subwConfusion:{RESULT:{CODE:'INFO-000'},list_total_count:2,row:[sample(),sample()]}};
@@ -54,7 +54,7 @@ test('API station hour categories agree with live values at every supplied slot,
  const rows=[row('상선',{TIME1800:77,TIME1830:81,TIME0030:25}),row('하선',{TIME1800:49.1,TIME1830:50}),row('상선',{TIME1800:61},'일요일'),row('상선',{TIME1830:82})];
  const src=stationCrowdingSource(rows,s);
  const seq=src.data['8:2812'];
- assert.equal(seq[26],'1');assert.equal(seq[27],'4');assert.equal(seq[42+26],'0');assert.equal(seq[42+27],'1');assert.equal(seq[39],'0');
+ assert.equal(seq[26],'2');assert.equal(seq[27],'4');assert.equal(seq[42+26],'1');assert.equal(seq[42+27],'1');assert.equal(seq[39],'0');
  for(const [now,index] of [['2026-11-19T18:14:00+09:00',26],['2026-11-19T18:45:00+09:00',27],['2026-11-20T00:40:00+09:00',39],['2026-12-25T18:14:00+09:00',4*42+26]]){
   const slot=congestionSlot(Date.parse(now)),values=selectCongestion(rows,s,slot);
   const dayIndex=['평일','토요일','일요일'].indexOf(slot.day);
