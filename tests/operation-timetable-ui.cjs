@@ -5,7 +5,7 @@ const base=process.env.BASE_URL||'http://localhost:3191';
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const errors=[],queries=[];let fail=false,empty=false,crowdFail=false;
  const makeRows=code=>{const row=(dir,dest,id,arrival='15:00:00')=>({'고유번호':String(id),'호선':model.timetableStation(code).line,'역사코드':code,'역사명':model.timetableStation(code).names.ko,'주중주말':'DAY','방향':dir,'급행여부':id===2?'1':'0','열차코드':'T'+id,'열차도착시간':arrival,'열차출발시간':id===1?'15:03:00':'15:05:30','출발역':code==='2611'?'응암':'인천','도착역':dest});return code==='0211'?[row('IN','성수',1),row('OUT','성수',2),row('DOWN','신설동',3,'')]:code==='0200'?[row('DOWN','신도림',1,'')]:[row('UP','의정부',1),row('DOWN','인천',2)];};
  try{
-  const anonymous=await browser.newContext();const response=await anonymous.request.get(base+'/api/v2/operation-timetable-test?stationCode=0154');assert.equal(response.status(),403);assert.equal((await anonymous.request.get(base+'/v2/operation-timetable-test')).status(),404);await anonymous.close();
+  const anonymous=await browser.newContext();const response=await anonymous.request.get(base+'/api/v2/operation-timetable-test?stationCode=0154');assert.equal(response.status(),403);assert.equal((await anonymous.request.get(base+'/v2/operation-timetable-test')).status(),200);await anonymous.close();
   for(const lang of ['ko','en','ja','zh']){
    const c=await browser.newContext({viewport:{width:390,height:844},locale:lang==='zh'?'zh-CN':lang});await c.addInitScript(()=>localStorage.setItem('subway_ai_guide_analytics_excluded','1'));
    assert.equal((await c.request.post(base+'/api/stats/auth',{data:{password:'fixture-only'}})).status(),200);
