@@ -345,3 +345,17 @@
 .tl-guide-image-close{position:absolute;top:0;right:0;z-index:1;width:15%;height:11%;min-width:40px;min-height:38px;border:0;background:transparent;cursor:pointer}
 .tl-guide-image-close:focus-visible{outline:3px solid #ffbf47;outline-offset:-4px;border-radius:9px}
 .tl-guide-image-close .tl-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+
+/* Mobile Korean guide: two-by-two illustrated levels, with original poster sections. */
+.tl-crowd-dialog.tl-image-dialog{width:min(calc(100vw - 16px),420px);max-width:calc(100vw - 16px);height:auto;min-height:0;max-height:calc(100dvh - 16px);overflow:hidden;padding:0;margin:auto;border:0;border-radius:18px;box-sizing:border-box}
+.tl-image-dialog .tl-guide-image-wrap{display:block;position:relative;width:100%;max-width:100%;height:auto;box-sizing:border-box;background:#fff}
+.tl-image-dialog .tl-poster-head,.tl-image-dialog .tl-poster-tail{display:block;width:100%;height:auto;overflow:hidden}
+.tl-image-dialog .tl-poster-grades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:0 9px 5px}
+.tl-image-dialog .tl-poster-grade{display:flex;align-items:center;flex-direction:column;min-width:0;gap:4px;padding:8px 5px 5px;background:var(--poster-bg);border-radius:11px;box-sizing:border-box}
+.tl-image-dialog .tl-poster-grade-title{display:grid;place-items:center;min-width:74px;min-height:25px;padding:1px 8px;border-radius:30px;background:var(--poster-strong);color:var(--poster-label-color);font-size:16px;font-weight:800;line-height:1.2}
+.tl-image-dialog .tl-poster-scene{display:block;width:100%;height:auto;aspect-ratio:254/108;border-radius:6px;overflow:hidden}
+.tl-image-dialog .tl-poster-grade-range{display:block;text-align:center;width:100%;background:var(--poster-range);border-radius:7px;font-size:13px;font-weight:800;line-height:1.5;padding:2px 0;white-space:nowrap;color:#25383f}
+.tl-image-dialog .tl-poster-grade-desc{display:flex;justify-content:center;align-items:center;min-height:30px;width:100%;text-align:center;font-size:10.5px;line-height:1.4;font-weight:600;color:#22313a;overflow-wrap:keep-all}
+.tl-image-dialog .tl-guide-image-close{top:0;right:0;width:45px;height:36px;min-height:36px;min-width:40px;z-index:2}
+@media(max-width:350px){.tl-image-dialog .tl-poster-grade{padding:6px 4px 4px;gap:3px}.tl-image-dialog .tl-poster-grade-title{min-height:23px;font-size:14px}.tl-image-dialog .tl-poster-grade-range{font-size:11px}.tl-image-dialog .tl-poster-grade-desc{font-size:9.5px}.tl-image-dialog .tl-poster-grades{padding:0 6px 4px;gap:5px}}

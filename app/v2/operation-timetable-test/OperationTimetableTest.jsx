@@ -157,8 +157,28 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
  <dialog ref={crowdHelp} className={"tl-dialog tl-crowd-dialog"+(lang==='ko'?" tl-image-dialog":" tl-guide-dialog")} lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
  {lang==='ko' ? <div className="tl-guide-image-wrap">
-   <img src="/images/congestion-guide-ko.webp" alt={t.crowdHelpTitle} width="1168" height="1279" decoding="async"/>
-   <button type="button" className="tl-guide-image-close" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}><span className="tl-sr-only">{t.close}</span></button>
+    <svg className="tl-poster-head" viewBox="0 0 1168 246" role="img" aria-label="예상혼잡도란? 열차 정원 대비 승차인원 비율과 혼잡도 등급">
+      <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+    </svg>
+    <div className="tl-poster-grades" aria-label="혼잡도 등급과 기준">
+      {[
+        {name:'여유',range:'35% 미만',desc:'좌석에 앉을 가능성이 높은 수준',sourceX:51,bg:'#edfff0',strong:'#078c22',rangeBg:'#b8f3c2',labelColor:'#fff'},
+        {name:'보통',range:'35%~75% 미만',desc:'좌석은 대부분 찼지만 서서 이용하기 무난한 수준',sourceX:330,bg:'#e7f5ff',strong:'#078cd3',rangeBg:'#bfe7ff',labelColor:'#fff'},
+        {name:'밀집',range:'75%~110% 미만',desc:'서 있는 승객이 많아 이동이 다소 불편한 수준',sourceX:600,bg:'#fff7df',strong:'#ffca00',rangeBg:'#ffea99',labelColor:'#533100'},
+        {name:'혼잡',range:'110% 이상',desc:'승객 간 간격이 좁고 이동이 불편할 수 있는 수준',sourceX:875,bg:'#fff1f1',strong:'#e92345',rangeBg:'#ffd0d7',labelColor:'#fff'}
+      ].map(card=><div className="tl-poster-grade" key={card.name} style={{'--poster-bg':card.bg,'--poster-strong':card.strong,'--poster-range':card.rangeBg,'--poster-label-color':card.labelColor}}>
+        <b className="tl-poster-grade-title">{card.name}</b>
+        <svg className="tl-poster-scene" viewBox={card.sourceX+' 316 254 108'} aria-hidden="true">
+          <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+        </svg>
+        <b className="tl-poster-grade-range">{card.range}</b>
+        <span className="tl-poster-grade-desc">{card.desc}</span>
+      </div>)}
+    </div>
+    <svg className="tl-poster-tail" viewBox="0 576 1168 703" role="img" aria-label="주요 기준값, 시간표에서 이렇게 읽어요, 확인해 주세요">
+      <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+    </svg>
+    <button type="button" className="tl-guide-image-close" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}><span className="tl-sr-only">{t.close}</span></button>
   </div> : <>  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
   <div className="tl-guide-body">
    <div className="tl-guide-intro"><strong>{t.crowdTitle} (%)</strong><p>{t.crowdGuideDefinition}</p></div>
