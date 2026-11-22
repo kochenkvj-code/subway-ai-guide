@@ -13,8 +13,8 @@ const testWords={ko:{test:'신규 API 테스트',days:['평일','토요일','공
 const colors={1:'#24559b',2:'#219052',3:'#ef8928',4:'#238cc4',5:'#9256ab',6:'#a77935',7:'#687a32',8:'#d13e78',9:'#ae8c35'};
 const responses=new Map();
 const two=n=>String(n).padStart(2,'0');
-// Isolated copy of the existing timetable presentation while the new provider is tested.
-export default function OperationTimetableTest({embedded=false,stationContext=null,language='ko'}){
+// Verified presentation shared by the administrator view and isolated test page.
+export default function OperationTimetableTest({embedded=false,stationContext=null,language='ko',endpoint='/api/v2/operation-timetable-test'}){
  const [crowdingSource,setCrowdingSource]=useState(emptySource);
  const {crowdingHalves,crowdingSourceDate,crowdingThresholds}=useMemo(()=>createCrowdingModel(crowdingSource),[crowdingSource]);
  const [ready,setReady]=useState(false);
@@ -30,18 +30,33 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  useEffect(()=>{if(embedded||!ready)return;const u=new URL(location.href);u.searchParams.set('station',code);u.searchParams.set('lang',lang);history.replaceState(history.state,'',u.pathname+u.search);},[embedded,ready,code,lang]);
  useEffect(()=>{
  if(!ready)return;
- const key=code+'|'+day+'|'+clock.businessDate,cached=responses.get(key),controller=new AbortController();let live=true;
+ const key=endpoint+'|'+code+'|'+day+'|'+clock.businessDate,cached=responses.get(key),controller=new AbortController();let live=true;
  setError(false);setHour(null);setExpress(false);
  if(!retry&&cached&&Date.now()-cached.at<300000){setData(cached.data);setLoading(false);return;}
  setLoading(true);setData(null);
- fetch('/api/v2/operation-timetable-test?'+new URLSearchParams({stationCode:code,day}),{cache:'no-store',signal:controller.signal}).then(async r=>{const d=await r.json();if(!r.ok||!d.ok||d.stationCode!==code)throw Error();if(live){responses.set(key,{data:d,at:Date.now()});if(responses.size>30)responses.delete(responses.keys().next().value);setData(d);}}).catch(()=>{if(live&&!controller.signal.aborted)setError(true);}).finally(()=>{if(live)setLoading(false);});
+ fetch(endpoint+'?'+new URLSearchParams({stationCode:code,day}),{cache:'no-store',signal:controller.signal}).then(async r=>{const d=await r.json();if(!r.ok||!d.ok||d.stationCode!==code)throw Error();if(live){responses.set(key,{data:d,at:Date.now()});if(responses.size>30)responses.delete(responses.keys().next().value);setData(d);}}).catch(()=>{if(live&&!controller.signal.aborted)setError(true);}).finally(()=>{if(live)setLoading(false);});
  return()=>{live=false;controller.abort();};
- },[ready,code,day,clock.businessDate,retry]);
+ },[ready,code,day,clock.businessDate,retry,endpoint]);
  useEffect(()=>{
-  const controller=new AbortController();let live=true;setCrowdingSource(emptySource);
-  fetch('/api/v2/timetable-lab/crowding?station='+encodeURIComponent(code),{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error();const value=await r.json();if(value.stationCode!==code||!value.data||!Array.isArray(value.thresholds))throw Error();if(live)setCrowdingSource(value);}).catch(()=>{if(live)setCrowdingSource(emptySource);});
-  return()=>{live=false;controller.abort();};
+  let live=true,pending=false,controller;setCrowdingSource(emptySource);
+  async function load(){
+   if(!live||pending||document.visibilityState!=='visible')return;
+   pending=true;controller=new AbortController();
+   try{
+    const r=await fetch('/api/v2/timetable-lab/crowding?station='+encodeURIComponent(code),{cache:'no-store',signal:controller.signal});
+    if(!r.ok)throw Error();const value=await r.json();
+    if(value.stationCode!==code||!value.data||!Array.isArray(value.thresholds))throw Error();
+    if(live)setCrowdingSource(value);
+   }catch{if(live)setCrowdingSource(emptySource);}finally{pending=false;}
+  }
+  void load();const timer=setInterval(load,300000);
+  const wake=()=>{if(document.visibilityState==='visible')void load();};
+  document.addEventListener('visibilitychange',wake);
+  return()=>{live=false;clearInterval(timer);controller?.abort();document.removeEventListener('visibilitychange',wake);};
  },[code,retry]);
+ useEffect(()=>{
+  if(embedded&&stationContext?.stationCode&&timetableStation(stationContext.stationCode)&&code!==stationContext.stationCode){setCode(stationContext.stationCode);setData(null);setLoading(true);setHour(null);}
+ },[embedded,stationContext?.stationCode,code]);
  useEffect(()=>()=>clearTimeout(timer.current),[]);
  const hours=data?.hours||Array.from({length:21},(_,i)=>i+5);
  const selected=hour!==null&&hours.includes(hour)?hour:hours.includes(clock.hour)?clock.hour:hours.find(h=>h>=clock.hour)??hours.at(-1);
