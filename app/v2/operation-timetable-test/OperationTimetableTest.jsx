@@ -175,9 +175,21 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
         <span className="tl-poster-grade-desc">{card.desc}</span>
       </div>)}
     </div>
-    <svg className="tl-poster-tail" viewBox="0 576 1168 703" role="img" aria-label="주요 기준값, 시간표에서 이렇게 읽어요, 확인해 주세요">
-      <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
-    </svg>
+    <div className="tl-poster-tail-wrap">
+      <svg className="tl-poster-tail" viewBox="0 576 1168 703" role="img" aria-label="주요 기준값과 시간표에서 이렇게 읽어요">
+        <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+      </svg>
+      <div className="tl-poster-reading-key" aria-label="좌우는 운행 방면, 상하는 30분 시간대">
+        <div className="tl-poster-reading-row">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z" fill="#0867cc"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg>
+          <span><strong>좌우</strong> = 운행 방면</span>
+        </div>
+        <div className="tl-poster-reading-row tl-poster-reading-row-lower">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#0867cc" strokeWidth="3"/><path d="M12 6v6l4 2" fill="none" stroke="#0867cc" strokeWidth="2.2" strokeLinecap="round"/></svg>
+          <span><strong>상하</strong> = 30분 시간대</span>
+        </div>
+      </div>
+    </div>
     <button type="button" className="tl-guide-image-close" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}><span className="tl-sr-only">{t.close}</span></button>
   </div> : <>  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
   <div className="tl-guide-body">

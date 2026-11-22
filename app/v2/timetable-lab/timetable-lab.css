@@ -400,3 +400,35 @@
  .tl-image-dialog .tl-poster-grades{padding:0 6px 3px;gap:5px}
  .tl-image-dialog .tl-poster-scene{height:40px}
 }
+
+/* Timetable reading legend: isolate the image-baked right-hand notes.
+   Preserve the timetable illustration, center each row, and lower only the
+   second row by 6px. The two parenthetical examples are intentionally hidden. */
+.tl-image-dialog .tl-poster-tail-wrap{position:relative;width:100%}
+.tl-image-dialog .tl-poster-reading-key{
+ position:absolute;
+ left:57%;right:2%;top:43.8%;bottom:22.2%;
+ z-index:1;display:grid;grid-template-rows:1fr 1fr;
+ box-sizing:border-box;padding:1px 3px;
+ background:linear-gradient(105deg,#fff 0%,#fff 75%,#fbfcfe 100%);
+ border-radius:3px;
+}
+.tl-image-dialog .tl-poster-reading-row{
+ display:flex;align-items:center;justify-content:center;
+ gap:5px;min-width:0;
+ color:#1a242d;font-size:clamp(9px,2.65vw,12px);
+ font-weight:750;line-height:1.15;white-space:nowrap;
+}
+.tl-image-dialog .tl-poster-reading-row+.tl-poster-reading-row{
+ border-top:1px solid #d9e5f4;
+}
+.tl-image-dialog .tl-poster-reading-row>svg{flex:none;width:18px;height:18px}
+.tl-image-dialog .tl-poster-reading-row>span{min-width:0;white-space:nowrap}
+.tl-image-dialog .tl-poster-reading-row strong{color:#0867cc;font-weight:850}
+.tl-image-dialog .tl-poster-reading-row-lower>svg,
+.tl-image-dialog .tl-poster-reading-row-lower>span{transform:translateY(6px)}
+@media(max-width:350px){
+ .tl-image-dialog .tl-poster-reading-row{gap:3px;font-size:9px}
+ .tl-image-dialog .tl-poster-reading-row>svg{width:16px;height:16px}
+ .tl-image-dialog .tl-poster-reading-key{right:1%;padding-inline:1px}
+}
