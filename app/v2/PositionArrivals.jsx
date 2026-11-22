@@ -9,10 +9,10 @@ import directions from '../data/trainLostDirection.json';
 import {CrowdingIndicator,crowdingClass,crowdingDescription,crowdingPolicyDescription} from './CrowdingIndicator';
 
 const labels={
- ko:{lead:'다음 열차, 어디쯤 왔을까요?',source:'서울시 실시간 열차 위치정보',refresh:'새로고침',loading:'열차 위치정보 확인 중…',error:'위치정보 조회 실패',unsupported:'선로 연결정보가 없습니다.',empty:'다가오는 열차정보 없음',automatic:'30초 간격 갱신 · 열차 위치 기준',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',raw:'서울시 원문 · JSON',up:'상행',down:'하행',inner:'내선',outer:'외선',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발',crowdingSummary:'예상 혼잡도 · 시간대 평균 (열차별 실시간 혼잡도 아님)'},
- en:{lead:'Where is your next train?',source:'Seoul real-time train positions',refresh:'Refresh',loading:'Checking train positions…',error:'Could not load train positions',unsupported:'Track connections unavailable.',empty:'No approaching train information',automatic:'Updates every 30 seconds · Train positions',train:'Train',destination:'Destination',location:'Current location',updated:'Data as of',raw:'Seoul API original · JSON',up:'Upbound',down:'Downbound',inner:'Inner loop',outer:'Outer loop',entry:'Entering',arrived:'Arrived',left:'Departed',previousLeft:'Left previous station',crowdingSummary:'Estimated crowding · 30-min average, not live occupancy'},
- ja:{lead:'次の電車はどこまで来たかな？',source:'ソウル市リアルタイム列車位置情報',refresh:'更新',loading:'列車位置を確認中…',error:'位置情報を取得できません',unsupported:'線路接続情報がありません。',empty:'接近中の列車情報なし',automatic:'30秒ごとに更新 · 列車位置基準',train:'列車番号',destination:'行先',location:'現在位置',updated:'情報時刻',raw:'ソウル市の原文 · JSON',up:'上り',down:'下り',inner:'内回り',outer:'外回り',entry:'進入',arrived:'到着',left:'出発',previousLeft:'前駅発',crowdingSummary:'予想混雑度 · 30分平均（列車別のリアルタイム値ではありません）'},
- zh:{lead:'下一班列车到哪儿了？',source:'首尔市实时列车位置信息',refresh:'刷新',loading:'正在查询列车位置…',error:'无法获取列车位置',unsupported:'暂无线路连接信息。',empty:'暂无接近列车的信息',automatic:'每30秒更新 · 根据列车位置',train:'列车编号',destination:'终点站',location:'当前位置',updated:'信息时间',raw:'首尔市原文 · JSON',up:'上行',down:'下行',inner:'内环',outer:'外环',entry:'进站',arrived:'到站',left:'出站',previousLeft:'前站发车',crowdingSummary:'预计拥挤度 · 30分钟时段平均，非实时车厢人数'}
+ ko:{lead:'다음 열차, 어디쯤 왔을까요?',source:'서울시 실시간 열차 위치정보',refresh:'새로고침',loading:'열차 위치정보 확인 중…',error:'위치정보 조회 실패',unsupported:'선로 연결정보가 없습니다.',empty:'다가오는 열차정보 없음',automatic:'30초 간격 갱신 · 열차 위치 기준',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',raw:'서울시 원문 · JSON',up:'상행',down:'하행',inner:'내선',outer:'외선',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발'},
+ en:{lead:'Where is your next train?',source:'Seoul real-time train positions',refresh:'Refresh',loading:'Checking train positions…',error:'Could not load train positions',unsupported:'Track connections unavailable.',empty:'No approaching train information',automatic:'Updates every 30 seconds · Train positions',train:'Train',destination:'Destination',location:'Current location',updated:'Data as of',raw:'Seoul API original · JSON',up:'Upbound',down:'Downbound',inner:'Inner loop',outer:'Outer loop',entry:'Entering',arrived:'Arrived',left:'Departed',previousLeft:'Left previous station'},
+ ja:{lead:'次の電車はどこまで来たかな？',source:'ソウル市リアルタイム列車位置情報',refresh:'更新',loading:'列車位置を確認中…',error:'位置情報を取得できません',unsupported:'線路接続情報がありません。',empty:'接近中の列車情報なし',automatic:'30秒ごとに更新 · 列車位置基準',train:'列車番号',destination:'行先',location:'現在位置',updated:'情報時刻',raw:'ソウル市の原文 · JSON',up:'上り',down:'下り',inner:'内回り',outer:'外回り',entry:'進入',arrived:'到着',left:'出発',previousLeft:'前駅発'},
+ zh:{lead:'下一班列车到哪儿了？',source:'首尔市实时列车位置信息',refresh:'刷新',loading:'正在查询列车位置…',error:'无法获取列车位置',unsupported:'暂无线路连接信息。',empty:'暂无接近列车的信息',automatic:'每30秒更新 · 根据列车位置',train:'列车编号',destination:'终点站',location:'当前位置',updated:'信息时间',raw:'首尔市原文 · JSON',up:'上行',down:'下行',inner:'内环',outer:'外环',entry:'进站',arrived:'到站',left:'出站',previousLeft:'前站发车'}
 };
 function rowsFor(state,station){
  const all=state.data?.raw?.realtimePositionList||[];
@@ -57,7 +57,6 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
     </button>;
    })}
   </div>)}</div>
-  {crowding&&Object.values(crowding).some(value=>typeof value==='number')&&<p className="v2-summary-crowding-note">{ui.crowdingSummary}</p>}
  </section>;
 }
 export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowding=null,congestionSlot=null}){

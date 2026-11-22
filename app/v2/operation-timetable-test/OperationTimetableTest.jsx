@@ -168,7 +168,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
         {name:'혼잡',range:'110% 이상',desc:'승객 간 간격이 좁고 이동이 불편할 수 있는 수준',sourceX:875,bg:'#fff1f1',strong:'#e92345',rangeBg:'#ffd0d7',labelColor:'#fff'}
       ].map(card=><div className="tl-poster-grade" key={card.name} style={{'--poster-bg':card.bg,'--poster-strong':card.strong,'--poster-range':card.rangeBg,'--poster-label-color':card.labelColor}}>
         <b className="tl-poster-grade-title">{card.name}</b>
-        <svg className="tl-poster-scene" viewBox={card.sourceX+' 316 254 108'} aria-hidden="true">
+        <svg className="tl-poster-scene" viewBox={card.sourceX+' 316 254 108'} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
         </svg>
         <b className="tl-poster-grade-range">{card.range}</b>

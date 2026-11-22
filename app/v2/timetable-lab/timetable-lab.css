@@ -335,7 +335,6 @@
 .tl-guide-notice>h3{border:0;padding:0;color:#1d466f;font-size:12px}
 .tl-guide-dialog .tl-guide-notice p{font-size:10.5px;line-height:1.55;margin:0;color:#4b6176}
 .tl-guide-dialog .tl-help-close{margin:0;min-height:42px;font-size:13px;font-weight:650}
-.v2-position-trains .v2-summary-crowding-note{font-size:10px;line-height:1.45;color:#64758b;text-align:center;margin:6px 2px 0}
 @media(max-width:350px){.tl-crowd-dialog.tl-guide-dialog{width:calc(100vw - 16px)}.tl-guide-body{padding:12px 10px}.tl-guide-grade{grid-template-columns:84px minmax(0,1fr);gap:6px}.tl-guide-grade-head>b{font-size:11px}.tl-guide-reading .tl-help-example{grid-template-columns:69px minmax(0,1fr) minmax(0,1fr)}.tl-guide-reading .tl-example-title>strong,.tl-guide-reading .tl-example-title>span{font-size:10.5px}.tl-guide-reading .tl-example-quadrants .tl-help-cell{font-size:12px}}
 
 /* Korean help: display the approved infographic itself (other languages keep accessible HTML guide). */
@@ -347,15 +346,57 @@
 .tl-guide-image-close .tl-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 
 
-/* Mobile Korean guide: two-by-two illustrated levels, with original poster sections. */
-.tl-crowd-dialog.tl-image-dialog{width:min(calc(100vw - 16px),420px);max-width:calc(100vw - 16px);height:auto;min-height:0;max-height:calc(100dvh - 16px);overflow:hidden;padding:0;margin:auto;border:0;border-radius:18px;box-sizing:border-box}
-.tl-image-dialog .tl-guide-image-wrap{display:block;position:relative;width:100%;max-width:100%;height:auto;box-sizing:border-box;background:#fff}
+/* Compact mobile guide: preserve 2×2 artwork and leave visible space around modal. */
+.tl-crowd-dialog.tl-image-dialog{
+ width:min(calc(100vw - 38px),360px);
+ max-width:calc(100vw - 38px);
+ max-height:calc(100dvh - 72px);
+ height:auto;min-height:0;padding:0;margin:auto;
+ overflow:hidden;box-sizing:border-box;border:0;border-radius:16px;
+ background:#fff;
+}
+.tl-image-dialog .tl-guide-image-wrap{display:block;position:relative;width:100%;height:auto;box-sizing:border-box;background:#fff}
 .tl-image-dialog .tl-poster-head,.tl-image-dialog .tl-poster-tail{display:block;width:100%;height:auto;overflow:hidden}
-.tl-image-dialog .tl-poster-grades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:0 9px 5px}
-.tl-image-dialog .tl-poster-grade{display:flex;align-items:center;flex-direction:column;min-width:0;gap:4px;padding:8px 5px 5px;background:var(--poster-bg);border-radius:11px;box-sizing:border-box}
-.tl-image-dialog .tl-poster-grade-title{display:grid;place-items:center;min-width:74px;min-height:25px;padding:1px 8px;border-radius:30px;background:var(--poster-strong);color:var(--poster-label-color);font-size:16px;font-weight:800;line-height:1.2}
-.tl-image-dialog .tl-poster-scene{display:block;width:100%;height:auto;aspect-ratio:254/108;border-radius:6px;overflow:hidden}
-.tl-image-dialog .tl-poster-grade-range{display:block;text-align:center;width:100%;background:var(--poster-range);border-radius:7px;font-size:13px;font-weight:800;line-height:1.5;padding:2px 0;white-space:nowrap;color:#25383f}
-.tl-image-dialog .tl-poster-grade-desc{display:flex;justify-content:center;align-items:center;min-height:30px;width:100%;text-align:center;font-size:10.5px;line-height:1.4;font-weight:600;color:#22313a;overflow-wrap:keep-all}
-.tl-image-dialog .tl-guide-image-close{top:0;right:0;width:45px;height:36px;min-height:36px;min-width:40px;z-index:2}
-@media(max-width:350px){.tl-image-dialog .tl-poster-grade{padding:6px 4px 4px;gap:3px}.tl-image-dialog .tl-poster-grade-title{min-height:23px;font-size:14px}.tl-image-dialog .tl-poster-grade-range{font-size:11px}.tl-image-dialog .tl-poster-grade-desc{font-size:9.5px}.tl-image-dialog .tl-poster-grades{padding:0 6px 4px;gap:5px}}
+.tl-image-dialog .tl-poster-grades{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:6px;padding:0 9px 4px;
+}
+.tl-image-dialog .tl-poster-grade{
+ display:flex;align-items:center;flex-direction:column;
+ min-width:0;gap:2px;padding:5px 5px 4px;
+ background:var(--poster-bg);border-radius:10px;box-sizing:border-box;
+}
+.tl-image-dialog .tl-poster-grade-title{
+ display:grid;place-items:center;
+ min-width:64px;min-height:22px;padding:1px 7px;
+ border-radius:25px;background:var(--poster-strong);
+ color:var(--poster-label-color);font-size:14px;font-weight:800;line-height:1.1;
+}
+.tl-image-dialog .tl-poster-scene{
+ display:block;width:100%;height:47px;
+ border-radius:5px;overflow:hidden;
+}
+.tl-image-dialog .tl-poster-grade-range{
+ display:block;text-align:center;width:100%;
+ background:var(--poster-range);border-radius:6px;
+ font-size:11.5px;font-weight:800;line-height:1.35;
+ padding:2px 0;white-space:nowrap;color:#25383f;
+}
+.tl-image-dialog .tl-poster-grade-desc{
+ display:flex;justify-content:center;align-items:center;
+ min-height:26px;width:100%;text-align:center;
+ font-size:9.5px;line-height:1.3;font-weight:600;
+ color:#22313a;overflow-wrap:keep-all;
+}
+.tl-image-dialog .tl-guide-image-close{
+ top:0;right:0;width:42px;height:34px;min-height:34px;min-width:40px;z-index:2;
+}
+@media(max-width:350px){
+ .tl-crowd-dialog.tl-image-dialog{width:calc(100vw - 30px);max-width:calc(100vw - 30px)}
+ .tl-image-dialog .tl-poster-grade{padding:4px 3px 3px}
+ .tl-image-dialog .tl-poster-grade-title{min-height:20px;font-size:13px}
+ .tl-image-dialog .tl-poster-grade-range{font-size:10px}
+ .tl-image-dialog .tl-poster-grade-desc{font-size:8.8px;min-height:25px}
+ .tl-image-dialog .tl-poster-grades{padding:0 6px 3px;gap:5px}
+ .tl-image-dialog .tl-poster-scene{height:40px}
+}

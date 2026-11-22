@@ -172,5 +172,3 @@
 .v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-3){--crowd-card-bg:#fdf3f3}
 .v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-heading)>:is(.v2-position-detail-card,.v2-position-empty){background:var(--crowd-card-bg)}
 
-/* Real-time train location is distinct from historical time-slot crowding. */
-.v2-position-trains .v2-summary-crowding-note{font-size:10px;line-height:1.45;color:#64758b;text-align:center;margin:6px 2px 0}
