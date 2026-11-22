@@ -30,6 +30,13 @@ function CrowdGuideScene({level}){
  </svg>;
 }
 
+const guideWords={
+ ko:{intro:'예상혼잡도(%)란?',introDesc:'열차 정원 대비 승차인원 비율로, 해당 요일·시간대의 평균 혼잡도입니다.',example:'예시',exampleStation:'역삼역 18시 (2호선)',left:'좌우',leftMeaning:'운행 방면',vertical:'상하',verticalMeaning:'30분 시간대',benchmarks:[['약 34%','좌석이 모두 찼다고 볼 수 있는 수준'],['100%','설계상 정원에 도달한 수준'],['110%','혼잡 단계 시작 (정원을 넘은 수준)']],notice:['예상혼잡도는 해당 요일의 30분 시간대 평균 통계입니다.','실제 혼잡도는 열차 상황(지연, 사고 등)에 따라 달라질 수 있습니다.']},
+ en:{intro:'What is estimated crowding (%)?',introDesc:'Average passengers relative to train capacity for this day and time slot.',example:'Example',exampleStation:'Yeoksam 18:00 (Line 2)',left:'Left/right',leftMeaning:'Direction',vertical:'Top/bottom',verticalMeaning:'30-minute slots',benchmarks:[['≈34%','All seats occupied'],['100%','Designed capacity reached'],['110%','Crowded level begins']],notice:['Crowding levels are averages for 30-minute periods on the selected day.','Actual conditions may vary due to delays and disruptions.']},
+ ja:{intro:'予想混雑度(%)とは？',introDesc:'列車定員に対する乗車人数の割合で、曜日・時間帯別の平均です。',example:'例',exampleStation:'ヨクサム駅 18時（2号線）',left:'左右',leftMeaning:'運行方面',vertical:'上下',verticalMeaning:'30分単位',benchmarks:[['約34%','座席がすべて埋まる目安'],['100%','設計上の定員に到達'],['110%','混雑段階の開始']],notice:['予想混雑度は該当曜日の30分単位の平均統計です。','遅延や事故などにより実際の混雑状況と異なる場合があります。']},
+ zh:{intro:'什么是预计拥挤度(%)？',introDesc:'乘车人数相对于列车额定容量的比例，按星期和时间段取平均。',example:'示例',exampleStation:'驿三站 18时（2号线）',left:'左右',leftMeaning:'运行方向',vertical:'上下',verticalMeaning:'30分钟时段',benchmarks:[['约34%','所有座位坐满的水平'],['100%','达到设计额定容量'],['110%','进入拥挤等级']],notice:['预计拥挤度为对应日期30分钟时段的平均统计。','实际拥挤程度会随延误、事故等情况变化。']}
+};
+const guideArt=[{x:51,bg:'#e7fbe9',badge:'#078c22',fg:'#fff'},{x:330,bg:'#e3f3ff',badge:'#078cd3',fg:'#fff'},{x:600,bg:'#fff5dc',badge:'#ffca00',fg:'#4b3100'},{x:875,bg:'#ffe8eb',badge:'#e92345',fg:'#fff'}];
 const days=['평일','주말','공휴일'];
 const emptySource={data:{},hours:[5,25],thresholds:CONGESTION_THRESHOLDS,sourceDate:null};
 const testWords={ko:{test:'신규 API 테스트',days:['평일','토요일','공휴일'],unknown:'방면 미확인',refreshWarning:'이전 정상 조회 자료입니다. 갱신에 실패했습니다.'},en:{test:'New API test',days:['Weekdays','Saturday','Holidays'],unknown:'Direction unavailable',refreshWarning:'Showing the last successful result. Refresh failed.'},ja:{test:'新APIテスト',days:['平日','土曜日','祝日'],unknown:'方面未確認',refreshWarning:'更新に失敗したため前回のデータを表示しています。'},zh:{test:'新API测试',days:['工作日','星期六','节假日'],unknown:'方向未确认',refreshWarning:'更新失败，正在显示上次成功查询的数据。'}};
@@ -155,80 +162,68 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  </div></div>
  {!embedded&&<footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>}
  {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
- <dialog ref={crowdHelp} className={"tl-dialog tl-crowd-dialog"+(lang==='ko'?" tl-image-dialog":" tl-guide-dialog")} lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
- {lang==='ko' ? <div className="tl-guide-image-wrap">
-    <svg className="tl-poster-head" viewBox="0 0 1168 246" role="img" aria-label="예상혼잡도란? 열차 정원 대비 승차인원 비율과 혼잡도 등급">
-      <defs>
-        <linearGradient id="tl-guide-clean-header" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#005cbd"/>
-          <stop offset="100%" stopColor="#0057b9"/>
-        </linearGradient>
-      </defs>
-      <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
-      <rect x="1078" y="16" width="66" height="62" fill="url(#tl-guide-clean-header)" aria-hidden="true"/>
-    </svg>
-    <div className="tl-poster-grades" aria-label="혼잡도 등급과 기준">
-      {[
-        {name:'여유',range:'35% 미만',desc:'좌석에 앉을 가능성이 높은 수준',sourceX:51,bg:'#edfff0',strong:'#078c22',rangeBg:'#b8f3c2',labelColor:'#fff'},
-        {name:'보통',range:'35%~75% 미만',desc:'좌석은 대부분 찼지만 서서 이용하기 무난한 수준',sourceX:330,bg:'#e7f5ff',strong:'#078cd3',rangeBg:'#bfe7ff',labelColor:'#fff'},
-        {name:'밀집',range:'75%~110% 미만',desc:'서 있는 승객이 많아 이동이 다소 불편한 수준',sourceX:600,bg:'#fff7df',strong:'#ffca00',rangeBg:'#ffea99',labelColor:'#533100'},
-        {name:'혼잡',range:'110% 이상',desc:'승객 간 간격이 좁고 이동이 불편할 수 있는 수준',sourceX:875,bg:'#fff1f1',strong:'#e92345',rangeBg:'#ffd0d7',labelColor:'#fff'}
-      ].map(card=><div className="tl-poster-grade" key={card.name} style={{'--poster-bg':card.bg,'--poster-strong':card.strong,'--poster-range':card.rangeBg,'--poster-label-color':card.labelColor}}>
-        <b className="tl-poster-grade-title">{card.name}</b>
-        <svg className="tl-poster-scene" viewBox={card.sourceX+' 316 254 108'} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
-        </svg>
-        <b className="tl-poster-grade-range">{card.range}</b>
-        <span className="tl-poster-grade-desc">{card.desc}</span>
-      </div>)}
-    </div>
-    <div className="tl-poster-tail-wrap">
-      <svg className="tl-poster-tail" viewBox="0 576 1168 703" role="img" aria-label="주요 기준값과 시간표에서 이렇게 읽어요">
+ <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog tl-visual-guide" lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
+  <div className="tl-vg-layout">
+   <div className="tl-vg-topbar">
+    <svg viewBox="0 0 26 29" aria-hidden="true"><rect x="5" y="5" width="16" height="21" rx="5" fill="none" stroke="currentColor" strokeWidth="2.6"/><rect x="8" y="9" width="10" height="8" rx="1.5" fill="currentColor"/><circle cx="10" cy="21" r="1.4" fill="currentColor"/><circle cx="17" cy="21" r="1.4" fill="currentColor"/><path d="M9 2h8M7 27l-2 2m14-2 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+    <h2>{t.crowdHelpTitle}</h2>
+   </div>
+   <div className="tl-vg-content">
+    <div className="tl-vg-intro"><div className="tl-vg-intro-title"><b className="tl-vg-info-icon">i</b><strong>{guideWords[lang].intro}</strong></div><p>{guideWords[lang].introDesc}</p></div>
+    <section className="tl-vg-section">
+     <h3 className="tl-vg-heading">{t.crowdGuideGrades}</h3>
+     <div className="tl-vg-grades">{guideArt.map((art,i)=><div className="tl-vg-grade" key={i} style={{'--vg-background':art.bg,'--vg-label':art.badge,'--vg-fg':art.fg}}>
+       <svg className="tl-vg-scene" viewBox={art.x+' 316 254 108'} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+       </svg>
+       <div className="tl-vg-grade-copy"><b className="tl-vg-grade-label">{t.crowdLevels[i]}</b><strong className="tl-vg-grade-range">{t.crowdRange(i,crowdingThresholds)}</strong><span className="tl-vg-grade-desc">{t.crowdGuideDescriptions[i]}</span></div>
+      </div>)}</div>
+    </section>
+    <section className="tl-vg-section">
+     <h3 className="tl-vg-heading">{t.crowdGuideBenchmarks}</h3>
+     <div className="tl-vg-benchmarks">{guideWords[lang].benchmarks.map(([num,description],i)=><div className="tl-vg-benchmark" key={num}>
+      <svg viewBox="0 0 36 38" aria-hidden="true" className="tl-vg-bench-icon">
+       {i===0?<><circle cx="14" cy="8" r="5" fill="#0963c9"/><path d="M13 16v13h11m-12-7 9 1 5 8h6" fill="none" stroke="#0963c9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></>:<>{[9,18,27].map(x=><g key={x}><circle cx={x} cy="9" r="4.5" fill="#0963c9"/><rect x={x-5} y="16" width="10" height="17" rx="3" fill="#0963c9"/></g>)}</>}
       </svg>
-      <div className="tl-poster-reading-key" aria-label="좌우는 운행 방면, 상하는 30분 시간대">
-        <div className="tl-poster-reading-row">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z" fill="#0867cc"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg>
-          <span><strong>좌우</strong> = 운행 방면</span>
-        </div>
-        <div className="tl-poster-reading-row tl-poster-reading-row-lower">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#0867cc" strokeWidth="3"/><path d="M12 6v6l4 2" fill="none" stroke="#0867cc" strokeWidth="2.2" strokeLinecap="round"/></svg>
-          <span><strong>상하</strong> = 30분 시간대</span>
-        </div>
+      <div className="tl-vg-bench-copy"><strong>{num}</strong><span>{description}</span></div>
+     </div>)}</div>
+    </section>
+    <section className="tl-vg-reading-section">
+     <h3 className="tl-vg-reading-title"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="white" strokeWidth="2.2"/><path d="M7 2v6M17 2v6M3 10h18" fill="none" stroke="white" strokeWidth="2"/></svg>{t.crowdGuideReading}</h3>
+     <div className="tl-vg-reading-card">
+      <div className="tl-vg-matrix">
+       <div className="tl-vg-example-label"><b>{guideWords[lang].example}</b><strong>{guideWords[lang].exampleStation}</strong></div>
+       <div className="tl-vg-matrix-grid">
+        <span className="tl-vg-matrix-empty"></span>
+        <b className="tl-vg-matrix-direction">← {directionLabel('강남')}</b>
+        <b className="tl-vg-matrix-direction">{directionLabel('선릉')} →</b>
+        <span className="tl-vg-matrix-time">18:00<span>~ 18:30</span></span>
+        <strong className="tl-vg-matrix-level tl-vg-level-1">{t.crowdLevels[1]}</strong>
+        <strong className="tl-vg-matrix-level tl-vg-level-2">{t.crowdLevels[2]}</strong>
+        <span className="tl-vg-matrix-time">18:30<span>~ 19:00</span></span>
+        <strong className="tl-vg-matrix-level tl-vg-level-0">{t.crowdLevels[0]}</strong>
+        <strong className="tl-vg-matrix-level tl-vg-level-3">{t.crowdLevels[3]}</strong>
+       </div>
       </div>
-    </div>
-    <button type="button" className="tl-guide-image-footer-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
-  </div> : <>  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
-  <div className="tl-guide-body">
-   <div className="tl-guide-intro"><strong>{t.crowdTitle} (%)</strong><p>{t.crowdGuideDefinition}</p></div>
-   <section className="tl-guide-section">
-    <h3>{t.crowdGuideGrades}</h3>
-    <div className="tl-guide-grades">{t.crowdLevels.map((level,i)=><div className="tl-guide-grade" key={level}>
-     <div className="tl-guide-scene"><CrowdGuideScene level={i}/></div>
-     <div className="tl-guide-grade-content"><div className="tl-guide-grade-head"><strong style={{background:crowdingColors[i]}}>{level}</strong><b>{t.crowdRange(i,crowdingThresholds)}</b></div><p>{t.crowdGuideDescriptions[i]}</p></div>
-    </div>)}</div>
-   </section>
-   <section className="tl-guide-section tl-guide-benchmarks">
-    <h3>{t.crowdGuideBenchmarks}</h3>
-    <div className="tl-guide-benchmark-grid">{t.crowdGuideBenchmarksData.map(([number,description])=><div key={number} className="tl-guide-benchmark"><b>{number}</b><span>{description}</span></div>)}</div>
-   </section>
-   <section className="tl-guide-section tl-guide-reading">
-    <h3>{t.crowdGuideReading}</h3>
-    <div className="tl-guide-reading-card">
-     <div className="tl-help-example">
-      <p className="tl-example-title"><strong><b className="tl-example-line" style={{background:colors[2]}}>2</b><span className="tl-example-station">{exampleName('역삼')}</span></strong><span>{t.exampleDay} {t.exampleHour}</span></p>
-      <strong className="tl-example-direction">← {exampleName(exampleColumns[0].next)}</strong><strong className="tl-example-direction">{exampleName(exampleColumns[1].next)} →</strong>
-      <div className="tl-example-times"><span>18:00–18:30</span><span>18:30–19:00</span></div>
-      <div className="tl-example-tile"><div className="tl-example-quadrants">{exampleCrowd.flat().map((level,i)=><div className="tl-help-cell" key={i} style={{background:crowdingColors[level??4]}}>{level===null?'—':t.crowdLevels[level]}</div>)}</div><strong className="tl-help-hour">18</strong></div>
+      <div className="tl-vg-legend">
+       <div className="tl-vg-legend-line">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-6.5 8-12a8 8 0 1 0-16 0c0 5.5 8 12 8 12Z" fill="#0966d4"/><circle cx="12" cy="10" r="3" fill="white"/></svg>
+        <span><b>{guideWords[lang].left}</b> = {guideWords[lang].leftMeaning}</span>
+       </div>
+       <div className="tl-vg-legend-line">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#0966d4" strokeWidth="3"/><path d="M12 6v6l4 2" fill="none" stroke="#0966d4" strokeWidth="2.4" strokeLinecap="round"/></svg>
+        <span><b>{guideWords[lang].vertical}</b> = {guideWords[lang].verticalMeaning}</span>
+       </div>
+      </div>
      </div>
-     <div className="tl-guide-reading-steps">{t.crowdHelpSteps.map(([heading,detail],i)=><div className="tl-guide-reading-step" key={heading}><b>{i+1}</b><p><strong>{heading}</strong><span>{detail}</span></p></div>)}
-     </div>
+    </section>
+    <div className="tl-vg-notice">
+     <div className="tl-vg-notice-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 12-5v16L3 15zM15 7l4-3v16l-4-3M5 16l2 6h4l-2-5" fill="none" stroke="#0966d4" strokeWidth="2" strokeLinejoin="round"/></svg><strong>{t.crowdGuideNotice}</strong></div>
+     <ul>{guideWords[lang].notice.map((line,i)=><li key={i}>{line}</li>)}</ul>
     </div>
-   </section>
-   <section className="tl-guide-section tl-guide-notice"><h3>{t.crowdGuideNotice}</h3><p>{t.crowdGuideNoticeText}</p>{crowdingSourceDate&&<p>{crowdingSourceDate}</p>}</section>
-   <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
+    <button type="button" className="tl-vg-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
+   </div>
   </div>
- </>}
  </dialog>
  </section></div>;
 }
