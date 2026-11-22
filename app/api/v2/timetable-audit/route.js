@@ -25,10 +25,11 @@ function unwrap(data) {
   const total=Number(body?.totalCount??body?.list_total_count??rows.length);
   return {rows,total:Number.isFinite(total)?total:rows.length,code};
 }
-async function loadGroup(kind,day,direction,key) {
+async function loadGroup(kind,day,direction,key,temp) {
   const url=new URL(ENDPOINT);
-  const params={dataType:'JSON',pageNo:'1',numOfRows:'1000',tmprTmtblYn:'N',
+  const params={dataType:'JSON',pageNo:'1',numOfRows:'1000',
     upbdnbSe:direction,wkndSe:day,lineNm:'1호선'};
+  if(temp!=='none')params.tmprTmtblYn=temp;
   params[kind==='code'?'stnCd':'stnNm']=kind==='code'?'0154':'종로5가';
   for(const [k,v] of Object.entries(params))url.searchParams.set(k,v);
   url.searchParams.set('serviceKey',key);
@@ -105,29 +106,29 @@ function auditSource(kind,loaded,hour,clock){
       column:r.column,express:r.express})),rawAtHour:sourceRows.slice(0,220),
     rawAtHourTruncated:sourceRows.length>220};
 }
-async function diagnose(day,hour){
+async function diagnose(day,hour,temp){
   const key=process.env.SEOUL_METRO_TIMETABLE_API_KEY?.trim();
   if(!key)throw Error('KEY_NOT_CONFIGURED');
   const clock=serviceClock(),requests=['code','name'].flatMap(kind=>directions.map(direction=>({kind,direction})));
   const groups=await Promise.all(requests.map(async r=>{
-    try{return await loadGroup(r.kind,day,r.direction,key);}
+    try{return await loadGroup(r.kind,day,r.direction,key,temp);}
     catch(e){return {...r,ok:false,error:String(e?.message||'UNAVAILABLE').slice(0,90)};}
   }));
-  return {ok:groups.some(g=>g.ok),station:'종로5가',stationCode:'0154',day,hour,
+  return {ok:groups.some(g=>g.ok),station:'종로5가',stationCode:'0154',day,hour,temp,
     businessDate:clock.businessDate,checkedAt:new Date().toISOString(),
     sources:['code','name'].map(kind=>auditSource(kind,groups.filter(g=>g.kind===kind),hour,clock)),
     notice:'원본 공개 열차시간표와 현재 관리자 표시 로직의 진단 결과. 운행 실시간 도착정보가 아님.'};
 }
 export async function GET(request){
   const q=new URL(request.url).searchParams;
-  const day=q.get('day')||'주말',hour=Number(q.get('hour')||13);
-  if(!days.has(day)||!Number.isInteger(hour)||hour<5||hour>25)return reply({ok:false,error:'INVALID_QUERY'},400);
+  const day=q.get('day')||'주말',hour=Number(q.get('hour')||13),temp=q.get('temp')||'N';
+  if(!days.has(day)||!['N','Y','none'].includes(temp)||!Number.isInteger(hour)||hour<5||hour>25)return reply({ok:false,error:'INVALID_QUERY'},400);
   // Fixed station and short cache to prevent repeat upstream API calls.
-  const id=day+'|'+hour;
+  const id=day+'|'+hour+'|'+temp;
   const saved=cache.get(id);
   if(saved&&Date.now()-saved.time<300000)return reply(saved.body);
   try{
-    if(!pending.has(id))pending.set(id,diagnose(day,hour).finally(()=>pending.delete(id)));
+    if(!pending.has(id))pending.set(id,diagnose(day,hour,temp).finally(()=>pending.delete(id)));
     const body=await pending.get(id);
     if(body.ok){
       cache.set(id,{body,time:Date.now()});

@@ -9,16 +9,16 @@ const s={shell:{maxWidth:1050,margin:'0 auto',padding:'26px 14px 72px',fontFamil
   th:{padding:'9px 7px',textAlign:'left',borderBottom:'2px solid #d4e3d9',whiteSpace:'nowrap',fontSize:12,background:'#f4f8f5'}};
 const ttime=t=>String(t||'').slice(0,5);
 export default function TimetableAudit(){
- const [day,setDay]=useState('주말'),[hour,setHour]=useState('13'),[report,setReport]=useState(null);
+ const [day,setDay]=useState('주말'),[hour,setHour]=useState('13'),[temp,setTemp]=useState('N'),[report,setReport]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[nonce,setNonce]=useState(0);
  useEffect(()=>{
   const ac=new AbortController();setLoading(true);setError('');
-  fetch('/api/v2/timetable-audit?'+new URLSearchParams({day,hour}),{cache:'no-store',signal:ac.signal})
+  fetch('/api/v2/timetable-audit?'+new URLSearchParams({day,hour,temp}),{cache:'no-store',signal:ac.signal})
     .then(async r=>{const j=await r.json();if(!r.ok||!j.ok)throw Error(j.error||'조회 실패');setReport(j);})
     .catch(e=>{if(!ac.signal.aborted){setReport(null);setError(e.message);}})
     .finally(()=>{if(!ac.signal.aborted)setLoading(false);});
   return()=>ac.abort();
- },[day,hour,nonce]);
+ },[day,hour,temp,nonce]);
  return <main style={{minHeight:'100vh',background:'#f4f7f5'}}>
   <meta name="robots" content="noindex,nofollow"/>
   <div style={s.shell}>
@@ -28,9 +28,10 @@ export default function TimetableAudit(){
    <div style={s.card}><div style={s.grid}>
     <label>운행일 구분<br/><select style={s.control} value={day} onChange={e=>setDay(e.target.value)}>{days.map(x=><option key={x}>{x}</option>)}</select></label>
     <label>시간대<br/><select style={s.control} value={hour} onChange={e=>setHour(e.target.value)}>{Array.from({length:21},(_,i)=>i+5).map(h=><option key={h} value={h}>{String(h%24).padStart(2,'0')}:00{h>=24?' (익일)':''}</option>)}</select></label>
+    <label>임시 시간표 구분<br/><select style={s.control} value={temp} onChange={e=>setTemp(e.target.value)}><option value="N">N · 일반</option><option value="Y">Y · 임시</option><option value="none">파라미터 제외</option></select></label>
     <button style={{...s.control,background:'#23634c',color:'#fff'}} disabled={loading} onClick={()=>setNonce(x=>x+1)}>{loading?'조회 중':'다시 조회'}</button>
    </div>
-   <p style={{fontSize:12,color:'#668074',marginBottom:0}}>원본 조회값: lineNm=1호선 · upbdnbSe=상행/하행 · wkndSe=선택값 · tmprTmtblYn=N · 최대 1,000건씩 페이지 반복</p>
+   <p style={{fontSize:12,color:'#668074',marginBottom:0}}>원본 조회값: lineNm=1호선 · upbdnbSe=상행/하행 · wkndSe=선택값 · tmprTmtblYn=선택값 · 최대 1,000건씩 페이지 반복</p>
    </div>
    {error&&<div style={{...s.card,color:'#b32929'}}>조회 오류: {error}</div>}
    {report&&<><p style={{fontSize:12,color:'#73857b',marginTop:18}}>조회 {new Date(report.checkedAt).toLocaleString('ko-KR')} · 영업일 {report.businessDate} · 원본 API: getTrainSch</p>
