@@ -337,3 +337,11 @@
 .tl-guide-dialog .tl-help-close{margin:0;min-height:42px;font-size:13px;font-weight:650}
 .v2-position-trains .v2-summary-crowding-note{font-size:10px;line-height:1.45;color:#64758b;text-align:center;margin:6px 2px 0}
 @media(max-width:350px){.tl-crowd-dialog.tl-guide-dialog{width:calc(100vw - 16px)}.tl-guide-body{padding:12px 10px}.tl-guide-grade{grid-template-columns:84px minmax(0,1fr);gap:6px}.tl-guide-grade-head>b{font-size:11px}.tl-guide-reading .tl-help-example{grid-template-columns:69px minmax(0,1fr) minmax(0,1fr)}.tl-guide-reading .tl-example-title>strong,.tl-guide-reading .tl-example-title>span{font-size:10.5px}.tl-guide-reading .tl-example-quadrants .tl-help-cell{font-size:12px}}
+
+/* Korean help: display the approved infographic itself (other languages keep accessible HTML guide). */
+.tl-crowd-dialog.tl-image-dialog{width:max-content;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);height:auto;padding:0;margin:auto;border:0;border-radius:18px;overflow:hidden;box-sizing:border-box}
+.tl-guide-image-wrap{position:relative;display:block;width:max-content;max-width:100%}
+.tl-guide-image-wrap>img{display:block;width:auto;height:auto;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);object-fit:contain}
+.tl-guide-image-close{position:absolute;top:0;right:0;z-index:1;width:15%;height:11%;min-width:40px;min-height:38px;border:0;background:transparent;cursor:pointer}
+.tl-guide-image-close:focus-visible{outline:3px solid #ffbf47;outline-offset:-4px;border-radius:9px}
+.tl-guide-image-close .tl-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}

@@ -155,8 +155,11 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  </div></div>
  {!embedded&&<footer className="tl-footer"><a href={'/?station='+code+'&lang='+lang} aria-label={t.home}>⌂</a><div>{[['ko','한국어'],['en','English'],['ja','日本語'],['zh','中文']].map(([value,label])=><button key={value} lang={value==='zh'?'zh-CN':value} aria-pressed={lang===value} onClick={()=>setLang(value)}>{label}</button>)}</div></footer>}
  {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
- <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog tl-guide-dialog" lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
-  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
+ <dialog ref={crowdHelp} className={"tl-dialog tl-crowd-dialog"+(lang==='ko'?" tl-image-dialog":" tl-guide-dialog")} lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
+ {lang==='ko' ? <div className="tl-guide-image-wrap">
+   <img src="/images/congestion-guide-ko.webp" alt={t.crowdHelpTitle} width="1168" height="1279" decoding="async"/>
+   <button type="button" className="tl-guide-image-close" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}><span className="tl-sr-only">{t.close}</span></button>
+  </div> : <>  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
   <div className="tl-guide-body">
    <div className="tl-guide-intro"><strong>{t.crowdTitle} (%)</strong><p>{t.crowdGuideDefinition}</p></div>
    <section className="tl-guide-section">
@@ -186,6 +189,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
    <section className="tl-guide-section tl-guide-notice"><h3>{t.crowdGuideNotice}</h3><p>{t.crowdGuideNoticeText}</p>{crowdingSourceDate&&<p>{crowdingSourceDate}</p>}</section>
    <button type="button" className="tl-help-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
   </div>
+ </>}
  </dialog>
  </section></div>;
 }
