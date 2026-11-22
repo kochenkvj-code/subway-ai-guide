@@ -158,7 +158,14 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  <dialog ref={crowdHelp} className={"tl-dialog tl-crowd-dialog"+(lang==='ko'?" tl-image-dialog":" tl-guide-dialog")} lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
  {lang==='ko' ? <div className="tl-guide-image-wrap">
     <svg className="tl-poster-head" viewBox="0 0 1168 246" role="img" aria-label="예상혼잡도란? 열차 정원 대비 승차인원 비율과 혼잡도 등급">
+      <defs>
+        <linearGradient id="tl-guide-clean-header" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#005cbd"/>
+          <stop offset="100%" stopColor="#0057b9"/>
+        </linearGradient>
+      </defs>
       <image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/>
+      <rect x="1078" y="16" width="66" height="62" fill="url(#tl-guide-clean-header)" aria-hidden="true"/>
     </svg>
     <div className="tl-poster-grades" aria-label="혼잡도 등급과 기준">
       {[
@@ -190,7 +197,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
         </div>
       </div>
     </div>
-    <button type="button" className="tl-guide-image-close" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}><span className="tl-sr-only">{t.close}</span></button>
+    <button type="button" className="tl-guide-image-footer-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
   </div> : <>  <header className="tl-guide-header"><h2>{t.crowdHelpTitle}</h2><button type="button" onClick={()=>crowdHelp.current?.close()} aria-label={t.close}>×</button></header>
   <div className="tl-guide-body">
    <div className="tl-guide-intro"><strong>{t.crowdTitle} (%)</strong><p>{t.crowdGuideDefinition}</p></div>
