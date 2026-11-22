@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs/promises';
 import {createHash,timingSafeEqual} from 'node:crypto';
+import {loadAppModule} from './helpers/load-app-module.mjs';
+const adapter=await loadAppModule('app/lib/operation-timetable-model.js');
+const model=await loadAppModule('app/lib/timetable-lab-model.js');
 const fixtureToken='a'.repeat(64),fixtureKey='fixture-api-secret';
 async function load({admin=false,key=fixtureKey,fetcher=async()=>Response.json({data:[]})}={}){
  let now=Date.now();const calls=[];
@@ -10,7 +13,9 @@ async function load({admin=false,key=fixtureKey,fetcher=async()=>Response.json({
  source=source.replace(/const probeHash='[a-f0-9]+';/,"const probeHash='"+createHash('sha256').update(fixtureToken).digest('hex')+"';").replace(/const probeExpires=\d+;/,'const probeExpires='+String(now+10000)+';');
  class Clock extends Date{static now(){return now;}}
  const ctx=vm.createContext({Response,URL,URLSearchParams,Buffer,Date:Clock,AbortSignal,process:{env:{SEOUL_METRO_OPERATION_TIMETABLE_API_KEY:key}},fetch:async(...args)=>{calls.push(args);return fetcher(...args);}});
- const mod=new vm.SourceTextModule(source,{context:ctx});await mod.link(name=>new vm.SyntheticModule(name==='node:crypto'?['createHash','timingSafeEqual']:['staffAuthorized'],function(){if(name==='node:crypto'){this.setExport('createHash',createHash);this.setExport('timingSafeEqual',timingSafeEqual);}else this.setExport('staffAuthorized',()=>admin);},{context:ctx}));await mod.evaluate();
+ const mod=new vm.SourceTextModule(source,{context:ctx});await mod.link(name=>{
+ const values=name==='node:crypto'?{createHash,timingSafeEqual}:name.includes('staff-access')?{staffAuthorized:()=>admin}:name.includes('timetable-lab-model')?{timetableStation:model.timetableStation,serviceClock:model.serviceClock}:name.includes('operation-timetable-model')?{normalizeOperationStationCode:adapter.normalizeOperationStationCode,operationDays:adapter.operationDays,compileOperationTimetable:adapter.compileOperationTimetable}:{loadOperationTimetable:async()=>{throw Error('fixture unavailable');}};
+ return new vm.SyntheticModule(Object.keys(values),function(){for(const[k,v]of Object.entries(values))this.setExport(k,v);},{context:ctx});});await mod.evaluate();
  return {calls,tick:ms=>now+=ms,get:q=>mod.namespace.GET({url:'https://test/api/timetable-diagnostic?'+q,headers:new Headers()})};
 }
 test('anonymous/invalid/expired diagnostic credentials never call upstream',async()=>{const f=await load();assert.equal((await f.get('')).status,403);assert.equal((await f.get('probe=wrong')).status,403);f.tick(11000);assert.equal((await f.get('probe='+fixtureToken)).status,403);assert.equal(f.calls.length,0);});
@@ -25,3 +30,5 @@ test('unfiltered and impossible controls, duplicate count, metadata and zero row
 test('schema probe uses fixed official host and sends no API credential',async()=>{const f=await load({admin:true,fetcher:async()=>Response.json({paths:{'/api/15098251/v1/uddi:test':{}},info:{title:'schema'}})});const r=await f.get('mode=schema');assert.equal(r.status,200);assert.equal(f.calls[0][0].hostname,'infuser.odcloud.kr');assert.equal(f.calls[0][0].searchParams.has('serviceKey'),false);});
 
 test('encoded portal key is decoded once before URLSearchParams encoding',async()=>{const f=await load({admin:true,key:'fixture%2Bkey%3D'});assert.equal((await f.get('')).status,200);assert.equal(f.calls[0][0].searchParams.get('serviceKey'),'fixture+key=');});
+
+test('diagnostic defaults to verified revision and counts padded station identity',async()=>{const f=await load({admin:true,fetcher:async()=>Response.json({data:[{'역사코드':154,'주중주말':'SAT'}]})});const d=await(await f.get('day=SAT')).json();assert.equal(d.revision,'895a541f-19c4-4457-a330-99ae77b0dc4b');assert.equal(d.matches.station,1);});
