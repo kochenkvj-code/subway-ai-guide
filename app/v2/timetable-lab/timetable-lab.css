@@ -452,7 +452,7 @@
 .tl-image-dialog .tl-guide-image-footer-close:active{filter:brightness(.93)}
 .tl-crowd-dialog.tl-image-dialog{overflow-y:auto;overscroll-behavior:contain}
 
-/* Shared Korean/English/Japanese/Chinese visual crowding guide: approved v23 UI.
+/* Shared Korean/English/Japanese/Chinese visual crowding guide: approved v27 UI.
    Timetable API, crowding calculation, and other page layouts are unchanged. */
 .tl-crowd-dialog.tl-visual-guide{
  display:none;width:min(425px,calc(100vw - 34px));max-width:calc(100vw - 34px);
@@ -477,11 +477,11 @@
 .tl-visual-guide .tl-vg-grade-heading{display:grid;gap:2px;min-width:0}
 .tl-visual-guide .tl-vg-grade-subtext{
  margin:0;padding-left:11px;font-size:10.6px;line-height:1.4;
- color:#52667d;font-weight:650;letter-spacing:-.12px;white-space:nowrap;
+ color:#52667d;font-weight:650;letter-spacing:-.12px;white-space:normal;overflow-wrap:break-word;
 }
 .tl-visual-guide .tl-vg-grades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:6px}
 .tl-visual-guide .tl-vg-grade{
- display:grid;grid-template-rows:23px minmax(59px,auto);gap:4px;min-width:0;
+ display:grid;grid-template-rows:minmax(34px,auto) minmax(59px,auto);gap:4px;min-width:0;
  padding:5px;background:var(--vg-background);border-radius:10px;
 }
 .tl-visual-guide .tl-vg-grade-head,.tl-visual-guide .tl-vg-grade-detail{
@@ -495,8 +495,8 @@
  font-size:12px;font-weight:850;text-align:center;
 }
 .tl-visual-guide .tl-vg-grade-range{
- display:block;text-align:center;font-size:12.5px;line-height:1.15;
- font-weight:850;white-space:nowrap;letter-spacing:-.45px;min-width:0;
+ display:block;text-align:center;font-size:12.5px;line-height:1.18;
+ font-weight:850;white-space:normal;word-break:normal;letter-spacing:-.45px;min-width:0;
 }
 .tl-visual-guide .tl-vg-grade-detail{align-items:start;align-content:start}
 .tl-visual-guide .tl-vg-scene{display:block;width:100%;height:53px;min-width:0;border-radius:6px;overflow:hidden}
@@ -527,7 +527,7 @@
 }
 .tl-visual-guide .tl-vg-reading-head>svg{width:16px;height:16px;flex:none;color:#075fc0}
 .tl-visual-guide .tl-vg-reading-title{
- flex:1;min-width:0;font-size:clamp(11px,3.2vw,14px);
+ flex:1;min-width:0;font-size:clamp(10px,2.8vw,13px);
  letter-spacing:-.5px;font-weight:900;white-space:nowrap;
 }
 .tl-visual-guide .tl-vg-example{
@@ -576,7 +576,7 @@
 .tl-visual-guide .tl-vg-legend-line{display:grid;grid-template-columns:18px minmax(0,1fr);gap:3px;align-items:center;min-width:0}
 .tl-visual-guide .tl-vg-legend-line+.tl-vg-legend-line{border-top:1px solid #c6d9eb}
 .tl-visual-guide .tl-vg-legend-line svg{width:18px;height:18px;flex:none}
-.tl-visual-guide .tl-vg-legend-line span{font-size:11.3px;line-height:1.2;font-weight:780;letter-spacing:-.35px;white-space:nowrap;min-width:0}
+.tl-visual-guide .tl-vg-legend-line span{font-size:11px;line-height:1.2;font-weight:850;letter-spacing:-.2px;white-space:normal;overflow-wrap:break-word;min-width:0}
 .tl-visual-guide .tl-vg-legend-line b{color:#0965c9}
 .tl-visual-guide .tl-vg-close{
  display:block;width:100%;min-height:0;margin:0;padding:10px;border:0;border-radius:11px;
@@ -613,7 +613,7 @@
  .tl-visual-guide .tl-vg-station{font-size:9px}
  .tl-visual-guide .tl-vg-grade-range{font-size:10.7px}
 }
-.tl-visual-guide[lang=en] .tl-vg-reading-title{font-size:clamp(9px,2.55vw,11px)}
+.tl-visual-guide[lang=en] .tl-vg-reading-title{font-size:11px}
 .tl-visual-guide[lang=ja] .tl-vg-reading-title{font-size:clamp(10px,2.8vw,12px)}
 
 
@@ -623,4 +623,19 @@
 }
 @media(max-width:320px){
  .tl-visual-guide .tl-vg-grade-subtext{white-space:normal}
+}
+
+/* v27 translated copy: one responsive layout, readable ranges, no forced overflow. */
+.tl-visual-guide[lang=en] .tl-vg-grade-head,
+.tl-visual-guide[lang=en] .tl-vg-grade-detail{grid-template-columns:42% minmax(0,58%)}
+.tl-visual-guide[lang=en] .tl-vg-grade-label{font-size:11px;min-width:39px;padding:0 5px}
+.tl-visual-guide[lang=en] .tl-vg-grade-range{font-size:10.5px;letter-spacing:-.2px;line-height:1.18}
+.tl-visual-guide[lang=en] .tl-vg-grade-desc{font-size:10.5px;line-height:1.3}
+.tl-visual-guide[lang=en] .tl-vg-grade-subtext{font-size:10.5px}
+.tl-visual-guide[lang=zh-CN] .tl-vg-grade-range{font-size:11px;letter-spacing:-.3px}
+.tl-visual-guide .tl-vg-directions span{white-space:normal;overflow-wrap:break-word}
+@media(max-width:375px){
+ .tl-visual-guide[lang=en] .tl-vg-grade-range{font-size:10.1px}
+ .tl-visual-guide[lang=en] .tl-vg-grade-desc{font-size:10px}
+ .tl-visual-guide[lang=en] .tl-vg-legend-line span{font-size:10.5px}
 }

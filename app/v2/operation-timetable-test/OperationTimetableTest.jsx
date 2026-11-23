@@ -31,10 +31,10 @@ function CrowdGuideScene({level}){
 }
 
 const guideWords={
- ko:{intro:'예상혼잡도(%)란?',introDesc:'열차 정원 대비 승차인원의 비율을 나타냅니다.',introBadge:'요일별 · 30분 평균',gradeSummary:'열차 정원 대비 승차인원 비율 · 요일별 30분 평균 통계',example:'예시',exampleStation:'역삼역 18시',left:'좌우',leftMeaning:'운행 방면',vertical:'상하',verticalMeaning:'30분 시간대',benchmarks:[['34%','좌석이 모두 찼다고 볼 수 있는 수준'],['100%','설계상 정원에 도달한 수준'],['110%','혼잡 단계 시작 (정원을 넘은 수준)']],notice:['예상혼잡도는 해당 요일의 30분 시간대 평균 통계입니다.','실제 혼잡도는 열차 상황(지연, 사고 등)에 따라 달라질 수 있습니다.']},
- en:{intro:'What is estimated crowding (%)?',introDesc:'The ratio of passengers to designed train capacity.',introBadge:'By day · 30-min avg',gradeSummary:'Passengers relative to train capacity · 30-minute averages by day',example:'Example',exampleStation:'Yeoksam 18:00',left:'Left/right',leftMeaning:'Direction',vertical:'Top/bottom',verticalMeaning:'30-minute slots',benchmarks:[['34%','All seats occupied'],['100%','Designed capacity reached'],['110%','Crowded level begins']],notice:['Crowding levels are averages for 30-minute periods on the selected day.','Actual conditions may vary due to delays and disruptions.']},
- ja:{intro:'予想混雑度(%)とは？',introDesc:'列車定員に対する乗車人数の割合です。',introBadge:'曜日別 · 30分平均',gradeSummary:'列車定員に対する乗車人数の比率 · 曜日別30分平均',example:'例',exampleStation:'ヨクサム駅 18時',left:'左右',leftMeaning:'運行方面',vertical:'上下',verticalMeaning:'30分単位',benchmarks:[['34%','座席がすべて埋まる目安'],['100%','設計上の定員に到達'],['110%','混雑段階の開始']],notice:['予想混雑度は該当曜日の30分単位の平均統計です。','遅延や事故などにより実際の混雑状況と異なる場合があります。']},
- zh:{intro:'什么是预计拥挤度(%)？',introDesc:'乘车人数相对于列车额定容量的比例。',introBadge:'按星期 · 30分钟平均',gradeSummary:'乘车人数占列车定员的比例 · 按星期30分钟平均',example:'示例',exampleStation:'驿三站 18时',left:'左右',leftMeaning:'运行方向',vertical:'上下',verticalMeaning:'30分钟时段',benchmarks:[['34%','所有座位坐满的水平'],['100%','达到设计额定容量'],['110%','进入拥挤等级']],notice:['预计拥挤度为对应日期30分钟时段的平均统计。','实际拥挤程度会随延误、事故等情况变化。']}
+ ko:{intro:'예상혼잡도(%)란?',introDesc:'열차 정원 대비 승차인원의 비율을 나타냅니다.',introBadge:'요일별 · 30분 평균',gradeSummary:'열차 정원 대비 승차인원 비율 · 요일별 30분 평균 통계',example:'예시',exampleStation:'역삼역 18시',directionExplain:'좌우 · 운행 방면',timeExplain:'상하 · 30분 시간대',benchmarks:[['34%','좌석이 모두 찼다고 볼 수 있는 수준'],['100%','설계상 정원에 도달한 수준'],['110%','혼잡 단계 시작 (정원을 넘은 수준)']],notice:['예상혼잡도는 해당 요일의 30분 시간대 평균 통계입니다.','실제 혼잡도는 열차 상황(지연, 사고 등)에 따라 달라질 수 있습니다.']},
+ en:{intro:'What is estimated crowding (%)?',introDesc:'The ratio of passengers to designed train capacity.',introBadge:'By day · 30-min avg',gradeSummary:'Train occupancy · 30-min averages by day',example:'Example',exampleStation:'Yeoksam 18:00',directionExplain:'Direction',timeExplain:'30-min periods',benchmarks:[['34%','All seats occupied'],['100%','At rated capacity'],['110%','Crowding begins']],notice:['Crowding levels are averages for 30-minute periods on the selected day.','Actual conditions may vary due to delays and disruptions.']},
+ ja:{intro:'予想混雑度(%)とは？',introDesc:'列車定員に対する乗車人数の割合です。',introBadge:'曜日別 · 30分平均',gradeSummary:'列車定員に対する乗車人数の比率 · 曜日別30分平均',example:'例',exampleStation:'ヨクサム駅 18時',directionExplain:'左右 · 運行方面',timeExplain:'上下 · 30分単位',benchmarks:[['34%','座席がすべて埋まる目安'],['100%','設計上の定員に到達'],['110%','混雑段階の開始']],notice:['予想混雑度は該当曜日の30分単位の平均統計です。','遅延や事故などにより実際の混雑状況と異なる場合があります。']},
+ zh:{intro:'什么是预计拥挤度(%)？',introDesc:'乘车人数相对于列车额定容量的比例。',introBadge:'按星期 · 30分钟平均',gradeSummary:'乘车人数占列车定员的比例 · 按星期30分钟平均',example:'示例',exampleStation:'驿三站 18时',directionExplain:'左右 · 运行方向',timeExplain:'上下 · 30分钟时段',benchmarks:[['34%','所有座位坐满的水平'],['100%','达到设计额定容量'],['110%','进入拥挤等级']],notice:['预计拥挤度为对应日期30分钟时段的平均统计。','实际拥挤程度会随延误、事故等情况变化。']}
 };
 const guideArt=[{x:51,bg:'#e7fbe9',badge:'#078c22',fg:'#fff'},{x:330,bg:'#e3f3ff',badge:'#078cd3',fg:'#fff'},{x:600,bg:'#fff5dc',badge:'#ffca00',fg:'#4b3100'},{x:875,bg:'#ffe8eb',badge:'#e92345',fg:'#fff'}];
 const days=['평일','주말','공휴일'];
@@ -210,7 +210,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
      </div>
      <div className="tl-vg-reading-body">
       <div className="tl-vg-demo">
-       <div className="tl-vg-directions"><span>← {directionLabel('강남')}</span><span>{directionLabel('선릉')} →</span></div>
+       <div className="tl-vg-directions"><span>← {lang==='en'?'Gangnam':directionLabel('강남')}</span><span>{lang==='en'?'Seolleung':directionLabel('선릉')} →</span></div>
        <div className="tl-vg-timeline">
         <div className="tl-vg-times"><div><b>18:00</b><span>~ 18:30</span></div><div><b>18:30</b><span>~ 19:00</span></div></div>
         <div className="tl-vg-heat">
@@ -222,12 +222,12 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
       </div>
       <div className="tl-vg-legend">
        <div className="tl-vg-legend-line">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-6.5 8-12a8 8 0 1 0-16 0c0 5.5 8 12 8 12Z" fill="#0966d4"/><circle cx="12" cy="10" r="3" fill="white"/></svg>
-        <span><b>{guideWords[lang].left}</b> = {guideWords[lang].leftMeaning}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0966d4" strokeWidth="2.3" strokeLinecap="round" aria-hidden="true"><path d="M3 12h18m-5-5 5 5-5 5M8 7l-5 5 5 5"/></svg>
+        <span>{guideWords[lang].directionExplain}</span>
        </div>
        <div className="tl-vg-legend-line">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#0966d4" strokeWidth="2.5"/><path d="M12 6v6l4 2" fill="none" stroke="#0966d4" strokeWidth="2.5" strokeLinecap="round"/></svg>
-        <span><b>{guideWords[lang].vertical}</b> = {guideWords[lang].verticalMeaning}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0966d4" strokeWidth="2.3" strokeLinecap="round" aria-hidden="true"><path d="M12 3v18m-5-5 5 5 5-5M7 8l5-5 5 5"/></svg>
+        <span>{guideWords[lang].timeExplain}</span>
        </div>
       </div>
      </div>
