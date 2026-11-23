@@ -228,8 +228,8 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
       </div>
      </div>
     </section>
-    <button type="button" className="tl-vg-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
    </div>
+   <button type="button" className="tl-vg-close" onClick={()=>crowdHelp.current?.close()}>{t.close}</button>
   </div>
  </dialog>
  </section></div>;

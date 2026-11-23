@@ -452,11 +452,12 @@
 .tl-image-dialog .tl-guide-image-footer-close:active{filter:brightness(.93)}
 .tl-crowd-dialog.tl-image-dialog{overflow-y:auto;overscroll-behavior:contain}
 
-/* Shared Korean/English/Japanese/Chinese visual crowding guide: approved v29 UI.
+/* Shared Korean/English/Japanese/Chinese visual crowding guide: approved v30 UI.
    Timetable API, crowding calculation, and other page layouts are unchanged. */
 .tl-crowd-dialog.tl-visual-guide{
- display:none;width:min(425px,calc(100vw - 34px));max-width:calc(100vw - 34px);
- max-height:none;min-height:0;height:auto;
+ display:none;position:fixed;inset:0;
+ width:min(425px,calc(100vw - 34px));max-width:calc(100vw - 34px);
+ height:max-content;min-height:0;max-height:calc(100dvh - 20px);
  margin:auto;padding:0;border:1px solid #c8d8eb;border-radius:17px;
  overflow:hidden;overscroll-behavior:none;background:#fff;color:#172638;
  box-shadow:0 12px 32px #183b5e25;font-family:Arial,'Noto Sans KR',sans-serif;
@@ -464,7 +465,7 @@
 .tl-crowd-dialog.tl-visual-guide[open]{display:block}
 .tl-visual-guide *{box-sizing:border-box}
 .tl-visual-guide .tl-vg-layout{width:100%;background:#fff}
-.tl-visual-guide .tl-vg-content{display:grid;gap:8px;padding:12px 9px 9px}
+.tl-visual-guide .tl-vg-content{display:grid;gap:8px;padding:10px 9px 7px}
 .tl-visual-guide .tl-vg-section{display:grid;gap:6px;min-width:0}
 .tl-visual-guide .tl-vg-heading{display:flex;align-items:center;gap:7px;margin:0;font-size:15px;font-weight:850;line-height:1.4;color:#172638}
 .tl-visual-guide .tl-vg-heading::before{content:"";height:18px;width:4px;flex:none;border-radius:3px;background:#0874df}
@@ -573,11 +574,11 @@
 .tl-visual-guide .tl-vg-legend-line span{font-size:11px;line-height:1.2;font-weight:850;letter-spacing:-.2px;white-space:normal;overflow-wrap:break-word;min-width:0}
 .tl-visual-guide .tl-vg-legend-line b{color:#0965c9}
 .tl-visual-guide .tl-vg-close{
- display:block;justify-self:center;width:120px;min-height:44px;margin:1px 0 0;padding:9px 12px;
- border:1px solid #d0dce9;border-radius:10px;background:#f5f8fc;
- color:#52677e;font-size:13px;font-weight:750;cursor:pointer;
+ display:block;width:100%;height:30px;min-height:0;margin:0;padding:0;
+ border:0;border-top:1px solid #e3eaf2;border-radius:0;
+ background:#fafbfd;color:#61758d;font-size:12px;font-weight:750;cursor:pointer;
 }
-.tl-visual-guide .tl-vg-close:focus-visible{outline:2px solid #86a9d0;outline-offset:2px}
+.tl-visual-guide .tl-vg-close:focus-visible{outline:2px solid #8ab5e3;outline-offset:-2px}
 @media(max-width:375px){
  .tl-crowd-dialog.tl-visual-guide{width:calc(100vw - 22px);max-width:calc(100vw - 22px)}
  .tl-visual-guide .tl-vg-content{padding:7px;gap:7px}
