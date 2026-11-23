@@ -31,10 +31,10 @@ function CrowdGuideScene({level}){
 }
 
 const guideWords={
- ko:{intro:'예상혼잡도(%)란?',introDesc:'열차 정원 대비 승차인원 비율로, 해당 요일의 30분 단위 시간대별 평균 통계입니다.',example:'예시',exampleStation:'역삼역 18시',left:'좌우',leftMeaning:'운행 방면',vertical:'상하',verticalMeaning:'30분 시간대',benchmarks:[['34%','좌석이 모두 찼다고 볼 수 있는 수준'],['100%','설계상 정원에 도달한 수준'],['110%','혼잡 단계 시작 (정원을 넘은 수준)']],notice:['예상혼잡도는 해당 요일의 30분 시간대 평균 통계입니다.','실제 혼잡도는 열차 상황(지연, 사고 등)에 따라 달라질 수 있습니다.']},
- en:{intro:'What is estimated crowding (%)?',introDesc:'Average passengers relative to train capacity in 30-minute intervals for the selected day.',example:'Example',exampleStation:'Yeoksam 18:00',left:'Left/right',leftMeaning:'Direction',vertical:'Top/bottom',verticalMeaning:'30-minute slots',benchmarks:[['34%','All seats occupied'],['100%','Designed capacity reached'],['110%','Crowded level begins']],notice:['Crowding levels are averages for 30-minute periods on the selected day.','Actual conditions may vary due to delays and disruptions.']},
- ja:{intro:'予想混雑度(%)とは？',introDesc:'列車定員に対する乗車人数の割合で、該当曜日の30分単位の平均統計です。',example:'例',exampleStation:'ヨクサム駅 18時',left:'左右',leftMeaning:'運行方面',vertical:'上下',verticalMeaning:'30分単位',benchmarks:[['34%','座席がすべて埋まる目安'],['100%','設計上の定員に到達'],['110%','混雑段階の開始']],notice:['予想混雑度は該当曜日の30分単位の平均統計です。','遅延や事故などにより実際の混雑状況と異なる場合があります。']},
- zh:{intro:'什么是预计拥挤度(%)？',introDesc:'乘车人数相对于列车额定容量的比例，是所选日期每30分钟时段的平均统计。',example:'示例',exampleStation:'驿三站 18时',left:'左右',leftMeaning:'运行方向',vertical:'上下',verticalMeaning:'30分钟时段',benchmarks:[['34%','所有座位坐满的水平'],['100%','达到设计额定容量'],['110%','进入拥挤等级']],notice:['预计拥挤度为对应日期30分钟时段的平均统计。','实际拥挤程度会随延误、事故等情况变化。']}
+ ko:{intro:'예상혼잡도(%)란?',introDesc:'열차 정원 대비 승차인원의 비율을 나타냅니다.',introBadge:'요일별 · 30분 평균',example:'예시',exampleStation:'역삼역 18시',left:'좌우',leftMeaning:'운행 방면',vertical:'상하',verticalMeaning:'30분 시간대',benchmarks:[['34%','좌석이 모두 찼다고 볼 수 있는 수준'],['100%','설계상 정원에 도달한 수준'],['110%','혼잡 단계 시작 (정원을 넘은 수준)']],notice:['예상혼잡도는 해당 요일의 30분 시간대 평균 통계입니다.','실제 혼잡도는 열차 상황(지연, 사고 등)에 따라 달라질 수 있습니다.']},
+ en:{intro:'What is estimated crowding (%)?',introDesc:'The ratio of passengers to designed train capacity.',introBadge:'By day · 30-min avg',example:'Example',exampleStation:'Yeoksam 18:00',left:'Left/right',leftMeaning:'Direction',vertical:'Top/bottom',verticalMeaning:'30-minute slots',benchmarks:[['34%','All seats occupied'],['100%','Designed capacity reached'],['110%','Crowded level begins']],notice:['Crowding levels are averages for 30-minute periods on the selected day.','Actual conditions may vary due to delays and disruptions.']},
+ ja:{intro:'予想混雑度(%)とは？',introDesc:'列車定員に対する乗車人数の割合です。',introBadge:'曜日別 · 30分平均',example:'例',exampleStation:'ヨクサム駅 18時',left:'左右',leftMeaning:'運行方面',vertical:'上下',verticalMeaning:'30分単位',benchmarks:[['34%','座席がすべて埋まる目安'],['100%','設計上の定員に到達'],['110%','混雑段階の開始']],notice:['予想混雑度は該当曜日の30分単位の平均統計です。','遅延や事故などにより実際の混雑状況と異なる場合があります。']},
+ zh:{intro:'什么是预计拥挤度(%)？',introDesc:'乘车人数相对于列车额定容量的比例。',introBadge:'按星期 · 30分钟平均',example:'示例',exampleStation:'驿三站 18时',left:'左右',leftMeaning:'运行方向',vertical:'上下',verticalMeaning:'30分钟时段',benchmarks:[['34%','所有座位坐满的水平'],['100%','达到设计额定容量'],['110%','进入拥挤等级']],notice:['预计拥挤度为对应日期30分钟时段的平均统计。','实际拥挤程度会随延误、事故等情况变化。']}
 };
 const guideArt=[{x:51,bg:'#e7fbe9',badge:'#078c22',fg:'#fff'},{x:330,bg:'#e3f3ff',badge:'#078cd3',fg:'#fff'},{x:600,bg:'#fff5dc',badge:'#ffca00',fg:'#4b3100'},{x:875,bg:'#ffe8eb',badge:'#e92345',fg:'#fff'}];
 const days=['평일','주말','공휴일'];
@@ -170,7 +170,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
    </header>
    <div className="tl-vg-content">
     <div className="tl-vg-intro">
-     <div className="tl-vg-intro-title"><b className="tl-vg-info-icon">i</b><strong>{guideWords[lang].intro}</strong></div>
+     <div className="tl-vg-intro-head"><div className="tl-vg-intro-title"><b className="tl-vg-info-icon">i</b><strong>{guideWords[lang].intro}</strong></div><span className="tl-vg-intro-badge">{guideWords[lang].introBadge}</span></div>
      <p>{guideWords[lang].introDesc}</p>
     </div>
     <section className="tl-vg-section">
@@ -179,7 +179,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
       <div className="tl-vg-grade" key={i} style={{'--vg-background':art.bg,'--vg-label':art.badge,'--vg-fg':art.fg}}>
        <div className="tl-vg-grade-head"><b className="tl-vg-grade-label">{t.crowdLevels[i]}</b><strong className="tl-vg-grade-range">{t.crowdRange(i,crowdingThresholds)}</strong></div>
        <div className="tl-vg-grade-detail">
-        <svg className="tl-vg-scene" viewBox={art.x+' 316 254 108'} preserveAspectRatio="xMidYMid slice" aria-hidden="true"><image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/></svg>
+        <svg className="tl-vg-scene" viewBox={art.x+' 316 '+(i===0?140:254)+' 108'} preserveAspectRatio="xMidYMid slice" aria-hidden="true"><image href="/images/congestion-guide-ko.webp" x="0" y="0" width="1168" height="1279"/></svg>
         <span className="tl-vg-grade-desc">{t.crowdGuideDescriptions[i]}</span>
        </div>
       </div>)}
