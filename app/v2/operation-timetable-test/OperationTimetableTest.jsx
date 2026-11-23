@@ -164,10 +164,6 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  {!embedded&&<dialog ref={picker} className="tl-dialog" aria-label={t.change}><header><h2>{t.change}</h2><button onClick={()=>picker.current?.close()} aria-label={t.close}>×</button></header><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search} aria-label={t.search}/><div className="tl-station-list">{matches.length?matches.map(s=><button key={s.stationCode} onClick={()=>chooseStation(s)}><b style={{background:colors[s.line]}}>{s.line}</b><span>{stationLabel(s)}</span><small>{s.stationCode}</small></button>):<p>{t.noMatch}</p>}</div></dialog>}
  <dialog ref={crowdHelp} className="tl-dialog tl-crowd-dialog tl-visual-guide" lang={lang==='zh'?'zh-CN':lang} aria-label={t.crowdHelpTitle}>
   <div className="tl-vg-layout">
-   <header className="tl-vg-topbar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.3" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="4"/><path d="M8 8h8v6H8zM8 24l2-3m6 0 2 3"/></svg>
-    <h2>{t.crowdHelpTitle}</h2>
-   </header>
    <div className="tl-vg-content">
     <section className="tl-vg-section">
      <div className="tl-vg-grade-heading">
