@@ -648,3 +648,6 @@
 @media(max-width:350px){
  .tl-visual-guide[lang=en] .tl-vg-reading-title{font-size:11.5px}
 }
+
+/* Keep the three concise Korean capacity benchmarks on one line in the shared guide. */
+.tl-visual-guide[lang=ko] .tl-vg-benchmark p{white-space:nowrap}
