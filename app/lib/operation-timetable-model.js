@@ -21,7 +21,9 @@ function reaches(network,start,destination,blocked){
  const todo=[start],seen=new Set([blocked]);while(todo.length){const node=todo.shift();if(node===destination)return true;if(seen.has(node))continue;seen.add(node);todo.push(...(network[node]||[]).filter(n=>!seen.has(n)));}return false;
 }
 function chooseColumn(station,row,columns){
- const dir={UP:'0',DOWN:'1',IN:'0',OUT:'1'}[row['방향']];if(dir===undefined)return null;
+ // The operation dataset's main-loop IN/OUT is opposite to the legacy
+ // neighbor dictionary IDs. Branch UP/DOWN and all other lines stay unchanged.
+ const dir=(station.line==='2'?{UP:'0',DOWN:'1',IN:'1',OUT:'0'}:{UP:'0',DOWN:'1',IN:'0',OUT:'1'})[row['방향']];if(dir===undefined)return null;
  const name=stationName(station),dest=clean(row['도착역']);
  if(station.line==='2'&&['UP','DOWN'].includes(row['방향'])){
   const branch=branchLines.find(b=>b.stations.includes(name));

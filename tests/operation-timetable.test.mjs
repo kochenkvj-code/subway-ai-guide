@@ -5,6 +5,36 @@ const {normalizeOperationStationCode,operationTimetableColumns,compileOperationT
 const plain=v=>JSON.parse(JSON.stringify(v));
 const row=(overrides={})=>({'고유번호':'1','호선':'1','역사코드':'154','역사명':'종로5가','주중주말':'DAY','방향':'UP','급행여부':'0','열차코드':'S102','열차도착시간':'15:02:30','열차출발시간':'15:03:00','출발역':'인천','도착역':'의정부',...overrides});
 const station=code=>legacy.timetableStation(code);
+test('line 2 main-loop and branch directions follow the same actual train to its next station across DAY/SAT/END',async()=>{
+ const fixture=JSON.parse(await fs.readFile('tests/fixtures/operation-line2-direction-pairs.json','utf8'));
+ const covered=new Set();
+ for(const p of fixture.pairs){
+  const d=compileOperationTimetable([p.raw],station(p.stationCode));
+  assert.equal(d.rows.length,1);
+  const next=d.columns.find(c=>c.id===d.rows[0].column)?.next;
+  assert.equal(next,p.next,`${p.raw['역사명']} ${p.day} train ${p.raw['열차코드']} ${p.raw['방향']} ${p.raw['열차출발시간']} → ${p.next} ${p.nextTime}`);
+  covered.add(p.stationCode+'|'+p.day);
+ }
+ assert.equal(covered.size,39);
+ for(const [number,next]of [['2450','교대'],['2445','역삼']]){
+  const p=fixture.pairs.find(p=>p.stationCode==='0222'&&p.day==='DAY'&&p.raw['열차코드']===number);
+  const d=compileOperationTimetable([p.raw],station('0222'));
+  assert.equal(d.rows[0].column,next+'|');assert.equal(d.rows[0].minute,1263);
+ }
+});
+test('correcting loop rows keeps column order, branch direction IDs and crowding lookup unchanged',async()=>{
+ const {createCrowdingModel}=await loadAppModule('app/lib/timetable-lab-crowding-view.js');
+ const s=station('0222'),cols=operationTimetableColumns(s);
+ assert.deepEqual(plain(cols).map(c=>[c.next,c.providerDir]),[['교대','0'],['역삼','1']]);
+ const crowd=createCrowdingModel({hours:[5,25],thresholds:[35,75,110],data:{'2:0222':'0'.repeat(42)+'1'.repeat(42)+'2'.repeat(42)+'3'.repeat(42)+'1'.repeat(42)+'2'.repeat(42)}});
+ const fixture=JSON.parse(await fs.readFile('tests/fixtures/operation-line2-direction-pairs.json','utf8'));
+ for(const [native,day,expected]of [['DAY','평일',[0,1]],['SAT','주말',[2,3]],['END','공휴일',[1,2]]]){
+  const rows=fixture.pairs.filter(p=>p.stationCode==='0222'&&p.day===native).map(p=>p.raw);
+  const compiled=compileOperationTimetable(rows,s);
+  assert.deepEqual(plain(compiled.columns),plain(cols));
+  assert.deepEqual(plain(crowd.crowdingHalves(s,day,21,compiled.columns)),[expected,expected]);
+ }
+});
 test('station identity is normalized without losing line-specific Kkachisan identities',()=>{assert.equal(normalizeOperationStationCode(154),'0154');assert.equal(normalizeOperationStationCode('0200'),'0200');assert.equal(normalizeOperationStationCode('1x'),null);assert.equal(station('0200').line,'2');assert.equal(station('2519').line,'5');});
 test('weekday metadata exists even when no timetable rows can be fetched',()=>{assert.deepEqual(plain(operationTimetableColumns(station('0154'))).map(c=>c.next),['종로3가','동대문']);assert.equal(operationTimetableColumns(station('0211')).length,3);assert.equal(operationTimetableColumns(station('0234')).length,3);assert.equal(operationTimetableColumns(station('0200')).length,1);assert.equal(operationTimetableColumns(station('2612')).length,1);});
 test('old provider validity fields do not discard current operation dataset records',()=>{const d=compileOperationTimetable([row({vldEndDt:'2020-01-01'})],station('0154'));assert.equal(d.rows.length,1);assert.equal(d.rows[0].destination,'의정부');});
