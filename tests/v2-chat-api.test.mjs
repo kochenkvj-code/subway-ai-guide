@@ -14,7 +14,7 @@ test('bad recommendation never retries or hides answer',async()=>{const a=await 
 test('station-bound labels use selected station while common menu labels stay shared',async()=>{
  const {loadModule}=await import('./station-menu-loader.mjs');const {recommendationLabel}=await loadModule('app/v2/recommendation-labels.js');
  const a={line:'1',names:{ko:'동묘앞',en:'Dongmyo',ja:'トンミョアプ',zh:'东庙'}};
- assert.equal(recommendationLabel('facility','ko',a),'동묘앞역 시설 보기');assert.equal(recommendationLabel('route','ko',a),'길찾기 보기');
+ assert.equal(recommendationLabel('facility','ko',a),'동묘앞역 시설 보기');assert.equal(recommendationLabel('route','ko',a),'AI 길찾기 보기');
  for(const lang of ['ko','en','ja','zh'])for(const id of ['facility','tour','timetable','live','found','feedback'])assert.ok(recommendationLabel(id,lang,a).includes(a.names[lang]));
 });
 
