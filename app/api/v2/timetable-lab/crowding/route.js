@@ -1,4 +1,3 @@
-import {staffAuthorized} from '../../../../lib/staff-access';
 import {timetableStation} from '../../../../lib/timetable-lab-model';
 import {stationCrowdingSource} from '../../../../lib/congestion-data';
 import {getDataset} from '../../../../lib/congestion-dataset';
@@ -8,7 +7,6 @@ export const maxDuration=30;
 const headers={'Cache-Control':'private, no-store, max-age=0','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>Response.json(body,{status,headers});
 export async function GET(request){
- if(!staffAuthorized(request))return reply({error:'FORBIDDEN'},403);
  const code=new URL(request.url).searchParams.get('station');
  const station=timetableStation(code);
  if(!station)return reply({error:'INVALID_STATION'},400);

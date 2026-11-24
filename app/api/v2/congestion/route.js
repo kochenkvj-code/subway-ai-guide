@@ -1,5 +1,4 @@
 import {getDataset} from '../../../lib/congestion-dataset';
-import {staffAuthorized} from '../../../lib/staff-access';
 import {getStationByCode} from '../../../lib/station-master';
 import {congestionSlot,selectCongestion} from '../../../lib/congestion-data';
 export const runtime='nodejs';
@@ -8,7 +7,6 @@ export const maxDuration=30;
 const headers={'Cache-Control':'private, no-store, max-age=0'};
 const reply=(body,status=200)=>Response.json(body,{status,headers});
 export async function GET(request){
- if(!staffAuthorized(request))return reply({error:'FORBIDDEN'},403);
  const code=new URL(request.url).searchParams.get('station');
  const station=getStationByCode(code);
  if(!station)return reply({error:'INVALID_STATION'},400);

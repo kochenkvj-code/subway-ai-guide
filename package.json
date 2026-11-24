@@ -42,7 +42,7 @@
     "test:interpreter": "node --experimental-vm-modules --test tests/interpreter-api.test.mjs tests/staff-access.test.mjs tests/interpreter-sync.test.mjs tests/interpreter-voice.test.mjs",
     "test:interpreter-db": "node tests/interpreter-db.cjs",
     "test:route-sharing": "node --experimental-vm-modules --test tests/route-sharing.test.mjs",
-    "test:timetable-lab": "node --experimental-vm-modules --test tests/timetable-lab.test.mjs",
+    "test:timetable-lab": "node --experimental-vm-modules --test tests/timetable-lab.test.mjs tests/operation-timetable.test.mjs",
     "test:guidance": "node --experimental-vm-modules --test tests/guidance.test.mjs"
   },
   "dependencies": {
