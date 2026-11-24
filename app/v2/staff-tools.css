@@ -24,3 +24,10 @@
  background:#eff7f2;color:#245d48;cursor:pointer;
 }
 .sag-qr-dialog .sag-qr-download:not([href]){opacity:.5;pointer-events:none}
+
+/* QR popup station badge mirrors the base-station line circle and name. */
+.sag-qr-dialog .sag-qr-context{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+.sag-qr-dialog .sag-qr-line{
+ display:inline-grid;place-items:center;flex:0 0 21px;width:21px;height:21px;
+ border-radius:50%;color:#fff;font-size:11px;font-weight:750;line-height:1;
+}

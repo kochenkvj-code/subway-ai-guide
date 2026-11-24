@@ -76,3 +76,15 @@ test('shared QR popup offers downloadable PNG alongside unchanged copy action',(
  assert.match(code,/className="sag-qr-download" href=\{downloadUrl\|\|undefined\} download=\{fileName\}/);
  for(const label of ['QR 다운로드','Download QR','QRを保存','下载二维码'])assert.ok(code.includes(label));
 });
+
+test('QR popup shows a matching colored line circle before the station name and menu label',()=>{
+ const code=fs.readFileSync('app/v2/StaffTools.jsx','utf8');
+ const css=fs.readFileSync('app/v2/staff-tools.css','utf8');
+ assert.match(code,/import \{getStationByCode\} from '\.\.\/lib\/station-master'/);
+ assert.match(code,/const stationInfo=getStationByCode\(stationCode\)/);
+ assert.match(code,/className="sag-qr-context"/);
+ assert.match(code,/className="sag-qr-line" style=\{\{backgroundColor:stationInfo\.color\}\}/);
+ assert.match(code,/\{stationInfo\.line\}<\/span>\}<span>\{stationName\}<\/span><span aria-hidden="true">·<\/span><span>\{menuName\}<\/span>/);
+ assert.match(css,/\.sag-qr-dialog \.sag-qr-line/);
+ assert.match(code,/className="sag-qr-download" href=\{downloadUrl\|\|undefined\} download=\{fileName\}/);
+});
