@@ -483,3 +483,19 @@ test('interpreter proxy and shared view have isolated presentation selectors',()
  assert.ok(css.includes('.route-lab.rl-delivery .rl-result-primary .rl-deliver>button'));
  assert.ok(css.includes('.route-lab .rl-shared-heading{display:flex'));
 });
+
+test('route-result share QR formats actual station lines and bold names, without language suffix',async()=>{
+ const share=await read('app/v2/route-lab/RouteShareButton.jsx');
+ const stationQrCss=await read('app/v2/staff-tools.css');
+ assert.ok(page.includes('originLine={origin.line}'));
+ assert.ok(page.includes("destinationLine={place?null:[...(route.itinerary||[])].reverse().find(step=>step.type==='ride')?.line}"));
+ assert.ok(share.includes('function QrStationBadge({line})'));
+ assert.ok(share.includes('className="sag-qr-context"'));
+ assert.ok(share.includes('<QrStationBadge line={originLine}/>'));
+ assert.ok(share.includes('<QrStationBadge line={destinationLine}/>'));
+ assert.ok(share.includes('className="sag-qr-station-name">{originName}'));
+ assert.ok(share.includes('className="sag-qr-station-name">{destination}'));
+ assert.ok(!share.includes("ko:'한국어'"));
+ assert.ok(stationQrCss.includes('.sag-qr-dialog .sag-qr-line'));
+ assert.ok(stationQrCss.includes('font-weight:750'));
+});
