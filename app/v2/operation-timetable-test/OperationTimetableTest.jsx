@@ -48,7 +48,7 @@ const two=n=>String(n).padStart(2,'0');
 // Verified presentation shared by the administrator view and isolated test page.
 export default function OperationTimetableTest({embedded=false,stationContext=null,language='ko',endpoint='/api/v2/operation-timetable-test'}){
  const [crowdingSource,setCrowdingSource]=useState(emptySource);
- const {crowdingHalves,crowdingSourceDate,crowdingThresholds}=useMemo(()=>createCrowdingModel(crowdingSource),[crowdingSource]);
+ const {crowdingHalves,crowdingThresholds}=useMemo(()=>createCrowdingModel(crowdingSource),[crowdingSource]);
  const [ready,setReady]=useState(false);
  const [code,setCode]=useState(()=>timetableStation(stationContext?.stationCode)?.stationCode||'0154'),[localLang,setLang]=useState('ko'),[clock,setClock]=useState(()=>serviceClock()),[day,setDay]=useState(()=>defaultDay(serviceClock()));
  const lang=embedded?language:localLang;
@@ -111,8 +111,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  const crowdFor=h=>crowdingHalves(station,day,h,columns);
  const selectedCrowd=crowdFor(selected);
  const hasCrowd=hours.some(h=>crowdFor(h).flat().some(v=>v!==null));
- const referenceDay=t.crowdDays[days.indexOf(day)];
- // The embedded rail must stay below the time controls and above the shared bottom tabs.
+  // The embedded rail must stay below the time controls and above the shared bottom tabs.
  useLayoutEffect(()=>{
   if(!embedded)return;
   const rail=railRef.current,anchor=railAnchor.current,pane=anchor?.closest('.v2-feature-pane');
@@ -152,7 +151,7 @@ export default function OperationTimetableTest({embedded=false,stationContext=nu
  {columns.map((column,index)=>{const items=rows.filter(row=>row.column===column.id),next=nextByColumn.get(column.id);return <section className="tl-column" key={column.id}><header><h3 aria-label={column.unknown?t.unknown:directionLabel(column.next)}>{column.unknown?t.unknown:columns.length===2?<><span className="tl-heading-arrow" aria-hidden="true">{index===0?'←':''}</span>{stationName(column.next)}<span className="tl-heading-arrow" aria-hidden="true">{index===1?'→':''}</span></>:directionLabel(column.next)}</h3>{column.branch&&<small>{t.branch[column.branch]||column.branch}</small>}</header><ol>{items.length?items.map((row,i)=>{const level=selectedCrowd[row.minute%60<30?0:1]?.[index],name=row.destination?stationName(row.destination):'—';return <li key={row.time+'|'+row.number+'|'+i} className={(current&&row.minute<clock.minutes?'tl-past ':'')+(next===row?'tl-next ':'')+(level!=null?'tl-crowd-row':'')} data-crowd-level={level!=null?level:undefined} aria-label={[next===row?t.upcoming:'',row.express?(row.kind==='limited'?t.limited:t.expressTag):'',name].filter(Boolean).join(' · ')}><time className={level!=null?'tl-crowd-minute':undefined} title={level!=null?t.crowdTitle+' · '+t.crowdLevels[level]:undefined}>{two(row.minute%60)}</time><div className="tl-row-dest"><span title={name}>{name}</span>{row.express&&<small className="tl-express" title={row.kind==='limited'?t.limited:t.expressTag}>{row.kind==='limited'?t.limitedShort:t.expressShort}</small>}</div>{next===row&&<i aria-hidden="true"/>}</li>}):<li className="tl-no-hour">{t.noHour}</li>}</ol></section>;})}
  </div>}
  </>}
- <p className="tl-note">{t.note}</p>{hasCrowd&&<p className="tl-note tl-crowd-note">{t.crowdNote} · {referenceDay}{crowdingSourceDate?' · '+crowdingSourceDate:''}</p>}{!clock.businessDate.startsWith('2026-')&&<p className="tl-note">{t.holidayYear}</p>}
+ {!clock.businessDate.startsWith('2026-')&&<p className="tl-note">{t.holidayYear}</p>}
  <div ref={railRef} className="tl-hour-nav" role="group" aria-label={t.hour}>
  <button type="button" className="tl-arrow tl-arrow-left" disabled={hours.indexOf(selected)===0||loading} title={t.previous} aria-label={t.previous} onClick={()=>shift(-1)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
  <button type="button" className="tl-arrow tl-now" title={t.now} aria-label={t.now} onClick={goNow}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v5.5l3.5 2"/></svg></button>
