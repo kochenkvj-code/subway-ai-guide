@@ -6,6 +6,6 @@ export const copy = {
 };
 export const menuItems = [
   {id:'route',icon:'route',action:'route'}, {id:'gate',icon:'gate',action:'gate'}, {id:'fares',icon:'ticket',action:'fares'},
-  {id:'tour',icon:'tour'}, {id:'found',icon:'bag'}, {id:'lost',icon:'search'}, {id:'timetable',icon:'train'},
+  {id:'tour',icon:'tour'}, {id:'found',icon:'bag'}, {id:'lost',icon:'search'}, {id:'timetable',icon:'smart-timetable'},
   {id:'facility',icon:'facility'}, {id:'feedback',icon:'message'},
 ];
