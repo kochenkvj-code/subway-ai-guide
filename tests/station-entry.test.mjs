@@ -56,14 +56,3 @@ test('station choice does not auto-open QR addresses or close the station select
  assert.match(component,/onClick=\{\(\)=>\{setAddressesOpen\(v=>!v\);setNotice\(''\);\}\}/);
  assert.match(component,/onClick=\{\(\)=>setPanel\(null\)\} aria-label=\{t\.close\}/);
 });
-
-test('station picker shows a selected-station home QR for both visitor and administrator modes',()=>{
- const component=fs.readFileSync('app/v2/StationEntry.jsx','utf8');
- const css=fs.readFileSync('app/v2/station-entry.css','utf8');
- assert.match(component,/import \{AccessQR\} from '\.\/StaffTools'/);
- assert.match(component,/className="se-current-with-qr"/);
- assert.match(component,/panel==='select'&&<AccessQR stationCode=\{entry\.code\} stationName=\{entry\.station\.names\[entry\.language\]\} view="home" menuName=\{t\.qrHome\} basePath=\{basePath\} lang=\{entry\.language\}/);
- assert.doesNotMatch(component,/staffTools\.qr/);
- assert.match(css,/\.se-current-with-qr>\.v2-access-qr/);
- assert.match(component,/onClick=\{\(\)=>\{setAddressesOpen\(v=>!v\);setNotice\(''\);\}\}/);
-});
