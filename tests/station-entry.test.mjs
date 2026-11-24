@@ -110,7 +110,7 @@ test('station QR uses deployment copy; every menu keeps its original passenger Q
 test('AI route name is consistent in all four menu languages and the route QR popup',()=>{
  const source=fs.readFileSync('app/v2/copy.js','utf8');
  const guide=fs.readFileSync('app/v2/V2Guide.jsx','utf8');
- for(const label of ['AI 길찾기','AI Route Finder','AI経路検索','AI 路线查询'])
+ for(const label of ['AI 길찾기','AI Route Finder','AI 経路検索','AI 路线查询'])
   assert.ok(source.includes("menu:['"+label+"'"),label);
  assert.match(guide,/const title=view==='chat'\?t\.chat:view==='live'\?t\.liveTitle:t\.menu\[menuItems\.findIndex\(x=>x\.id===view\)\]/);
  assert.match(guide,/staffTools\.qr&&<AccessQR[^>]*menuName=\{title\}/);
