@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import QRCode from 'qrcode';
+import {recordStat} from '../lib/record-stat';
 import {getStationByCode} from '../lib/station-master';
 import './staff-tools.css';
 const words={
@@ -49,7 +50,7 @@ export function AccessQR({stationCode,stationName,view,menuName,basePath,lang,st
  },[open,stationCode,view,basePath]);
  function close(){setOpen(false);trigger.current?.focus();}
  return <>
-  <button ref={trigger} type="button" className="v2-access-qr" onClick={()=>setOpen(true)} aria-label={t.qr} title={t.qr}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h2v2h-2zM19 13h2v4M13 19v2h4M19 19h2v2h-2M13 11v4M5 11v2M11 3v4"/></svg></button>
+  <button ref={trigger} type="button" className="v2-access-qr" onClick={()=>{void recordStat('ui_action','menu_qr_open',lang,view);setOpen(true);}} aria-label={t.qr} title={t.qr}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h2v2h-2zM19 13h2v4M13 19v2h4M19 19h2v2h-2M13 11v4M5 11v2M11 3v4"/></svg></button>
   {open&&createPortal(<dialog ref={dialog} className="sag-qr-dialog" aria-labelledby="sag-qr-title" onCancel={close} onClick={e=>{if(e.target===e.currentTarget)close();}}>
    <button type="button" className="sag-qr-close" aria-label={t.close} onClick={close}>×</button>
    <h2 id="sag-qr-title">{stationPicker?t.stationTitle:t.title}</h2><p className="sag-qr-context">{stationInfo&&<span className="sag-qr-line" style={{backgroundColor:stationInfo.color}} aria-label={stationInfo.line+'호선'}>{stationInfo.line}</span>}<span className="sag-qr-station-name">{stationName}</span><span aria-hidden="true">·</span><span className="sag-qr-menu-name">{menuName}</span></p>

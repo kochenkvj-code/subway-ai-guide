@@ -2,12 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs/promises';
+import {UI_ACTION_LABELS} from '../app/lib/ui-action-stat.js';
 import { estimateIpRegion } from '../app/lib/ip-region.mjs';
 class NextResponse extends Response{static json(value,init){return new NextResponse(JSON.stringify(value),init);}}
 async function fixture(file){
  const writes=[],logs=[];let fail=false;
  const context=vm.createContext({Response,URL,URLSearchParams,AbortSignal,process:{env:{VERCEL_GIT_COMMIT_SHA:'diagnostic-test-build'}},console:{info:(...v)=>logs.push(v),warn:(...v)=>logs.push(v),error:(...v)=>logs.push(v)}});
- const values={'next/server':{NextResponse},'../../../lib/stats-server':{authorized:()=>true,supabase:async(path,options)=>{if(fail)throw Error('Statistics database request failed: 503 (fixture)');writes.push({path,options});return path.startsWith('chatbot_events?')&&(!options||options.method!=='POST')?Response.json([]):new Response(null,{status:204});}},'../../../lib/facility-stat':{isFacilityContext:()=>false},'../../../lib/ip-region.mjs':{estimateIpRegion:(headers)=>headers.get('x-vercel-ip-city')||null},'../../../v2/lost-found-demo/seoul-gu-geo.json':{default:{features:[]}}};
+ const values={'../../../lib/ui-action-stat':{UI_ACTION_LABELS},'next/server':{NextResponse},'../../../lib/stats-server':{authorized:()=>true,supabase:async(path,options)=>{if(fail)throw Error('Statistics database request failed: 503 (fixture)');writes.push({path,options});return path.startsWith('chatbot_events?')&&(!options||options.method!=='POST')?Response.json([]):new Response(null,{status:204});}},'../../../lib/facility-stat':{isFacilityContext:()=>false},'../../../lib/ip-region.mjs':{estimateIpRegion:(headers)=>headers.get('x-vercel-ip-city')||null},'../../../v2/lost-found-demo/seoul-gu-geo.json':{default:{features:[]}}};
  const mod=new vm.SourceTextModule(await fs.readFile(file,'utf8'),{context});await mod.link(name=>new vm.SyntheticModule(Object.keys(values[name]),function(){for(const[k,v]of Object.entries(values[name]))this.setExport(k,v)},{context}));await mod.evaluate();return {api:mod.namespace,writes,logs,fail:()=>fail=true};
 }
 const data={event_id:'11111111-1111-4111-8111-111111111111',session_id:'22222222-2222-4222-8222-222222222222',event_type:'gate_action',event_name:'e44',language:'en',context:'gate_e44'};
@@ -124,4 +125,16 @@ test('temporary diagnostics leave modern activity silent and tolerate missing so
  assert.equal((await f.api.POST(request(body))).status,204);
  assert.equal(f.logs[0][1].origin,null);
  assert.equal(f.logs[0][1].server_host,null);
+});
+
+test('six UI actions preserve visitor/session identity and stay separate from menu events',async()=>{
+ const visitor='33333333-3333-4333-8333-333333333333';
+ for(const name of Object.keys(UI_ACTION_LABELS))for(const lang of ['ko','en','ja','zh']){
+  const f=await fixture('app/api/stats/event/route.js');assert.equal((await f.api.POST(request({...data,event_type:'ui_action',event_name:name,language:lang,visitor_id:visitor,context:name==='menu_qr_open'?'timetable':null}))).status,204);
+  const stored=JSON.parse(f.writes[0].options.body);assert.equal(stored.event_type,'ui_action');assert.equal(stored.visitor_id,visitor);assert.equal(stored.session_id,data.session_id);assert.equal(stored.context,name==='menu_qr_open'?'timetable':null);
+ }
+});
+test('unrequested UI actions are rejected and arbitrary QR context is discarded',async()=>{
+ for(const name of ['qr_copy','qr_download','hour_05','express','PRIVATE']){const f=await fixture('app/api/stats/event/route.js');assert.equal((await f.api.POST(request({...data,event_type:'ui_action',event_name:name}))).status,400);assert.equal(f.writes.length,0);}
+ const f=await fixture('app/api/stats/event/route.js');assert.equal((await f.api.POST(request({...data,event_type:'ui_action',event_name:'menu_qr_open',context:'PRIVATE',question:'PRIVATE'}))).status,204);const stored=JSON.parse(f.writes[0].options.body);assert.equal(stored.context,null);assert.equal(stored.question,null);
 });

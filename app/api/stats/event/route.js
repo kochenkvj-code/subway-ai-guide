@@ -1,3 +1,4 @@
+import { UI_ACTION_LABELS } from "../../../lib/ui-action-stat";
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/stats-server";
 import { isFacilityContext } from "../../../lib/facility-stat";
@@ -12,6 +13,7 @@ const types = {
   route_search: ["request", "success", "failure"],
   language_change: ["ko", "en", "ja", "zh"],
   feedback: ["solved", "not_solved"],
+  ui_action: Object.keys(UI_ACTION_LABELS),
   gate_action: ["e01","e03","e04","e05","e06","e14","e33","e44","opposite","unknown","another","office","details_open","location_diagram_open"],
 };
 const deviceType = (ua) => /ipad|tablet|android(?!.*mobile)/i.test(ua) ? "태블릿" : /mobile|iphone|ipod|android/i.test(ua) ? "모바일" : "PC";
@@ -41,7 +43,8 @@ export async function POST(request) {
     const gateContext = typeof data.context === "string" && /^gate_(e01|e03|e04|e05|e06|e14|e33|e44|opposite|unknown)$/.test(data.context);
     const facilitySelection = isFacilityContext(data.context) && ((data.event_type === "quick_menu" && data.event_name === "facility") || data.event_type === "feedback");
     const stationContext = data.event_type === "page_view" && /^station:[0-9]{4}$/.test(data.context || "");
-    const context = gateContext || facilitySelection || stationContext ? data.context : null;
+    const uiContext = data.event_type === "ui_action" && data.event_name === "menu_qr_open" && ["home","chat",...types.quick_menu].includes(data.context);
+    const context = gateContext || facilitySelection || stationContext || uiContext ? data.context : null;
     const clientTime=typeof data.occurred_at === "string" ? Date.parse(data.occurred_at) : NaN;
     const occurred_at=Number.isFinite(clientTime) && Date.now()-clientTime<35*60*1000 && clientTime-Date.now()<300000 ? new Date(clientTime).toISOString() : new Date().toISOString();
     // Only coarse, non-identifying request metadata. Never persist IP or full user-agent. AI question text is restricted to the admin report.

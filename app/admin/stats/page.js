@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ANALYTICS_EXCLUDED_KEY } from "../../lib/analytics-preference";
 import { FACILITY_LABELS, isFacilityContext } from "../../lib/facility-stat";
+import {UI_ACTION_LABELS} from "../../lib/ui-action-stat";
 import {visitorSummaries} from "../../lib/visitor-stats";
 import { getStationByCode } from "../../lib/station-master";
 
@@ -20,8 +21,8 @@ const changeDatePart = (date, part, value) => {
 };
 const names = {route:"길찾기",gate:"게이트 오류",fares:"승차권·교통카드",facility:"시설안내",exchange:"환전소",nearby:"출구·관광지",staff:"고객안전실",live:"실시간 열차정보",tour:"관광지 안내",timetable:"열차 시간표",found:"습득물 검색",lost:"열차 내 유실물 찾기",feedback:"역 개선 의견"};
 const langs = {ko:"한국어",en:"영어",ja:"일본어",zh:"중국어"};
-const eventLabels = {page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
-const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action"].includes(e.event_type);
+const eventLabels = {ui_action:"세부 기능",page_view:"접속",quick_menu:"빠른 안내",ai_question:"AI 질문",route_search:"길찾기",language_change:"언어 변경",feedback:"피드백"};
+const isFunctionalEvent = (e) => ["quick_menu","ai_question","route_search","feedback","gate_action","ui_action"].includes(e.event_type);
 const gateActions = {e01:"E-01 카드 중복",e03:"E-03 하차 처리 누락",e04:"E-04 승차 처리 누락",e05:"E-05 이용시간 초과",e06:"E-06 카드 사용 불가",e14:"E-14 잔액 부족",e33:"E-33 당역 재승차",e44:"E-44 당역 재하차",opposite:"반대편 승강장",unknown:"오류 코드 모름",another:"다른 오류 선택",office:"고객안전실 위치",details_open:"오류 상세 안내 보기",location_diagram_open:"게이트 위치 그림 보기"};
 const eventTime = e => e.occurred_at || e.created_at;
 const baseStationLabel = context => {const code=typeof context==="string"&&context.startsWith("station:")?context.slice(8):"";const st=getStationByCode(code);return st?st.line+"호선 "+st.names.ko:null;};
@@ -113,16 +114,17 @@ export default function StatsPage() {
   useEffect(()=>setRawPage(0),[visitorFilter,selectedVisitor]);
   const pageCount = Math.max(1,Math.ceil(visibleSessions.length/pageSize));
   const stats=useMemo(()=>{
-    const counts={},facilities={},languages={},hours={},dates={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
+    const counts={},facilities={},languages={},hours={},dates={},actions={};let visits=0,questions=0,routes=0,feedback=0,solved=0;
     for(const r of rows){const d=dateKst(eventTime(r));const h=new Intl.DateTimeFormat("en-GB",{timeZone:KST,hour:"2-digit",hourCycle:"h23"}).format(new Date(eventTime(r)));dates[d]=(dates[d]||0)+1;hours[h]=(hours[h]||0)+1;
       if(r.event_type==="page_view"&&r.event_name==="visit")visits++;
       if(r.event_type==="ai_question")questions++;
       if(r.event_type==="route_search"&&r.event_name==="request")routes++;
       if(r.event_type==="quick_menu"){if(r.event_name==="facility"&&isFacilityContext(r.context))facilities[r.context]=(facilities[r.context]||0)+1;else counts[r.event_name]=(counts[r.event_name]||0)+1;}
+      if(r.event_type==="ui_action"&&Object.hasOwn(UI_ACTION_LABELS,r.event_name))actions[r.event_name]=(actions[r.event_name]||0)+1;
       if(r.event_type==="feedback"){feedback++;if(r.event_name==="solved")solved++;}
       if(r.event_type==="page_view"&&r.event_name==="visit"||r.event_type==="quick_menu"||r.event_type==="ai_question")languages[r.language]=(languages[r.language]||0)+1;
     }
-    return {visits,questions,routes,counts,facilities,languages,hours,dates,feedback,solved};
+    return {visits,questions,routes,counts,facilities,languages,hours,dates,actions,feedback,solved};
   },[rows]);
   const chart=(data,labels)=>{const entries=Object.entries(data).sort((a,b)=>labels?b[1]-a[1]:a[0].localeCompare(b[0]));const max=Math.max(1,...entries.map(x=>x[1]));return entries.length?<div style={{display:"grid",gap:10}}>{entries.map(([key,value])=><div key={key} style={{display:"grid",gridTemplateColumns:"110px 1fr 42px",alignItems:"center",gap:10,fontSize:13}}><span>{labels?.[key]||key}</span><div style={{height:12,borderRadius:8,background:"#edf4f3",overflow:"hidden"}}><div style={{height:"100%",width:(value/max*100)+"%",background:"#16836e",borderRadius:8}}/></div><strong style={{textAlign:"right"}}>{value}</strong></div>)}</div>:<p style={{color:"#7a858d"}}>해당 기간 기록이 없습니다.</p>;};
   const timeline=(data, hourly=false)=>{
@@ -151,6 +153,7 @@ export default function StatsPage() {
         <p style={{fontSize:12,color:"#687c82"}}>방문 수는 브라우저 ID가 있는 신규 기록 기준이며 실제 사람 수와 다를 수 있습니다. 과거 미확인 기록은 제외합니다.</p>
         <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,440px),1fr))",gap:14}}>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>빠른 안내 메뉴별 이용량</h2>{chart(stats.counts,names)}</div>
+          <div style={card} role="region" aria-label="세부 기능 이용 통계"><h2 style={{fontSize:16,marginTop:0}}>세부 기능 이용 통계</h2>{chart(stats.actions,UI_ACTION_LABELS)}<p style={{fontSize:11,color:"#687c82",marginBottom:0}}>선택한 기간의 사용자 클릭만 집계합니다. 자동 선택·갱신은 제외하며, 수집 시작 전 기록은 포함되지 않습니다.</p></div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>시설별 안내 선택</h2>{chart(stats.facilities,FACILITY_LABELS)}<p style={{fontSize:11,color:"#687c82",marginBottom:0}}>세부 수집 시작 이후 기록입니다. 빠른 안내 메뉴 클릭 수와 별도로 집계합니다.</p></div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>언어별 이용 이벤트</h2>{chart(stats.languages,langs)}</div>
           <div style={card}><h2 style={{fontSize:16,marginTop:0}}>날짜별 이벤트 추이</h2>{timeline(stats.dates)}</div>
@@ -196,6 +199,7 @@ export default function StatsPage() {
                     <div style={{display:"flex",flexWrap:"wrap",gap:3}}>{group.events.map((e,i)=>{
                       const stationLabel=baseStationLabel(e.context);
                       const action=e.event_type==="page_view"?(e.event_name==="station_change"?"기준역 변경":"접속")+(stationLabel?": "+stationLabel:"")+" · "+(langs[e.language]||e.language||"언어 미확인"):
+                        e.event_type==="ui_action"?(UI_ACTION_LABELS[e.event_name]||e.event_name)+(e.event_name==="menu_qr_open"&&e.context?" · "+({home:"메인 화면",chat:"AI 질문",...names}[e.context]||e.context):""):
                         e.event_type==="gate_action"?(gateActions[e.event_name]||e.event_name):
                         e.event_type==="quick_menu"?(e.event_name==="facility"&&isFacilityContext(e.context)?"시설: "+FACILITY_LABELS[e.context]:(names[e.event_name]||e.event_name)):
                         e.event_type==="language_change"?"언어: "+(langs[e.event_name]||e.event_name):
