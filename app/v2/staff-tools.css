@@ -32,3 +32,7 @@
  border-radius:50%;color:#fff;font-size:10px;font-weight:750;line-height:1;
 }
 .sag-qr-dialog .sag-qr-station-name,.sag-qr-dialog .sag-qr-menu-name{font-weight:750}
+
+/* The line circle and its station name stay together when a long translated route wraps. */
+.sag-qr-dialog .sag-qr-station-group{display:inline-flex;align-items:center;justify-content:center;gap:6px;max-width:100%;min-width:0}
+.sag-qr-dialog .sag-qr-route-arrow{color:#719182;font-weight:700}
