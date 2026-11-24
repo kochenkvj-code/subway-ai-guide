@@ -91,3 +91,18 @@ test('QR popup shows a matching colored line circle before the station name and 
  assert.match(css,/\.sag-qr-dialog \.sag-qr-line/);
  assert.match(code,/className="sag-qr-download" href=\{downloadUrl\|\|undefined\} download=\{fileName\}/);
 });
+
+test('station QR uses deployment copy; every menu keeps its original passenger QR copy',()=>{
+ const entry=fs.readFileSync('app/v2/StationEntry.jsx','utf8');
+ const qr=fs.readFileSync('app/v2/StaffTools.jsx','utf8');
+ const menu=fs.readFileSync('app/v2/V2Guide.jsx','utf8');
+ assert.match(entry,/qrHome:'메인 화면'/);
+ assert.match(entry,/lang=\{entry\.language\} stationPicker\/>/);
+ assert.match(qr,/stationPicker=false/);
+ assert.match(qr,/stationTitle:'역별 접속 QR코드'/);
+ assert.match(qr,/stationScan:'QR코드를 스캔하면 선택한 역의 메인 화면으로 연결됩니다\.'/);
+ assert.match(qr,/stationPicker\?t\.stationTitle:t\.title/);
+ assert.match(qr,/stationPicker\?t\.stationScan:t\.scan/);
+ assert.match(qr,/title:'내 휴대폰에서 안내받기'/);
+ assert.doesNotMatch(menu,/stationPicker/);
+});
