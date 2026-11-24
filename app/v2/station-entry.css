@@ -76,3 +76,19 @@
  .se-dialog[open]:has(.se-addresses:not([hidden])) .se-filters{margin-top:6px;margin-bottom:6px}
  .se-dialog[open]:has(.se-addresses:not([hidden])) .se-line-filters{margin-bottom:5px}
 }
+
+/* QR button beside the selected base station; the existing picker stays unchanged. */
+.se-heading .se-current-with-qr{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%}
+.se-heading .se-current-with-qr>.se-current-station{min-width:0;max-width:calc(100% - 38px)}
+.se-heading .se-current-with-qr>.v2-access-qr{
+ display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;min-height:34px;
+ margin:0;padding:5px;border:1px solid #d6e4db;border-radius:9px;
+ background:#f5faf7;color:#3b7056;box-shadow:none;cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+}
+.se-heading .se-current-with-qr>.v2-access-qr svg{
+ display:block;width:20px;height:20px;fill:none;stroke:currentColor;
+ stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+}
+.se-heading .se-current-with-qr>.v2-access-qr:hover{background:#e9f4ed;border-color:#a9ccb7}
+.se-heading .se-current-with-qr>.v2-access-qr:focus-visible{outline:2px solid #70aa86;outline-offset:2px}

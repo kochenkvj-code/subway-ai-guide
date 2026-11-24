@@ -56,3 +56,23 @@ test('station choice does not auto-open QR addresses or close the station select
  assert.match(component,/onClick=\{\(\)=>\{setAddressesOpen\(v=>!v\);setNotice\(''\);\}\}/);
  assert.match(component,/onClick=\{\(\)=>setPanel\(null\)\} aria-label=\{t\.close\}/);
 });
+
+test('station picker reuses the existing home QR popup for regular visitors and administrators',()=>{
+ const code=fs.readFileSync('app/v2/StationEntry.jsx','utf8');
+ assert.match(code,/import \{AccessQR\} from '\.\/StaffTools'/);
+ assert.match(code,/className="se-current-with-qr"/);
+ assert.match(code,/panel==='select'&&<AccessQR stationCode=\{entry\.code\}/);
+ assert.match(code,/view="home" menuName=\{t\.qrHome\} basePath=\{basePath\} lang=\{entry\.language\}/);
+ assert.doesNotMatch(code,/staffTools\.qr/);
+ assert.match(code,/onClick=\{\(\)=>\{setAddressesOpen\(v=>!v\);setNotice\(''\);\}\}/);
+});
+test('shared QR popup offers downloadable PNG alongside unchanged copy action',()=>{
+ const code=fs.readFileSync('app/v2/StaffTools.jsx','utf8');
+ assert.match(code,/QRCode\.toDataURL\(url\.href/);
+ assert.match(code,/new Blob\(\[bytes\],\{type:'image\/png'\}\)/);
+ assert.match(code,/URL\.createObjectURL/);
+ assert.match(code,/URL\.revokeObjectURL/);
+ assert.match(code,/className="sag-qr-actions"/);
+ assert.match(code,/className="sag-qr-download" href=\{downloadUrl\|\|undefined\} download=\{fileName\}/);
+ for(const label of ['QR 다운로드','Download QR','QRを保存','下载二维码'])assert.ok(code.includes(label));
+});

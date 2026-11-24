@@ -14,3 +14,13 @@
 .sag-qr-dialog h2{font-size:18px;margin:10px 0}.sag-qr-dialog p{font-size:13px;line-height:1.6;margin:10px 0;overflow-wrap:anywhere}.sag-qr-dialog img{max-width:100%;height:auto;display:block;margin:auto}
 .sag-qr-dialog button{font:inherit;font-size:13px;padding:9px 16px;border:1px solid #bcd5c8;border-radius:9px;background:#eff7f2;color:#245d48;cursor:pointer}.sag-qr-dialog .sag-qr-close{position:absolute;right:8px;top:8px;border:0;background:none;font-size:22px;padding:0;width:36px;height:36px}.sag-qr-dialog .sag-qr-english{font-size:11px;color:#658174}
 /* Chat's privacy text has order:1 and Home order:2 in the existing stylesheet. */
+
+/* Keep the existing QR card; add the PNG download next to link copy. */
+.sag-qr-dialog .sag-qr-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px}
+.sag-qr-dialog .sag-qr-download{
+ display:inline-flex;align-items:center;justify-content:center;
+ font:inherit;font-size:13px;line-height:normal;text-decoration:none;
+ padding:9px 16px;border:1px solid #bcd5c8;border-radius:9px;
+ background:#eff7f2;color:#245d48;cursor:pointer;
+}
+.sag-qr-dialog .sag-qr-download:not([href]){opacity:.5;pointer-events:none}
