@@ -185,7 +185,7 @@ export default function UnifiedRouteLab({embedded=false,stationContext=null,lang
    <RouteResult place={place} route={route} lang={lang} query={query} placeRef={placeRef} resultRef={resultRef}/>
    {(route||place)&&<div className="rl-result-actions" lang={lang==='zh'?'zh-CN':lang}>
     <div className="rl-result-primary">
-     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton deliveryContext={deliveryContext} routeProof={routeProof} placeProof={placeProof} language={resultLang} displayLanguage={lang} originName={origin.names[lang]||origin.names.ko} destination={place?.place||officialStationName(route.destination,lang,name=>name)}/>}
+     {!loading&&!error&&route&&routeProof&&(!place||placeProof)&&<RouteShareButton deliveryContext={deliveryContext} routeProof={routeProof} placeProof={placeProof} language={resultLang} displayLanguage={lang} originName={origin.names[lang]||origin.names.ko} originLine={origin.line} destination={place?.place||officialStationName(route.destination,lang,name=>name)} destinationLine={place?null:[...(route.itinerary||[])].reverse().find(step=>step.type==='ride')?.line}/>}
      <button type="button" className="rl-new-destination" onClick={searchAnotherDestination}>{actions.again}</button>
     </div>
     <div className="rl-result-feedback" role="group" aria-label={actions.label} aria-live="polite">
