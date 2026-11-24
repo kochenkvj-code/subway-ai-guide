@@ -84,7 +84,10 @@ test('QR popup shows a matching colored line circle before the station name and 
  assert.match(code,/const stationInfo=getStationByCode\(stationCode\)/);
  assert.match(code,/className="sag-qr-context"/);
  assert.match(code,/className="sag-qr-line" style=\{\{backgroundColor:stationInfo\.color\}\}/);
- assert.match(code,/\{stationInfo\.line\}<\/span>\}<span>\{stationName\}<\/span><span aria-hidden="true">·<\/span><span>\{menuName\}<\/span>/);
+ assert.match(code,/className="sag-qr-station-name"\>\{stationName\}<\/span>/);
+ assert.match(code,/className="sag-qr-menu-name"\>\{menuName\}<\/span>/);
+ assert.match(css,/flex:0 0 18px;width:18px;height:18px/);
+ assert.match(css,/\.sag-qr-station-name,\.sag-qr-dialog \.sag-qr-menu-name\{font-weight:750\}/);
  assert.match(css,/\.sag-qr-dialog \.sag-qr-line/);
  assert.match(code,/className="sag-qr-download" href=\{downloadUrl\|\|undefined\} download=\{fileName\}/);
 });
