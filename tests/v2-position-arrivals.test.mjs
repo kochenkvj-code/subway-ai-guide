@@ -136,13 +136,15 @@ test('details retain direction arrows, six cards and per-card raw disclosure',()
  assert.match(styles,/\.v2-position-detail-column:nth-child\(2\) h3/);
 });
 
-test('live details reuse the timetable route and show grade labels with shared thresholds',()=>{
+test('live details reuse the timetable route and show numeric crowding with shared thresholds',()=>{
  assert.match(guide,/onTimetable=\{\(\)=>navigate\('timetable'\)\}/);
  assert.match(component,/하루 전체 혼잡도/);
  assert.match(component,/혼잡도 보는 법/);
  assert.match(component,/간격이 좁고 이동이 어려움/);
  assert.match(component,/const bounds=CONGESTION_THRESHOLDS/);
- assert.doesNotMatch(component,/lang=\{lang\} numeric/);
+ assert.equal((component.match(/<CrowdingIndicator value=\{value\} lang=\{lang\} numeric\/>/g)||[]).length,2);
+ const summary=component.slice(component.indexOf('export function PositionTrainSummary'),component.indexOf('const detailCopy='));
+ assert.doesNotMatch(summary,/lang=\{lang\} numeric/);
  assert.match(component,/요일·방면별 30분 평균/);
  assert.match(styles,/v2-position-guide-actions/);
 });
@@ -151,4 +153,12 @@ test('live direction headings use station names without redundant direction suff
  assert.match(component,/const label=onTimetable\?name:/);
  assert.match(styles,/width:30px;height:22px/);
  assert.match(styles,/width:auto;font-size:13px;line-height:1\.15/);
+});
+
+test('live cards share rows and keep field content on one line while preserving raw disclosure',()=>{
+ assert.match(styles,/grid-template-rows:36px repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(styles,/grid-row:span 4;grid-template-rows:subgrid/);
+ assert.match(styles,/dl>dd\{\s*min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
+ assert.match(styles,/grid-template-rows:36px repeat\(3,auto\)/);
+ assert.match(component,/JSON\.stringify\(row,null,2\)/);
 });

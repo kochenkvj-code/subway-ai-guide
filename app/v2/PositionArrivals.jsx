@@ -81,11 +81,11 @@ function PositionDetailCard({item,station,lang,ui}){
  return <article className="v2-arrival-train v2-position-detail-card">
   <div className="v2-position-card-face">
    <button type="button" className="v2-position-card-toggle" aria-expanded={open} aria-label={ui.updated+' · '+ui.raw+' · '+(row.trainNo||'—')} onClick={()=>setOpen(v=>!v)}/>
-   <div className="v2-position-card-top"><strong>{positionMessage(item,lang)}</strong><span>{stateText(row,ui)}</span></div>
+   <div className="v2-position-card-top"><strong title={positionMessage(item,lang)}>{positionMessage(item,lang)}</strong><span title={stateText(row,ui)}>{stateText(row,ui)}</span></div>
    <dl>
     <dt>{ui.destination}</dt><dd title={d.full}>{lang==='ko'?row.statnTnm||'—':d.full}</dd>
-    <dt>{ui.train}</dt><dd>{row.trainNo||'—'}</dd>
-    <dt>{ui.location}</dt><dd>{positionStation(row.statnNm,lang,stationName)} · {stateText(row,ui)}</dd>
+    <dt>{ui.train}</dt><dd title={row.trainNo||'—'}>{row.trainNo||'—'}</dd>
+    <dt>{ui.location}</dt><dd title={positionStation(row.statnNm,lang,stationName)+' · '+stateText(row,ui)}>{positionStation(row.statnNm,lang,stationName)} · {stateText(row,ui)}</dd>
    </dl>
   </div>
   {open&&<div className="v2-position-raw">
@@ -115,7 +115,7 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowdin
    const label=onTimetable?name:name+' · '+direction(group,station?.line,ui);
    const value=crowding?.[group.dir];
    return <section className="v2-arrival-group v2-position-detail-column" key={group.dir}>
-    <h3 className={crowdingClass(value).trim()} title={[label,crowdingDescription(value,lang)].filter(Boolean).join(' · ')}>{index===0&&<Arrow/>}{index===1&&<CrowdingIndicator value={value} lang={lang}/>}<span className="v2-crowding-station">{label}</span>{index===0&&<CrowdingIndicator value={value} lang={lang}/>}{index===1&&<Arrow right/>}</h3>
+    <h3 className={crowdingClass(value).trim()} title={[label,crowdingDescription(value,lang)].filter(Boolean).join(' · ')}>{index===0&&<Arrow/>}{index===1&&<CrowdingIndicator value={value} lang={lang} numeric/>}<span className="v2-crowding-station">{label}</span>{index===0&&<CrowdingIndicator value={value} lang={lang} numeric/>}{index===1&&<Arrow right/>}</h3>
     {[0,1,2].map(i=>{
      const item=!state.error&&group.candidates[i];
      if(!item)return <div className="v2-position-empty" key={i}>—</div>;

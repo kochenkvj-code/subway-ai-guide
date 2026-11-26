@@ -251,3 +251,49 @@
  .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator>svg{width:28px;height:21px}
  .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label{font-size:12px}
 }
+
+/* Live details display the original percentage, not the home grade label. */
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{
+ width:auto;font-size:13px;line-height:1.15;letter-spacing:-.25px;font-variant-numeric:tabular-nums;
+}
+/* Six collapsed cards use one line per field and one shared row geometry.
+   Full provider values remain available in the existing card disclosure. */
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-column{
+ grid-template-rows:36px repeat(3,minmax(0,1fr));
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-card .v2-position-card-top{
+ flex-wrap:nowrap;gap:3px 4px;min-width:0;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-card-top strong{
+ flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-card-top>span{
+ flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-card dl{
+ grid-template-rows:repeat(3,auto);min-width:0;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-card dl>dt,
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-card dl>dd{
+ min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]) .v2-position-detail-column{
+ grid-template-rows:36px repeat(3,auto);
+}
+@supports(grid-template-rows:subgrid){
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-grid{
+  grid-template-rows:36px repeat(3,minmax(0,1fr));
+ }
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-grid>.v2-position-detail-column{
+  grid-row:span 4;grid-template-rows:subgrid;
+ }
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]){
+  grid-template-rows:36px repeat(3,auto);
+ }
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"])>.v2-position-detail-column{
+  grid-template-rows:subgrid;
+ }
+}
+@media(max-width:370px){
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{font-size:12px}
+}
