@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import path from 'node:path';
-async function handler(fetch,key='fixture') {
- const context=vm.createContext({Response,AbortSignal,URL,URLSearchParams,Date,Intl,Map,Set,process:{env:key?{SEOUL_METRO_API_KEY:key}:{}},fetch});
+async function handler(fetch,key='fixture',logs=[]) {
+ const context=vm.createContext({console:{info:()=>{},warn:(...args)=>logs.push(args)},Response,AbortSignal,URL,URLSearchParams,Date,Intl,Map,Set,process:{env:key?{SEOUL_METRO_API_KEY:key}:{}},fetch});
  const cache=new Map();
  async function load(file){
   if(file.endsWith('/route-share-proof.js'))return new vm.SyntheticModule(['signRouteResult'],function(){this.setExport('signRouteResult',()=>null);},{context});
@@ -51,4 +51,19 @@ test('concurrent station requests remain isolated and missing keys never call up
  const get=await handler(async value=>{const code=new URL(value).searchParams.get('dptreStn');return Response.json(code==='0152'?body():body('동묘앞','2637','6호선'));});
  const replies=await Promise.all(['0152','2637'].map(async code=>(await (await get(req('station='+code+'&toCode=0222'))).json()).route.originCode));assert.deepEqual(replies,['0152','2637']);
  const missing=await handler(()=>{throw Error('must not fetch');},null);assert.equal((await missing(req('station=0152&toCode=0222'))).status,503);
+});
+
+test('provider diagnostics retain the real error message and confirm parameters without exposing keys',async()=>{
+ const logs=[],secret='fixture-secret+/%';
+ const get=await handler(async()=>Response.json({header:{resultCode:'01',resultMsg:'APPLICATION_ERROR '+secret+' '+encodeURIComponent(secret)+' https://provider.test/?serviceKey='+encodeURIComponent(secret)+'\nfailed'}}),secret,logs);
+ const response=await get(req('station=0154&toCode=0202'));
+ assert.equal(response.status,422);const body=await response.json();assert.equal(body.code,'METRO_01');assert.equal(Object.hasOwn(body,'upstreamMessage'),false);
+ assert.equal(logs.length,1);const diagnostic=logs[0][1];assert.equal(diagnostic.hasDeparture,true);assert.equal(diagnostic.hasArrival,true);assert.equal(diagnostic.stationValueType,'code');assert.match(diagnostic.upstreamMessage,/APPLICATION_ERROR/);
+ const text=JSON.stringify(logs);assert.equal(text.includes(secret),false);assert.equal(text.includes(encodeURIComponent(secret)),false);assert.equal(text.includes('https://provider.test'),false);
+});
+test('diagnostics tolerate absent/nonstring messages and bound response text without changing passenger errors',async()=>{
+ for(const message of [undefined,{private:'ignored'},'x'.repeat(1000)]){
+  const logs=[],get=await handler(async()=>Response.json({header:{resultCode:'01',resultMsg:message}}),'fixture',logs);
+  assert.equal((await get(req('station=0154&toCode=0202'))).status,422);assert.ok(logs[0][1].upstreamMessage.length<=300);
+ }
 });

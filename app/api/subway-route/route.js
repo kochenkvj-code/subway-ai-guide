@@ -176,6 +176,23 @@ export async function GET(request) {
 
   const resultCode = String(data?.header?.resultCode ?? "");
   if (resultCode !== "00" && resultCode !== "0") {
+    // Preserve the provider's diagnostic message server-side. Code 01 alone
+    // cannot distinguish a provider validation error from a gateway failure.
+    const diagnosticHeader = data?.header;
+    const rawMessage = [diagnosticHeader?.resultMsg, diagnosticHeader?.resultMessage,
+      diagnosticHeader?.message].find(value => typeof value === 'string') || '';
+    let upstreamMessage = rawMessage;
+    for (const secret of [key, encodeURIComponent(key)]) {
+      if (secret) upstreamMessage = upstreamMessage.split(secret).join('[redacted]');
+    }
+    upstreamMessage = upstreamMessage.replace(/https?:\/\/\S+/gi, '[url removed]')
+      .replace(/serviceKey\s*[=:]\s*[^\s&,;]+/gi, 'serviceKey=[redacted]')
+      .replace(/[\r\n\u0000-\u001f]/g, ' ').slice(0, 300);
+    console.warn('[official-route-upstream-error]', {
+      resultCode, upstreamMessage, httpStatus: upstream.status,
+      hasDeparture: Boolean(qs.get('dptreStn')), hasArrival: Boolean(qs.get('arvlStn')),
+      stationValueType: qs.get('stationValueType'),
+    });
     const friendly = ({
       "01": "출발역 또는 도착역이 입력되지 않았습니다.",
       "02": "검색일시가 입력되지 않았습니다.",
