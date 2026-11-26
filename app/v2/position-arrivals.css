@@ -254,7 +254,7 @@
 
 /* Live details: original percentage in a centered, fixed-width numeric slot. */
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{
- flex:0 0 48px;width:48px;font-size:13px;line-height:1.15;letter-spacing:-.25px;font-variant-numeric:tabular-nums;
+ flex:0 0 48px;width:48px;font-size:12px;line-height:1.15;letter-spacing:-.25px;font-variant-numeric:tabular-nums;
 }
 /* Six collapsed cards use one line per field and one shared row geometry.
    Full provider values remain available in the existing card disclosure. */
@@ -295,7 +295,7 @@
  }
 }
 @media(max-width:370px){
- .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{flex-basis:43px;width:43px;font-size:12px}
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{flex-basis:43px;width:43px;font-size:11px}
 }
 
 /* Compact live title: use the available heading width, not the viewport width. */

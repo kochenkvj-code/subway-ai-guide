@@ -164,8 +164,13 @@ test('live cards share rows and keep field content on one line while preserving 
 });
 
 test('live numeric slot stays fixed while the title has balanced compact spacing',()=>{
- assert.match(styles,/flex:0 0 48px;width:48px;font-size:13px/);
- assert.match(styles,/flex-basis:43px;width:43px;font-size:12px/);
+ assert.match(styles,/flex:0 0 48px;width:48px;font-size:12px/);
+ assert.match(styles,/flex-basis:43px;width:43px;font-size:11px/);
  assert.match(styles,/padding-top:8px/);
  assert.match(styles,/gap:5px;min-height:30px;margin-bottom:8px/);
+});
+
+test('live detail location is only the station; status stays in the card header',()=>{
+ assert.match(component,/<dt>\{ui\.location\}<\/dt><dd title=\{positionStation\(row\.statnNm,lang,stationName\)\}>\{positionStation\(row\.statnNm,lang,stationName\)\}<\/dd>/);
+ assert.match(component,/<span title=\{stateText\(row,ui\)\}>\{stateText\(row,ui\)\}<\/span>/);
 });

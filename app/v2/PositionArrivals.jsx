@@ -85,7 +85,7 @@ function PositionDetailCard({item,station,lang,ui}){
    <dl>
     <dt>{ui.destination}</dt><dd title={d.full}>{lang==='ko'?row.statnTnm||'—':d.full}</dd>
     <dt>{ui.train}</dt><dd title={row.trainNo||'—'}>{row.trainNo||'—'}</dd>
-    <dt>{ui.location}</dt><dd title={positionStation(row.statnNm,lang,stationName)+' · '+stateText(row,ui)}>{positionStation(row.statnNm,lang,stationName)} · {stateText(row,ui)}</dd>
+    <dt>{ui.location}</dt><dd title={positionStation(row.statnNm,lang,stationName)}>{positionStation(row.statnNm,lang,stationName)}</dd>
    </dl>
   </div>
   {open&&<div className="v2-position-raw">
