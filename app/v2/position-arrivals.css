@@ -297,3 +297,27 @@
 @media(max-width:370px){
  .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{font-size:12px}
 }
+
+/* Compact live title: use the available heading width, not the viewport width. */
+.v2-position-arrivals:has(.v2-position-guide-actions){
+ padding-top:5px;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head{
+ gap:5px;min-height:30px;margin-bottom:5px;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head>div{
+ container-type:inline-size;border-inline-start:3px solid #267b6c;
+ padding-inline-start:6px;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head h2{
+ font-size:clamp(13px,4.25vw,18px);
+ font-weight:750;line-height:1.22;letter-spacing:-.5px;
+}
+@supports(font-size:1cqw){
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head h2{
+  font-size:clamp(12px,5.35cqw,18px);
+ }
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head button{
+ width:30px;height:30px;min-width:30px;min-height:30px;border-radius:8px;
+}
