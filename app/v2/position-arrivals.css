@@ -233,3 +233,21 @@
  .v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]){grid-template-rows:auto repeat(3,auto)}
  .v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]) .v2-position-detail-column{grid-row:span 4;grid-template-rows:subgrid}
 }
+
+/* Live direction row: the arrows already identify direction; use the freed width
+   for larger, legible crowding glyphs and labels without increasing row height. */
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-column h3{
+ font-size:13px;gap:4px;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator>svg{
+ width:30px;height:22px;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label{
+ width:auto;font-size:13px;line-height:1.15;
+}
+.v2-position-arrivals:has(.v2-position-guide-actions):lang(en) .v2-crowding-indicator .v2-crowding-label{font-size:11px}
+@media(max-width:370px){
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-column h3{font-size:12px;gap:3px}
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator>svg{width:28px;height:21px}
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label{font-size:12px}
+}

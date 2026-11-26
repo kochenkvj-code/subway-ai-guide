@@ -62,10 +62,10 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
 }
 // Passenger-facing detail copy is intentionally shorter than the timetable guide.
 const detailCopy={
- ko:{lead:['다음 열차, ','어디쯤',' 왔고 얼마나 ','혼잡','할까요?'],day:'하루 전체 혼잡도',help:'혼잡도 보는 법',definition:'정원 대비 승차인원 비율 · 요일·방면별 30분 평균',grades:['여유','보통','밀집','혼잡'],descriptions:['앉을 가능성이 높음','서서 이용하기 무난함','이동이 다소 불편함','간격이 좁고 이동이 어려움'],benchmarks:['좌석 만석 수준','설계 정원 도달','혼잡 단계 시작'],close:'닫기',direction:n=>n+' 방면',range:(i,b)=>i===0?b[0]+'% 미만':i===3?b[2]+'% 이상':b[i-1]+'~'+b[i]+'%'},
- en:{lead:['Next train: ','where',' is it, how ','crowded','?'],day:'Daily crowding',help:'Crowding guide',definition:'Passengers relative to capacity · 30-min average by day and direction',grades:['Low','Moderate','Busy','Crowded'],descriptions:['Seats likely available','Standing is comfortable','Moving is somewhat difficult','Little space; difficult to move'],benchmarks:['Seats full','Rated capacity','Crowded level'],close:'Close',direction:n=>'To '+n,range:(i,b)=>i===0?'Under '+b[0]+'%':i===3?b[2]+'%+':b[i-1]+'–'+b[i]+'%'},
- ja:{lead:['次の電車は','どこ','？どのくらい','混雑','？'],day:'一日の混雑度',help:'混雑度の見方',definition:'定員に対する乗車人数の割合 · 曜日・方面別30分平均',grades:['余裕','普通','密集','混雑'],descriptions:['座れる可能性が高い','立って利用しやすい','移動がやや不便','間隔が狭く移動しにくい'],benchmarks:['座席満席の目安','基準定員に到達','混雑段階の開始'],close:'閉じる',direction:n=>n+'方面',range:(i,b)=>i===0?b[0]+'%未満':i===3?b[2]+'%以上':b[i-1]+'〜'+b[i]+'%'},
- zh:{lead:['下一班列车','到哪儿','了？有多','拥挤','？'],day:'全天拥挤度',help:'拥挤度说明',definition:'乘车人数占额定容量的比例 · 星期类型及方向30分钟平均',grades:['宽松','一般','密集','拥挤'],descriptions:['较可能有座位','站立乘车较舒适','走动略有不便','间距较小，移动困难'],benchmarks:['座位坐满','达到额定容量','拥挤等级开始'],close:'关闭',direction:n=>n+'方向',range:(i,b)=>i===0?'低于'+b[0]+'%':i===3?b[2]+'%及以上':b[i-1]+'~'+b[i]+'%'}
+ ko:{lead:['다음 열차, ','어디쯤',' 왔고 얼마나 ','혼잡','할까요?'],day:'하루 전체 혼잡도',help:'혼잡도 보는 법',definition:'정원 대비 승차인원 비율 · 요일·방면별 30분 평균',grades:['여유','보통','밀집','혼잡'],descriptions:['앉을 가능성이 높음','서서 이용하기 무난함','이동이 다소 불편함','간격이 좁고 이동이 어려움'],benchmarks:['좌석 만석 수준','설계 정원 도달','혼잡 단계 시작'],close:'닫기',range:(i,b)=>i===0?b[0]+'% 미만':i===3?b[2]+'% 이상':b[i-1]+'~'+b[i]+'%'},
+ en:{lead:['Next train: ','where',' is it, how ','crowded','?'],day:'Daily crowding',help:'Crowding guide',definition:'Passengers relative to capacity · 30-min average by day and direction',grades:['Low','Moderate','Busy','Crowded'],descriptions:['Seats likely available','Standing is comfortable','Moving is somewhat difficult','Little space; difficult to move'],benchmarks:['Seats full','Rated capacity','Crowded level'],close:'Close',range:(i,b)=>i===0?'Under '+b[0]+'%':i===3?b[2]+'%+':b[i-1]+'–'+b[i]+'%'},
+ ja:{lead:['次の電車は','どこ','？どのくらい','混雑','？'],day:'一日の混雑度',help:'混雑度の見方',definition:'定員に対する乗車人数の割合 · 曜日・方面別30分平均',grades:['余裕','普通','密集','混雑'],descriptions:['座れる可能性が高い','立って利用しやすい','移動がやや不便','間隔が狭く移動しにくい'],benchmarks:['座席満席の目安','基準定員に到達','混雑段階の開始'],close:'閉じる',range:(i,b)=>i===0?b[0]+'%未満':i===3?b[2]+'%以上':b[i-1]+'〜'+b[i]+'%'},
+ zh:{lead:['下一班列车','到哪儿','了？有多','拥挤','？'],day:'全天拥挤度',help:'拥挤度说明',definition:'乘车人数占额定容量的比例 · 星期类型及方向30分钟平均',grades:['宽松','一般','密集','拥挤'],descriptions:['较可能有座位','站立乘车较舒适','走动略有不便','间距较小，移动困难'],benchmarks:['座位坐满','达到额定容量','拥挤等级开始'],close:'关闭',range:(i,b)=>i===0?'低于'+b[0]+'%':i===3?b[2]+'%及以上':b[i-1]+'~'+b[i]+'%'}
 };
 function GuideIcon({kind}){
  return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
@@ -112,7 +112,7 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowdin
   </div>}
   <div className="v2-position-detail-grid">{shownGroups.map((group,index)=>{
    const name=heading(group,station,lang,ui);
-   const label=onTimetable?(group.next.length||(station?.line==='6'&&station?.names?.ko==='응암')?words.direction(name):name):name+' · '+direction(group,station?.line,ui);
+   const label=onTimetable?name:name+' · '+direction(group,station?.line,ui);
    const value=crowding?.[group.dir];
    return <section className="v2-arrival-group v2-position-detail-column" key={group.dir}>
     <h3 className={crowdingClass(value).trim()} title={[label,crowdingDescription(value,lang)].filter(Boolean).join(' · ')}>{index===0&&<Arrow/>}{index===1&&<CrowdingIndicator value={value} lang={lang}/>}<span className="v2-crowding-station">{label}</span>{index===0&&<CrowdingIndicator value={value} lang={lang}/>}{index===1&&<Arrow right/>}</h3>

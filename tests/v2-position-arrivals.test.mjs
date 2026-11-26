@@ -146,3 +146,9 @@ test('live details reuse the timetable route and show grade labels with shared t
  assert.match(component,/요일·방면별 30분 평균/);
  assert.match(styles,/v2-position-guide-actions/);
 });
+
+test('live direction headings use station names without redundant direction suffixes',()=>{
+ assert.match(component,/const label=onTimetable\?name:/);
+ assert.match(styles,/width:30px;height:22px/);
+ assert.match(styles,/width:auto;font-size:13px;line-height:1\.15/);
+});
