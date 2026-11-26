@@ -234,23 +234,27 @@
  .v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]) .v2-position-detail-column{grid-row:span 4;grid-template-rows:subgrid}
 }
 
-/* Live direction row: station names remain enlarged; crowding uses the original sizing. */
+/* Live direction row: the arrows already identify direction; use the freed width
+   for larger, legible crowding glyphs and labels without increasing row height. */
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-column h3{
  font-size:13px;gap:4px;
 }
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator>svg{
- width:26px;height:18px;
+ width:30px;height:22px;
 }
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label{
- width:43px;font-size:10px;line-height:12px;
+ width:auto;font-size:13px;line-height:1.15;
 }
+.v2-position-arrivals:has(.v2-position-guide-actions):lang(en) .v2-crowding-indicator .v2-crowding-label{font-size:11px}
 @media(max-width:370px){
  .v2-position-arrivals:has(.v2-position-guide-actions) .v2-position-detail-column h3{font-size:12px;gap:3px}
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator>svg{width:28px;height:21px}
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label{font-size:12px}
 }
 
-/* Live details display the original percentage, not the home grade label. */
+/* Live details: original percentage in a centered, fixed-width numeric slot. */
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{
- width:43px;font-size:10px;line-height:12px;letter-spacing:inherit;font-variant-numeric:tabular-nums;
+ flex:0 0 48px;width:48px;font-size:13px;line-height:1.15;letter-spacing:-.25px;font-variant-numeric:tabular-nums;
 }
 /* Six collapsed cards use one line per field and one shared row geometry.
    Full provider values remain available in the existing card disclosure. */
@@ -290,13 +294,16 @@
   grid-template-rows:subgrid;
  }
 }
+@media(max-width:370px){
+ .v2-position-arrivals:has(.v2-position-guide-actions) .v2-crowding-indicator .v2-crowding-label.v2-crowding-number{flex-basis:43px;width:43px;font-size:12px}
+}
 
 /* Compact live title: use the available heading width, not the viewport width. */
 .v2-position-arrivals:has(.v2-position-guide-actions){
- padding-top:5px;
+ padding-top:8px;
 }
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head{
- gap:5px;min-height:30px;margin-bottom:5px;
+ gap:5px;min-height:30px;margin-bottom:8px;
 }
 .v2-position-arrivals:has(.v2-position-guide-actions) .v2-arrival-detail-head>div{
  container-type:inline-size;border-inline-start:3px solid #267b6c;

@@ -151,8 +151,8 @@ test('live details reuse the timetable route and show numeric crowding with shar
 
 test('live direction headings use station names without redundant direction suffixes',()=>{
  assert.match(component,/const label=onTimetable\?name:/);
- assert.match(styles,/width:26px;height:18px/);
- assert.match(styles,/width:43px;font-size:10px;line-height:12px/);
+ assert.match(styles,/width:30px;height:22px/);
+ assert.match(styles,/width:auto;font-size:13px;line-height:1\.15/);
 });
 
 test('live cards share rows and keep field content on one line while preserving raw disclosure',()=>{
@@ -161,4 +161,11 @@ test('live cards share rows and keep field content on one line while preserving 
  assert.match(styles,/dl>dd\{\s*min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis/);
  assert.match(styles,/grid-template-rows:36px repeat\(3,auto\)/);
  assert.match(component,/JSON\.stringify\(row,null,2\)/);
+});
+
+test('live numeric slot stays fixed while the title has balanced compact spacing',()=>{
+ assert.match(styles,/flex:0 0 48px;width:48px;font-size:13px/);
+ assert.match(styles,/flex-basis:43px;width:43px;font-size:12px/);
+ assert.match(styles,/padding-top:8px/);
+ assert.match(styles,/gap:5px;min-height:30px;margin-bottom:8px/);
 });
