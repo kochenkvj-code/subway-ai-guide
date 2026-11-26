@@ -151,8 +151,8 @@ test('live details reuse the timetable route and show numeric crowding with shar
 
 test('live direction headings use station names without redundant direction suffixes',()=>{
  assert.match(component,/const label=onTimetable\?name:/);
- assert.match(styles,/width:30px;height:22px/);
- assert.match(styles,/width:auto;font-size:13px;line-height:1\.15/);
+ assert.match(styles,/width:26px;height:18px/);
+ assert.match(styles,/width:43px;font-size:10px;line-height:12px/);
 });
 
 test('live cards share rows and keep field content on one line while preserving raw disclosure',()=>{
