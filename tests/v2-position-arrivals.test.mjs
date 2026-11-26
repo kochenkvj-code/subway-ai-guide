@@ -107,8 +107,8 @@ test('summary and detail reverse only column presentation, without mutating dire
  assert.match(component,/group\.candidates\[i\]/);
 });
 test('train detail heading is one short friendly line and refresh remains present',()=>{
- assert.match(component,/lead:'다음 열차, 어디쯤 왔을까요\?'/);
- assert.match(component,/<h2 title=\{ui\.lead\}>\{ui\.lead\}<\/h2>/);
+ assert.match(component,/lead:'다음 열차, 어디쯤 왔고 얼마나 혼잡할까요\?'/);
+ assert.match(component,/<h2 title=\{ui\.lead\}>\{words\.lead\.map/);
  assert.match(component,/onClick=\{state\.refresh\}/);
  assert.doesNotMatch(component,/<small>\{ui\.source\}<\/small>/);
  assert.doesNotMatch(component,/<p className="v2-arrival-caption">\{ui\.automatic\}<\/p>/);
@@ -118,8 +118,8 @@ test('destination, train number and location remain visible; time and raw JSON s
  assert.match(component,/<dt>\{ui\.destination\}<\/dt>/);
  assert.match(component,/<dt>\{ui\.train\}<\/dt>/);
  assert.match(component,/<dt>\{ui\.location\}<\/dt>/);
- assert.match(component,/<details className="v2-position-raw">/);
- assert.match(component,/<summary>\{ui\.updated\} · \{ui\.raw\}<\/summary>/);
+ assert.match(component,/aria-expanded=\{open\}/);
+ assert.match(component,/\{open&&<div className="v2-position-raw">/);
  assert.match(component,/v2-position-raw-meta/);
  assert.match(component,/JSON\.stringify\(row,null,2\)/);
  assert.doesNotMatch(component,/<small>\{ui\.updated\}: \{row\.recptnDt/);
@@ -128,10 +128,21 @@ test('destination, train number and location remain visible; time and raw JSON s
 
 test('details retain direction arrows, six cards and per-card raw disclosure',()=>{
  assert.match(component,/shownGroups\.map\(\(group,index\)=>/);
- assert.match(component,/<h3>\{index===0&&<Arrow\/>\}/);
+ assert.match(component,/<h3 className=\{crowdingClass\(value\)\.trim\(\)\}[^\n]+\{index===0&&<Arrow\/>\}/);
  assert.match(component,/\{index===1&&<Arrow right\/>\}<\/h3>/);
  assert.match(component,/group\.candidates\[i\]/);
- assert.match(component,/<summary>\{ui\.updated\} · \{ui\.raw\}<\/summary>/);
+ assert.match(component,/\{open&&<div className="v2-position-raw">/);
  assert.doesNotMatch(component,/v2-position-diagnostics/);
  assert.match(styles,/\.v2-position-detail-column:nth-child\(2\) h3/);
+});
+
+test('live details reuse the timetable route and show grade labels with shared thresholds',()=>{
+ assert.match(guide,/onTimetable=\{\(\)=>navigate\('timetable'\)\}/);
+ assert.match(component,/하루 전체 혼잡도/);
+ assert.match(component,/혼잡도 보는 법/);
+ assert.match(component,/간격이 좁고 이동이 어려움/);
+ assert.match(component,/const bounds=CONGESTION_THRESHOLDS/);
+ assert.doesNotMatch(component,/lang=\{lang\} numeric/);
+ assert.match(component,/요일·방면별 30분 평균/);
+ assert.match(styles,/v2-position-guide-actions/);
 });

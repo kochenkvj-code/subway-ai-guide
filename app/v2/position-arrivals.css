@@ -172,3 +172,64 @@
 .v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-3){--crowd-card-bg:#fdf3f3}
 .v2-position-arrivals .v2-position-detail-column:has(>h3.v2-crowding-heading)>:is(.v2-position-detail-card,.v2-position-empty){background:var(--crowd-card-bg)}
 
+
+/* Live details only: compact C heading, equal action/direction rows and accessible card disclosure. */
+.v2-position-arrivals .v2-arrival-detail-head{gap:6px;margin-bottom:8px;min-height:32px}
+.v2-position-arrivals .v2-arrival-detail-head>div{border-inline-start:3px solid #267b6c;padding-inline-start:7px}
+.v2-position-arrivals .v2-arrival-detail-head h2{font-size:clamp(11px,3.45vw,15px);letter-spacing:-.55px;color:#30483c;line-height:1.35;font-weight:700}
+.v2-position-arrivals .v2-arrival-detail-head h2 em{color:#16816d;font-style:normal}
+.v2-position-arrivals .v2-position-guide-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:6px}
+.v2-position-arrivals .v2-position-guide-actions button{display:flex;align-items:center;gap:5px;min-width:0;height:36px;padding:0 7px;background:#e7f0ea;border:1px solid #cfdfd4;border-radius:6px;color:#365c49;font-size:12px;font-weight:700;text-align:start;line-height:1.15}
+.v2-position-guide-actions button>span{flex:1;min-width:0}
+.v2-position-guide-actions button>svg{width:18px;height:18px;flex:none;color:#527b65}
+.v2-position-guide-actions button>svg:last-child{width:12px;height:12px;color:#789687}
+.v2-position-arrivals .v2-position-detail-column h3,.v2-position-arrivals .v2-position-detail-column h3.v2-crowding-heading{height:36px;min-height:36px;padding:0 5px;border-radius:6px;gap:3px;font-weight:700;box-sizing:border-box}
+.v2-position-arrivals .v2-position-detail-column h3:not(.v2-crowding-heading){background:#edf3ef;border:1px solid #dce7df;color:#426c56}
+.v2-position-arrivals .v2-position-detail-column h3>.v2-crowding-station{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-position-arrivals .v2-position-detail-column h3.v2-crowding-heading{color:var(--crowd-fg)}
+.v2-position-arrivals .v2-crowding-indicator .v2-crowding-label{font-size:11px;font-weight:700;width:auto;line-height:1.15}
+.v2-position-arrivals .v2-crowding-indicator>svg{width:24px;height:18px}
+.v2-position-arrivals .v2-position-detail-card>.v2-position-card-face{position:relative;display:block;min-width:0;flex:1}
+.v2-position-card-toggle{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;padding:0;border:0;border-radius:6px;background:transparent;cursor:pointer}
+.v2-position-card-toggle:focus-visible{outline:2px solid #267b6c;outline-offset:2px}
+.v2-position-arrivals .v2-position-detail-card .v2-position-card-top>span{font-size:9px;color:#8090a3}
+.v2-position-arrivals .v2-position-detail-card>.v2-position-raw{display:block;margin-top:3px}
+.v2-position-arrivals .v2-crowding-dialog{box-sizing:border-box;width:min(400px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 28px);overflow:auto}
+.v2-position-arrivals .v2-crowding-dialog-content{padding:14px;color:#3d5046}
+.v2-crowding-dialog-content>header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.v2-crowding-dialog-content>header h3{margin:0;color:#244a3a;font-size:17px;line-height:1.3}
+.v2-crowding-dialog-content button.v2-crowd-close-x{display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;background:none;color:#718579}
+.v2-crowd-close-x svg{width:19px;height:19px}
+.v2-live-crowd-definition{margin:5px 0 12px;color:#718579;font-size:11px;line-height:1.45}
+.v2-live-crowd-grades{display:grid;gap:7px}
+.v2-live-crowd-grade{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:7px;align-items:center;min-height:49px;padding:8px;border-radius:7px;background:var(--crowd-bg);box-sizing:border-box}
+.v2-live-crowd-grade-name{display:flex;align-items:center;gap:4px;color:var(--crowd-fg);border-inline-end:1px solid var(--crowd-border);min-width:0;padding-inline-end:4px;font-size:12px}
+.v2-live-crowd-grade-name svg{width:25px;height:20px;flex:none}
+.v2-live-crowd-desc{font-size:12px;color:#3d5046;line-height:1.4;word-break:keep-all}
+.v2-live-crowd-range{text-align:end;color:var(--crowd-fg);font-size:11px;font-variant-numeric:tabular-nums;line-height:1.3}
+.v2-live-crowd-benchmarks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px;background:#f5f7f5;border-radius:7px;padding:10px 0}
+.v2-live-crowd-benchmarks>div{display:grid;justify-items:center;align-content:start;gap:4px;text-align:center;padding:0 3px;min-width:0}
+.v2-live-crowd-benchmarks>div+div{border-inline-start:1px solid #dce5df}
+.v2-live-crowd-benchmarks strong{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--crowd-fg);font-size:17px;line-height:1.3;font-variant-numeric:tabular-nums}
+.v2-live-crowd-benchmarks strong svg{width:20px;height:20px}
+.v2-live-crowd-benchmarks span{font-size:10px;line-height:1.35;color:#657a6d;word-break:keep-all}
+.v2-crowding-dialog-content button.v2-crowd-close-bottom{display:block;margin-top:8px;width:100%;height:28px;border:0;background:none;color:#718579;padding:0;font-size:12px;font-weight:500}
+.v2-position-arrivals:lang(en) .v2-live-crowd-grade{grid-template-columns:94px minmax(0,1fr) 52px;gap:5px}
+.v2-position-arrivals:lang(en) .v2-live-crowd-grade-name{font-size:10px}
+@media(max-width:370px){
+ .v2-position-arrivals .v2-position-guide-actions{gap:5px;margin-bottom:5px}
+ .v2-position-arrivals .v2-position-guide-actions button{font-size:11px;padding-inline:5px}
+ .v2-position-arrivals .v2-arrival-detail-head h2{font-size:clamp(10px,3.4vw,13px)}
+ .v2-position-arrivals .v2-position-detail-column h3{padding-inline:3px;font-size:11px}
+ .v2-position-arrivals .v2-crowding-indicator>svg{width:22px}
+ .v2-live-crowd-grade{grid-template-columns:60px minmax(0,1fr) 58px;gap:5px;padding:7px}
+ .v2-live-crowd-desc{font-size:11px}
+ .v2-live-crowd-range{font-size:10px}
+}
+
+/* An expanded diagnostic grows just its row, rather than stretching all six cards. */
+.v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]) .v2-position-detail-column{grid-template-rows:auto repeat(3,auto)}
+@supports(grid-template-rows:subgrid){
+ .v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]){grid-template-rows:auto repeat(3,auto)}
+ .v2-position-arrivals .v2-position-detail-grid:has(.v2-position-card-toggle[aria-expanded="true"]) .v2-position-detail-column{grid-row:span 4;grid-template-rows:subgrid}
+}
