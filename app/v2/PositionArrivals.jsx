@@ -8,6 +8,7 @@ import graph from '../data/trainLostGraph.json';
 import directions from '../data/trainLostDirection.json';
 import {CrowdingIndicator,crowdingClass,crowdingDescription} from './CrowdingIndicator';
 import {CONGESTION_THRESHOLDS} from '../lib/congestion-data';
+import {copy as timetableCopy} from './timetable-lab/copy';
 
 const labels={
  ko:{lead:'다음 열차, 어디쯤 왔고 얼마나 혼잡할까요?',source:'서울시 실시간 열차 위치정보',refresh:'새로고침',loading:'열차 위치정보 확인 중…',error:'위치정보 조회 실패',unsupported:'선로 연결정보가 없습니다.',empty:'다가오는 열차정보 없음',automatic:'30초 간격 갱신 · 열차 위치 기준',train:'열차번호',destination:'행선지',location:'현재 위치',updated:'정보 기준',raw:'서울시 원문 · JSON',up:'상행',down:'하행',inner:'내선',outer:'외선',entry:'진입',arrived:'도착',left:'출발',previousLeft:'전역 출발'},
@@ -62,10 +63,10 @@ export function PositionTrainSummary({state,lang='ko',t,onDetails,stationContext
 }
 // Passenger-facing detail copy is intentionally shorter than the timetable guide.
 const detailCopy={
- ko:{lead:['다음 열차, ','어디쯤',' 왔고 얼마나 ','혼잡','할까요?'],day:'하루 전체 혼잡도',help:'혼잡도 보는 법',definition:'정원 대비 승차인원 비율 · 요일·방면별 30분 평균',grades:['여유','보통','밀집','혼잡'],descriptions:['앉을 가능성이 높음','서서 이용하기 무난함','이동이 다소 불편함','간격이 좁고 이동이 어려움'],benchmarks:['좌석 만석 수준','설계 정원 도달','혼잡 단계 시작'],close:'닫기',range:(i,b)=>i===0?b[0]+'% 미만':i===3?b[2]+'% 이상':b[i-1]+'~'+b[i]+'%'},
- en:{lead:['Next train: ','where',' is it, how ','crowded','?'],day:'Daily crowding',help:'Crowding guide',definition:'Passengers relative to capacity · 30-min average by day and direction',grades:['Low','Moderate','Busy','Crowded'],descriptions:['Seats likely available','Standing is comfortable','Moving is somewhat difficult','Little space; difficult to move'],benchmarks:['Seats full','Rated capacity','Crowded level'],close:'Close',range:(i,b)=>i===0?'Under '+b[0]+'%':i===3?b[2]+'%+':b[i-1]+'–'+b[i]+'%'},
- ja:{lead:['次の電車は','どこ','？どのくらい','混雑','？'],day:'一日の混雑度',help:'混雑度の見方',definition:'定員に対する乗車人数の割合 · 曜日・方面別30分平均',grades:['余裕','普通','密集','混雑'],descriptions:['座れる可能性が高い','立って利用しやすい','移動がやや不便','間隔が狭く移動しにくい'],benchmarks:['座席満席の目安','基準定員に到達','混雑段階の開始'],close:'閉じる',range:(i,b)=>i===0?b[0]+'%未満':i===3?b[2]+'%以上':b[i-1]+'〜'+b[i]+'%'},
- zh:{lead:['下一班列车','到哪儿','了？有多','拥挤','？'],day:'全天拥挤度',help:'拥挤度说明',definition:'乘车人数占额定容量的比例 · 星期类型及方向30分钟平均',grades:['宽松','一般','密集','拥挤'],descriptions:['较可能有座位','站立乘车较舒适','走动略有不便','间距较小，移动困难'],benchmarks:['座位坐满','达到额定容量','拥挤等级开始'],close:'关闭',range:(i,b)=>i===0?'低于'+b[0]+'%':i===3?b[2]+'%及以上':b[i-1]+'~'+b[i]+'%'}
+ ko:{lead:['다음 열차, ','어디쯤',' 왔고 얼마나 ','혼잡','할까요?'],day:'하루 전체 혼잡도',help:'혼잡도 보는 법',definition:'정원 대비 승차인원 비율 · 요일·방면별 30분 평균',descriptions:['앉을 가능성이 높음','서서 이용하기 무난함','이동이 다소 불편함','간격이 좁고 이동이 어려움'],benchmarks:['좌석 만석 수준','설계 정원 도달','혼잡 단계 시작'],close:'닫기',range:(i,b)=>i===0?b[0]+'% 미만':i===3?b[2]+'% 이상':b[i-1]+'~'+b[i]+'%'},
+ en:{lead:['Next train: ','where',' is it, how ','crowded','?'],day:'Daily crowding',help:'Crowding guide',definition:'Passengers relative to capacity · 30-min average by day and direction',descriptions:['Seats likely available','Standing is comfortable','Moving is somewhat difficult','Little space; difficult to move'],benchmarks:['Seats full','Rated capacity','Crowded level'],close:'Close',range:(i,b)=>i===0?'Under '+b[0]+'%':i===3?b[2]+'%+':b[i-1]+'–'+b[i]+'%'},
+ ja:{lead:['次の電車は','どこ','？どのくらい','混雑','？'],day:'一日の混雑度',help:'混雑度の見方',definition:'定員に対する乗車人数の割合 · 曜日・方面別30分平均',descriptions:['座れる可能性が高い','立って利用しやすい','移動がやや不便','間隔が狭く移動しにくい'],benchmarks:['座席満席の目安','基準定員に到達','混雑段階の開始'],close:'閉じる',range:(i,b)=>i===0?b[0]+'%未満':i===3?b[2]+'%以上':b[i-1]+'〜'+b[i]+'%'},
+ zh:{lead:['下一班列车','到哪儿','了？有多','拥挤','？'],day:'全天拥挤度',help:'拥挤度说明',definition:'乘车人数占额定容量的比例 · 星期类型及方向30分钟平均',descriptions:['较可能有座位','站立乘车较舒适','走动略有不便','间距较小，移动困难'],benchmarks:['座位坐满','达到额定容量','拥挤等级开始'],close:'关闭',range:(i,b)=>i===0?'低于'+b[0]+'%':i===3?b[2]+'%及以上':b[i-1]+'~'+b[i]+'%'}
 };
 function GuideIcon({kind}){
  return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
@@ -127,7 +128,7 @@ export function PositionArrivalDetails({state,lang='ko',t,stationContext,crowdin
    <div className="v2-crowding-dialog-content">
     <header><h3 id="v2-live-crowding-title">{words.help}</h3><button type="button" className="v2-crowd-close-x" aria-label={words.close} onClick={()=>info.current?.close()}><GuideIcon kind="close"/></button></header>
     <p className="v2-live-crowd-definition">{words.definition}</p>
-    <div className="v2-live-crowd-grades">{words.grades.map((grade,i)=><div key={grade} className={'v2-live-crowd-grade v2-crowding-'+i}>
+    <div className="v2-live-crowd-grades">{(timetableCopy[lang]||timetableCopy.ko).crowdLevels.map((grade,i)=><div key={grade} className={'v2-live-crowd-grade v2-crowding-'+i}>
      <div className="v2-live-crowd-grade-name"><DetailPeople level={i}/><b>{grade}</b></div>
      <span className="v2-live-crowd-desc">{words.descriptions[i]}</span>
      <b className="v2-live-crowd-range">{words.range(i,bounds)}</b>

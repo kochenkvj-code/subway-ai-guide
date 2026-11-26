@@ -174,3 +174,14 @@ test('live detail location is only the station; status stays in the card header'
  assert.match(component,/<dt>\{ui\.location\}<\/dt><dd title=\{positionStation\(row\.statnNm,lang,stationName\)\}>\{positionStation\(row\.statnNm,lang,stationName\)\}<\/dd>/);
  assert.match(component,/<span title=\{stateText\(row,ui\)\}>\{stateText\(row,ui\)\}<\/span>/);
 });
+
+test('home indicators and live crowding guide reuse the smart timetable grade labels',async()=>{
+ const indicator=await read('app/v2/CrowdingIndicator.jsx');
+ const {copy: timetableCopy}=await import('../app/v2/timetable-lab/copy.js');
+ assert.deepEqual(timetableCopy.en.crowdLevels,['Low','Mid','Busy','Packed']);
+ assert.match(indicator,/import \{copy as timetableCopy\} from '\.\/timetable-lab\/copy'/);
+ assert.match(indicator,/gradeLabels\(lang\)\[level\]/);
+ assert.match(component,/\(timetableCopy\[lang\]\|\|timetableCopy\.ko\)\.crowdLevels\.map/);
+ assert.doesNotMatch(indicator,/Moderate/);
+ assert.doesNotMatch(component,/grades:\[/);
+});
